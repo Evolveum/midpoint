@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.repo.common.tasks;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType.COMPLETE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType.READY;
+
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -16,9 +19,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+import com.evolveum.midpoint.repo.common.task.work.GetBucketOperationOptions.GetBucketOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
@@ -97,7 +103,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
     @PostConstruct
     public void initialize() throws Exception {
         displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
-        bucketingManager.setFreeBucketWaitIntervalOverride(1000L);
+        BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(1000L);
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
 
@@ -114,7 +120,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), beans, null);
+        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), null, beans);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -169,7 +175,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), beans, null);
+        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), null, beans);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -224,7 +230,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), beans, null);
+        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), null, beans);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -323,11 +329,16 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
                         .build()
         );
 
-        getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
+        assertBucketState(task, 1, READY);
 
         when("complete and 2nd get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 1, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 1, null, result);
+
+        task.refresh(result);
+        assertBucketState(task, 1, COMPLETE);
+
         bucket = getWorkBucket(task, result);
 
         then("complete and 2nd get");
@@ -337,14 +348,14 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_ITERATION).ge(123L)
                         .and().item(UserType.F_ITERATION).lt(200L)
-                        .build()
-        );
+                        .build());
 
-        getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
+        assertBucketState(task, 2, READY);
 
         when("complete and 3rd get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 2, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 2, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 3rd get");
@@ -356,30 +367,46 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
                         .build()
         );
 
-        getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
 
         when("complete and 4th get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 3, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 3, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 4th get");
 
         assertNull("Non-null bucket obtained", bucket);
 
-        getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
     }
 
     private WorkBucketType getWorkBucket(Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
-        return getWorkBucket(task, task, 0, result);
+        return getWorkBucket(task, null, result);
     }
 
-    private WorkBucketType getWorkBucket(Task workerTask, Task coordinatorTask, int freeBucketWaitTime, OperationResult result)
+    private WorkBucketType getWorkBucket(Task coordinator, String workerOid, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
-        ActivityDistributionDefinition distributionDefinition =
-                ActivityDistributionDefinition.create(coordinatorTask.getRootActivityDefinitionOrClone(), () -> null);
-        return bucketingManager.getWorkBucket(workerTask.getOid(), distributionDefinition, freeBucketWaitTime, result);
+        return getWorkBucket(coordinator, workerOid, null, result);
+    }
+
+    private WorkBucketType getWorkBucket(Task coordinator, String workerOid,
+            Consumer<GetBucketOperationOptionsBuilder> customizer, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
+
+        GetBucketOperationOptionsBuilder optionsBuilder = GetBucketOperationOptionsBuilder.anOptions()
+                .withDistributionDefinition(
+                        ActivityDistributionDefinition.create(coordinator.getRootActivityDefinitionOrClone(), () -> null));
+
+        if (customizer != null) {
+            customizer.accept(optionsBuilder);
+        }
+
+        return bucketingManager.getWorkBucket(
+                coordinator.getOid(), workerOid, ActivityPath.empty(),
+                optionsBuilder.build(),
+                null, result);
     }
 
     /**
@@ -407,13 +434,13 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
                         .build()
         );
 
-        Task taskAfter = getTaskAndAssertOptimizedBuckets(task, result);
+        Task taskAfter = refreshTaskAndAssertOptimizedBuckets(task, result);
         assertEquals("Wrong # of estimated buckets (task)", Integer.valueOf(3), getNumberOfBuckets(taskAfter));
         assertEquals("Wrong # of estimated buckets (API)", Integer.valueOf(3), numberOfBuckets);
 
         when("complete and 2nd get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 1, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 1, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 2nd get");
@@ -425,11 +452,11 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
                         .and().item(ShadowType.F_NAME).lt(new PolyString("m", "m"))
                         .build()
         );
-        getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
 
         when("complete and 3rd get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 2, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 2, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 3rd get");
@@ -440,17 +467,17 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
                         .item(ShadowType.F_NAME).ge(new PolyString("m", "m"))
                         .build()
         );
-        getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
 
         when("complete and 4th get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 3, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 3, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 4th get");
 
         assertNull("Non-null bucket obtained", bucket);
-        getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
     }
 
     /**
@@ -474,11 +501,11 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         assertThat(bucket).isNotNull();
 
-        Task taskAfter = getTaskAndAssertOptimizedBuckets(task, result);
+        Task taskAfter = refreshTaskAndAssertOptimizedBuckets(task, result);
 
         List<WorkBucketType> wBuckets = getBuckets(taskAfter);
         assertEquals("Wrong # of buckets", 1, wBuckets.size());
-        assertBucket(wBuckets.get(0), WorkBucketStateType.READY, 1);
+        assertBucket(wBuckets.get(0), READY, 1);
         assertEquals(wBuckets.get(0).getContent(), new NullWorkBucketContentType());
         assertNumberOfBuckets(taskAfter, 1, ActivityPath.empty());
     }
@@ -503,11 +530,11 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         assertThat(bucket).isNotNull();
 
-        Task taskAfter = getTaskAndAssertOptimizedBuckets(task, result);
+        Task taskAfter = refreshTaskAndAssertOptimizedBuckets(task, result);
 
         List<WorkBucketType> wBuckets = getBuckets(taskAfter);
         assertEquals("Wrong # of buckets", 7, wBuckets.size());
-        assertBucket(wBuckets.get(0), WorkBucketStateType.READY, 1);
+        assertBucket(wBuckets.get(0), READY, 1);
         assertNumberOfBuckets(taskAfter, 1000, ActivityPath.empty());
     }
 
@@ -532,50 +559,50 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         displayValue("1st obtained bucket", bucket1);
         displayValue("2nd obtained bucket", bucket2);
-        task = getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
 
-        assertNumericBucket(bucket1, WorkBucketStateType.READY, 1, 0, 100);
-        assertNumericBucket(bucket2, WorkBucketStateType.READY, 1, 0, 100); // should be the same
+        assertNumericBucket(bucket1, READY, 1, 0, 100);
+        assertNumericBucket(bucket2, READY, 1, 0, 100); // should be the same
 
         List<WorkBucketType> buckets = new ArrayList<>(getBuckets(task));
         assertEquals(1, buckets.size());
-        assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 1, 0, 100);
+        assertNumericBucket(buckets.get(0), READY, 1, 0, 100);
 
         when("complete");
 
-        bucketingManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 1, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 1, null, result);
         WorkBucketType bucket3 = getWorkBucket(task, result);
 
         then("complete");
 
         displayValue("bucket obtained after complete", bucket3);
-        task = getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
 
-        assertNumericBucket(bucket3, WorkBucketStateType.READY, 2, 100, 200);
+        assertNumericBucket(bucket3, READY, 2, 100, 200);
 
         buckets = new ArrayList<>(getBuckets(task));
         sortBucketsBySequentialNumber(buckets);
         assertEquals(2, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 1, 0, 100);
-        assertNumericBucket(buckets.get(1), WorkBucketStateType.READY, 2, 100, 200);
+        assertNumericBucket(buckets.get(1), READY, 2, 100, 200);
 
         when("complete 2");
 
-        bucketingManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 2, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 2, null, result);
         WorkBucketType bucket4 = getWorkBucket(task, result);
 
         then("complete 2");
 
         displayValue("bucket obtained after 2nd complete", bucket4);
-        task = getTaskAndAssertOptimizedBuckets(task, result);
+        refreshTaskAndAssertOptimizedBuckets(task, result);
 
-        assertNumericBucket(bucket4, WorkBucketStateType.READY, 3, 200, 300);
+        assertNumericBucket(bucket4, READY, 3, 200, 300);
 
         buckets = new ArrayList<>(getBuckets(task));
         sortBucketsBySequentialNumber(buckets);
         assertEquals(2, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 2, 100, 200);
-        assertNumericBucket(buckets.get(1), WorkBucketStateType.READY, 3, 200, 300);
+        assertNumericBucket(buckets.get(1), READY, 3, 200, 300);
     }
 
     /**
@@ -613,24 +640,19 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         taskAdd(TASK_200_COORDINATOR, result); // suspended
         taskAdd(TASK_200_WORKER, result); // suspended
 
-        Task worker = taskManager.getTaskPlain(TASK_200_WORKER.oid, result);
         Task coordinator = taskManager.getTaskPlain(TASK_200_COORDINATOR.oid, result);
 
         when();
 
-        WorkBucketType bucket = getWorkBucket(worker, coordinator, 0, result);
+        WorkBucketType bucket = getWorkBucket(coordinator, TASK_200_WORKER.oid, result);
 
         then();
 
         displayValue("allocated bucket", bucket);
         Task coordinatorAfter = taskManager.getTaskPlain(TASK_200_COORDINATOR.oid, result);
-        Task workerAfter = taskManager.getTaskPlain(worker.getOid(), result);
         displayDumpable("coordinator task after", coordinatorAfter);
-        displayDumpable("worker task after", workerAfter);
 
         assertNumericBucket(bucket, null, 1, 0, 1000);
-        List<WorkBucketType> wBuckets = getBuckets(workerAfter);
-        assertNumericBucket(wBuckets.get(0), WorkBucketStateType.READY, 1, 0, 1000);
         List<WorkBucketType> cBuckets = getBuckets(coordinatorAfter);
         assertNumericBucket(cBuckets.get(0), WorkBucketStateType.DELEGATED, 1, 0, 1000);
         assertNumberOfBuckets(coordinatorAfter, 100, ActivityPath.empty());
@@ -652,19 +674,21 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         taskAdd(TASK_210_WORKER_5, result); // suspended
 
         Task coordinator = taskManager.getTaskPlain(TASK_210_COORDINATOR.oid, result);
-        Task worker1 = taskManager.getTaskPlain(TASK_210_WORKER_1.oid, result);
-        Task worker2 = taskManager.getTaskPlain(TASK_210_WORKER_2.oid, result);
-        Task worker3 = taskManager.getTaskPlain(TASK_210_WORKER_3.oid, result);
-        Task worker4 = taskManager.getTaskPlain(TASK_210_WORKER_4.oid, result);
-        Task worker5 = taskManager.getTaskPlain(TASK_210_WORKER_5.oid, result);
+
+        String oidC = TASK_210_COORDINATOR.oid;
+        String oidW1 = TASK_210_WORKER_1.oid;
+        String oidW2 = TASK_210_WORKER_2.oid;
+        String oidW3 = TASK_210_WORKER_3.oid;
+        String oidW4 = TASK_210_WORKER_4.oid;
+        String oidW5 = TASK_210_WORKER_5.oid;
 
         when();
 
-        WorkBucketType bucket1 = getWorkBucket(worker1, coordinator, 0, result);
-        WorkBucketType bucket2 = getWorkBucket(worker2, coordinator, 0, result);
-        WorkBucketType bucket3 = getWorkBucket(worker3, coordinator, 0, result);
-        WorkBucketType bucket4 = getWorkBucket(worker4, coordinator, 0, result);
-        WorkBucketType bucket4a = getWorkBucket(worker4, coordinator, 0, result); // should be the same as bucket4
+        WorkBucketType bucket1 = getWorkBucket(coordinator, oidW1, result);
+        WorkBucketType bucket2 = getWorkBucket(coordinator, oidW2, result);
+        WorkBucketType bucket3 = getWorkBucket(coordinator, oidW3, result);
+        WorkBucketType bucket4 = getWorkBucket(coordinator, oidW4, result);
+        WorkBucketType bucket4a = getWorkBucket(coordinator, oidW4, result); // should be the same as bucket4 (the same worker)
 
         then();
 
@@ -673,16 +697,8 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         displayValue("3rd allocated bucket", bucket3);
         displayValue("4th allocated bucket", bucket4);
         displayValue("4+th allocated bucket", bucket4a);
-        worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-        worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
-        worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-        worker4 = taskManager.getTaskPlain(worker4.getOid(), result);
         coordinator.refresh(result);
         displayDumpable("coordinator task after 4+1x allocation", coordinator);
-        displayDumpable("worker1 task after 4+1x allocation", worker1);
-        displayDumpable("worker2 task after 4+1x allocation", worker2);
-        displayDumpable("worker3 task after 4+1x allocation", worker3);
-        displayDumpable("worker4 task after 4+1x allocation", worker4);
 
         assertNumericBucket(bucket1, null, 1, 0, 1);
         assertNumericBucket(bucket2, null, 2, 1, 2);
@@ -691,58 +707,37 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         assertNumericBucket(bucket4a, null, 4, 3, 4);
         List<WorkBucketType> buckets = new ArrayList<>(getBuckets(coordinator));
         sortBucketsBySequentialNumber(buckets);
-        assertEquals(5, buckets.size());
+        assertEquals(4, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 1, 0, 1);
         assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 2, 1, 2);
         assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 3, 2, 3);
         assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 4, 3, 4);
-        assertNumericBucket(buckets.get(4), WorkBucketStateType.READY, 5, 4, 5); // pre-created
-
-        buckets = new ArrayList<>(getBuckets(worker1));
-        assertEquals(1, buckets.size());
-        assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 1, 0, 1);
-        buckets = new ArrayList<>(getBuckets(worker2));
-        assertEquals(1, buckets.size());
-        assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 2, 1, 2);
-        buckets = new ArrayList<>(getBuckets(worker3));
-        assertEquals(1, buckets.size());
-        assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 3, 2, 3);
-        buckets = new ArrayList<>(getBuckets(worker4));
-        assertEquals(1, buckets.size());
-        assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 4, 3, 4);
 
         when("complete bucket #2");
 
-        bucketingManager.completeWorkBucket(worker2.getOid(), ActivityPath.empty(), 2, null, result);
+        bucketingManager.completeWorkBucket(oidC, oidW2, ActivityPath.empty(), 2, null, result);
 
         then("complete bucket #2");
 
-        worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
-        displayDumpable("worker2 after completion of 2nd bucket", worker2);
         coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
         displayDumpable("coordinator after completion of 2nd bucket", coordinator);
 
         buckets = new ArrayList<>(getBuckets(coordinator));
         sortBucketsBySequentialNumber(buckets);
 
-        assertEquals(5, buckets.size());
+        assertEquals(4, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 1, 0, 1);
         assertNumericBucket(buckets.get(1), WorkBucketStateType.COMPLETE, 2, 1, 2);
         assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 3, 2, 3);
         assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 4, 3, 4);
-        assertNumericBucket(buckets.get(4), WorkBucketStateType.READY, 5, 4, 5); // pre-created
-
-        assertNoWorkBuckets(worker2.getWorkState().getActivity());
 
         when("complete bucket #1");
 
-        bucketingManager.completeWorkBucket(worker1.getOid(), ActivityPath.empty(), 1, null, result);
-        WorkBucketType bucket = getWorkBucket(worker1, coordinator, 0, result);
+        bucketingManager.completeWorkBucket(oidC, oidW1, ActivityPath.empty(), 1, null, result);
+        WorkBucketType bucket = getWorkBucket(coordinator, oidW1, result);
 
         then("complete bucket #1");
 
-        worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-        displayDumpable("worker1 after completion of 1st bucket and fetching next one", worker1);
         coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
         displayDumpable("coordinator after completion of 1st bucket and fetching next one", coordinator);
 
@@ -757,13 +752,9 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 5, 4, 5);
 
-        buckets = new ArrayList<>(getBuckets(worker1));
-        assertEquals(1, buckets.size());
-        assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 5, 4, 5);
-
         when("no more buckets");
 
-        WorkBucketType nothing = getWorkBucket(worker5, coordinator, 0, result);
+        WorkBucketType nothing = getWorkBucket(coordinator, oidW5, result);
 
         then("no more buckets");
 
@@ -771,13 +762,10 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("release bucket #4");
 
-        // TODO set some state here and check its transfer to coordinator task
-        bucketingManager.releaseWorkBucket(worker4.getOid(), ActivityPath.empty(), 4, null, result);
+        bucketingManager.releaseWorkBucket(oidC, oidW4, ActivityPath.empty(), 4, null, result);
 
         then("release bucket #4");
 
-        worker4 = taskManager.getTaskPlain(worker4.getOid(), result);
-        displayDumpable("worker4 after releasing of 4th bucket", worker4);
         coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
         displayDumpable("coordinator after releasing of 4th bucket", coordinator);
 
@@ -787,22 +775,16 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         assertEquals(4, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 2, 1, 2);
         assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 3, 2, 3);
-        assertNumericBucket(buckets.get(2), WorkBucketStateType.READY, 4, 3, 4);
+        assertNumericBucket(buckets.get(2), READY, 4, 3, 4);
         assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 5, 4, 5);
-
-        assertNoWorkBuckets(worker4.getWorkState().getActivity());
 
         when("complete bucket #3");
 
-        bucketingManager.completeWorkBucket(worker3.getOid(), ActivityPath.empty(), 3, null, result);
-        bucket = getWorkBucket(worker5, coordinator, 0, result);
+        bucketingManager.completeWorkBucket(oidC, oidW3, ActivityPath.empty(), 3, null, result);
+        bucket = getWorkBucket(coordinator, oidW5, result);
 
         then("complete bucket #3");
 
-        worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-        displayDumpable("worker3 after completion of 3rd bucket and getting next one", worker3);
-        worker5 = taskManager.getTaskPlain(worker5.getOid(), result);
-        displayDumpable("worker5 after completion of 3rd bucket and getting next one", worker5);
         coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
         displayDumpable("coordinator after completion of 3rd bucket and getting next one", coordinator);
 
@@ -815,23 +797,13 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 5, 4, 5);
 
-        assertNoWorkBuckets(worker3.getWorkState().getActivity());
-
-        buckets = new ArrayList<>(getBuckets(worker5));
-        assertEquals(1, buckets.size());
-        assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 4, 3, 4);
-
         when("complete bucket #5");
 
-        bucketingManager.completeWorkBucket(worker1.getOid(), ActivityPath.empty(), 5, null, result);
-        taskManager.closeTask(worker5, result);
+        bucketingManager.completeWorkBucket(oidC, oidW1, ActivityPath.empty(), 5, null, result);
+        taskManager.closeTask(oidW5, result);
 
         then("complete bucket #5");
 
-        worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-        displayDumpable("worker1 after completion of 5th bucket and closing worker5", worker1);
-        worker5 = taskManager.getTaskPlain(worker5.getOid(), result);
-        displayDumpable("worker5 after completion of 5th bucket and closing worker5", worker5);
         coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
         displayDumpable("coordinator after completion of 5th bucket and closing worker5", coordinator);
 
@@ -840,17 +812,17 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(1), WorkBucketStateType.COMPLETE, 5, 4, 5);
 
-        assertNoWorkBuckets(worker1.getWorkState().getActivity());
-
         when("reclaiming mis-allocated bucket");
 
-        bucket = getWorkBucket(worker1, coordinator, -1, result);
+        bucket = getWorkBucket(coordinator, oidW1,
+                b -> b.withFreeBucketWaitTime(-1)
+                        .withIsScavenger(true),
+                result);
+
         assertThat(bucket).isNotNull();
 
         then("reclaiming mis-allocated bucket");
 
-        worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-        displayDumpable("worker1 after reclaiming mis-allocated bucket", worker1);
         coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
         displayDumpable("coordinator after reclaiming mis-allocated bucket", coordinator);
 
@@ -861,27 +833,21 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(1), WorkBucketStateType.COMPLETE, 5, 4, 5);
 
-        buckets = new ArrayList<>(getBuckets(worker1));
-        assertEquals(1, buckets.size());
-        assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 4, 3, 4);
-
         when("complete bucket #4");
 
-        bucketingManager.completeWorkBucket(worker1.getOid(), ActivityPath.empty(), 4, null, result);
+        bucketingManager.completeWorkBucket(oidC, oidW1, ActivityPath.empty(), 4, null, result);
 
         then("complete bucket #4");
 
-        worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-        displayDumpable("worker1 after completion of 4th bucket", worker1);
         coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
         displayDumpable("coordinator after completion of 4th bucket", coordinator);
 
         buckets = new ArrayList<>(getBuckets(coordinator));
         assertEquals(1, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 5, 4, 5);
-
-        assertNoWorkBuckets(worker1.getWorkState().getActivity());
     }
+
+    // TODO some test for batch allocation
 
     private WorkBucketType assumeNextValue(BucketAllocator allocator, ActivityStateType workState,
             String expectedNextValue, int expectedSequentialNumber) throws SchemaException {
@@ -991,12 +957,12 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         PrismAsserts.assertQueriesEquivalent("Wrong narrowed query", expectedQuery, narrowedQuery);
     }
 
-    private Task getTaskAndAssertOptimizedBuckets(Task task, OperationResult result)
+    private Task refreshTaskAndAssertOptimizedBuckets(Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        Task taskAfter = taskManager.getTaskPlain(task.getOid(), result);
-        displayDumpable("task after", taskAfter);
-        assertOptimizedCompletedBuckets(taskAfter, ActivityPath.empty());
-        return taskAfter;
+        task.refresh(result);
+        displayDumpable("task after", task);
+        assertOptimizedCompletedBuckets(task, ActivityPath.empty());
+        return task;
     }
 
     @NotNull

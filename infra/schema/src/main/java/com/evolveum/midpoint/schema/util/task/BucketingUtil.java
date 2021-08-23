@@ -32,6 +32,13 @@ public class BucketingUtil {
                 .findFirst().orElse(null);
     }
 
+    public static @NotNull WorkBucketType findBucketByNumberRequired(List<WorkBucketType> buckets, int sequentialNumber) {
+        return buckets.stream()
+                .filter(b -> b.getSequentialNumber() == sequentialNumber)
+                .findFirst().orElseThrow(
+                        () -> new IllegalStateException("No bucket #" + sequentialNumber + " found"));
+    }
+
     // beware: do not call this on prism structure directly (it does not support setting values)
     public static void sortBucketsBySequentialNumber(List<WorkBucketType> buckets) {
         buckets.sort(Comparator.comparingInt(WorkBucketType::getSequentialNumber));
@@ -156,11 +163,16 @@ public class BucketingUtil {
         return bucketing != null && Boolean.TRUE.equals(bucketing.isScavenger());
     }
 
+    public static boolean isInScavengingPhase(TaskActivityStateType taskState, ActivityPath activityPath) {
+        ActivityBucketingStateType bucketing = ActivityStateUtil.getActivityStateRequired(taskState, activityPath).getBucketing();
+        return bucketing != null && Boolean.TRUE.equals(bucketing.isScavenging());
+    }
+
     public static boolean isWorkComplete(ActivityStateType state) {
         return state != null && state.getBucketing() != null && Boolean.TRUE.equals(state.getBucketing().isWorkComplete());
     }
 
-    public static String getWorkerOid(@NotNull WorkBucketType bucket) {
+    public static @Nullable String getWorkerOid(@NotNull WorkBucketType bucket) {
         return bucket.getWorkerRef() != null ? bucket.getWorkerRef().getOid() : null;
     }
 

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,6 +45,12 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      */
     @Experimental
     @NotNull private final Task rootTask;
+
+    /**
+     * Immediate parent. It is not guaranteed to be current. It is initialized when the task is started.
+     */
+    @Experimental
+    @Nullable private final Task parentTask;
 
     /**
      * Lightweight asynchronous subtasks.
@@ -74,9 +81,10 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private ExecutionSupport executionSupport;
 
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
-            @NotNull Task rootTask) {
+            @NotNull Task rootTask, @Nullable Task parentTask) {
         super(taskManager, taskPrism);
         this.rootTask = rootTask;
+        this.parentTask = parentTask;
     }
 
     //region Task execution (canRun, executing thread)
@@ -315,6 +323,12 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @NotNull
     public Task getRootTask() {
         return rootTask;
+    }
+
+    @Nullable
+    @Override
+    public Task getParentTask() {
+        return parentTask;
     }
 
     @Override

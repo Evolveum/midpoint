@@ -379,7 +379,8 @@ public class WorkersReconciliation {
         List<WorkBucketType> readyBuckets = BucketingUtil.getReadyBuckets(
                 ActivityStateUtil.getActivityStateRequired(worker.getWorkState(), activityPath));
         if (!readyBuckets.isEmpty()) {
-            beans.bucketingManager.releaseAllWorkBucketsFromSuspendedWorker(worker, activityPath, null, result);
+            beans.bucketingManager.releaseAllWorkBucketsFromSuspendedWorker(coordinatorTask.getOid(),
+                    worker.getOid(), activityPath, null, result);
         }
     }
 

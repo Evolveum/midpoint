@@ -14,9 +14,10 @@ package com.evolveum.midpoint.schema.util.task.work;
  */
 public class BucketingConstants {
 
-    public static final String GET_WORK_BUCKET_FOUND_SELF_ALLOCATED = "getWorkBucket.foundSelfAllocated";
+    public static final String GET_WORK_BUCKET_FOUND_ALREADY_DELEGATED = "getWorkBucket.foundAlreadyDelegated";
     public static final String GET_WORK_BUCKET_CREATED_NEW = "getWorkBucket.createdNew";
     public static final String GET_WORK_BUCKET_DELEGATED = "getWorkBucket.delegated";
+    public static final String GET_WORK_BUCKET_FOUND_EXISTING = "getWorkBucket.foundExisting";
     public static final String GET_WORK_BUCKET_NO_MORE_BUCKETS_DEFINITE = "getWorkBucket.noMoreBucketsDefinite";
     public static final String GET_WORK_BUCKET_NO_MORE_BUCKETS_NOT_SCAVENGER = "getWorkBucket.noMoreBucketsNotScavenger";
     public static final String GET_WORK_BUCKET_NO_MORE_BUCKETS_WAIT_TIME_ELAPSED = "getWorkBucket.NoMoreBucketsWaitTimeElapsed";

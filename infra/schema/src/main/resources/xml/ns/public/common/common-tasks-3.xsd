@@ -3207,7 +3207,8 @@
     <xsd:complexType name="ActivityBucketingStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Information about the bucket processing within an activity.
+                Information about the bucket processing within an activity. It is present in both coordinator/standalone tasks
+                ("buckets-holding" for short) and worker tasks.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -3219,12 +3220,14 @@
             <xsd:element name="bucket" type="tns:WorkBucketType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Current buckets of work. Some buckets might be present implicitly: if a bucket with
-                        sequence number of N is present, it is expected that all unlisted buckets with numbers lower than N
-                        are either complete (for coordinator and standalone tasks) or not relevant (for worker tasks).
+                        Current buckets of work.
 
+                        Some buckets might be present implicitly: if a bucket with sequence number of N is present,
+                        it is expected that all unlisted buckets with numbers lower than N are complete.
                         In a similar way, if no free bucket is available and we are not at the end it is expected that some
-                        free buckets are yet to be created (for coordinator tasks).
+                        free buckets are yet to be created.
+
+                        Present only in buckets-holding tasks (coordinator or standalone).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3232,7 +3235,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         How many buckets are there? This is an indicative information, e.g. to be used when
-                        estimating total progress. Relevant only for coordinator and standalone tasks.
+                        estimating total progress. Present only in buckets-holding tasks.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3248,7 +3251,8 @@
             <xsd:element name="scavenging" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Are we in the scavenging phase? Relevant only for coordinator tasks.
+                        Are we in the scavenging phase? Present only in buckets-holding tasks,
+                        relevant only in coordinator-workers scenarios.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3256,7 +3260,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Is this task a scavenger i.e. will it wait until the work is done, looking
-                        for buckets that could be reclaimed? Applicable only to worker tasks.
+                        for buckets that could be reclaimed? Present only in worker tasks.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3264,6 +3268,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         True if all the work is complete: there are no more buckets to be processed.
+                        Present only in buckets-holding tasks.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

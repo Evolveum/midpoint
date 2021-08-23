@@ -21,7 +21,6 @@
                     <bucketSize>1</bucketSize>
                 </numericSegmentation>
                 <allocation>
-                    <bucketCreationBatch>3</bucketCreationBatch>
                     <allocateFirst>true</allocateFirst>
                 </allocation>
             </buckets>

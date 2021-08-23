@@ -35,11 +35,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.Objects;
 
 import static java.util.Collections.emptyList;
 
@@ -48,8 +50,8 @@ public class TaskRetriever {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskRetriever.class);
     private static final String CLASS_DOT = TaskRetriever.class.getName() + ".";
-    private static final String OP_GET_ROOT_TASK_OID = CLASS_DOT + "getRootTaskOid";
-    public static final String OP_GET_TASK_SAFELY = CLASS_DOT + ".getTaskSafely";
+    private static final String OP_GET_PARENT_AND_ROOT = CLASS_DOT + "getParentAndRoot";
+    private static final String OP_GET_TASK_SAFELY = CLASS_DOT + ".getTaskSafely";
 
     @Autowired private LocalScheduler localScheduler;
     @Autowired private ClusterManager clusterManager;
@@ -433,28 +435,32 @@ public class TaskRetriever {
      * PRE: task is either persistent or is a RunningTask
      */
     @NotNull
-    public Task getRootTask(TaskQuartzImpl task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    public ParentAndRoot getParentAndRoot(TaskQuartzImpl task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
         if (task instanceof RunningTask) {
-            return ((RunningTask) task).getRootTask();
+            return new ParentAndRoot(
+                    ((RunningTask) task).getParentTask(),
+                    ((RunningTask) task).getRootTask());
         }
 
-        OperationResult result = parentResult.subresult(OP_GET_ROOT_TASK_OID)
+        List<Task> pathToRoot = new ArrayList<>();
+
+        OperationResult result = parentResult.subresult(OP_GET_PARENT_AND_ROOT)
                 .setMinor()
                 .build();
         try {
-            Set<String> visited = new HashSet<>();
             Task current = task;
             for (;;) {
-                if (!visited.add(current.getTaskIdentifier())) {
-                    throw new IllegalStateException("Couldn't find root for " + task + " because there's a cycle");
-                }
+                checkNoCycle(pathToRoot, current, task);
+                pathToRoot.add(current);
+
                 String parentIdentifier = current.getParent();
                 if (parentIdentifier == null) {
                     // Found the root!
                     if (current.getOid() == null) {
-                        throw new IllegalStateException("Called getRootTaskOid for non-persistent task");
+                        throw new IllegalStateException("Asked to find a root for a non-persistent task tree");
                     }
-                    return current;
+                    return ParentAndRoot.fromPath(pathToRoot);
                 }
                 current = getTaskByIdentifier(parentIdentifier, result);
             }
@@ -464,6 +470,15 @@ public class TaskRetriever {
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private void checkNoCycle(List<Task> pathToRoot, Task current, Task task) {
+        boolean alreadyExists = pathToRoot.stream()
+                .anyMatch(taskOnPath -> Objects.equals(taskOnPath.getTaskIdentifier(), current.getTaskIdentifier()));
+        if (alreadyExists) {
+            throw new IllegalStateException("Couldn't find root for " + task + " because there's a cycle. Path to root: " +
+                    pathToRoot);
         }
     }
 
@@ -590,6 +605,23 @@ public class TaskRetriever {
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    public static class ParentAndRoot {
+        @Nullable public final Task parent;
+        @NotNull public final Task root;
+
+        ParentAndRoot(@Nullable Task parent, @NotNull Task root) {
+            this.parent = parent;
+            this.root = root;
+        }
+
+        public static ParentAndRoot fromPath(List<Task> pathToRoot) {
+            assert !pathToRoot.isEmpty();
+            return new ParentAndRoot(
+                    pathToRoot.size() > 1 ? pathToRoot.get(1) : null,
+                    pathToRoot.get(pathToRoot.size() - 1));
         }
     }
 }

@@ -10,6 +10,8 @@ import java.io.File;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -59,7 +61,7 @@ public class TestBucketingLive extends AbstractRepoCommonTest {
 
     @PostConstruct
     public void initialize() throws Exception {
-        bucketingManager.setFreeBucketWaitIntervalOverride(1000L);
+        BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(1000L);
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
 

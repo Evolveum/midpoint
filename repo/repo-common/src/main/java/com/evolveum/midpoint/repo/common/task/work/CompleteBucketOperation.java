@@ -7,31 +7,36 @@
 
 package com.evolveum.midpoint.repo.common.task.work;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.ListUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.schema.util.task.work.BucketingConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 public class CompleteBucketOperation extends BucketOperation {
 
@@ -39,95 +44,78 @@ public class CompleteBucketOperation extends BucketOperation {
 
     private final int sequentialNumber;
 
-    CompleteBucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, CommonTaskBeans beans,
+    CompleteBucketOperation(@NotNull String coordinatorTaskOid, @Nullable String workerTaskOid,
+            @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, CommonTaskBeans beans,
             int sequentialNumber) {
-        super(workerTaskOid, activityPath, collector, beans);
+        super(coordinatorTaskOid, workerTaskOid, activityPath, collector, beans);
         this.sequentialNumber = sequentialNumber;
     }
 
     public void execute(OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 
-        loadTasks(result);
-        LOGGER.trace("Completing work bucket #{} in {} (coordinator {})", sequentialNumber, workerTask, coordinatorTask);
+        LOGGER.trace("Completing work bucket #{} in {} (worker {})", sequentialNumber, coordinatorTaskOid, workerTaskOid);
+        ModifyObjectResult<TaskType> modifyObjectResult =
+                plainRepositoryService.modifyObjectDynamically(TaskType.class, coordinatorTaskOid, null,
+                        this::computeCompletionModifications, null, result);
+        statisticsKeeper.addToConflictCounts(modifyObjectResult);
+        statisticsKeeper.register(BucketingConstants.COMPLETE_WORK_BUCKET);
+    }
 
-        if (isStandalone()) {
-            completeWorkBucketStandalone(result);
+    private @NotNull Collection<ItemDelta<?, ?>> computeCompletionModifications(@NotNull TaskType task) throws SchemaException {
+        List<WorkBucketType> buckets = CloneUtil.cloneCollectionMembers(
+                BucketingUtil.getBuckets(task.getActivityState(), activityPath));
+        WorkBucketType bucket = BucketingUtil.findBucketByNumberRequired(buckets, sequentialNumber);
+        checkBucketReadyOrDelegated(bucket);
+
+        ItemPath statePath = ActivityStateUtil.getStateItemPath(task.getActivityState(), activityPath);
+        List<ItemDelta<?, ?>> closingMods = bucketStateChangeDeltas(statePath, bucket, WorkBucketStateType.COMPLETE);
+
+        WorkBucketType bucketBeforeCompletion = bucket.clone();
+        bucket.setState(WorkBucketStateType.COMPLETE); // needed for compressing buckets
+
+        Holder<Boolean> recentlyClosedBucketDeleted = new Holder<>();
+        List<ItemDelta<?, ?>> compressingMods =
+                compressCompletedBuckets(statePath, buckets, bucketBeforeCompletion, recentlyClosedBucketDeleted);
+
+        if (Boolean.TRUE.equals(recentlyClosedBucketDeleted.getValue())) {
+            return compressingMods;
         } else {
-            completeWorkBucketMultiNode(result);
+            return ListUtils.union(
+                    closingMods,
+                    compressingMods);
         }
     }
+    private List<ItemDelta<?, ?>> compressCompletedBuckets(ItemPath statePath, List<WorkBucketType> currentBuckets,
+            WorkBucketType closedBucketBefore, Holder<Boolean> recentlyClosedBucketDeletedHolder) throws SchemaException {
 
-    private void completeWorkBucketStandalone(OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        ActivityStateType partWorkState = getWorkerTaskActivityState();
-        WorkBucketType bucket = BucketingUtil.findBucketByNumber(getBuckets(partWorkState), sequentialNumber);
-        if (bucket == null) {
-            throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + workerTask);
-        }
-        if (bucket.getState() != WorkBucketStateType.READY && bucket.getState() != null) {
-            throw new IllegalStateException("Work bucket " + sequentialNumber + " in " + workerTask
-                    + " cannot be marked as complete, as it is not ready; its state = " + bucket.getState());
-        }
-        Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(workerStatePath, bucket, WorkBucketStateType.COMPLETE);
-        plainRepositoryService.modifyObject(TaskType.class, workerTask.getOid(), modifications, null, result);
-        workerTask.applyModificationsTransient(modifications);
-        workerTask.applyDeltasImmediate(modifications, result);
-        compressCompletedBuckets(workerTask, workerStatePath, result);
-        statisticsKeeper.register(BucketingConstants.COMPLETE_WORK_BUCKET);
-    }
+        recentlyClosedBucketDeletedHolder.setValue(false);
 
-    private void completeWorkBucketMultiNode(OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        ActivityStateType workState = getCoordinatorTaskActivityState();
-        WorkBucketType bucket = BucketingUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
-        if (bucket == null) {
-            throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);
-        }
-        if (bucket.getState() != WorkBucketStateType.DELEGATED) {
-            throw new IllegalStateException("Work bucket " + sequentialNumber + " in " + coordinatorTask
-                    + " cannot be marked as complete, as it is not delegated; its state = " + bucket.getState());
-        }
-        checkWorkerRefOnDelegatedBuckets(bucket);
-        Collection<ItemDelta<?, ?>> modifications =
-                bucketStateChangeDeltas(coordinatorStatePath, bucket, WorkBucketStateType.COMPLETE);
-        try {
-            ModifyObjectResult<TaskType> modifyObjectResult = plainRepositoryService.modifyObject(TaskType.class,
-                    coordinatorTask.getOid(), modifications, bucketUnchangedPrecondition(bucket), null, result);
-            statisticsKeeper.addToConflictCounts(modifyObjectResult);
-        } catch (PreconditionViolationException e) {
-            throw new IllegalStateException("Unexpected concurrent modification of work bucket " + bucket + " in " + coordinatorTask, e);
-        }
-        coordinatorTask.applyModificationsTransient(modifications);
-        compressCompletedBuckets(coordinatorTask, coordinatorStatePath, result);
-        deleteBucketFromWorker(sequentialNumber, result);
-        statisticsKeeper.register(BucketingConstants.COMPLETE_WORK_BUCKET);
-    }
-
-    private void compressCompletedBuckets(Task task, ItemPath statePath, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        List<WorkBucketType> buckets = new ArrayList<>(getBuckets(task.getWorkState(), activityPath));
+        List<WorkBucketType> buckets = new ArrayList<>(currentBuckets);
         BucketingUtil.sortBucketsBySequentialNumber(buckets);
         List<WorkBucketType> completeBuckets = buckets.stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .collect(Collectors.toList());
         if (completeBuckets.size() <= 1) {
             LOGGER.trace("Compression of completed buckets: # of complete buckets is too small ({}) in {}, exiting",
-                    completeBuckets.size(), task);
-            return;
+                    completeBuckets.size(), coordinatorTaskOid);
+            return List.of();
         }
 
         List<ItemDelta<?, ?>> deleteItemDeltas = new ArrayList<>();
         for (int i = 0; i < completeBuckets.size() - 1; i++) {
-            deleteItemDeltas.addAll(bucketDeleteDeltas(statePath, completeBuckets.get(i)));
+            WorkBucketType completeBucketToDelete = completeBuckets.get(i);
+            if (completeBucketToDelete.getSequentialNumber() == closedBucketBefore.getSequentialNumber()) {
+                recentlyClosedBucketDeletedHolder.setValue(true);
+                // We need to delete the "before" value of closed bucket (otherwise the deletion will not find the correct PCV)
+                deleteItemDeltas.addAll(bucketDeleteDeltas(statePath, closedBucketBefore));
+            } else {
+                deleteItemDeltas.addAll(bucketDeleteDeltas(statePath, completeBucketToDelete));
+            }
         }
-        LOGGER.trace("Compression of completed buckets: deleting {} buckets before last completed one in {}", deleteItemDeltas.size(), task);
-        // these buckets should not be touched by anyone (as they are already completed); so we can execute without preconditions
-        if (!deleteItemDeltas.isEmpty()) {
-            ModifyObjectResult<TaskType> modifyObjectResult =
-                    plainRepositoryService.modifyObject(TaskType.class, task.getOid(), deleteItemDeltas, null, result);
-            statisticsKeeper.addToConflictCounts(modifyObjectResult);
-        }
+        LOGGER.trace("Compression of completed buckets: deleting {} buckets before last completed one in {}",
+                deleteItemDeltas.size(), coordinatorTaskOid);
+        return deleteItemDeltas;
     }
 
     @Override

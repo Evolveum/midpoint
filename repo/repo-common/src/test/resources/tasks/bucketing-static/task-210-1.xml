@@ -17,7 +17,6 @@
         <activity>
             <bucketing>
                 <bucketsProcessingRole>worker</bucketsProcessingRole>
-                <scavenger>true</scavenger>
             </bucketing>
         </activity>
     </activityState>

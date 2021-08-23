@@ -3317,6 +3317,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
+    protected void assertBucketState(Task task, int sequentialNumber, WorkBucketStateType expectedState) {
+        ActivityStateType state = ActivityStateUtil.getActivityStateRequired(task.getActivitiesStateOrClone(), ActivityPath.empty());
+        assertThat(state.getBucketing()).as("bucketing state").isNotNull();
+        WorkBucketType bucket = BucketingUtil.findBucketByNumber(state.getBucketing().getBucket(), sequentialNumber);
+        assertThat(bucket).as("bucket #" + sequentialNumber).isNotNull();
+        assertThat(bucket.getState()).as("bucket #" + sequentialNumber + " state").isEqualTo(expectedState);
+    }
+
     protected void assertNumberOfBuckets(Task task, Integer expectedNumber, ActivityPath activityPath) {
         ActivityStateType workState = ActivityStateUtil.getActivityStateRequired(task.getWorkState(), activityPath);
         assertEquals("Wrong # of expected buckets", expectedNumber, getNumberOfBuckets(workState));

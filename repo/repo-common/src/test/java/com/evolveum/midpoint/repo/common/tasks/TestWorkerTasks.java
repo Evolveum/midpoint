@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
     public void initialize() throws Exception {
         OperationResult result = new OperationResult("initialize");
 
-        bucketingManager.setFreeBucketWaitIntervalOverride(1000L);
+        BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(1000L);
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 
         // Needed for caching profiles
