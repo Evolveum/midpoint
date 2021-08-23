@@ -334,18 +334,8 @@ public class SearchBasedActivityExecution<
     protected void applyDefinitionsToQuery(OperationResult opResult) throws CommonException {
     }
 
-    /**
-     * TODO reconsider
-     */
     @Override
-    protected void setExpectedTotal(OperationResult result) throws CommonException {
-        Long expectedTotal = computeExpectedTotal(result);
-        getRunningTask().setExpectedTotal(expectedTotal);
-        getRunningTask().flushPendingModifications(result);
-    }
-
-    @Nullable
-    private Long computeExpectedTotal(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
+    protected @Nullable Long determineExpectedTotal(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (!getReportingOptions().isDetermineExpectedTotal()) {
             return null;

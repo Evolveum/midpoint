@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Provides execution logic and/or execution state related to a plain iterative activity execution.
  *
@@ -40,6 +42,18 @@ public interface PlainIterativeActivityExecutionSpecifics<I>
      * Note that the bucket can be obtained from the activity execution. It is included here simply for convenience.
      */
     void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult opResult) throws CommonException;
+
+    /**
+     * Determines "expected total" value for the current execution.
+     *
+     * Majority of current iterative activities do not know the expected total: for example, ConnId SyncOp does not
+     * provide information about how many changes are on the resource. But there might be some activities that do.
+     *
+     * (Also note that in case of bucketed executions this method should run null - at least for now.)
+     */
+    default @Nullable Long determineExpectedTotal(OperationResult result) throws CommonException {
+        return null;
+    }
 
     /**
      * @return Default error action if no policy is specified or if no policy entry matches.
