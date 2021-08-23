@@ -193,14 +193,13 @@ public class JobExecutor implements InterruptableJob {
 
     private TaskHandler getHandler(OperationResult result) throws StopJobException {
         String handlerUri = task.getHandlerUri();
-        String effectiveHandlerUri = handlerUri != null ? handlerUri : beans.handlerRegistry.getDefaultHandlerUri();
 
-        TaskHandler handler = beans.handlerRegistry.getHandler(effectiveHandlerUri);
+        TaskHandler handler = beans.handlerRegistry.getHandler(handlerUri);
         if (handler != null) {
             return handler;
         }
 
-        LOGGER.error("No handler for URI '{}', task {} - closing it.", effectiveHandlerUri, task);
+        LOGGER.error("No handler for URI '{}', task {} - closing it.", handlerUri, task);
         closeFlawedTaskRecordingResult(result);
         throw new StopJobException();
     }
