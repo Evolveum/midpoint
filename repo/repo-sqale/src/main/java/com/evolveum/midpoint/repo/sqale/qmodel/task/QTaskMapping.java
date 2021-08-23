@@ -71,6 +71,7 @@ public class QTaskMapping
         addItemMapping(TaskType.F_THREAD_STOP_ACTION, enumMapper(q -> q.threadStopAction));
         addItemMapping(TaskType.F_WAITING_REASON, enumMapper(q -> q.waitingReason));
         // TODO dependentTaskIdentifiers String[] mapping not supported yet
+        addItemMapping(TaskType.F_DEPENDENT, multiStringMapper(q -> q.dependentTaskIdentifiers));
     }
 
     @Override
