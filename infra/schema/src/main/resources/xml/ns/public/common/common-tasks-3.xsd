@@ -870,14 +870,35 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:schemaMigration>
+                    <a:element>tns:iterationInformation</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:iterativeTaskInformation</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:synchronizationInformation</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:actionsExecutedInformation</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:workBucketManagementPerformanceInformation</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="environmentalPerformanceInformation" type="tns:EnvironmentalPerformanceInformationType" minOccurs="0"/>
-            <xsd:element name="iterationInformation" type="tns:ActivityItemProcessingStatisticsType" minOccurs="0"/> <!-- TODO remove -->
-            <xsd:element name="iterativeTaskInformation" type="tns:IterativeTaskInformationType" minOccurs="0"/> <!-- TODO remove -->
-            <xsd:element name="synchronizationInformation" type="tns:ActivitySynchronizationStatisticsType" minOccurs="0"/> <!-- TODO remove -->
-            <xsd:element name="actionsExecutedInformation" type="tns:ActivityActionsExecutedType" minOccurs="0"/> <!-- TODO remove -->
             <xsd:element name="repositoryPerformanceInformation" type="tns:RepositoryPerformanceInformationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -895,14 +916,6 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="operationsPerformanceInformation" type="tns:OperationsPerformanceInformationType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:since>4.0</a:since>
-                        <a:experimental>true</a:experimental>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="workBucketManagementPerformanceInformation" type="tns:ActivityBucketManagementStatisticsType" minOccurs="0"> <!-- TODO remove -->
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
@@ -3169,40 +3182,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
-    <!--<xsd:simpleType name="ActivityExecutionResultType">-->
-    <!--    <xsd:annotation>-->
-    <!--        <xsd:documentation>-->
-    <!--            Result of an activity execution.-->
-    <!--        </xsd:documentation>-->
-    <!--        <xsd:appinfo>-->
-    <!--            <a:since>4.4</a:since>-->
-    <!--            <a:experimental>true</a:experimental>-->
-    <!--        </xsd:appinfo>-->
-    <!--    </xsd:annotation>-->
-    <!--    <xsd:restriction base="xsd:string">-->
-    <!--        <xsd:enumeration value="partialError">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Partial error. TODO what does it mean?-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="PARTIAL_ERROR"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--        <xsd:enumeration value="fatalError">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Fatal error. TODO what does it mean?-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="FATAL_ERROR"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--    </xsd:restriction>-->
-    <!--</xsd:simpleType>-->
 
     <xsd:complexType name="ActivityBucketingStateType">
         <xsd:annotation>
@@ -6626,26 +6605,6 @@
     </xsd:complexType>
     <xsd:element name="abstractActivityWorkState" type="tns:AbstractActivityWorkStateType" />
 
-    <!--<xsd:complexType name="RuntimeDefinedActivityWorkStateType">-->
-    <!--    <xsd:annotation>-->
-    <!--        <xsd:documentation>-->
-    <!--            TODO-->
-    <!--        </xsd:documentation>-->
-    <!--        <xsd:appinfo>-->
-    <!--            <a:container>true</a:container>-->
-    <!--            <a:since>4.4</a:since>-->
-    <!--        </xsd:appinfo>-->
-    <!--    </xsd:annotation>-->
-    <!--    <xsd:complexContent>-->
-    <!--        <xsd:extension base="tns:AbstractActivityWorkStateType">-->
-    <!--            <xsd:sequence>-->
-    <!--                -->
-    <!--            </xsd:sequence>-->
-    <!--        </xsd:extension>-->
-    <!--    </xsd:complexContent>-->
-    <!--</xsd:complexType>-->
-    <!--<xsd:element name="runtimeDefinedActivityWorkState" type="tns:RuntimeDefinedActivityWorkStateType" />-->
-
     <xsd:complexType name="PureCompositeWorkStateType">
         <xsd:annotation>
             <xsd:documentation>
@@ -6865,23 +6824,6 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="distributionWorkState" type="tns:DistributionWorkStateType" />
-
-    <!-- TODO consider removal -->
-    <xsd:complexType name="PropagationWorkStateType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-                <a:since>4.4</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractActivityWorkStateType"/>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="propagationWorkState" type="tns:PropagationWorkStateType" />
 
     <xsd:complexType name="ReconciliationWorkStateType">
         <xsd:annotation>
