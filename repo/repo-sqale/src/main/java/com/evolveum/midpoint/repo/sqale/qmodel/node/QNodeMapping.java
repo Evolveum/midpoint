@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.node;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType.F_NODE_IDENTIFIER;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType.F_OPERATIONAL_STATE;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +33,7 @@ public class QNodeMapping
                 NodeType.class, QNode.class, repositoryContext);
 
         addItemMapping(F_NODE_IDENTIFIER, stringMapper(q -> q.nodeIdentifier));
+        addItemMapping(F_OPERATIONAL_STATE, enumMapper(q -> q.operationalState));
     }
 
     @Override
@@ -49,6 +51,7 @@ public class QNodeMapping
         MNode row = super.toRowObjectWithoutFullObject(node, jdbcSession);
 
         row.nodeIdentifier = node.getNodeIdentifier();
+        row.operationalState = node.getOperationalState();
         return row;
     }
 }
