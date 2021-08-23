@@ -758,8 +758,8 @@ CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED
         CHECK (objectType = 'RESOURCE'),
-    business_administrativeState ResourceAdministrativeStateType,
-    operationalState_lastAvailabilityStatus AvailabilityStatusType,
+    businessAdministrativeState ResourceAdministrativeStateType,
+    operationalStateLastAvailabilityStatus AvailabilityStatusType,
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
     connectorRefRelationId INTEGER REFERENCES m_uri(id)
