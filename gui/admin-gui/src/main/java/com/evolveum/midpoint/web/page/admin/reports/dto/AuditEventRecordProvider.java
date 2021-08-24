@@ -219,39 +219,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
                         getPageBase().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);
                 LoggingUtils.logException(LOGGER, "Cannot search audit records: " + e.getMessage(), e);
             }
-        } else {
-            String query;
-            String origQuery;
-            Map<String, Object> parameters = new HashMap<>();
-            origQuery = DashboardUtils.createQuery(getCollectionForQuery(), parameters, false, getPageBase().getClock());
-            if (StringUtils.isNotBlank(origQuery)) {
-                query = generateFullQuery(origQuery, true, false);
-            } else {
-                parameters = parametersSupplier.get();
-                query = generateFullQuery(parameters, true, false);
-            }
-
-            parameters.put(SET_FIRST_RESULT_PARAMETER, (int) first);
-            parameters.put(SET_MAX_RESULTS_PARAMETER, (int) count);
-
-            List<AuditEventRecord> auditRecords = null;
-
-            try {
-                auditRecords = getAuditService().listRecords(query, parameters, task, result);
-            } catch (Exception e) {
-                result.recordFatalError(
-                        getPageBase().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);
-                LoggingUtils.logException(LOGGER, "Cannot search audit records: " + e.getMessage(), e);
-            }
-            if (auditRecords == null) {
-                auditRecords = new ArrayList<>();
-            }
-            for (AuditEventRecord record : auditRecords) {
-                auditRecordList.add(record.createAuditEventRecordType());
-            }
-
-            result.computeStatusIfUnknown();
-            getPageBase().showResult(result, false);
         }
         return auditRecordList;
     }
