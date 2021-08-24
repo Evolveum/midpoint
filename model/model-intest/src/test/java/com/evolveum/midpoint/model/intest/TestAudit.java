@@ -10,12 +10,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
-import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
-
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Objects;
-import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -43,6 +42,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -82,17 +83,11 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     private String jackKidEid;
     private XMLGregorianCalendar jackSailorTs;
     private String jackSailorEid;
-    private XMLGregorianCalendar jackCaptainTs;
-    private String jackCaptainEid;
-    private XMLGregorianCalendar hermanInitialTs;
     private XMLGregorianCalendar hermanCreatedTs;
     private String hermanCreatedEid;
     private XMLGregorianCalendar hermanMaroonedTs;
     private String hermanMaroonedEid;
-    private XMLGregorianCalendar hermanHermitTs;
     private String hermanHermitEid;
-    private XMLGregorianCalendar hermanCivilisedHermitTs;
-    private String hermanCivilisedHermitEid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -106,22 +101,22 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
-        List<AuditEventRecord> allRecords = modelAuditService.listRecords("select * from m_audit_event as aer where 1=1 ",
-                new HashMap<>(), task, result);
+        when();
+        List<AuditEventRecordType> allRecords = getAllAuditRecords(task, result);
 
-        // THEN
+        expect();
         display("all records", allRecords);
 
-        assertEquals("Wrong initial number of audit records", INITIAL_NUMBER_OF_AUDIT_RECORDS, allRecords.size());
+        assertEquals("Wrong initial number of audit records",
+                INITIAL_NUMBER_OF_AUDIT_RECORDS, allRecords.size());
     }
 
     @Test
     public void test010SanityJack() throws Exception {
-        // WHEN
-        List<AuditEventRecord> auditRecords = getObjectAuditRecords(USER_JACK_OID);
+        when();
+        List<AuditEventRecordType> auditRecords = getObjectAuditRecords(USER_JACK_OID);
 
-        // THEN
+        expect();
         display("Jack records", auditRecords);
 
         assertEquals("Wrong initial number of jack audit records", 0, auditRecords.size());
@@ -162,7 +157,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         userHermanBefore.asObjectable().setDescription("Unknown");
         userHermanBefore.asObjectable().setNickName(createPolyStringType("HT"));
 
-        hermanInitialTs = getTimeSafely();
+        //noinspection unused
+        XMLGregorianCalendar hermanInitialTs = getTimeSafely();
 
         // WHEN
         when();
@@ -258,8 +254,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         then();
         assertSuccess(result);
 
-        jackCaptainTs = getTimeSafely();
-        jackCaptainEid = assertObjectAuditRecords(USER_JACK_OID, 6);
+        XMLGregorianCalendar jackCaptainTs = getTimeSafely();
+        //noinspection unused
+        String jackCaptainEid = assertObjectAuditRecords(USER_JACK_OID, 6);
 
         assertRecordsFromPrevious(hermanMaroonedTs, jackCaptainTs, 2);
         assertRecordsFromPrevious(jackSailorTs, jackCaptainTs, 4);
@@ -294,7 +291,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("Herman (hermit)", user);
 
-        hermanHermitTs = getTimeSafely();
+        XMLGregorianCalendar hermanHermitTs = getTimeSafely();
         hermanHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 6);
         assertRecordsFromInitial(hermanHermitTs, 12);
     }
@@ -322,8 +319,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("Herman (civilised hermit)", user);
 
-        hermanCivilisedHermitTs = getTimeSafely();
-        hermanCivilisedHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 8);
+        XMLGregorianCalendar hermanCivilisedHermitTs = getTimeSafely();
+        //noinspection unused
+        String hermanCivilisedHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 8);
         assertRecordsFromInitial(hermanCivilisedHermitTs, 14);
     }
 
@@ -485,43 +483,42 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
-
         AuditEventRecord record = new AuditEventRecord(AuditEventType.SYNCHRONIZATION, AuditEventStage.EXECUTION);
         record.setOutcome(OperationResultStatus.UNKNOWN);
         modelAuditService.audit(record, task, result);
 
-        HashMap<String, Object> params = new HashMap<>();
-        params.put("outcome", OperationResultStatusType.UNKNOWN);
-        List<AuditEventRecord> records = modelAuditService.listRecords("select * from m_audit_event as aer where aer.outcome = :outcome", params, task, result);
+        List<AuditEventRecordType> records = modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_OUTCOME).eq(OperationResultStatusType.UNKNOWN)
+                        .build(),
+                null, task, result);
 
-        // THEN
         then();
         display("records", records);
         assertEquals("Wrong # of records", 1, records.size());
 
-        // THEN
         assertSuccess(result);
     }
 
-    private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<AuditEventRecord> auditRecords = getObjectAuditRecords(oid);
+    private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        List<AuditEventRecordType> auditRecords = getObjectAuditRecords(oid);
         display("Object records", auditRecords);
         assertEquals("Wrong number of jack audit records", expectedNumberOfRecords, auditRecords.size());
         return auditRecords.get(auditRecords.size() - 1).getEventIdentifier();
     }
 
-    private List<AuditEventRecord> assertRecordsFromPrevious(
+    private void assertRecordsFromPrevious(
             XMLGregorianCalendar from, XMLGregorianCalendar to, int expectedNumberOfRecords)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        List<AuditEventRecord> auditRecords = getAuditRecordsFromTo(from, to, task, result);
+        List<AuditEventRecordType> auditRecords = getAuditRecordsFromTo(from, to, task, result);
         display("From/to records (previous)", auditRecords);
         assertEquals("Wrong number of audit records (previous)", expectedNumberOfRecords, auditRecords.size());
-        return auditRecords;
     }
 
     private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords)
@@ -529,9 +526,11 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(initialTs, to, task, result);
+        List<AuditEventRecordType> auditRecordsSincePrevious =
+                getAuditRecordsFromTo(initialTs, to, task, result);
         display("From/to records (initial)", auditRecordsSincePrevious);
-        assertEquals("Wrong number of audit records (initial)", expectedNumberOfRecords, auditRecordsSincePrevious.size());
+        assertEquals("Wrong number of audit records (initial)",
+                expectedNumberOfRecords, auditRecordsSincePrevious.size());
     }
 
     /**
@@ -715,10 +714,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         then("request audit is skipped, only execution one is stored");
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
 
         assertThat(records).hasSize(1);
-        assertThat(records.get(0).getEventStage()).isEqualTo(EXECUTION);
+        assertThat(records.get(0).getEventStage()).isEqualTo(AuditEventStageType.EXECUTION);
     }
 
     @Test
@@ -734,10 +733,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         then("execution audit is skipped, only request one is stored");
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
 
         assertThat(records).hasSize(1);
-        assertThat(records.get(0).getEventStage()).isEqualTo(REQUEST);
+        assertThat(records.get(0).getEventStage()).isEqualTo(AuditEventStageType.REQUEST);
     }
 
     @Test
@@ -753,7 +752,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         then("no audit is stored");
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
 
         assertThat(records).isEmpty();
     }
@@ -774,7 +773,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         then("no audit is stored");
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
 
         assertThat(records)
                 .hasSize(2)
@@ -810,7 +809,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         executeChanges(delta, null, task, result);
 
-        List<AuditEventRecord> records = getAuditRecordsAfterId(lastAuditId, task, result);
+        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
 
         then();
 

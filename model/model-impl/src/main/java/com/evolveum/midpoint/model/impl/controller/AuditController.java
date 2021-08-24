@@ -1,20 +1,16 @@
 /*
- * Copyright (c) 2016-2020 Evolveum and contributors
+ * Copyright (C) 2016-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,31 +20,31 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class AuditController implements ModelAuditService {
@@ -66,12 +62,18 @@ public class AuditController implements ModelAuditService {
         auditHelper.audit(record, null, task, result);
     }
 
-    @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        authorize(ModelAuthorizationAction.AUDIT_READ, task, result);
-        return auditService.listRecords(query, params, result);
+    public @NotNull SearchResultList<AuditEventRecordType> searchObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        authorize(ModelAuthorizationAction.AUDIT_READ, task, parentResult);
+        return auditService.searchObjects(query, options, parentResult);
     }
 
+    // TODO rework to countObject(ObjectQuery,...)
     @Override
     public long countObjects(String query, Map<String, Object> params, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         authorize(ModelAuthorizationAction.AUDIT_READ, task, result);
@@ -113,7 +115,7 @@ public class AuditController implements ModelAuditService {
     private List<AuditEventRecord> getChangeTrail(String targetOid, String finalEventIdentifier, OperationResult result) throws ObjectNotFoundException {
         AuditEventRecord finalEvent = findEvent(finalEventIdentifier, result);
         if (finalEvent == null) {
-            throw new ObjectNotFoundException("Audit event ID "+finalEventIdentifier+" was not found");
+            throw new ObjectNotFoundException("Audit event ID " + finalEventIdentifier + " was not found");
         }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Final event:\n{}", finalEvent.debugDump(1));
@@ -137,7 +139,7 @@ public class AuditController implements ModelAuditService {
     }
 
     private List<AuditEventRecord> getChangeTrail(String targetOid, XMLGregorianCalendar from, OperationResult result) {
-        Map<String,Object> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("from", from);
         params.put("targetOid", targetOid);
         params.put("stage", AuditEventStage.EXECUTION);
@@ -147,7 +149,7 @@ public class AuditController implements ModelAuditService {
     }
 
     private AuditEventRecord findEvent(String eventIdentifier, OperationResult result) {
-        Map<String,Object> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("eventIdentifier", eventIdentifier);
         List<AuditEventRecord> listRecords = auditService
                 .listRecords("select * from m_audit_event as aer where (aer.eventIdentifier = :eventIdentifier)", params, result);
@@ -155,11 +157,10 @@ public class AuditController implements ModelAuditService {
             return null;
         }
         if (listRecords.size() > 1) {
-            LOGGER.error("Found "+listRecords.size()+" audit records for event ID "+eventIdentifier+" (expecting just one)");
+            LOGGER.error("Found " + listRecords.size() + " audit records for event ID " + eventIdentifier + " (expecting just one)");
         }
         return listRecords.get(0);
     }
-
 
     private <O extends ObjectType> PrismObject<O> getObjectFromLastEvent(PrismObject<O> object, List<AuditEventRecord> changeTrail, String eventIdentifier) {
         if (changeTrail.isEmpty()) {
@@ -167,10 +168,10 @@ public class AuditController implements ModelAuditService {
         }
         AuditEventRecord lastEvent = changeTrail.remove(changeTrail.size() - 1);
         if (!eventIdentifier.equals(lastEvent.getEventIdentifier())) {
-            throw new IllegalStateException("Wrong last event identifier, expected " + eventIdentifier+" but was " + lastEvent.getEventIdentifier());
+            throw new IllegalStateException("Wrong last event identifier, expected " + eventIdentifier + " but was " + lastEvent.getEventIdentifier());
         }
         Collection<ObjectDeltaOperation<? extends ObjectType>> lastEventDeltasOperations = lastEvent.getDeltas();
-        for (ObjectDeltaOperation<? extends ObjectType> lastEventDeltasOperation: lastEventDeltasOperations) {
+        for (ObjectDeltaOperation<? extends ObjectType> lastEventDeltasOperation : lastEventDeltasOperations) {
             ObjectDelta<O> objectDelta = (ObjectDelta<O>) lastEventDeltasOperation.getObjectDelta();
             if (!isApplicable(lastEventDeltasOperation, object, lastEvent)) {
                 continue;
@@ -189,12 +190,12 @@ public class AuditController implements ModelAuditService {
     }
 
     private <O extends ObjectType> PrismObject<O> rollBackTime(PrismObject<O> object, List<AuditEventRecord> changeTrail) throws SchemaException {
-        for (AuditEventRecord event: changeTrail) {
+        for (AuditEventRecord event : changeTrail) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Applying event {} ({})", event.getEventIdentifier(), XmlTypeConverter.createXMLGregorianCalendar(event.getTimestamp()));
             }
             Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOperations = event.getDeltas();
-            for (ObjectDeltaOperation<? extends ObjectType> deltaOperation: deltaOperations) {
+            for (ObjectDeltaOperation<? extends ObjectType> deltaOperation : deltaOperations) {
                 ObjectDelta<O> objectDelta = (ObjectDelta<O>) deltaOperation.getObjectDelta();
                 if (!isApplicable(deltaOperation, object, event)) {
                     continue;
@@ -231,7 +232,7 @@ public class AuditController implements ModelAuditService {
         if (!object.getOid().equals(objectDelta.getOid())) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Skipping delta {} in event {} because OID does not match ({} vs {})", objectDelta, lastEvent.getEventIdentifier(),
-                    object.getOid(), objectDelta.getOid());
+                        object.getOid(), objectDelta.getOid());
             }
             return false;
         }

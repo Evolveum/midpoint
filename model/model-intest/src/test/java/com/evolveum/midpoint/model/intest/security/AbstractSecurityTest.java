@@ -19,7 +19,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -52,6 +51,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -263,12 +263,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected static final File ROLE_MANAGER_USER_ADMIN_FILE = new File(TEST_DIR, "role-manager-user-admin.xml");
     protected static final String ROLE_MANAGER_USER_ADMIN_OID = "c545323c-5d68-11e7-acba-2b32ef514121";
 
-//    protected static final File ROLE_ROLE_OWNER_FULL_CONTROL_FILE = new File(TEST_DIR, "role-role-owner-full-control.xml");
-//    protected static final String ROLE_ROLE_OWNER_FULL_CONTROL_OID = "9c6e597e-dbd7-11e5-a538-97834c1cd5ba";
-//
-//    protected static final File ROLE_ROLE_OWNER_ASSIGN_FILE = new File(TEST_DIR, "role-role-owner-assign.xml");
-//    protected static final String ROLE_ROLE_OWNER_ASSIGN_OID = "91b9e546-ded6-11e5-9e87-171d047c57d1";
-
     protected static final File ROLE_META_NONSENSE_FILE = new File(TEST_DIR, "role-meta-nonsense.xml");
     protected static final String ROLE_META_NONSENSE_OID = "602f72b8-2a11-11e5-8dd9-001e8c717e5b";
 
@@ -296,8 +290,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected static final File ROLE_UNINTERESTING_FILE = new File(TEST_DIR, "role-uninteresting.xml");
     protected static final String ROLE_UNINTERESTING_OID = "2264afee-3ae4-11e7-a63c-8b53efadd642";
 
-    protected static final File ROLE_READ_SELF_MODIFY_ORGUNIT_FILE = new File(TEST_DIR, "role-read-self-modify-orgunit.xml");
-    protected static final String ROLE_READ_SELF_MODIFY_ORGUNIT_OID = "97cc13ac-5660-11e7-8687-d76f3a88c78d";
+    protected static final File ROLE_READ_SELF_MODIFY_ORG_UNIT_FILE = new File(TEST_DIR, "role-read-self-modify-orgunit.xml");
+    protected static final String ROLE_READ_SELF_MODIFY_ORG_UNIT_OID = "97cc13ac-5660-11e7-8687-d76f3a88c78d";
 
     protected static final File ROLE_INDIRECT_PIRATE_FILE = new File(TEST_DIR, "role-indirect-pirate.xml");
     protected static final String ROLE_INDIRECT_PIRATE_OID = "67680a40-582c-11e7-b5b1-abcfbb047b34";
@@ -340,7 +334,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
     protected static final File TASK_USELESS_JACK_FILE = new File(TEST_DIR, "task-useless-jack.xml");
     protected static final String TASK_USELESS_JACK_OID = "642d8174-30c8-11e7-b338-c3cf3a6c548a";
-    protected static final String TASK_USELESS_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3";
+    protected static final String TASK_USELESS_HANDLER_URI =
+            "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3";
 
     protected static final File USER_TEMPLATE_SECURITY_FILE = new File(TEST_DIR, "user-template-security.xml");
     protected static final String USER_TEMPLATE_SECURITY_OID = "b3a8f244-565a-11e7-8802-7b2586c1ce99";
@@ -457,7 +452,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         repoAddObjectFromFile(ROLE_PERSONA_ADMIN_FILE, initResult);
         repoAddObjectFromFile(ROLE_ORDINARY_FILE, initResult);
         repoAddObjectFromFile(ROLE_UNINTERESTING_FILE, initResult);
-        repoAddObjectFromFile(ROLE_READ_SELF_MODIFY_ORGUNIT_FILE, initResult);
+        repoAddObjectFromFile(ROLE_READ_SELF_MODIFY_ORG_UNIT_FILE, initResult);
         repoAddObjectFromFile(ROLE_INDIRECT_PIRATE_FILE, initResult);
         repoAddObjectFromFile(ROLE_EXPRESSION_READ_ROLES_FILE, initResult);
         repoAddObjectFromFile(ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_FILE, initResult);
@@ -1068,7 +1063,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
     protected void assertAuditReadAllow() throws Exception {
         assertAllow("auditHistory", (task, result) -> {
-            List<AuditEventRecord> auditRecords = getAuditRecords(10, task, result);
+            List<AuditEventRecordType> auditRecords = getAuditRecords(10, task, result);
             assertTrue("No audit records", auditRecords != null && !auditRecords.isEmpty());
         });
     }

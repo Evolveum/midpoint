@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.model.test;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
+import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,8 +28,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -98,6 +96,7 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
+import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -132,6 +131,7 @@ import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -5127,57 +5127,76 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Wrong executionStatus in " + task, TaskExecutionStateType.CLOSED, task.getExecutionState());
     }
 
-    @Deprecated
-    protected List<AuditEventRecord> getAllAuditRecords(Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Map<String, Object> params = new HashMap<>();
-        return modelAuditService.listRecords("select * from m_audit_event as aer order by aer.timestampValue asc", params, task, result);
+    protected List<AuditEventRecordType> getAllAuditRecords(Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .asc(F_TIMESTAMP)
+                        .build(),
+                null, task, result);
     }
 
-    protected List<AuditEventRecord> getAuditRecords(int maxRecords, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("setMaxResults", maxRecords);
-        return modelAuditService.listRecords("select * from m_audit_event as aer order by aer.timestampValue asc", params, task, result);
+    protected SearchResultList<AuditEventRecordType> getAuditRecords(
+            int maxRecords, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .asc(F_TIMESTAMP)
+                        .maxSize(maxRecords)
+                        .build(),
+                null, task, result);
     }
 
-    protected List<AuditEventRecord> getObjectAuditRecords(String oid)
+    protected @NotNull SearchResultList<AuditEventRecordType> getObjectAuditRecords(String oid)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Task task = createTask("getObjectAuditRecords");
         OperationResult result = task.getResult();
-        Map<String, Object> params = new HashMap<>();
-        params.put("targetOid", oid);
-        return modelAuditService.listRecords("select * from m_audit_event as aer"
-                        + " where (aer.targetOid = :targetOid) order by aer.timestampValue asc",
-                params, task, result);
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_TARGET_REF).ref(oid)
+                        .asc(F_TIMESTAMP)
+                        .build(),
+                null, task, result);
     }
 
-    protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("from", from);
-        params.put("to", to);
-        return modelAuditService.listRecords("select * from m_audit_event as aer where (aer.timestampValue >= :from) and (aer.timestampValue <= :to) order by aer.timestampValue asc",
-                params, task, result);
+    protected List<AuditEventRecordType> getAuditRecordsFromTo(
+            XMLGregorianCalendar from, XMLGregorianCalendar to, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(F_TIMESTAMP).ge(from)
+                        .and()
+                        .item(F_TIMESTAMP).le(to)
+                        .asc(AuditEventRecordType.F_PARAMETER)
+                        .build(),
+                null, task, result);
     }
 
-    protected List<AuditEventRecord> getAuditRecordsAfterId(
+    protected SearchResultList<AuditEventRecordType> getAuditRecordsAfterId(
             long afterId, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return modelAuditService.listRecords(
-                "select * from m_audit_event as aer where aer.id > :id order by aer.id asc",
-                Map.of("id", afterId), task, result);
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_REPO_ID).gt(afterId)
+                        .asc(AuditEventRecordType.F_REPO_ID)
+                        .build(),
+                null, task, result);
     }
 
     protected long getAuditRecordsMaxId(Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<AuditEventRecord> latestEvent = modelAuditService.listRecords(
-                "select * from m_audit_event as aer order by aer.id desc",
-                // Search for "setMaxResult" to discover its secrets, sorry, but neither of the
-                // defined constants is available here (repo is hidden, GUI is higher).
-                // It's not a nice contract, but at least it shields from various DB implementations.
-                // Also, the map must be mutable (param is removed later), hence the wrapping.
-                new HashMap<>(Map.of("setMaxResults", 1)), task, result);
+        List<AuditEventRecordType> latestEvent = modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .desc(AuditEventRecordType.F_REPO_ID)
+                        .maxSize(1)
+                        .build(),
+                null, task, result);
         return latestEvent.size() == 1 ? latestEvent.get(0).getRepoId() : 0;
     }
 
