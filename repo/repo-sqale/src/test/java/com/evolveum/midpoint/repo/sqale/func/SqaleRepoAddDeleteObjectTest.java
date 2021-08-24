@@ -51,6 +51,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.MLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRow;
+import com.evolveum.midpoint.repo.sqale.qmodel.node.MNode;
+import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.MReportData;
@@ -1656,6 +1658,9 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .parent("parent")
                 .recurrence(TaskRecurrenceType.RECURRING)
                 .resultStatus(OperationResultStatusType.UNKNOWN)
+                .schedulingState(TaskSchedulingStateType.READY)
+                .autoScaling(new TaskAutoScalingType(prismContext)
+                        .mode(TaskAutoScalingModeType.DEFAULT))
                 .threadStopAction(ThreadStopActionType.RESCHEDULE)
                 .waitingReason(TaskWaitingReasonType.OTHER_TASKS)
                 .dependent("dep-task-1")
@@ -1686,10 +1691,34 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.parent).isEqualTo("parent");
         assertThat(row.recurrence).isEqualTo(TaskRecurrenceType.RECURRING);
         assertThat(row.resultStatus).isEqualTo(OperationResultStatusType.UNKNOWN);
+        assertThat(row.schedulingState).isEqualTo(TaskSchedulingStateType.READY);
+        assertThat(row.autoScalingMode).isEqualTo(TaskAutoScalingModeType.DEFAULT);
         assertThat(row.threadStopAction).isEqualTo(ThreadStopActionType.RESCHEDULE);
         assertThat(row.waitingReason).isEqualTo(TaskWaitingReasonType.OTHER_TASKS);
         assertThat(row.dependentTaskIdentifiers)
                 .containsExactlyInAnyOrder("dep-task-1", "dep-task-2");
+    }
+
+    @Test
+    public void test838Node() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("node");
+        String objectName = "node" + getTestNumber();
+        var node = new NodeType(prismContext)
+                .name(objectName)
+                .nodeIdentifier("node-47")
+                .operationalState(NodeOperationalStateType.STARTING);
+
+        when("adding it to the repository");
+        repositoryService.addObject(node.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MNode row = selectObjectByOid(QNode.class, node.getOid());
+        assertThat(row.nodeIdentifier).isEqualTo("node-47");
+        assertThat(row.operationalState).isEqualTo(NodeOperationalStateType.STARTING);
     }
 
     @Test

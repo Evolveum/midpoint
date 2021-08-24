@@ -115,14 +115,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         try {
             WebComponentUtil.initNewObjectWithReference(getPageBase(),
                     WebComponentUtil.classToQName(getPrismContext(), getType()),
-                    getNewObjectReferencesList(collectionView));
+                    getNewObjectReferencesList(collectionView, relation));
         } catch (SchemaException ex) {
             getPageBase().getFeedbackMessages().error(MainObjectListPanel.this, ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }
     }
 
-    protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView) {
+    protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView, AssignmentObjectRelation relation) {
         return ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
     }
 

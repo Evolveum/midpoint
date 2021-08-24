@@ -8,14 +8,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
+import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.google.common.base.Strings;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,11 +33,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.google.common.base.Strings;
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.StringPath;
-import com.querydsl.sql.SQLQuery;
 
 /**
  * Mapping between {@link QLookupTable} and {@link LookupTableType}.
@@ -50,9 +45,7 @@ public class QLookupTableMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QLookupTableMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QLookupTableMapping(repositoryContext);
-        }
+        instance = new QLookupTableMapping(repositoryContext);
         return instance;
     }
 
@@ -101,7 +94,7 @@ public class QLookupTableMapping
 
     @Override
     public LookupTableType toSchemaObject(Tuple row, QLookupTable entityPath,
-            Collection<SelectorOptions<GetOperationOptions>> options, JdbcSession session, boolean forceFull) throws SchemaException {
+            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession session, boolean forceFull) throws SchemaException {
         LookupTableType base = super.toSchemaObject(row, entityPath, options);
 
         if (forceFull || SelectorOptions.hasToLoadPath(F_ROW, options)) {
@@ -118,7 +111,6 @@ public class QLookupTableMapping
             RelationalValueSearchQuery queryDef = rowOptions == null ? null : rowOptions.getRelationalValueSearchQuery();
             QLookupTableRowMapping rowMapping = QLookupTableRowMapping.get();
             QLookupTableRow alias = rowMapping.defaultAlias();
-
 
             BooleanExpression whereQuery = appendConditions(alias, alias.ownerOid.eq(ownerOid), queryDef);
             SQLQuery<MLookupTableRow> query = session.newQuery()

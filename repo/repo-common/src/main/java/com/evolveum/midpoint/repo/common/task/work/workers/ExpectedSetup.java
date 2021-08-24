@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.task.work.workers;
 
-import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -37,6 +37,12 @@ class ExpectedSetup {
     @NotNull private final CommonTaskBeans beans;
     @NotNull private final Task coordinatorTask;
     @NotNull private final Task rootTask;
+
+    /** Nodes that are technically "up" i.e. marked in repository as such. */
+    @NotNull private final Set<String> nodesUp = new HashSet<>();
+
+    /** Nodes that are "up" and alive, i.e. regularly checking in. See {@link TaskManager#isUpAndAlive(NodeType)}. */
+    @NotNull private final Set<String> nodesUpAndAlive = new HashSet<>();
 
     /**
      * A collection of expected workers, characterized by group + name + scavenger flag.
@@ -67,9 +73,10 @@ class ExpectedSetup {
     }
 
     private void initialize(OperationResult result) {
-        Lazy<Collection<String>> allRunningNodesLazy = Lazy.from(() -> getAllRunningNodes(result));
+        determineClusterState(result);
+
         for (WorkerTasksPerNodeConfigurationType perNodeConfig : getWorkersPerNode()) {
-            for (String nodeIdentifier : getNodeIdentifiers(perNodeConfig, allRunningNodesLazy)) {
+            for (String nodeIdentifier : getNodeIdentifiers(perNodeConfig)) {
                 int count = defaultIfNull(perNodeConfig.getCount(), 1);
                 int scavengers = defaultIfNull(perNodeConfig.getScavengers(), 1);
                 for (int index = 1; index <= count; index++) {
@@ -82,10 +89,11 @@ class ExpectedSetup {
         }
     }
 
-    private Collection<String> getAllRunningNodes(OperationResult result) {
+    private void determineClusterState(OperationResult result) {
         try {
-            return beans.taskManager.determineClusterState(result)
-                    .getNodeUp();
+            ClusterStateType state = beans.taskManager.determineClusterState(result);
+            nodesUp.addAll(state.getNodeUp());
+            nodesUpAndAlive.addAll(state.getNodeUpAndAlive());
         } catch (SchemaException e) {
             throw new SystemException(e);
         }
@@ -127,12 +135,11 @@ class ExpectedSetup {
         }
     }
 
-    private Collection<String> getNodeIdentifiers(WorkerTasksPerNodeConfigurationType perNodeConfig,
-            Lazy<Collection<String>> allNodesLazy) {
+    private Collection<String> getNodeIdentifiers(WorkerTasksPerNodeConfigurationType perNodeConfig) {
         if (!perNodeConfig.getNodeIdentifier().isEmpty()) {
             return perNodeConfig.getNodeIdentifier();
         } else {
-            return allNodesLazy.get();
+            return nodesUp;
         }
     }
 
@@ -142,5 +149,13 @@ class ExpectedSetup {
 
     @NotNull Map<WorkerCharacterization, WorkerTasksPerNodeConfigurationType> getWorkersConfiguration() {
         return workersConfiguration;
+    }
+
+    @NotNull Set<String> getNodesUp() {
+        return nodesUp;
+    }
+
+    @NotNull Set<String> getNodesUpAndAlive() {
+        return nodesUpAndAlive;
     }
 }

@@ -15,6 +15,8 @@ import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -36,6 +38,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
+ * Tests the thresholds.
+ *
+ * General schema:
+ *
+ * 1. A set of starting accounts (user1 - user3) is created, and all accounts (these three + jgibbs, hbarbossa, jbeckett)
+ * are imported. See {@link #test001ImportBaseUsers()}.
+ * 2. The _first import_ is run: accounts user4 - user9 are created, and the task is executed under "stop on 5th add" rule.
+ * See {@link #test110ImportAccountsFirst()}. (There are variants according to task type, distribution and execution mode.)
+ * 3. The _second import_ is run: accounts user10 - user 15 are created, and the same task is re-executed.
+ * See {@link #test111ImportAccountsSecond()}.
+ * 4. The _disabled accounts import_ is run: Accounts for users1..6 are disabled on the resource. Task is modified to stop
+ * on disabling 3rd user, and executed. See {@link #test520ImportDisabledAccounts()}.
+ *
+ * There are some extensions in {@link TestThresholdsReconExecute}.
+ *
  * @author katka
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
@@ -127,7 +144,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        bucketingManager.setFreeBucketWaitTimeOverride(3000L); // experimental
+        BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(3000L); // experimental
 
         PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(
                 ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);

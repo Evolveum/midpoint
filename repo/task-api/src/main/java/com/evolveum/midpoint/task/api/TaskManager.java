@@ -294,7 +294,7 @@ public interface TaskManager {
     Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     @VisibleForTesting // TODO
-    void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    void closeTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns a task with a given identifier.

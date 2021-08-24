@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -61,7 +60,7 @@ public class AutoScalingExecutionSpecifics extends
     }
 
     @Override
-    public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) throws CommonException {
+    public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
         PrismContext prismContext = getBeans().prismContext;
 
         if (!latch.isShouldReconcileTasks()) {
@@ -70,10 +69,12 @@ public class AutoScalingExecutionSpecifics extends
                     .build();
         }
 
-        // We select all running tasks that have some children.
-        // TODO After autoscaling flag and scheduling state are indexed, we should use them in this filter.
+        // We select all autoscaling-enabled running tasks that have some children.
+        // (The last condition is approximated by being in WAITING state.)
         ObjectFilter reconcilableTasksFilter = prismContext.queryFor(TaskType.class)
                 .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.RUNNING)
+                .and().item(TaskType.F_SCHEDULING_STATE).eq(TaskSchedulingStateType.WAITING)
+                .and().not().item(TaskType.F_AUTO_SCALING, TaskAutoScalingType.F_MODE).eq(TaskAutoScalingModeType.DISABLED)
                 .buildFilter();
 
         ObjectQuery objectQuery = ObjectQueryUtil.addConjunctions(configuredQuery, prismContext, reconcilableTasksFilter);
@@ -92,28 +93,9 @@ public class AutoScalingExecutionSpecifics extends
     public boolean processObject(@NotNull PrismObject<TaskType> object,
             @NotNull ItemProcessingRequest<PrismObject<TaskType>> request, RunningTask workerTask, OperationResult result)
             throws CommonException {
-
         TaskType task = object.asObjectable();
-        if (!shouldReconcileTask(task, result)) {
-            return true;
-        }
-
         LOGGER.debug("Going to reconcile workers for task {}", task);
         getActivityHandler().activityManager.reconcileWorkers(task.getOid(), result);
-        return true;
-    }
-
-    private boolean shouldReconcileTask(TaskType task, OperationResult result) {
-        if (task.getSchedulingState() != TaskSchedulingStateType.WAITING) {
-            result.recordNotApplicable("Task is not waiting for children");
-            return false;
-        }
-
-        if (TaskTypeUtil.isAutoScalingDisabled(task)) {
-            result.recordNotApplicable("Auto-scaling for this task is disabled");
-            return false;
-        }
-
         return true;
     }
 

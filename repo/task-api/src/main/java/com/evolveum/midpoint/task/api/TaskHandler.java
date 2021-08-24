@@ -9,6 +9,10 @@ package com.evolveum.midpoint.task.api;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 /**
  * @author Radovan Semancik
  *
@@ -50,4 +54,15 @@ public interface TaskHandler {
      * @return Archetype OID for tasks that are powered by this handler and have the specified handler URI.
      */
     @Nullable String getArchetypeOid(@Nullable String handlerUri);
+
+    /**
+     * Call to update the state of the task (or related tasks) when the node on which this task executed
+     * was found down.
+     *
+     * Currently this means releasing buckets allocated to this task.
+     *
+     * In the future we plan to execute this method within a dynamic repo transaction.
+     */
+    default void cleanupOnNodeDown(@NotNull TaskType task, @NotNull OperationResult result) throws CommonException {
+    }
 }

@@ -8,7 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ext;
 
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
 
 /**
@@ -41,6 +44,13 @@ public class MExtItem {
         return key;
     }
 
+    public ItemNameKey itemNameKey() {
+        ItemNameKey key = new ItemNameKey();
+        key.itemName = this.itemName;
+        key.holderType = this.holderType;
+        return key;
+    }
+
     public static class Key {
         public String itemName;
         public String valueType;
@@ -69,6 +79,30 @@ public class MExtItem {
         }
     }
 
+    public static class ItemNameKey {
+        public String itemName;
+        public MExtItemHolderType holderType;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ItemNameKey key = (ItemNameKey) o;
+
+            return Objects.equals(itemName, key.itemName)
+                    && holderType == key.holderType;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(itemName, holderType);
+        }
+    }
+
     /** Creates ext item key from item definition and holder type. */
     public static Key keyFrom(ItemDefinition<?> definition, MExtItemHolderType holderType) {
         MExtItem.Key key = new MExtItem.Key();
@@ -79,6 +113,13 @@ public class MExtItem {
         key.holderType = holderType;
 
         return key;
+    }
+
+    public static @NotNull ItemNameKey itemNameKey(ItemName elementName, MExtItemHolderType type) {
+        ItemNameKey ret = new ItemNameKey();
+        ret.itemName = QNameUtil.qNameToUri(elementName);
+        ret.holderType = type;
+        return ret;
     }
 
     @Override

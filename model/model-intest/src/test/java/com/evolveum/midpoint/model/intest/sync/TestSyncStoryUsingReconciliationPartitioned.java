@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import java.io.FileNotFoundException;
 
+import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,7 +43,7 @@ public class TestSyncStoryUsingReconciliationPartitioned extends TestSyncStoryUs
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        bucketingManager.setFreeBucketWaitIntervalOverride(100L);
+        BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(100L);
     }
 
     @SuppressWarnings("Duplicates")

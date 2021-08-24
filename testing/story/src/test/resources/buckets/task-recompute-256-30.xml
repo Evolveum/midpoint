@@ -8,45 +8,47 @@
 
 <task oid="a2060e8f-1675-41a0-a1ae-1781f14c034f"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
-    <name>Recompute 256 buckets, 12 workers</name>
-    <extension>
-        <mext:objectType>UserType</mext:objectType>
-        <mext:objectQuery>
-            <q:filter>
-                <q:substring>
-                    <q:path>name</q:path>
-                    <q:value>user-</q:value>
-                    <q:anchorStart>true</q:anchorStart>
-                </q:substring>
-            </q:filter>
-        </mext:objectQuery>
-        <mext:reporting>
+    <name>Recompute 256 buckets, 30 workers</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:substring>
+                                <q:path>name</q:path>
+                                <q:value>user-</q:value>
+                                <q:anchorStart>true</q:anchorStart>
+                            </q:substring>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+        <distribution>
+            <buckets>
+                <oidSegmentation>
+                    <depth>2</depth>
+                </oidSegmentation>
+                <allocation>
+                    <workAllocationInitialDelay>0</workAllocationInitialDelay>
+                </allocation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>30</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+        <reporting>
             <logging>
                 <bucketCompletion>full</bucketCompletion>
             </logging>
-        </mext:reporting>
-    </extension>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
-    <workManagement>
-        <buckets>
-            <oidSegmentation>
-                <depth>2</depth>
-            </oidSegmentation>
-            <allocation>
-                <workAllocationInitialDelay>0</workAllocationInitialDelay>
-            </allocation>
-        </buckets>
-        <workers>
-            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
-            <workersPerNode>
-                <count>30</count>
-            </workersPerNode>
-        </workers>
-    </workManagement>
-    <recurrence>single</recurrence>
+        </reporting>
+    </activity>
 </task>

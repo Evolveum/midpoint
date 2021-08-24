@@ -36,7 +36,7 @@ public class QCaseWorkItemReferenceMapping
 
     public static QCaseWorkItemReferenceMapping
     initForCaseWorkItemAssignee(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceAssignee == null) {
+        if (needsInitialization(instanceAssignee, repositoryContext)) {
             instanceAssignee = new QCaseWorkItemReferenceMapping(
                     "m_case_wi_assignee", "cwirefa", repositoryContext,
                     new RefTableTargetResolver<>(QUserMapping::getUserMapping));
@@ -50,7 +50,7 @@ public class QCaseWorkItemReferenceMapping
 
     public static QCaseWorkItemReferenceMapping
     initForCaseWorkItemCandidate(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceCandidate == null) {
+        if (needsInitialization(instanceCandidate, repositoryContext)) {
             instanceCandidate = new QCaseWorkItemReferenceMapping(
                     "m_case_wi_candidate", "cwirefc", repositoryContext,
                     new RefTableTargetResolver<>(QFocusMapping::getFocusMapping));

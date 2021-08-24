@@ -7,17 +7,19 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -163,5 +165,58 @@ public class ActivityStatisticsUtil {
     private static Stream<ItemPath> getStatePathsStream(@NotNull List<ActivityStateType> states, @NotNull ItemPath path) {
         return states.stream()
                 .map(state -> path.append(state.getId()));
+    }
+
+
+    /**
+     * Summarizes activity statistics from a task tree.
+     */
+    public static ActivityStatisticsType getActivityStatsFromTree(@NotNull TaskType root, @NotNull ActivityPath path) {
+        ActivityStatisticsType aggregate = new ActivityStatisticsType(PrismContext.get())
+                .itemProcessing(new ActivityItemProcessingStatisticsType(PrismContext.get()))
+                .synchronization(new ActivitySynchronizationStatisticsType(PrismContext.get()))
+                .actionsExecuted(new ActivityActionsExecutedType())
+                .bucketManagement(new ActivityBucketManagementStatisticsType());
+
+        Stream<TaskType> tasks = TaskTreeUtil.getAllTasksStream(root);
+        tasks.forEach(task -> {
+            ActivityStateType localState = ActivityStateUtil.getActivityState(task, path);
+            if (localState != null && localState.getStatistics() != null) {
+                ActivityStatisticsType localStatistics = localState.getStatistics();
+                ActivityItemProcessingStatisticsUtil.addTo(aggregate.getItemProcessing(), localStatistics.getItemProcessing());
+                ActivitySynchronizationStatisticsUtil.addTo(aggregate.getSynchronization(), localStatistics.getSynchronization());
+                ActionsExecutedInformationUtil.addTo(aggregate.getActionsExecuted(), localStatistics.getActionsExecuted());
+                ActivityBucketManagementStatisticsUtil.addTo(aggregate.getBucketManagement(), localStatistics.getBucketManagement());
+            }
+        });
+        return aggregate;
+    }
+
+    public static String format(ActivityStatisticsType statistics) {
+        if (statistics == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (statistics.getItemProcessing() != null) {
+            sb.append("Item processing\n\n")
+                    .append(IterationInformation.format(statistics.getItemProcessing())) // TODO use correct formatter
+                    .append("\n");
+        }
+        if (statistics.getSynchronization() != null) {
+            sb.append("Synchronization\n\n")
+                    .append(ActivitySynchronizationStatisticsUtil.format(statistics.getSynchronization()))
+                    .append("\n");
+        }
+        if (statistics.getActionsExecuted() != null) {
+            sb.append("Actions executed\n\n")
+                    .append(ActionsExecutedInformationUtil.format(statistics.getActionsExecuted()))
+                    .append("\n");
+        }
+        if (statistics.getBucketManagement() != null) {
+            sb.append("Bucket management\n\n")
+                    .append(ActivityBucketManagementStatisticsUtil.format(statistics.getBucketManagement()))
+                    .append("\n");
+        }
+        return sb.toString();
     }
 }

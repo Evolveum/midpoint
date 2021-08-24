@@ -215,14 +215,16 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView) {
-                List<ObjectReferenceType> refList = super.getNewObjectReferencesList(collectionView);
+            protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView, AssignmentObjectRelation relation) {
+                List<ObjectReferenceType> refList = super.getNewObjectReferencesList(collectionView, relation);
                 if (refList == null) {
                     refList = new ArrayList<>();
                 }
                 ObjectReferenceType membershipRef = new ObjectReferenceType();
                 membershipRef.setOid(AbstractRoleMemberPanel.this.getModelObject().getOid());
                 membershipRef.setType(R.COMPLEX_TYPE);
+                membershipRef.setRelation(relation != null && CollectionUtils.isNotEmpty(relation.getRelations()) ?
+                        relation.getRelations().get(0) : null);
                 refList.add(membershipRef);
                 return refList;
             }

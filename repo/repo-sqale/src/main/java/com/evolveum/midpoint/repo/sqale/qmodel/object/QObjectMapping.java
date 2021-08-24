@@ -51,12 +51,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> initObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QObjectMapping<>(
-                    QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    ObjectType.class, QObject.CLASS,
-                    repositoryContext);
-        }
+        instance = new QObjectMapping<>(
+                QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ObjectType.class, QObject.CLASS,
+                repositoryContext);
         return instance;
     }
 

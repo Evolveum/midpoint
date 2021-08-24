@@ -84,9 +84,7 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(TaskType.F_COMPLETION_TIMESTAMP, "TaskType.currentRunTime"),
                         new ColumnWrapper(TaskType.F_PROGRESS),
                         new ColumnWrapper(TaskType.F_SCHEDULE, "pageTasks.task.scheduledToRunAgain"),
-                        new ColumnWrapper(ItemPath.create(TaskType.F_OPERATION_STATS,
-                                OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                                IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT), "pageTasks.task.errors"), // TODO MID-6850
+                        // TODO re-add total failure count
                         new ColumnWrapper(TaskType.F_RESULT_STATUS)))
                 .put(ShadowType.class, Arrays.asList(
                         new ColumnWrapper(ShadowType.F_NAME),
@@ -287,9 +285,7 @@ public class DefaultColumnUtils {
         if (value instanceof TaskType) {
             return itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)
                     || itemPath.equivalent(TaskType.F_SCHEDULE)
-                    || itemPath.equivalent(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                    IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT)) // TODO MID-6850
-                    || itemPath.equivalent(TaskType.F_PROGRESS);
+                    || itemPath.equivalent(TaskType.F_PROGRESS); // TODO also total failure count
         } else if (value instanceof AuditEventRecordType) {
             for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)value).getCustomColumnProperty()) {
                 if (customColumn.getName().equals(itemPath.toString())) {

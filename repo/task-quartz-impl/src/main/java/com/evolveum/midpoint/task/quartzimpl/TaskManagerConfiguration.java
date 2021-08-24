@@ -174,7 +174,7 @@ public class TaskManagerConfiguration {
     private static final int NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT = 120;
 
     /**
-     * # of seconds after which we declare the node as started and announce it as a part of the cluster.
+     * Number of seconds after which we declare the node as started and announce it as a part of the cluster.
      */
     private int nodeStartupDelay;
 

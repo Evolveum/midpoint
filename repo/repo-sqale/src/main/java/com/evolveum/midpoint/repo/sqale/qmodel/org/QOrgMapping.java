@@ -30,9 +30,7 @@ public class QOrgMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QOrgMapping initOrgMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QOrgMapping(repositoryContext);
-        }
+        instance = new QOrgMapping(repositoryContext);
         return instance;
     }
 

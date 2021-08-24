@@ -71,8 +71,9 @@ public class TaskHandlerRegistry {
     }
 
     public TaskHandler getHandler(String uri) {
-        if (uri != null) {
-            return handlers.get(uri);
+        String effectiveUri = uri != null ? uri : defaultHandlerUri;
+        if (effectiveUri != null) {
+            return handlers.get(effectiveUri);
         } else {
             return null;
         }

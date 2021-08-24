@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.handlers.NoOpActivityHandler;
+import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
@@ -109,7 +110,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         createRoles(initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-        bucketingManager.setFreeBucketWaitIntervalOverride(100L);
+        BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(100L);
     }
 
     private void createRoles(OperationResult result) throws SchemaException, ObjectAlreadyExistsException {

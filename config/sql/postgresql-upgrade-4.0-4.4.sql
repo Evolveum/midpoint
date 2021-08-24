@@ -3,8 +3,6 @@
 CREATE INDEX iOpExecTimestampValue
   ON m_operation_execution (timestampValue);
 
-UPDATE m_global_metadata SET value = '4.2' WHERE name = 'databaseSchemaVersion';
-
 -- 2020-06-25 11:35
 
 ALTER TABLE m_acc_cert_campaign RENAME COLUMN definitionRef_type TO definitionRef_targetType;
@@ -61,6 +59,7 @@ ALTER TABLE m_object_policy_situation
 ALTER INDEX iFocusPolicySituationOid RENAME TO iObjectPolicySituationOid;
 
 COMMIT;
+
 -- 4.3+ Changes
 -- MID-6417
 ALTER TABLE m_operation_execution ADD COLUMN recordType INT4;
@@ -68,8 +67,14 @@ ALTER TABLE m_operation_execution ADD COLUMN recordType INT4;
 -- MID-3669
 ALTER TABLE m_focus ADD COLUMN lockoutStatus INT4;
 
+-- 4.4+ Changes
+-- MID-7173
+ALTER TABLE m_task ADD COLUMN schedulingState INT4;
+ALTER TABLE m_task ADD COLUMN autoScalingMode INT4;
+ALTER TABLE m_node ADD COLUMN operationalState INT4;
+
 -- WRITE CHANGES ABOVE ^^
-UPDATE m_global_metadata SET value = '4.3' WHERE name = 'databaseSchemaVersion';
+UPDATE m_global_metadata SET value = '4.4' WHERE name = 'databaseSchemaVersion';
 
 -- MID-6974
 UPDATE qrtz_job_details SET job_class_name = 'com.evolveum.midpoint.task.quartzimpl.run.JobExecutor'
