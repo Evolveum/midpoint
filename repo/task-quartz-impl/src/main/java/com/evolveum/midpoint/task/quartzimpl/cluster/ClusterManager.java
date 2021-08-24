@@ -24,6 +24,7 @@ import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskRetriever;
 import com.evolveum.midpoint.task.quartzimpl.execution.StalledTasksWatcher;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -42,7 +43,9 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Responsible for keeping the cluster consistent.
@@ -137,10 +140,16 @@ public class ClusterManager {
         SearchResultList<PrismObject<NodeType>> nodes =
                 getRepositoryService().searchObjects(NodeType.class, null, null, result);
         ClusterStateType clusterState = new ClusterStateType(PrismContext.get());
-        nodes.stream() // TODO use query after making operationalState indexed
-                .filter(n -> n.asObjectable().getOperationalState() == NodeOperationalStateType.UP)
-                .map(n -> n.asObjectable().getNodeIdentifier())
-                .forEach(id -> clusterState.getNodeUp().add(id));
+        // TODO use query after making operationalState indexed
+        for (PrismObject<NodeType> node : nodes) {
+            String nodeIdentifier = node.asObjectable().getNodeIdentifier();
+            if (node.asObjectable().getOperationalState() == NodeOperationalStateType.UP) {
+                clusterState.getNodeUp().add(nodeIdentifier);
+            }
+            if (taskManager.isUpAndAlive(node.asObjectable())) {
+                clusterState.getNodeUpAndAlive().add(nodeIdentifier);
+            }
+        }
         return clusterState;
     }
 
@@ -217,18 +226,14 @@ public class ClusterManager {
     private void checkNodeAliveness(OperationResult result) throws SchemaException {
         SearchResultList<PrismObject<NodeType>> nodes = getRepositoryService()
                 .searchObjects(NodeType.class, null, null, result);
+        Set<String> nodesMarkedAsDown = new HashSet<>();
         for (PrismObject<NodeType> nodeObject : nodes) {
             NodeType node = nodeObject.asObjectable();
             if (isRemoteNode(node)) {
                 if (shouldBeMarkedAsDown(node)) {
-                    LOGGER.warn("Node {} is down, marking it as such", node);
-                    List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
-                            .item(NodeType.F_OPERATIONAL_STATE).replace(NodeOperationalStateType.DOWN)
-                            .asItemDeltas();
-                    try {
-                        getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
-                    } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark node {} as down", e, node);
+                    if (markNodeAsDown(node, result)) {
+                        LOGGER.warn("Node {} is down, marked it as such", node);
+                        nodesMarkedAsDown.add(node.getNodeIdentifier());
                     }
                 } else if (isStartingForTooLong(node)) {
                     LOGGER.warn("Node {} is starting for too long. Last check-in time = {}", node, node.getLastCheckInTime());
@@ -236,6 +241,32 @@ public class ClusterManager {
                 }
             }
         }
+        taskStateManager.markTasksAsNotRunning(nodesMarkedAsDown, result);
+    }
+
+    /**
+     * @return true if we were the one that marked the node as down. This is to avoid processing tasks related to the dead
+     * node on more than one surviving nodes.
+     */
+    private boolean markNodeAsDown(NodeType node, OperationResult result) {
+        Holder<Boolean> wasUpHolder = new Holder<>();
+        try {
+            getRepositoryService().modifyObjectDynamically(NodeType.class, node.getOid(), null,
+                    currentNode -> {
+                        if (currentNode.getOperationalState() == NodeOperationalStateType.UP) {
+                            wasUpHolder.setValue(true);
+                            return PrismContext.get().deltaFor(NodeType.class)
+                                    .item(NodeType.F_OPERATIONAL_STATE).replace(NodeOperationalStateType.DOWN)
+                                    .asItemDeltas();
+                        } else {
+                            wasUpHolder.setValue(false);
+                            return List.of();
+                        }
+                    }, null, result);
+        } catch (ObjectNotFoundException | ObjectAlreadyExistsException | SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark node {} as down", e, node);
+        }
+        return wasUpHolder.getValue();
     }
 
     private boolean isRemoteNode(NodeType node) {

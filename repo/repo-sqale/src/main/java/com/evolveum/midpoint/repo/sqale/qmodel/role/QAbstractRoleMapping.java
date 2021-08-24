@@ -38,10 +38,8 @@ public class QAbstractRoleMapping<
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAbstractRoleMapping<?, ?, ?> initAbstractRoleMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QAbstractRoleMapping<>(QAbstractRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    AbstractRoleType.class, QAbstractRole.CLASS, repositoryContext);
-        }
+        instance = new QAbstractRoleMapping<>(QAbstractRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                AbstractRoleType.class, QAbstractRole.CLASS, repositoryContext);
         return instance;
     }
 

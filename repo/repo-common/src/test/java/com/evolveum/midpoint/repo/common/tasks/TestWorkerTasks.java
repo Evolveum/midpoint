@@ -449,7 +449,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
     }
 
     /**
-     * Checks if worker tasks are correctly moved by the reconciliation.
+     * Checks if worker tasks are correctly treated when cluster node is changed (brought down + another node starts).
      *
      * Scenario:
      *
@@ -458,7 +458,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
      * 3. Workers reconciliation is started, suspending tasks on NodeA and starting two worker tasks to NodeB.
      */
     @Test
-    public void test150MoveWorkerTasks() throws Exception {
+    public void test150ChangeClusterNode() throws Exception {
         given();
 
         Task task = getTestTask();

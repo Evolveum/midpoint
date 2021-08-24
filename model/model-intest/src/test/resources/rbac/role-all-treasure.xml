@@ -13,7 +13,7 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>All Treasure</name>
     <inducement>
-        <targetRef>
+        <targetRef type="RoleType">
             <filter>
                 <q:equal>
                     <q:path>roleType</q:path>

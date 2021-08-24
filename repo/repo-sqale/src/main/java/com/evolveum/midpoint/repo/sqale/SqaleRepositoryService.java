@@ -243,7 +243,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
         LOGGER.debug("Getting version for {} with oid '{}'.", type.getSimpleName(), oid);
 
-        OperationResult operationResult = parentResult.subresult(GET_VERSION)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_GET_VERSION)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("oid", oid)
@@ -573,7 +573,8 @@ public class SqaleRepositoryService implements RepositoryService {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        S object = rootMapping.toSchemaObject(result, entityPath, Collections.emptyList(), jdbcSession, true);
+        S object = rootMapping.toSchemaObject(
+                result, entityPath, Collections.emptyList(), jdbcSession, true);
 
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;
@@ -848,7 +849,7 @@ public class SqaleRepositoryService implements RepositoryService {
         Validate.notNull(handler, "Result handler must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        OperationResult operationResult = parentResult.subresult(SEARCH_OBJECTS_ITERATIVE)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_OBJECTS_ITERATIVE)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
@@ -1271,7 +1272,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
         LOGGER.debug("Advancing sequence {}", oid);
 
-        OperationResult operationResult = parentResult.subresult(ADVANCE_SEQUENCE)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_ADVANCE_SEQUENCE)
                 .addParam("oid", oid)
                 .build();
 
@@ -1357,9 +1358,10 @@ public class SqaleRepositoryService implements RepositoryService {
 
         LOGGER.debug("Returning unused values of {} to sequence {}", unusedValues, oid);
 
-        OperationResult operationResult = parentResult.subresult(RETURN_UNUSED_VALUES_TO_SEQUENCE)
-                .addParam("oid", oid)
-                .build();
+        OperationResult operationResult =
+                parentResult.subresult(OP_NAME_PREFIX + OP_RETURN_UNUSED_VALUES_TO_SEQUENCE)
+                        .addParam("oid", oid)
+                        .build();
 
         if (unusedValues == null || unusedValues.isEmpty()) {
             operationResult.recordSuccess();
@@ -1505,7 +1507,8 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
-        OperationResult operationResult = parentResult.createSubresult(REPOSITORY_SELF_TEST);
+        OperationResult operationResult =
+                parentResult.createSubresult(OP_NAME_PREFIX + OP_REPOSITORY_SELF_TEST);
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             long startMs = System.currentTimeMillis();
             jdbcSession.executeStatement("select 1");
@@ -1520,9 +1523,10 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult parentResult) {
-        OperationResult operationResult = parentResult.subresult(TEST_ORG_CLOSURE_CONSISTENCY)
-                .addParam("repairIfNecessary", repairIfNecessary)
-                .build();
+        OperationResult operationResult =
+                parentResult.subresult(OP_NAME_PREFIX + OP_TEST_ORG_CLOSURE_CONSISTENCY)
+                        .addParam("repairIfNecessary", repairIfNecessary)
+                        .build();
 
         try {
             long closureCount, expectedCount;
@@ -1772,11 +1776,12 @@ public class SqaleRepositoryService implements RepositoryService {
             DiagnosticInformationType information, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        OperationResult operationResult = parentResult.subresult(ADD_DIAGNOSTIC_INFORMATION)
-                .addQualifier(type.getSimpleName())
-                .addParam("type", type)
-                .addParam("oid", oid)
-                .build();
+        OperationResult operationResult =
+                parentResult.subresult(OP_NAME_PREFIX + OP_ADD_DIAGNOSTIC_INFORMATION)
+                        .addQualifier(type.getSimpleName())
+                        .addParam("type", type)
+                        .addParam("oid", oid)
+                        .build();
         try {
             PrismObject<T> object = getObject(type, oid, null, operationResult);
             // TODO when on limit this calls modify twice, wouldn't single modify be better?

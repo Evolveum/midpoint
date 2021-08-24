@@ -20,7 +20,7 @@
             <authoritative>true</authoritative>
             <strength>strong</strength>            <!-- there's already an assignment, so normal mappings are skipped on object add -->
             <source>
-                <path>orgType</path>
+                <path>subtype</path>
             </source>
             <expression>
                 <assignmentTargetSearch>
@@ -45,7 +45,7 @@
             </expression>
             <condition>
                 <script>
-                    <code>orgType == 'fictional'</code>
+                    <code>subtype == 'fictional'</code>
                 </script>
             </condition>
         </mapping>
@@ -56,7 +56,7 @@
         <authoritative>true</authoritative>
         <strength>strong</strength>            <!-- there's already an assignment, so normal mappings are skipped on object add -->
         <source>
-            <path>orgType</path>
+            <path>subtype</path>
         </source>
         <expression>
             <assignmentTargetSearch>
@@ -69,7 +69,7 @@
         </target>
         <condition>
             <script>
-                <code>orgType == 'functional'</code>
+                <code>subtype == 'functional'</code>
             </script>
         </condition>
     </mapping>

@@ -112,6 +112,15 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
         if (object.canRepresent(FocusType.class)) {
             focusType = ((FocusType)object.asObjectable());
         } else if (object.canRepresent(ShadowType.class)) {
+            if (object.getOid() == null) {
+                // FIXME: If shadow is new, it has oid=null,
+                // so reverse search does not make sense (or work since oid=null search is search for all focuses),
+                // we should probably exit
+                // Probably there should be special case for shadow.oid == null, which will
+                // process only provided shadow or do not handle projection?
+                return;
+            }
+
             ObjectQuery query = object.getPrismContext()
                     .queryFor(FocusType.class)
                     .item(FocusType.F_LINK_REF).ref(object.getOid())
@@ -130,6 +139,9 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
             }
             focusType = focusTypeHolder.getValue();
         } else {
+            return;
+        }
+        if (focusType == null) {
             return;
         }
         // We want to provide default intent to allow configurators to be a little lazy and skip intent specification.

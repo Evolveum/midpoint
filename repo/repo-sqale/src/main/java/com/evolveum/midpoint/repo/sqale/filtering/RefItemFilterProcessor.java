@@ -63,7 +63,7 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
     public Predicate process(RefFilter filter) {
         List<PrismReferenceValue> values = filter.getValues();
         if (values == null || values.isEmpty()) {
-            return oidPath.isNull();
+            return filter.isOidNullAsAny() ? null : oidPath.isNull();
         }
         if (values.size() == 1) {
             return processSingleValue(filter, values.get(0));

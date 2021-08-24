@@ -36,7 +36,7 @@ public class QOperationExecutionMapping<OR extends MObject>
 
     public static <OR extends MObject> QOperationExecutionMapping<OR> init(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QOperationExecutionMapping<>(repositoryContext);
         }
         return get();

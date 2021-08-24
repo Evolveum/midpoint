@@ -139,7 +139,10 @@ public class ExtensionProcessor {
             ItemDefinition<?> definition, MExtItemHolderType holderType) {
         Objects.requireNonNull(definition,
                 "Item '" + definition.getItemName() + "' without definition can't be saved.");
-
+        if (definition instanceof PrismContainerDefinition<?>) {
+            // Skip containers for now
+            return null;
+        }
         if (definition instanceof PrismPropertyDefinition) {
             Boolean indexed = ((PrismPropertyDefinition<?>) definition).isIndexed();
             // null is default which is "indexed"

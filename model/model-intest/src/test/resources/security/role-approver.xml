@@ -108,7 +108,7 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>orgType</item>
+        <item>subtype</item>
     </authorization>
     <authorization>
         <name>services-read</name>

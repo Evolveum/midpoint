@@ -3799,7 +3799,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         createNodes(nodes, result);
     }
 
-    protected void deleteExistingExtraNodes(OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void deleteExistingExtraNodes(OperationResult result) throws SchemaException, ObjectNotFoundException {
         SearchResultList<PrismObject<NodeType>> existingNodes =
                 repositoryService.searchObjects(NodeType.class, null, null, result);
         for (PrismObject<NodeType> existingNode : existingNodes) {

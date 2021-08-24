@@ -38,7 +38,7 @@ public class QCaseWorkItemMapping
     // Explanation in class Javadoc for SqaleTableMapping
     public static QCaseWorkItemMapping initCaseWorkItemMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QCaseWorkItemMapping(repositoryContext);
         }
         return instance;

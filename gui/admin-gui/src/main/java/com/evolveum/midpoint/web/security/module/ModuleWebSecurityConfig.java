@@ -63,7 +63,7 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
     private MidpointAuthenticationManager authenticationManager;
 
     @Autowired
-    private AuthModuleRegistryImpl authRegistry;
+    AuthModuleRegistryImpl authRegistry;
 
     @Autowired
     AuthChannelRegistryImpl authChannelRegistry;
@@ -110,9 +110,6 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, prismContext,
-                UUID.randomUUID().toString(), "anonymousUser",
-                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
         http.setSharedObject(AuthenticationTrustResolver.class, new MidpointAuthenticationTrustResolverImpl());
         http.authorizeRequests()
                 .accessDecisionManager(accessDecisionManager)
@@ -122,7 +119,7 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
         http.headers().and()
                 .requestCache().and()
-                .anonymous().authenticationFilter(anonymousFilter).and()
+                .anonymous().authenticationFilter(createAnonymousFilter()).and()
                 .servletApi();
 
         http.addFilterAfter(new RedirectForLoginPagesWithAuthenticationFilter(), CsrfFilter.class);
@@ -140,6 +137,12 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
 //                .maximumSessions(-1)
 //                .sessionRegistry(sessionRegistry)
 //                .maxSessionsPreventsLogin(true);
+    }
+
+    protected AnonymousAuthenticationFilter createAnonymousFilter() {
+        return new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, prismContext,
+                UUID.randomUUID().toString(), "anonymousUser",
+                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
     }
 
     @Override

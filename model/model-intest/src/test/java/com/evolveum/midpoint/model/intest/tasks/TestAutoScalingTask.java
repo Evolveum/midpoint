@@ -35,8 +35,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAutoS
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.SUSPENDED;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -349,11 +347,13 @@ public class TestAutoScalingTask extends AbstractInitializedModelIntegrationTest
                     .end();
         // @formatter:on
 
-        assertWorkerTaskFourSubtasksHalfSuspended();
+        // Note that tasks on Node 1 are NOT suspended. The reason is that they were not actually started (Node1 did not
+        // exist in reality). So the reconciliator just lets them be.
+        assertWorkerTaskFourSubtasks();
     }
 
     /**
-     * No change for two days. Reconciliation should be trigger after 1 day.
+     * No change for two days. Reconciliation should be triggered after 1 day.
      */
     @Test
     public void test160NoChangeForTwoDays() throws Exception {
@@ -394,7 +394,7 @@ public class TestAutoScalingTask extends AbstractInitializedModelIntegrationTest
                     .end();
         // @formatter:on
 
-        assertWorkerTaskFourSubtasksHalfSuspended();
+        assertWorkerTaskFourSubtasks();
     }
 
     /**
@@ -438,7 +438,7 @@ public class TestAutoScalingTask extends AbstractInitializedModelIntegrationTest
                     .end();
         // @formatter:on
 
-        assertWorkerTaskFourSubtasksHalfSuspended();
+        assertWorkerTaskFourSubtasks();
     }
 
     private void setLastReconciliationTimestamp(XMLGregorianCalendar lastReconciliationTimestamp) {
@@ -477,25 +477,6 @@ public class TestAutoScalingTask extends AbstractInitializedModelIntegrationTest
                 .end()
                 .subtask("Worker Node1:2 for root activity in task-two-workers-per-node")
                     .assertSchedulingState(READY)
-                .end();
-        // @formatter:on
-    }
-
-    private void assertWorkerTaskFourSubtasksHalfSuspended() throws SchemaException, ObjectNotFoundException {
-        // @formatter:off
-        assertTaskTree(TASK_TWO_WORKERS_PER_NODE.oid, "working task after")
-                .assertSubtasks(4)
-                .subtask("Worker DefaultNode:1 for root activity in task-two-workers-per-node")
-                    .assertSchedulingState(READY)
-                .end()
-                .subtask("Worker DefaultNode:2 for root activity in task-two-workers-per-node")
-                    .assertSchedulingState(READY)
-                .end()
-                .subtask("Worker Node1:1 for root activity in task-two-workers-per-node")
-                    .assertSchedulingState(SUSPENDED)
-                .end()
-                .subtask("Worker Node1:2 for root activity in task-two-workers-per-node")
-                    .assertSchedulingState(SUSPENDED)
                 .end();
         // @formatter:on
     }

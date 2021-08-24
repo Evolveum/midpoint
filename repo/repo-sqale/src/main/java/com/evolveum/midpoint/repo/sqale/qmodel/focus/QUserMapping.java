@@ -29,9 +29,7 @@ public class QUserMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QUserMapping initUserMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QUserMapping(repositoryContext);
-        }
+        instance = new QUserMapping(repositoryContext);
         return instance;
     }
 

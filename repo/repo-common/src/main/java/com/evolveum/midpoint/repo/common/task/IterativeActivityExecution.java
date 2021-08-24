@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 
 import java.util.Objects;
 
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -199,19 +200,32 @@ public abstract class IterativeActivityExecution<
         for (; task.canRun(); initialExecution = false) {
 
             bucket = getWorkBucket(initialExecution, result);
-            if (!task.canRun()) {
-                break;
-            }
-
             if (bucket == null) {
                 LOGGER.trace("No (next) work bucket within {}, exiting", task);
                 break;
             }
 
-            executeSingleBucket(result);
+            boolean complete = false;
+            try {
+                if (!task.canRun()) {
+                    break;
+                }
 
-            if (!task.canRun() || errorState.wasStoppingExceptionEncountered()) {
-                break;
+                executeSingleBucket(result);
+                if (!task.canRun() || errorState.wasStoppingExceptionEncountered()) {
+                    break;
+                }
+
+                complete = true;
+            } finally {
+                if (!complete) {
+                    // This is either when the task was stopped (canRun is false or there's an stopping exception)
+                    // or an unhandled exception occurred.
+                    //
+                    // This most probably means that the task is going to be suspended. So let us release the buckets
+                    // to allow their processing by other workers.
+                    releaseAllBucketsIfWorker(result);
+                }
             }
 
             completeWorkBucketAndCommitProgress(result);
@@ -251,6 +265,13 @@ public abstract class IterativeActivityExecution<
 
     private boolean isScavenger(RunningTask task) {
         return BucketingUtil.isScavenger(task.getActivitiesStateOrClone(), getActivityPath());
+    }
+
+    private void releaseAllBucketsIfWorker(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (bucketingSituation.workerTaskOid != null) {
+            beans.bucketingManager.releaseAllWorkBucketsFromWorker(bucketingSituation.coordinatorTaskOid,
+                    bucketingSituation.workerTaskOid, getActivityPath(), getLiveBucketManagementStatistics(), result);
+        }
     }
 
     private void completeWorkBucketAndCommitProgress(OperationResult result) throws ActivityExecutionException {
@@ -483,9 +504,11 @@ public abstract class IterativeActivityExecution<
     }
 
     @Override
-    protected ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
+    protected @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        return executionSpecifics.useOtherActivityStateForCounters(result);
+        return MoreObjects.firstNonNull(
+                executionSpecifics.useOtherActivityStateForCounters(result),
+                activityState);
     }
 
     public @NotNull AES getExecutionSpecifics() {

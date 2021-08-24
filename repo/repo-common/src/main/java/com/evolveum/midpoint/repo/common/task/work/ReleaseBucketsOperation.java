@@ -7,16 +7,11 @@
 
 package com.evolveum.midpoint.repo.common.task.work;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.util.exception.SystemException;
-
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -32,6 +27,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -45,7 +41,7 @@ public class ReleaseBucketsOperation extends BucketOperation {
     /** null means all delegated buckets */
     private final Integer sequentialNumber;
 
-    ReleaseBucketsOperation(@NotNull String coordinatorTaskOid, @Nullable String workerTaskOid,
+    ReleaseBucketsOperation(@NotNull String coordinatorTaskOid, @NotNull String workerTaskOid,
             @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, CommonTaskBeans beans,
             Integer sequentialNumber) {
         super(coordinatorTaskOid, workerTaskOid, activityPath, collector, beans);
@@ -54,9 +50,6 @@ public class ReleaseBucketsOperation extends BucketOperation {
 
     public void execute(OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-
-        argCheck(workerTaskOid != null,
-                "Cannot release work bucket(s) from standalone task %s", coordinatorTaskOid);
 
         ModifyObjectResult<TaskType> modifyObjectResult;
         try {
