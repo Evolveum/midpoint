@@ -35,7 +35,7 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointExceptionTranslationFilter.class);
 
-    private RequestCache requestCache = new HttpSessionRequestCache();
+    private RequestCache requestCache;
 
     public MidpointExceptionTranslationFilter(AuthenticationEntryPoint authenticationEntryPoint, RequestCache requestCache) {
         super(authenticationEntryPoint, requestCache);
@@ -45,7 +45,6 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
     @Override
     protected void sendStartAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, AuthenticationException reason) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        SecurityContextHolder.getContext().setAuthentication(null);
         if (!SecurityUtils.isRecordSessionLessAccessChannel(request)) {
             requestCache.saveRequest(request, response);
         }
@@ -55,12 +54,16 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken) {
-                moduleAuthentication.setAuthentication(null);
+                moduleAuthentication.setAuthentication(
+                        createNewAuthentication((AnonymousAuthenticationToken) moduleAuthentication.getAuthentication()));
                 mpAuthentication.setPrincipal(null);
             }
             SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
         }
     }
 
+    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication) {
+        return null;
+    }
 
 }

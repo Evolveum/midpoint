@@ -51,7 +51,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-@PageDescriptor(urls = { @Url(mountUrl = "/registration", matchUrlForSecurity = "/registration") }, permitAll = true, loginPage = true)
+@PageDescriptor(urls = { @Url(mountUrl = "/registration", matchUrlForSecurity = "/registration") },
+        permitAll = true, loginPage = true)
 public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final long serialVersionUID = 1L;

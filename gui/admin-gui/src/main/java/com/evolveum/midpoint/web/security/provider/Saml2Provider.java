@@ -8,12 +8,15 @@ package com.evolveum.midpoint.web.security.provider;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.saml.saml2.attribute.Attribute;
 import org.springframework.security.saml.spi.DefaultSamlAuthentication;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -41,7 +44,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
     private static final Trace LOGGER = TraceManager.getTrace(Saml2Provider.class);
 
     @Autowired
-    @Qualifier("samlAuthenticationEvaluator")
+    @Qualifier("passwordAuthenticationEvaluator")
     private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
     @Override
@@ -56,8 +59,10 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
         if (principal != null && principal instanceof GuiProfiledPrincipal) {
             mpAuthentication.setPrincipal(principal);
         }
-
-        moduleAuthentication.setAuthentication(originalAuthentication);
+        if (token instanceof PreAuthenticatedAuthenticationToken) {
+            ((PreAuthenticatedAuthenticationToken)token).setDetails(originalAuthentication);
+        }
+        moduleAuthentication.setAuthentication(token);
     }
 
     @Override
@@ -94,6 +99,14 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
                 }
                 token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, authContext);
             } catch (AuthenticationException e) {
+//                AnonymousAuthenticationToken anonymousToken = new AnonymousAuthenticationToken(
+//                        UUID.randomUUID().toString(),
+//                        "anonymousUser",
+//                        AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")
+//                );
+//                anonymousToken.setDetails(samlAuthentication);
+//                samlModule.setAuthentication(anonymousToken);
+
                 samlModule.setAuthentication(samlAuthentication);
                 LOGGER.info("Authentication with saml module failed: {}", e.getMessage());
                 throw e;
