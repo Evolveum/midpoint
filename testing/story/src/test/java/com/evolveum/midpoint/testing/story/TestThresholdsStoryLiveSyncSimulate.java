@@ -20,7 +20,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsLiveSyncSimulate extends TestThresholdsLiveSync {
+public class TestThresholdsStoryLiveSyncSimulate extends TestThresholdsStoryLiveSync {
 
     static final TestResource<TaskType> TASK_LIVESYNC_OPENDJ_SIMULATE = new TestResource<>(TEST_DIR, "task-opendj-livesync-simulate.xml", "02e134e0-a740-4730-be6d-6521e63198e7");
 

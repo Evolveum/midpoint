@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -3695,6 +3697,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result,
+            Consumer<PrismObject<T>> customizer) throws CommonException, IOException {
+        return addObject(resource.file, task, result, customizer);
+    }
+
     protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result)
             throws IOException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
@@ -6423,6 +6430,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ModelExecuteOptions executeOptions() {
         return ModelExecuteOptions.create(prismContext);
+    }
+
+    protected String determineSingleInducedRuleId(String roleOid, OperationResult result)
+            throws CommonException {
+        RoleType role = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable();
+        List<AssignmentType> ruleInducements = role.getInducement().stream()
+                .filter(i -> i.getPolicyRule() != null)
+                .collect(Collectors.toList());
+        assertThat(ruleInducements).as("policy rule inducements in " + role).hasSize(1);
+        Long id = ruleInducements.get(0).getId();
+        argCheck(id != null, "Policy rule inducement in %s has no PCV ID", roleOid);
+        return roleOid + ":" + id;
     }
 
     public interface TracedFunctionCall<X> {
