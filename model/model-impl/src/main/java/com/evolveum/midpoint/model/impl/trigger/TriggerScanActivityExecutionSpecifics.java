@@ -1,19 +1,18 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.trigger;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecutionSpecifics;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -56,7 +55,7 @@ class TriggerScanActivityExecutionSpecifics
 
     private ObjectFilter createFilter() {
         LOGGER.debug("Looking for triggers with timestamps up to {}", thisScanTimestamp);
-        return getPrismContext().queryFor(ObjectType.class)
+        return PrismContext.get().queryFor(ObjectType.class)
                 .item(F_TRIGGER, F_TIMESTAMP).le(thisScanTimestamp)
                 .buildFilter();
     }
