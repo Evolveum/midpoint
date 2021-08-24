@@ -157,16 +157,25 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return buttonsList;
     }
 
-    private AjaxIconButton createNewObjectButton(String buttonId) {
-        AjaxIconButton newObjectButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
-                createStringResource("MainObjectListPanel.newObject")) {
+    private Component createNewObjectButton(String buttonId) {
+        DisplayType newObjectButtonDisplayType = getNewObjectButtonStandardDisplayType();
+        CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon(WebComponentUtil.getIconCssClass(newObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                .appendColorHtmlValue(WebComponentUtil.getIconColor(newObjectButtonDisplayType));
+        if (isCollectionViewPanel()) {
+            IconType plusIcon = new IconType();
+            plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
+            plusIcon.setColor("green");
+            builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
+        }
+        String iconTitle = WebComponentUtil.getDisplayTypeTitle(newObjectButtonDisplayType);
+        AjaxCompositedIconButton createNewObjectButton = new AjaxCompositedIconButton(buttonId, builder.build(),
+                createStringResource(StringUtils.isEmpty(iconTitle) ? "MainObjectListPanel.newObject" : iconTitle)) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-
-
                 if (isCollectionViewPanelForCompiledView()) {
                     newObjectPerformed(target, null, getObjectCollectionView());
                     return;
@@ -185,10 +194,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
                 getPageBase().showMainPopup(buttonsPanel, target);
 //                navigateToNew(compiledObjectCollectionViews, target);
-            }
+                }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        return newObjectButton;
+        createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
+        createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        return createNewObjectButton;
     }
 
     protected LoadableModel<MultiFunctinalButtonDto> loadButtonDescriptions() {
