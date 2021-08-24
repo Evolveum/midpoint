@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 
 import java.util.Objects;
 
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -503,9 +504,11 @@ public abstract class IterativeActivityExecution<
     }
 
     @Override
-    protected ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
+    protected @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        return executionSpecifics.useOtherActivityStateForCounters(result);
+        return MoreObjects.firstNonNull(
+                executionSpecifics.useOtherActivityStateForCounters(result),
+                activityState);
     }
 
     public @NotNull AES getExecutionSpecifics() {

@@ -77,7 +77,7 @@ public abstract class ActivityState implements DebugDumpable {
         return getRealizationState() == ActivityRealizationStateType.COMPLETE;
     }
 
-    public OperationResultStatusType getResultStatusRaw() {
+    OperationResultStatusType getResultStatusRaw() {
         return getTask().getPropertyRealValue(getResultStatusItemPath(), OperationResultStatusType.class);
     }
 
@@ -110,7 +110,7 @@ public abstract class ActivityState implements DebugDumpable {
                 .getPropertyRealValue(stateItemPath.append(path), expectedType);
     }
 
-    public <T> T getItemRealValueClone(ItemPath path, Class<T> expectedType) {
+    <T> T getItemRealValueClone(ItemPath path, Class<T> expectedType) {
         return getTask()
                 .getItemRealValueOrClone(stateItemPath.append(path), expectedType);
     }
@@ -127,7 +127,7 @@ public abstract class ActivityState implements DebugDumpable {
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
      */
-    public void setItemRealValues(ItemPath path, Collection<?> values) throws SchemaException {
+    private void setItemRealValues(ItemPath path, Collection<?> values) throws SchemaException {
         Task task = getTask();
         LOGGER.trace("setItemRealValues: path={}, values={} in {}", path, values, task);
 
@@ -195,7 +195,7 @@ public abstract class ActivityState implements DebugDumpable {
     /**
      * @param explicitDefinition If present, we do not try to derive the definition from work state CTD.
      */
-    public void setWorkStateItemRealValues(ItemPath path, ItemDefinition<?> explicitDefinition, Collection<?> values)
+    private void setWorkStateItemRealValues(ItemPath path, ItemDefinition<?> explicitDefinition, Collection<?> values)
             throws SchemaException {
         Task task = getTask();
         LOGGER.trace("setWorkStateItemRealValues: path={}, values={} in {}", path, values, task);
