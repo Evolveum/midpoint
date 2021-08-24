@@ -68,6 +68,7 @@ ALTER TABLE m_operation_execution ADD COLUMN recordType INTEGER;
 ALTER TABLE m_focus ADD COLUMN lockoutStatus INTEGER;
 
 -- 4.4+ Changes
+-- MID-7173
 ALTER TABLE m_task ADD COLUMN schedulingState INTEGER;
 ALTER TABLE m_task ADD COLUMN autoScalingMode INTEGER;
 ALTER TABLE m_node ADD COLUMN operationalState INTEGER;

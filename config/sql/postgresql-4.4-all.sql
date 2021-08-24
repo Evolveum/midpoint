@@ -469,6 +469,8 @@ CREATE TABLE m_task (
   taskIdentifier           VARCHAR(255),
   threadStopAction         INT4,
   waitingReason            INT4,
+  schedulingState          INT4,
+  autoScalingMode          INT4,
   oid                      VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -627,6 +629,7 @@ CREATE TABLE m_node (
   name_norm      VARCHAR(255),
   name_orig      VARCHAR(255),
   nodeIdentifier VARCHAR(255),
+  operationalState INT4,
   oid            VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -1211,7 +1214,7 @@ CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID);
 CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID);
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.3');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.4');
 
 -- Thanks to Patrick Lightbody for submitting this...
 --
