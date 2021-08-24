@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sqale.jsonb.QuerydslJsonbType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
@@ -134,7 +135,7 @@ public class SqaleRepoContext extends SqlRepoContext {
         return extItemCache.resolveExtensionItem(extItemKey);
     }
 
-    public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {
-        return extItemCache.resolveExtensionItem(extItemKey);
+    public @Nullable MExtItem getExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {
+        return extItemCache.getExtensionItem(extItemKey);
     }
 }

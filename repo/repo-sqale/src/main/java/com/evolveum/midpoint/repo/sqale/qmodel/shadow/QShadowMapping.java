@@ -10,16 +10,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
 import java.util.Collection;
 import java.util.Objects;
-
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutableItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.ExtUtils;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -37,7 +33,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.querydsl.core.Tuple;
 
 /**
  * Mapping between {@link QShadow} and {@link ShadowType}.
@@ -134,18 +129,16 @@ public class QShadowMapping
         // FIXME: we store it because provisioning now sends it to repo, but it should be transient
         shadowType.asPrismObject().removeContainer(ShadowType.F_ASSOCIATION);
 
-
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (GetOperationOptions.isRaw(rootOptions)) {
             // If raw=true, we populate attributes with types cached in repository
             applyShadowAttributesDefinitions(shadowType);
         }
 
-
         return shadowType;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void applyShadowAttributesDefinitions(ShadowType shadowType) throws SchemaException {
         if (shadowType.getAttributes() == null) {
             return;
@@ -154,12 +147,12 @@ public class QShadowMapping
 
         for (Item<?, ?> attribute : attributesOld.getItems()) {
             ItemName itemName = attribute.getElementName();
-            MExtItem itemInfo = repositoryContext().resolveExtensionItem(MExtItem.itemNameKey(attribute.getElementName(), MExtItemHolderType.ATTRIBUTES));
+            MExtItem itemInfo = repositoryContext().getExtensionItem(
+                    MExtItem.itemNameKey(attribute.getElementName(), MExtItemHolderType.ATTRIBUTES));
             if (itemInfo != null && attribute.getDefinition() == null) {
                 ((Item) attribute).applyDefinition(definitionFrom(itemName, itemInfo), true);
             }
         }
-
     }
 
     private ItemDefinition<?> definitionFrom(QName name, MExtItem itemInfo) {
@@ -176,6 +169,4 @@ public class QShadowMapping
         def.setDynamic(true);
         return def;
     }
-
-
 }

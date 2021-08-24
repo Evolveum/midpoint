@@ -1687,6 +1687,10 @@ CREATE TABLE m_ext_item (
     -- information about storage mechanism (JSON common/separate, column, table separate/common, etc.)
     -- storageType JSONB NOT NULL default '{"type": "EXT_JSON"}', -- currently only JSONB is used
 );
+
+-- This works fine for itemName+holderType search used in raw processing
+ALTER TABLE m_ext_item ADD CONSTRAINT m_ext_item_key
+    UNIQUE (itemName, holderType, valueType, cardinality);
 -- endregion
 
 /*
