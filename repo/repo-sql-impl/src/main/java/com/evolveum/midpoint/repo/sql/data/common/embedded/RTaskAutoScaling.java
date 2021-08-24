@@ -11,6 +11,7 @@ import javax.persistence.Embeddable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskAutoScalingMode;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -25,6 +26,7 @@ public class RTaskAutoScaling {
 
     private RTaskAutoScalingMode autoScalingMode; // the name of the column in m_task
 
+    @JaxbName(localPart = "mode")
     public RTaskAutoScalingMode getAutoScalingMode() {
         return autoScalingMode;
     }
