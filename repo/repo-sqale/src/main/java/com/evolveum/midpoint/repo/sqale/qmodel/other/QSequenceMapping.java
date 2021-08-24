@@ -26,9 +26,7 @@ public class QSequenceMapping extends QAssignmentHolderMapping<SequenceType, QSe
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QSequenceMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QSequenceMapping(repositoryContext);
-        }
+        instance = new QSequenceMapping(repositoryContext);
         return instance;
     }
 

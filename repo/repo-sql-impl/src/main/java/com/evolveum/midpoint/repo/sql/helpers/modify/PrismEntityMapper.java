@@ -40,6 +40,7 @@ public class PrismEntityMapper {
         MAPPERS.put(new Key(PolyString.class, RPolyString.class), new PolyStringMapper());
         MAPPERS.put(new Key(ActivationType.class, RActivation.class), new ActivationMapper());
         MAPPERS.put(new Key(ActivationType.class, RFocusActivation.class), new FocusActivationMapper());
+        MAPPERS.put(new Key(TaskAutoScalingType.class, RTaskAutoScaling.class), new TaskAutoScalingMapper());
         MAPPERS.put(new Key(Referencable.class, REmbeddedReference.class), new EmbeddedObjectReferenceMapper());
         MAPPERS.put(new Key(OperationalStateType.class, ROperationalState.class), new OperationalStateMapper());
         MAPPERS.put(new Key(AutoassignSpecificationType.class, RAutoassignSpecification.class), new AutoassignSpecificationMapper());

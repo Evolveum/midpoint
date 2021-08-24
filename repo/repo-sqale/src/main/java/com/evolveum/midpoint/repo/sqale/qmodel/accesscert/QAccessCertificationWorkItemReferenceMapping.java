@@ -36,7 +36,7 @@ public class QAccessCertificationWorkItemReferenceMapping
 
     public static QAccessCertificationWorkItemReferenceMapping
     initForCaseWorkItemAssignee(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceAssignee == null) {
+        if (needsInitialization(instanceAssignee, repositoryContext)) {
             instanceAssignee = new QAccessCertificationWorkItemReferenceMapping(
                     "m_access_cert_wi_assignee", "acwirefa", repositoryContext,
                     new RefTableTargetResolver<>(QUserMapping::getUserMapping));
@@ -50,7 +50,7 @@ public class QAccessCertificationWorkItemReferenceMapping
 
     public static QAccessCertificationWorkItemReferenceMapping
     initForCaseWorkItemCandidate(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceCandidate == null) {
+        if (needsInitialization(instanceCandidate, repositoryContext)) {
             instanceCandidate = new QAccessCertificationWorkItemReferenceMapping(
                     "m_access_cert_wi_candidate", "acwirefc", repositoryContext,
                     new RefTableTargetResolver<>(QFocusMapping::getFocusMapping));

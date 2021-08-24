@@ -45,21 +45,20 @@ public class BucketAllocator {
         this.prismContext = PrismContext.get();
     }
 
-    public static BucketAllocator create(@Nullable WorkBucketsManagementType bucketingConfig,
-            @NotNull CommonTaskBeans beans, @Nullable ImplicitSegmentationResolver implicitSegmentationResolver) {
+    public static BucketAllocator create(@NotNull ActivityDistributionDefinition distributionDefinition,
+            @Nullable ImplicitSegmentationResolver implicitSegmentationResolver, @NotNull CommonTaskBeans beans) {
+
+        @Nullable WorkBucketsManagementType bucketingConfig = distributionDefinition.getBuckets();
         return new BucketAllocator(
                 beans.contentFactoryCreator.createContentFactory(bucketingConfig, implicitSegmentationResolver),
                 bucketingConfig);
     }
 
-    public static BucketAllocator create(@NotNull ActivityDistributionDefinition distributionDefinition,
-            @NotNull CommonTaskBeans beans, @Nullable ImplicitSegmentationResolver implicitSegmentationResolver) {
-        return create(distributionDefinition.getBuckets(), beans, implicitSegmentationResolver);
-    }
-
     /**
      * Tries to find a bucket suitable for processing from a given list of buckets.
      * If nothing can be found, creates bucket or buckets using strategy-specific means.
+     *
+     * Should not update `buckets` list nor its constituent objects.
      */
     @NotNull
     public BucketAllocator.Response getBucket(@NotNull List<WorkBucketType> buckets) throws SchemaException {
@@ -85,8 +84,8 @@ public class BucketAllocator {
         }
     }
 
-    @NotNull
-    private List<WorkBucketType> createNewBuckets(@NotNull List<WorkBucketType> buckets, List<? extends AbstractWorkBucketContentType> newBucketsContent) {
+    private @NotNull List<WorkBucketType> createNewBuckets(@NotNull List<WorkBucketType> buckets,
+            @NotNull List<? extends AbstractWorkBucketContentType> newBucketsContent) {
         List<WorkBucketType> newBuckets = new ArrayList<>(newBucketsContent.size());
         WorkBucketType lastBucket = BucketingUtil.getLastBucket(buckets);
         int sequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() + 1 : 1;
@@ -152,6 +151,10 @@ public class BucketAllocator {
         return contentFactory;
     }
 
+    public Integer estimateNumberOfBuckets() {
+        return contentFactory.estimateNumberOfBuckets();
+    }
+
     public static class Response {
 
         public static class NothingFound extends Response {
@@ -173,7 +176,7 @@ public class BucketAllocator {
          */
         public static class FoundExisting extends Response {
             /**
-             * Free bucket that is provided as a result of the operation.
+             * Free (state=READY) bucket that is provided as a result of the operation.
              */
             @NotNull public final WorkBucketType bucket;
 
@@ -193,14 +196,20 @@ public class BucketAllocator {
          */
         public static class NewBuckets extends Response {
             /**
-             * New buckets.
+             * New buckets. Their state is READY.
              */
             @NotNull public final List<WorkBucketType> newBuckets;
+
+            /** Bucket suggested by the allocator for immediate processing. It's an index into {@link #newBuckets} array. */
             public final int selected;
 
             NewBuckets(@NotNull List<WorkBucketType> newBuckets, int selected) {
                 this.newBuckets = newBuckets;
                 this.selected = selected;
+            }
+
+            public @NotNull WorkBucketType getSelectedBucket() {
+                return newBuckets.get(selected);
             }
 
             @Override

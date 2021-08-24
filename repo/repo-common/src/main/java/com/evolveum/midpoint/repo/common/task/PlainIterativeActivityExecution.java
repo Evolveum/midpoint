@@ -18,6 +18,8 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Execution of a plain iterative activity.
  *
@@ -54,9 +56,8 @@ public class PlainIterativeActivityExecution<
     }
 
     @Override
-    protected void setExpectedTotal(OperationResult result) throws CommonException {
-        // Current iterative activities do not know expected total.
-        // After the situation changes (e.g. when ConnId SyncOp is extended) we can add the support here.
+    protected @Nullable Long determineExpectedTotal(OperationResult opResult) throws CommonException {
+        return executionSpecifics.determineExpectedTotal(opResult);
     }
 
     @Override

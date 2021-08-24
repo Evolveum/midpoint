@@ -30,6 +30,8 @@ public class ExtItemCache {
     // TODO: id->ext item will be used for index only
     private final Map<Integer, MExtItem> idToExtItem = new ConcurrentHashMap<>();
     private final Map<MExtItem.Key, MExtItem> keyToExtItem = new ConcurrentHashMap<>();
+    private final Map<MExtItem.ItemNameKey, MExtItem> itemNameToExtItem = new ConcurrentHashMap<>();
+
 
     private Supplier<JdbcSession> jdbcSessionSupplier;
 
@@ -43,6 +45,7 @@ public class ExtItemCache {
         // this can be called repeatedly in tests, so the clear may be necessary
         idToExtItem.clear();
         keyToExtItem.clear();
+        itemNameToExtItem.clear();
 
         QExtItem uri = QExtItem.DEFAULT;
         List<MExtItem> result;
@@ -63,6 +66,7 @@ public class ExtItemCache {
     private void updateMaps(MExtItem row) {
         idToExtItem.put(row.id, row);
         keyToExtItem.put(row.key(), row);
+        itemNameToExtItem.put(row.itemNameKey(), row);
     }
 
     public synchronized @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
@@ -92,4 +96,29 @@ public class ExtItemCache {
         LOGGER.debug("Ext item cache row inserted: {}", extItem);
         return extItem;
     }
+
+    public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {
+        if (jdbcSessionSupplier == null) {
+            throw new IllegalStateException("Ext item cache was not initialized yet!");
+        }
+
+        MExtItem extItem = itemNameToExtItem.get(extItemKey);
+        if (extItem != null) {
+            return extItem;
+        }
+
+        extItem = jdbcSessionSupplier.get()
+                .newQuery()
+                .from(QExtItem.DEFAULT)
+                .select(QExtItem.DEFAULT)
+                .where(QExtItem.DEFAULT.itemName.eq(extItemKey.itemName).and(QExtItem.DEFAULT.holderType.eq(extItemKey.holderType)))
+                .fetchFirst();
+
+        if (extItem != null) {
+            updateMaps(extItem);
+        }
+        return extItem;
+    }
+
+
 }

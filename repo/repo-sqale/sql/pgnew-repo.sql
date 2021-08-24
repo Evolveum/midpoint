@@ -112,6 +112,8 @@ CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
 CREATE TYPE LockoutStatusType AS ENUM ('NORMAL', 'LOCKED');
 
+CREATE TYPE NodeOperationalStateType AS ENUM ('UP', 'DOWN', 'STARTING');
+
 CREATE TYPE OperationExecutionRecordTypeType AS ENUM ('SIMPLE', 'COMPLEX');
 
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
@@ -126,11 +128,15 @@ CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOW
 CREATE TYPE SynchronizationSituationType AS ENUM (
     'DELETED', 'DISPUTED', 'LINKED', 'UNLINKED', 'UNMATCHED');
 
+CREATE TYPE TaskAutoScalingModeType AS ENUM ('DISABLED', 'DEFAULT');
+
 CREATE TYPE TaskBindingType AS ENUM ('LOOSE', 'TIGHT');
 
 CREATE TYPE TaskExecutionStateType AS ENUM ('RUNNING', 'RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
 CREATE TYPE TaskRecurrenceType AS ENUM ('SINGLE', 'RECURRING');
+
+CREATE TYPE TaskSchedulingStateType AS ENUM ('READY', 'WAITING', 'SUSPENDED', 'CLOSED');
 
 CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
 
@@ -756,8 +762,8 @@ CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED
         CHECK (objectType = 'RESOURCE'),
-    business_administrativeState ResourceAdministrativeStateType,
-    operationalState_lastAvailabilityStatus AvailabilityStatusType,
+    businessAdministrativeState ResourceAdministrativeStateType,
+    operationalStateLastAvailabilityStatus AvailabilityStatusType,
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
     connectorRefRelationId INTEGER REFERENCES m_uri(id)
@@ -847,7 +853,8 @@ CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('NODE') STORED
         CHECK (objectType = 'NODE'),
-    nodeIdentifier TEXT
+    nodeIdentifier TEXT,
+    operationalState NodeOperationalStateType
 )
     INHERITS (m_assignment_holder);
 
@@ -1126,6 +1133,8 @@ CREATE TABLE m_task (
     parent TEXT, -- value of taskIdentifier
     recurrence TaskRecurrenceType,
     resultStatus OperationResultStatusType,
+    schedulingState TaskSchedulingStateType,
+    autoScalingMode TaskAutoScalingModeType, -- autoScaling/mode
     threadStopAction ThreadStopActionType,
     waitingReason TaskWaitingReasonType,
     dependentTaskIdentifiers TEXT[] -- contains values of taskIdentifier

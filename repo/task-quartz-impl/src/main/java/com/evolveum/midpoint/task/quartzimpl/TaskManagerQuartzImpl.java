@@ -970,7 +970,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     @Override
     @VisibleForTesting // TODO
-    public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    public void closeTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        Task task = taskRetriever.getTaskPlain(taskOid, parentResult);
         taskStateManager.closeTask(task, parentResult);
     }
 
@@ -1140,7 +1141,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @VisibleForTesting
     @Override
     public RunningTaskQuartzImpl createFakeRunningTask(Task task) {
-        RunningTaskQuartzImpl runningTask = taskInstantiator.toRunningTaskInstance(task, task);
+        RunningTaskQuartzImpl runningTask = taskInstantiator.toRunningTaskInstance(task, task, null);
         runningTask.setExecutingThread(Thread.currentThread());
         return runningTask;
     }

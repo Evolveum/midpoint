@@ -16,7 +16,7 @@
         </assignment>
         <displayName>The Golden Age of Piracy</displayName>
         <identifier>C001</identifier>
-        <orgType>piracy</orgType>
+        <subtype>piracy</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-c00000000002">
@@ -30,7 +30,7 @@
         </assignment>
         <displayName>The Crown</displayName>
         <identifier>C002</identifier>
-        <orgType>piracy</orgType>
+        <subtype>piracy</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-c00000000003">
@@ -44,7 +44,7 @@
         </assignment>
         <displayName>Government of Jamaica</displayName>
         <identifier>C003</identifier>
-        <orgType>piracy</orgType>
+        <subtype>piracy</subtype>
         <inducement>
             <!-- Monkey Island Governor Office -->
             <targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
@@ -63,7 +63,7 @@
         <delegable>true</delegable>
         <displayName>Department of Things</displayName>
         <identifier>C004</identifier>
-        <orgType>piracy</orgType>
+        <subtype>piracy</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-c00000000005">
@@ -78,7 +78,7 @@
         <delegable>true</delegable>
         <displayName>Department of People</displayName>
         <identifier>C005</identifier>
-        <orgType>piracy</orgType>
+        <subtype>piracy</subtype>
         <inducement>
             <!-- Monkey Island Scumm Bar -->
             <targetRef oid="00000000-8888-6666-0000-100000000006" type="OrgType"/>
@@ -98,7 +98,7 @@
         <delegable>true</delegable>
         <displayName>Entertainment Section</displayName>
         <identifier>C006</identifier>
-        <orgType>piracy</orgType>
+        <subtype>piracy</subtype>
     </org>
 
 </objects>

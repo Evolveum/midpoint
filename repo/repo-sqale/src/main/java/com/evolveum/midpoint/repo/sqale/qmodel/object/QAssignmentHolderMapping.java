@@ -38,11 +38,9 @@ public class QAssignmentHolderMapping<
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAssignmentHolderMapping<?, ?, ?> initAssignmentHolderMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QAssignmentHolderMapping<>(QAssignmentHolder.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    AssignmentHolderType.class, QAssignmentHolder.CLASS,
-                    repositoryContext);
-        }
+        instance = new QAssignmentHolderMapping<>(QAssignmentHolder.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                AssignmentHolderType.class, QAssignmentHolder.CLASS,
+                repositoryContext);
         return instance;
     }
 

@@ -65,6 +65,10 @@ public class QTask extends QAssignmentHolder<MTask> {
             ColumnMetadata.named("recurrence").ofType(Types.OTHER);
     public static final ColumnMetadata RESULT_STATUS =
             ColumnMetadata.named("resultStatus").ofType(Types.OTHER);
+    public static final ColumnMetadata SCHEDULING_STATE =
+            ColumnMetadata.named("schedulingState").ofType(Types.OTHER);
+    public static final ColumnMetadata AUTO_SCALING_MODE =
+            ColumnMetadata.named("autoScalingMode").ofType(Types.OTHER);
     public static final ColumnMetadata THREAD_STOP_ACTION =
             ColumnMetadata.named("threadStopAction").ofType(Types.OTHER);
     public static final ColumnMetadata WAITING_REASON =
@@ -104,6 +108,10 @@ public class QTask extends QAssignmentHolder<MTask> {
             createEnum("recurrence", TaskRecurrenceType.class, RECURRENCE);
     public final EnumPath<OperationResultStatusType> resultStatus =
             createEnum("resultStatus", OperationResultStatusType.class, RESULT_STATUS);
+    public final EnumPath<TaskSchedulingStateType> schedulingState =
+            createEnum("schedulingState", TaskSchedulingStateType.class, SCHEDULING_STATE);
+    public final EnumPath<TaskAutoScalingModeType> autoScalingMode =
+            createEnum("autoScalingMode", TaskAutoScalingModeType.class, AUTO_SCALING_MODE);
     public final EnumPath<ThreadStopActionType> threadStopAction =
             createEnum("threadStopAction", ThreadStopActionType.class, THREAD_STOP_ACTION);
     public final EnumPath<TaskWaitingReasonType> waitingReason =

@@ -8,7 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ext;
 
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
 
 /**
@@ -41,6 +44,13 @@ public class MExtItem {
         return key;
     }
 
+    public ItemNameKey itemNameKey() {
+        ItemNameKey key = new ItemNameKey();
+        key.itemName = this.itemName;
+        key.holderType = this.holderType;
+        return key;
+    }
+
     public static class Key {
         public String itemName;
         public String valueType;
@@ -69,6 +79,36 @@ public class MExtItem {
         }
     }
 
+    public static class ItemNameKey {
+        public String itemName;
+        public MExtItemHolderType holderType;
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((holderType == null) ? 0 : holderType.hashCode());
+            result = prime * result + ((itemName == null) ? 0 : itemName.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof ItemNameKey))
+                return false;
+            ItemNameKey other = (ItemNameKey) obj;
+            if (holderType != other.holderType)
+                return false;
+            if (itemName == null) {
+                if (other.itemName != null)
+                    return false;
+            } else if (!itemName.equals(other.itemName))
+                return false;
+            return true;
+        }
+    }
+
     /** Creates ext item key from item definition and holder type. */
     public static Key keyFrom(ItemDefinition<?> definition, MExtItemHolderType holderType) {
         MExtItem.Key key = new MExtItem.Key();
@@ -90,5 +130,12 @@ public class MExtItem {
                 ", holderType=" + holderType +
                 ", cardinality=" + cardinality +
                 '}';
+    }
+
+    public static @NotNull MExtItem.ItemNameKey itemNameKey(ItemName elementName, MExtItemHolderType type) {
+        ItemNameKey ret = new ItemNameKey();
+        ret.itemName = QNameUtil.qNameToUri(elementName);
+        ret.holderType = type;
+        return ret;
     }
 }

@@ -15,6 +15,8 @@ import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -127,7 +129,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        bucketingManager.setFreeBucketWaitTimeOverride(3000L); // experimental
+        BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(3000L); // experimental
 
         PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(
                 ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);

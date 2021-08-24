@@ -32,10 +32,7 @@ mvn integration-test -P sqale -pl model/model-intest/
     <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
-            <!--
-            TODO: subclass of the above, but more is failing, probably because of missing RAW support?
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
             <class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiResource"/>
@@ -52,9 +49,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.TestResources"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMapping"/>
-            <!-- TODO in new repo: Unknown definition type 'PCD+:{http://midpoint.evolveum.com/xml/ns/samples/piracy}riskVector {http://midpoint.evolveum.com/xml/ns/samples/piracy}RiskVectorType[0,-1],RAM,runtime', can't say if 'riskVector' is indexed or not.
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingInbound"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAutoInbound"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingChaining"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAdvanced"/>
@@ -67,36 +62,24 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.TestIteration"/>
             <class name="com.evolveum.midpoint.model.intest.TestTolerantAttributes"/>
             <class name="com.evolveum.midpoint.model.intest.TestScriptHooks"/>
-            <!-- TODO fails with SystemException: Expected that <identifiers> will be ResourceAttributeContainer but it is class com.evolveum.midpoint.prism.impl.PrismContainerImpl
             <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.TestCaseIgnore"/>
             <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
             <class name="com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound"/> <!-- missing from original suite, why? -->
-            <!-- TODO many "row is not incomplete in lookupTable" assertion errors
             <class name="com.evolveum.midpoint.model.intest.gensync.TestEditSchema"/>
-            -->
-            <!-- TODO test210 fails with: Unknown compile time class of container value of 'riskVector'.
             <class name="com.evolveum.midpoint.model.intest.gensync.TestRoleEntitlement"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.TestConsistencySimple"/>
             <class name="com.evolveum.midpoint.model.intest.TestConnectorMultiInstance"/>
             <class name="com.evolveum.midpoint.model.intest.TestMerge"/>
             <!-- TODO needs working audit impl.
             <class name="com.evolveum.midpoint.model.intest.TestAudit"/>
             -->
-            <!-- TODO test800/804 fail on validity scanner (type of search problem I guess)
-            searchObjectsIterative fails on the query for ObjectType asking for attributes from subclass (FocusType):
-            Q{OR(LESS-OR-EQUAL: activation/validFrom, PPV(XMLGregorianCalendarImpl:2021-08-17T10:35:36.975+02:00); LESS-OR-EQUAL: activation/validTo, PPV(XMLGregorianCalendarImpl:2021-08-17T10:35:36.975+02:00); EXISTS(assignment, OR(LESS-OR-EQUAL: activation/validFrom, PPV(XMLGregorianCalendarImpl:2021-08-17T10:35:36.975+02:00); LESS-OR-EQUAL: activation/validTo, PPV(XMLGregorianCalendarImpl:2021-08-17T10:35:36.975+02:00)))), null paging}
             <class name="com.evolveum.midpoint.model.intest.TestDeputy"/>
-            TODO: different kind of wrong query: Missing item mapping for 'roleType' in mapping QAssignmentHolderMapping
+
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
-            <!-- TODO Missing item mapping for 'roleType' in mapping QAssignmentHolderMapping
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestMetaMeta"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAutoassign"/>
@@ -109,9 +92,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.archetypes.TestCollections"/>
             <class name="com.evolveum.midpoint.model.intest.archetypes.TestArchetypeInheritance"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestMisc"/>
-            <!-- TODO test200 failing with: SystemException: Unknown compile time class of container value of 'myContainer'.
             <class name="com.evolveum.midpoint.model.intest.misc.TestTracing"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.misc.TestUuidNonUniqueName"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestMigration"/>
             <class name="com.evolveum.midpoint.model.intest.TestFunctions"/>
@@ -124,14 +105,10 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingLiveSync"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliation"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationMultithreaded"/>
-            <!-- TODO test130: Unknown definition type 'PCD:{.../common/common-3}modelExecuteOptions {.../common/common-3}ModelExecuteOptionsType[0,-1],RAM', can't say if 'modelExecuteOptions' is indexed or not.
             <class name="com.evolveum.midpoint.model.intest.sync.TestRecomputeTask"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconAuthorizations"/>
-            <!--
             <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestUuid"/>
@@ -142,9 +119,8 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTaskLegacyMultithreaded"/>
             <!-- TODO Various assertion errors, transition count, success count, ...
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskReporting"/>
-            TODO: AssertionError: No subtask for activity path 'resourceObjects' found
-            <class name="com.evolveum.midpoint.model.intest.tasks.TestProgressReporting"/>
             -->
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestProgressReporting"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="false" verbose="10">
@@ -163,16 +139,13 @@ mvn integration-test -P sqale -pl model/model-intest/
     </test>
     <test name="Scripting" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <!-- TODO test910: RuntimeException: Timeout while Waiting for task tree task:931e34be-5cf0-46c6-8cc1-90812a66d5cb(Delete shadows segmented, raw) next finished run
-            <class name="com.evolveum.midpoint.model.intest.scripting.TestScriptingBasicNew"/>-->
+            <class name="com.evolveum.midpoint.model.intest.scripting.TestScriptingBasicNew"/>
             <class name="com.evolveum.midpoint.model.intest.scripting.TestScriptingBasicLegacy"/>
         </classes>
     </test>
     <test name="Password" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <!-- TODO: test510 breaks with NPE
             <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDefault"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDefaultHashing"/>
         </classes>
     </test>
@@ -192,12 +165,8 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
         </classes>
     </test>
-    <!--
     <test name="Manual" preserve-order="true" parallel="false" verbose="10">
         <classes>
-            TODO many tests fail - starting with test100: Unexpected value
-PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, will, namespace declarations))) in value set in property username in shadow:d17321e3-8445-4c90-a93c-fded7311ad64(will) (repository); expected (real values) [will]; has (pvalues) [
-PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, will, namespace declarations)))]
             <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestManualCapabilities"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
@@ -208,12 +177,15 @@ PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, will, names
             <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
         </classes>
     </test>
+    <!--  
     Tests from testng-db-specific.xml
+    -->
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationPartitioned"/>
+            <!-- Invalid UUIDs in tests
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationMultiNode"/>
+             --> 
         </classes>
     </test>
-    -->
 </suite>

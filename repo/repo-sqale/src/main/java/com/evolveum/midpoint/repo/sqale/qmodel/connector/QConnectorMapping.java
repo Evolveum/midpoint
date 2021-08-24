@@ -29,9 +29,7 @@ public class QConnectorMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QConnectorMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QConnectorMapping(repositoryContext);
-        }
+        instance = new QConnectorMapping(repositoryContext);
         return instance;
     }
 

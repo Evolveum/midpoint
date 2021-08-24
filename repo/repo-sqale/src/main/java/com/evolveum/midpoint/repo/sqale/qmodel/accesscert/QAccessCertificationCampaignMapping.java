@@ -36,9 +36,7 @@ public class QAccessCertificationCampaignMapping
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAccessCertificationCampaignMapping initAccessCertificationCampaignMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QAccessCertificationCampaignMapping(repositoryContext);
-        }
+        instance = new QAccessCertificationCampaignMapping(repositoryContext);
         return instance;
     }
 

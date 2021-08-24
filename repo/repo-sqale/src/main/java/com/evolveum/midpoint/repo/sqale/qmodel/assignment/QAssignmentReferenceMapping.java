@@ -36,7 +36,7 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
 
     public static <OR extends MObject> QAssignmentReferenceMapping<OR>
     initForAssignmentCreateApprover(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceAssignmentCreateApprover == null) {
+        if (needsInitialization(instanceAssignmentCreateApprover, repositoryContext)) {
             instanceAssignmentCreateApprover = new QAssignmentReferenceMapping<>(
                     "m_assignment_ref_create_approver", "arefca", repositoryContext,
                     new RefTableTargetResolver<>(QUserMapping::getUserMapping));
@@ -53,7 +53,7 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
 
     public static <OR extends MObject> QAssignmentReferenceMapping<OR>
     initForAssignmentModifyApprover(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceAssignmentModifyApprover == null) {
+        if (needsInitialization(instanceAssignmentModifyApprover, repositoryContext)) {
             instanceAssignmentModifyApprover = new QAssignmentReferenceMapping<>(
                     "m_assignment_ref_modify_approver", "arefma", repositoryContext,
                     new RefTableTargetResolver<>(QUserMapping::getUserMapping));

@@ -473,6 +473,8 @@ CREATE TABLE m_task (
   taskIdentifier           VARCHAR(255),
   threadStopAction         INTEGER,
   waitingReason            INTEGER,
+  schedulingState          INTEGER,
+  autoScalingMode          INTEGER,
   oid                      VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -631,6 +633,7 @@ CREATE TABLE m_node (
   name_norm      VARCHAR(255),
   name_orig      VARCHAR(255),
   nodeIdentifier VARCHAR(255),
+  operationalState INTEGER,
   oid            VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -1192,6 +1195,6 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.3');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.4');
 
 COMMIT;

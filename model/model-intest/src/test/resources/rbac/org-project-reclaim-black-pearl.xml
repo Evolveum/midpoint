@@ -16,5 +16,5 @@
     </assignment>
     <displayName>Reclaim Black Pearl</displayName>
     <identifier>5000</identifier>
-    <orgType>project</orgType>
+    <subtype>project</subtype>
 </org>

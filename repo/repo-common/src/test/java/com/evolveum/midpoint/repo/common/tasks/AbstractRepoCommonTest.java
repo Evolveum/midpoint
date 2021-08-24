@@ -54,7 +54,7 @@ public class AbstractRepoCommonTest extends AbstractIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        // Currently just for sure. We do not start cluster manager thread in these tests.
+        // Currently just for sure. (It shouldn't be needed as we do not start cluster manager thread in these tests.)
         ClusterManager.setUpdateNodeExecutionLimitations(false);
         setPermissiveExecutionLimitations();
 

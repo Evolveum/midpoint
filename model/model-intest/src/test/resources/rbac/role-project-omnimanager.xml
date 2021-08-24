@@ -18,7 +18,7 @@
             <type>OrgType</type>
             <filter>
                 <q:equal>
-                    <q:path>orgType</q:path>
+                    <q:path>subtype</q:path>
                     <q:value>project</q:value>
                 </q:equal>
             </filter>

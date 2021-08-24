@@ -19,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  *  A task that is directly used to execute the handler code.
  *
@@ -62,6 +64,9 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
     /** TODO EXPERIMENTAL */
     @Experimental
     @NotNull Task getRootTask();
+
+    @Experimental
+    @Nullable Task getParentTask();
 
     /**
      * Changes scheduling status to WAITING. Does not change execution state.

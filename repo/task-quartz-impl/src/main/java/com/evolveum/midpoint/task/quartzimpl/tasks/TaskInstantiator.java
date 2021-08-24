@@ -14,6 +14,7 @@ import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -53,13 +54,13 @@ public class TaskInstantiator {
     /**
      * If necessary, converts a task into running task instance. Does not change the prism data.
      */
-    public RunningTaskQuartzImpl toRunningTaskInstance(@NotNull Task task, @NotNull Task rootTask) {
+    public RunningTaskQuartzImpl toRunningTaskInstance(@NotNull Task task, @NotNull Task rootTask, @Nullable Task parentTask) {
         if (task instanceof RunningTask) {
             LOGGER.warn("Task {} is already a RunningTask", task);
             return (RunningTaskQuartzImpl) task;
         } else {
             PrismObject<TaskType> taskPrismObject = task.getUpdatedTaskObject();
-            return new RunningTaskQuartzImpl(taskManager, taskPrismObject, rootTask);
+            return new RunningTaskQuartzImpl(taskManager, taskPrismObject, rootTask, parentTask);
         }
     }
 

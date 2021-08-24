@@ -34,9 +34,7 @@ public class QAccessCertificationDefinitionMapping
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAccessCertificationDefinitionMapping init(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QAccessCertificationDefinitionMapping(repositoryContext);
-        }
+        instance = new QAccessCertificationDefinitionMapping(repositoryContext);
         return instance;
     }
 

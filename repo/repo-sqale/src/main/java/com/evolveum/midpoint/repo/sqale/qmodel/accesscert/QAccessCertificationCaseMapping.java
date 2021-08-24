@@ -49,7 +49,7 @@ public class QAccessCertificationCaseMapping
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAccessCertificationCaseMapping initAccessCertificationCaseMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QAccessCertificationCaseMapping(repositoryContext);
         }
         return instance;
@@ -226,8 +226,11 @@ public class QAccessCertificationCaseMapping
         updateContext.set(updateContext.entityPath().fullObject, fullObject);
     }
 
-    public void storeWorkItems(@NotNull MAccessCertificationCampaign campaignRow,
-            @NotNull MAccessCertificationCase caseRow, @NotNull AccessCertificationCaseType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
+    public void storeWorkItems(
+            @NotNull MAccessCertificationCampaign campaignRow,
+            @NotNull MAccessCertificationCase caseRow,
+            @NotNull AccessCertificationCaseType schemaObject,
+            @NotNull JdbcSession jdbcSession) throws SchemaException {
 
         List<AccessCertificationWorkItemType> wis = schemaObject.getWorkItem();
         if (!wis.isEmpty()) {

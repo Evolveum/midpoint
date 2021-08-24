@@ -30,9 +30,7 @@ public class QConnectorHostMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QConnectorHostMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QConnectorHostMapping(repositoryContext);
-        }
+        instance = new QConnectorHostMapping(repositoryContext);
         return instance;
     }
 

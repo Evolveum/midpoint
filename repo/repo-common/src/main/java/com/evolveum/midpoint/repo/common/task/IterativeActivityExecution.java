@@ -7,16 +7,16 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.PARTIAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
-import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+import java.util.Objects;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
@@ -25,10 +25,14 @@ import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionRes
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.repo.common.task.work.GetBucketOperationOptions;
+import com.evolveum.midpoint.repo.common.task.work.GetBucketOperationOptions.GetBucketOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -36,10 +40,12 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * Represents an execution of an iterative activity: either plain iterative one or search-based one.
@@ -93,6 +99,13 @@ public abstract class IterativeActivityExecution<
      * It is used to narrow the search query for search-based activities.
      */
     protected WorkBucketType bucket;
+
+    /**
+     * Information needed to manage buckets.
+     *
+     * Determined on the execution start.
+     */
+    private BucketingSituation bucketingSituation;
 
     /**
      * Schedules individual items for processing by worker threads (if running in multiple threads).
@@ -172,11 +185,13 @@ public abstract class IterativeActivityExecution<
     /**
      * Bucketed version of the execution.
      */
-    protected void doExecute(OperationResult result)
+    private void doExecute(OperationResult result)
             throws ActivityExecutionException, CommonException {
 
         RunningTask task = taskExecution.getRunningTask();
         boolean initialExecution = true;
+
+        bucketingSituation = determineBucketingSituation();
 
 //        resetWorkStateAndStatisticsIfWorkComplete(result);
 //        startCollectingStatistics(task, handler);
@@ -184,19 +199,32 @@ public abstract class IterativeActivityExecution<
         for (; task.canRun(); initialExecution = false) {
 
             bucket = getWorkBucket(initialExecution, result);
-            if (!task.canRun()) {
-                break;
-            }
-
             if (bucket == null) {
                 LOGGER.trace("No (next) work bucket within {}, exiting", task);
                 break;
             }
 
-            executeSingleBucket(result);
+            boolean complete = false;
+            try {
+                if (!task.canRun()) {
+                    break;
+                }
 
-            if (!task.canRun() || errorState.wasStoppingExceptionEncountered()) {
-                break;
+                executeSingleBucket(result);
+                if (!task.canRun() || errorState.wasStoppingExceptionEncountered()) {
+                    break;
+                }
+
+                complete = true;
+            } finally {
+                if (!complete) {
+                    // This is either when the task was stopped (canRun is false or there's an stopping exception)
+                    // or an unhandled exception occurred.
+                    //
+                    // This most probably means that the task is going to be suspended. So let us release the buckets
+                    // to allow their processing by other workers.
+                    releaseAllBucketsIfWorker(result);
+                }
             }
 
             completeWorkBucketAndCommitProgress(result);
@@ -208,9 +236,16 @@ public abstract class IterativeActivityExecution<
 
         WorkBucketType bucket;
         try {
-            bucket = beans.bucketingManager.getWorkBucket(task, activity.getPath(),
-                    activity.getDefinition().getDistributionDefinition(), FREE_BUCKET_WAIT_TIME, initialExecution,
-                    getLiveBucketManagementStatistics(), executionSpecifics, result);
+            GetBucketOperationOptions options = GetBucketOperationOptionsBuilder.anOptions()
+                    .withDistributionDefinition(activity.getDefinition().getDistributionDefinition())
+                    .withFreeBucketWaitTime(FREE_BUCKET_WAIT_TIME)
+                    .withCanRun(task::canRun)
+                    .withExecuteInitialWait(initialExecution)
+                    .withImplicitSegmentationResolver(executionSpecifics)
+                    .withIsScavenger(isScavenger(task))
+                    .build();
+            bucket = beans.bucketingManager.getWorkBucket(bucketingSituation.coordinatorTaskOid,
+                    bucketingSituation.workerTaskOid, activity.getPath(), options, getLiveBucketManagementStatistics(), result);
             task.refresh(result); // We want to have the most current state of the running task.
         } catch (InterruptedException e) {
             LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
@@ -227,11 +262,22 @@ public abstract class IterativeActivityExecution<
         return bucket;
     }
 
+    private boolean isScavenger(RunningTask task) {
+        return BucketingUtil.isScavenger(task.getActivitiesStateOrClone(), getActivityPath());
+    }
+
+    private void releaseAllBucketsIfWorker(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (bucketingSituation.workerTaskOid != null) {
+            beans.bucketingManager.releaseAllWorkBucketsFromWorker(bucketingSituation.coordinatorTaskOid,
+                    bucketingSituation.workerTaskOid, getActivityPath(), getLiveBucketManagementStatistics(), result);
+        }
+    }
+
     private void completeWorkBucketAndCommitProgress(OperationResult result) throws ActivityExecutionException {
-        RunningTask task = taskExecution.getRunningTask();
         try {
-            beans.bucketingManager.completeWorkBucket(task, getActivityPath(), bucket,
-                    getLiveBucketManagementStatistics(), result);
+
+            beans.bucketingManager.completeWorkBucket(bucketingSituation.coordinatorTaskOid, bucketingSituation.workerTaskOid,
+                    getActivityPath(), bucket.getSequentialNumber(), getLiveBucketManagementStatistics(), result);
 
             activityState.getLiveProgress().onCommitPoint();
             activityState.updateProgressAndStatisticsNoCommit();
@@ -303,12 +349,19 @@ public abstract class IterativeActivityExecution<
         }
     }
 
+    private void setExpectedTotal(OperationResult result) throws CommonException {
+        Long expectedTotal = determineExpectedTotal(result);
+        getRunningTask().setExpectedTotal(expectedTotal);
+        getRunningTask().flushPendingModifications(result);
+    }
+
     /**
-     * Computes expected total and sets the value in the task. E.g. for search-iterative tasks we count the objects here.
+     * Determines "expected total" for the activity.
+     * E.g. for search-iterative tasks we count the objects here. (Except for bucketed executions.)
      *
-     * TODO reconsider
+     * @return null if no value could be determined or is not applicable
      */
-    protected abstract void setExpectedTotal(OperationResult result) throws CommonException;
+    protected abstract @Nullable Long determineExpectedTotal(OperationResult opResult) throws CommonException;
 
     /**
      * Starts the item source (e.g. `searchObjectsIterative` call or `synchronize` call) and begins processing items
@@ -467,5 +520,36 @@ public abstract class IterativeActivityExecution<
 
     public WorkBucketType getBucket() {
         return bucket;
+    }
+
+    private @NotNull BucketingSituation determineBucketingSituation() {
+        if (getActivityState().isWorker()) {
+            return BucketingSituation.worker(getRunningTask());
+        } else {
+            return BucketingSituation.standalone(getRunningTask());
+        }
+    }
+
+    private static class BucketingSituation {
+        @NotNull private final String coordinatorTaskOid;
+        @Nullable private final String workerTaskOid;
+
+        private BucketingSituation(@NotNull String coordinatorTaskOid, @Nullable String workerTaskOid) {
+            this.coordinatorTaskOid = coordinatorTaskOid;
+            this.workerTaskOid = workerTaskOid;
+        }
+
+        public static BucketingSituation worker(RunningTask worker) {
+            return new BucketingSituation(
+                    Objects.requireNonNull(
+                            worker.getParentTask(),
+                            "No parent task for worker " + worker)
+                            .getOid(),
+                    worker.getOid());
+        }
+
+        public static BucketingSituation standalone(RunningTask task) {
+            return new BucketingSituation(task.getOid(), null);
+        }
     }
 }

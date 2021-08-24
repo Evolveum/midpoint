@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.node;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 
 /**
  * Querydsl "row bean" type related to {@link QNode}.
@@ -14,4 +15,5 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 public class MNode extends MObject {
 
     public String nodeIdentifier;
+    public NodeOperationalStateType operationalState;
 }

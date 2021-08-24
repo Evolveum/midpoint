@@ -53,15 +53,18 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
         querydslConfig.register(new EnumAsObjectType<>(LockoutStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(NodeOperationalStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationExecutionRecordTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(OrientationType.class));
         querydslConfig.register(new EnumAsObjectType<>(ResourceAdministrativeStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(ShadowKindType.class));
         querydslConfig.register(new EnumAsObjectType<>(SynchronizationSituationType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TaskAutoScalingModeType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskBindingType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskExecutionStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskRecurrenceType.class));
+        querydslConfig.register(new EnumAsObjectType<>(TaskSchedulingStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
         querydslConfig.register(new EnumAsObjectType<>(ThreadStopActionType.class));
         querydslConfig.register(new EnumAsObjectType<>(TimeIntervalStatusType.class));
@@ -85,7 +88,7 @@ public class SqaleRepoContext extends SqlRepoContext {
      */
     public @NotNull Integer searchCachedUriId(@NotNull Object uri) {
         if (uri instanceof QName) {
-            return uriCache.searchId((QName) uri);
+            return uriCache.searchId(uri);
         } else {
             return uriCache.searchId(uri.toString());
         }
@@ -128,6 +131,10 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
+        return extItemCache.resolveExtensionItem(extItemKey);
+    }
+
+    public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {
         return extItemCache.resolveExtensionItem(extItemKey);
     }
 }
