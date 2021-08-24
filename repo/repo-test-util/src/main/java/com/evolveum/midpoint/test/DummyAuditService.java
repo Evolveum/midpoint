@@ -544,11 +544,6 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         return false;
     }
 
-    @Override
-    public void reindexEntry(AuditEventRecord record) {
-        // not needed in dummy
-    }
-
     public boolean isEnabled() {
         return enabled;
     }
