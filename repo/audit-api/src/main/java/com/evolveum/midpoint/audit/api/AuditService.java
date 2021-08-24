@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -31,6 +31,14 @@ public interface AuditService {
 
     int MAX_MESSAGE_SIZE = 1024;
     int MAX_PROPERTY_SIZE = 1024;
+
+    String OP_AUDIT = "audit";
+    String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
+    String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
+    String OP_COUNT_OBJECTS = "countObjects";
+    String OP_LIST_RECORDS = "listRecords";
+    String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
+    String OP_SEARCH_OBJECTS = "searchObjects";
 
     void audit(AuditEventRecord record, Task task, OperationResult result);
 

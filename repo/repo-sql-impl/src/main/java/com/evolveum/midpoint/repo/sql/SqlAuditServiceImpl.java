@@ -88,11 +88,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private static final String OP_NAME_PREFIX = SqlAuditServiceImpl.class.getSimpleName() + '.';
 
-    private static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
-    private static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
-    private static final String OP_LIST_RECORDS = "listRecords";
     private static final String OP_LIST_RECORDS_ATTEMPT = "listRecordsAttempt";
-    private static final String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
 
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
@@ -130,9 +126,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Objects.requireNonNull(record, "Audit event record must not be null.");
         Objects.requireNonNull(task, "Task must not be null.");
 
-        final String operation = "audit";
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
+        long opHandle = pm.registerOperationStart(OP_AUDIT, AuditEventRecord.class);
         int attempt = 1;
 
         while (true) {
@@ -140,7 +135,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 auditAttempt(record);
                 return;
             } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, result);
+                attempt = baseHelper.logOperationAttempt(null, OP_AUDIT, attempt, ex, result);
                 pm.registerOperationNewAttempt(opHandle, attempt);
             } finally {
                 pm.registerOperationFinish(opHandle, attempt);
@@ -389,9 +384,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Deprecated
     public List<AuditEventRecord> listRecords(
             String query, Map<String, Object> params, OperationResult parentResult) {
-        final String operation = "listRecords";
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
+        long opHandle = pm.registerOperationStart(OP_LIST_RECORDS, AuditEventRecord.class);
         int attempt = 1;
 
         OperationResult result = parentResult.subresult(OP_LIST_RECORDS)
@@ -424,7 +418,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 listRecordsIterativeAttempt(query, params, handler, attemptResult);
                 return auditEventRecords;
             } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
+                attempt = baseHelper.logOperationAttempt(null, OP_LIST_RECORDS, attempt, ex, null);
                 pm.registerOperationNewAttempt(opHandle, attempt);
                 LOGGER.error("Error while trying to list audit records, {}", ex.getMessage(), ex);
                 attemptResult.recordFatalError(
@@ -1119,7 +1113,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) {
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "countObjects")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_COUNT_OBJECTS)
                 .addParam("query", query)
                 .build();
 
@@ -1145,7 +1139,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult)
             throws SchemaException {
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchObjects")
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_OBJECTS)
                 .addParam("query", query)
                 .build();
 
