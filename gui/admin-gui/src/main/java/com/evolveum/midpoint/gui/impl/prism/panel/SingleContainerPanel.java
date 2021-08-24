@@ -82,8 +82,11 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
                     view.add(virtualPanel);
                 }
 
-                Panel panel = getPageBase().initItemPanel(view.newChildId(), getTypeName(), getModel(), builder.build());
-                view.add(panel);
+                QName typeName = getTypeName();
+                if (typeName != null) {
+                    Panel panel = getPageBase().initItemPanel(view.newChildId(), typeName, getModel(), builder.build());
+                    view.add(panel);
+                }
 
 
                 add(view);

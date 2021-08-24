@@ -44,7 +44,7 @@ public class TaskDistributionPanel extends AbstractObjectMainPanel<TaskType> {
 
     @Override
     protected void initLayout() {
-        SingleContainerPanel activityDefinitionPanel = new SingleContainerPanel(ID_MAIN_PANEL, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_DISTRIBUTION)), getPanelConfiguration());
+        SingleContainerPanel activityDefinitionPanel = new SingleContainerPanel(ID_MAIN_PANEL, getModel(), getPanelConfiguration());
         add(activityDefinitionPanel);
     }
 }

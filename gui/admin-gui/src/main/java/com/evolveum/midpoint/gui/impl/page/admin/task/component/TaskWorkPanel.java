@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
-@PanelType(name = "work", defaultContainerPath = "activity/work", defaultType = WorkDefinitionsType.class)
+@PanelType(name = "work")
 @PanelInstance(identifier = "work", applicableFor = TaskType.class, childOf = TaskActivityPanel.class)
 @PanelDisplay(label = "Work", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)
 public class TaskWorkPanel extends AbstractObjectMainPanel<TaskType> {

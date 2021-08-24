@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,7 +30,7 @@ import java.util.Collections;
  * @author semancik
  */
 //@PanelType(name = "performance")
-@PanelInstance(identifier = "performance", applicableFor = TaskType.class)
+@PanelInstance(identifier = "performance", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
 @PanelDisplay(label = "Performance", order = 50)
 public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;

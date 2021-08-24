@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -18,6 +19,9 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
@@ -42,6 +46,9 @@ import java.util.List;
 /**
  * @author semancik
  */
+@PanelType(name = "subtasks")
+@PanelInstance(identifier = "subtasks", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
+@PanelDisplay(label = "Subtasks", order = 50)
 public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

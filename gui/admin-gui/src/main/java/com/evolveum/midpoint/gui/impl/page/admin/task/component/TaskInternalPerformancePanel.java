@@ -52,7 +52,7 @@ public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskTy
 
     private static final String LINE = "\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 
-    TaskInternalPerformancePanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskModel, ContainerPanelConfigurationType config) {
+    public TaskInternalPerformancePanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskModel, ContainerPanelConfigurationType config) {
         super(id, taskModel, config);
     }
 

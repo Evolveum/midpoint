@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -48,7 +49,7 @@ import java.util.*;
  * @author semancik
  */
 @PanelType(name = "results")
-@PanelInstance(identifier = "results", applicableFor = TaskType.class)
+@PanelInstance(identifier = "results", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
 @PanelDisplay(label = "Results", order = 70)
 public class TaskResultPanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;

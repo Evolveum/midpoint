@@ -13,8 +13,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemPathParser;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -227,7 +230,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         if ("empty".equals(panelType.defaultContainerPath())) {
             defaultContainer.setPath(new ItemPathType(ItemPath.EMPTY_PATH));
         } else {
-            defaultContainer.setPath(new ItemPathType(ItemPath.create(panelType.defaultContainerPath())));
+            ItemPathType path = prismContext.itemPathParser().asItemPathType(panelType.defaultContainerPath());
+            defaultContainer.setPath(path);
         }
         config.getContainer().add(defaultContainer);
     }
