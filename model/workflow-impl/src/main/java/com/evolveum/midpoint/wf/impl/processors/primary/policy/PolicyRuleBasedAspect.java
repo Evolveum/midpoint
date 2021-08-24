@@ -159,7 +159,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
                     LocalizableMessageType.class);
             variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class);
             // Wrong ... but this will get reworked in 4.0 anyway.
-            variables.put(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment.getAssignmentType(), AssignmentType.class);
+            variables.put(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment.getAssignment(), AssignmentType.class);
         } else {
             // Wrong ... but this will get reworked in 4.0 anyway.
             variables.put(ExpressionConstants.VAR_TARGET, null, ObjectType.class);

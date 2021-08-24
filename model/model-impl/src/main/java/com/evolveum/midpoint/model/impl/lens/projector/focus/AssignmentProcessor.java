@@ -172,8 +172,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
         if (focusContext.isDelete()) {
-            processFocusDelete(context);
-            return;
+            markProjectionsAsIllegal(context);
         }
 
         checkAssignmentDeltaSanity(context);
@@ -618,23 +617,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    @Deprecated
-    private <AH extends AssignmentHolderType> AssignmentHolderType determineSource(LensFocusContext<AH> focusContext) {
-        // The existing algorithm was quite obscure. Let's do it in a simple way.
-        return focusContext.getObjectNew().asObjectable();
-
-//        ObjectDelta<AH> delta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
-//        if (delta != null && !delta.isEmpty()) {
-//            return focusContext.getObjectNew().asObjectable();
-//        }
-//
-//        if (focusContext.getObjectCurrent() != null) {
-//            return focusContext.getObjectCurrent().asObjectable();
-//        }
-//
-//        return focusContext.getObjectNew().asObjectable();
-    }
-
     private <AH extends AssignmentHolderType> void evaluateConstructions(LensContext<AH> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, ConfigurationException,
@@ -658,22 +640,22 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 evaluatedAssignment.evaluateConstructions(focusOdoAbsolute, context::rememberResource, task, result);
             } catch (ObjectNotFoundException ex) {
                 LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
-                        SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignmentType()));
+                        SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignment()));
                 if (!ModelExecuteOptions.isForce(context.getOptions())) {
                     ModelImplUtils.recordFatalError(result, ex);
                 }
             } catch (SchemaException ex) {
                 LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
-                        SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignmentType()));
+                        SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignment()));
                 ModelImplUtils.recordFatalError(result, ex);
-                String resourceOid = FocusTypeUtil.determineConstructionResource(evaluatedAssignment.getAssignmentType());
+                String resourceOid = FocusTypeUtil.determineConstructionResource(evaluatedAssignment.getAssignment());
                 if (resourceOid == null) {
                     // This is a role assignment or something like that. Just throw the original exception for now.
                     throw ex;
                 }
                 ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid,
-                        FocusTypeUtil.determineConstructionKind(evaluatedAssignment.getAssignmentType()),
-                        FocusTypeUtil.determineConstructionIntent(evaluatedAssignment.getAssignmentType()),
+                        FocusTypeUtil.determineConstructionKind(evaluatedAssignment.getAssignment()),
+                        FocusTypeUtil.determineConstructionIntent(evaluatedAssignment.getAssignment()),
                         null, false);
                 LensProjectionContext accCtx = context.findProjectionContext(rad);
                 if (accCtx != null) {
@@ -686,7 +668,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     /**
      * Simply mark all projections as illegal - except those that are being unlinked
      */
-    private <F extends AssignmentHolderType> void processFocusDelete(LensContext<F> context) {
+    private <F extends AssignmentHolderType> void markProjectionsAsIllegal(LensContext<F> context) {
         for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
             if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
                 // We do not want to affect unlinked projections
@@ -1083,7 +1065,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         return new AssignmentTripleEvaluator.Builder<AH>()
                 .context(context)
                 .assignmentEvaluator(createAssignmentEvaluator(context, now))
-                .source(determineSource(context.getFocusContext()))
+                .source(context.getFocusContext().getObjectNewOrCurrentRequired().asObjectable())
                 .beans(beans)
                 .now(now)
                 .task(task)

@@ -137,7 +137,6 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
      *                 depending on some strange condition in AssignmentTripleEvaluator
      *                 (see {@link com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor#determineSource(LensFocusContext)}.
      */
-    @SuppressWarnings("JavadocReference")
     public EvaluatedAssignmentImpl<AH> evaluate(
             ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
             PlusMinusZero primaryAssignmentMode, boolean evaluateOld, AssignmentHolderType source, String sourceDescription,
@@ -180,7 +179,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                     .assignmentIdi(assignmentIdi)
                     .isAssignment(true)
                     .evaluateOld(evaluateOld)
-                    .evaluationOrder(getInitialEvaluationOrder(assignmentIdi, ctx))
+                    .evaluationOrder(getInitialEvaluationOrder(evaluatedAssignment.getNormalizedRelation()))
                     .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
                     .pathToSourceValid(true)
                     .pathToSourceConditionState(ConditionState.allTrue())
@@ -242,11 +241,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         return pcv != null ? pcv.asContainerable() : null;
     }
 
-    private EvaluationOrder getInitialEvaluationOrder(
-            ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            EvaluationContext<?> ctx) {
-        AssignmentType assignment = LensUtil.getAssignmentType(assignmentIdi, ctx.evaluateOld);
-        QName relation = Util.getRelation(assignment, relationRegistry);
+    private EvaluationOrder getInitialEvaluationOrder(QName relation) {
         return EvaluationOrderImpl.zero(relationRegistry).advance(relation);
     }
 

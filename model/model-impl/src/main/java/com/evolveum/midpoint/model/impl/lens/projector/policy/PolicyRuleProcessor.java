@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.toConstraintsList;
@@ -452,7 +453,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
     public <F extends AssignmentHolderType> void addGlobalPolicyRulesToAssignments(LensContext<F> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
 
         PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
         if (systemConfiguration == null) {
@@ -460,10 +462,15 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         }
         // We need to consider object before modification here.
         LensFocusContext<F> focusContext = context.getFocusContext();
-        PrismObject<F> focus = focusContext.getObjectCurrent();
-        if (focus == null) {
-            focus = focusContext.getObjectNew();        // only if it does not exist, let's try the new one
+        if (focusContext.isDelete()) {
+            // TODO ok?
+            LOGGER.trace("Focus is being deleted => assignments-related global policy rules are ignored");
+            return;
         }
+
+        PrismObject<F> focus = Objects.requireNonNull(
+                focusContext.getObjectCurrentOrNew(),
+                "no current nor new focus while operation is not DELETE");
 
         List<GlobalPolicyRuleType> globalPolicyRuleList = systemConfiguration.asObjectable().getGlobalPolicyRule();
         LOGGER.trace("Checking {} global policy rules for selection to assignments", globalPolicyRuleList.size());
@@ -485,12 +492,15 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                         continue;
                     }
                     if (!repositoryService.selectorMatches(globalPolicyRule.getTargetSelector(),
-                            target.getTarget(), null, LOGGER, "Global policy rule "+globalPolicyRule.getName()+" target selector: ")) {
-                        LOGGER.trace("Skipping global policy rule {} because target selector did not match: {}", globalPolicyRule.getName(), globalPolicyRule);
+                            target.getTarget(), null, LOGGER,
+                            "Global policy rule "+globalPolicyRule.getName()+" target selector: ")) {
+                        LOGGER.trace("Skipping global policy rule {} because target selector did not match: {}",
+                                globalPolicyRule.getName(), globalPolicyRule);
                         continue;
                     }
                     if (!isRuleConditionTrue(globalPolicyRule, focus, evaluatedAssignment, context, task, result)) {
-                        LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
+                        LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}",
+                                globalPolicyRule.getName(), globalPolicyRule);
                         continue;
                     }
                     String ruleId = PolicyRuleTypeUtil.createId(systemConfiguration.getOid(), globalPolicyRule.getId());
@@ -531,7 +541,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 .addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
                 .addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null, EvaluatedAssignment.class)
                 .addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class)
-                .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment != null ? evaluatedAssignment.getAssignmentType() : null, AssignmentType.class)
+                .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment != null ? evaluatedAssignment.getAssignment() : null, AssignmentType.class)
                 .rootNode(focusOdo);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();

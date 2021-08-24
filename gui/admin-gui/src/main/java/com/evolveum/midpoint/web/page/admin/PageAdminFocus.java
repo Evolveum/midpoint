@@ -671,7 +671,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                         assignmentType.setDescription(target.getTarget().asObjectable().getDescription());
                         assignmentType.getTargetRef().setTargetName(new PolyStringType(target.getTarget().getName()));
                         assignmentType.getTargetRef().setType(target.getTarget().getComplexTypeDefinition().getTypeName());
-                        ValueStatus status = evaluatedAssignment.getAssignmentType(true) == null ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED;
+                        ValueStatus status = evaluatedAssignment.getAssignment(true) == null ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED;
                         AssignmentValueWrapper assignmentValueWrapper = WebPrismUtil.createNewValueWrapper(parent.getObject(),
                                 assignmentType.asPrismContainerValue(), status, this);
                         assignmentValueWrapper.setDirectAssignment(target.isDirectlyAssigned());
@@ -701,7 +701,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                         constructionType.setIntent(construction.getIntent());
                         assignmentType.setConstruction(constructionType);
                         assignmentType.setDescription(construction.getResource().asObjectable().getDescription());
-                        ValueStatus status = evaluatedAssignment.getAssignmentType(true) == null ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED;
+                        ValueStatus status = evaluatedAssignment.getAssignment(true) == null ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED;
                         AssignmentValueWrapper assignmentValueWrapper = WebPrismUtil.createNewValueWrapper(parent.getObject(),
                                 assignmentType.asPrismContainerValue(), status, this);
                         assignmentValueWrapper.setDirectAssignment(construction.isDirectlyAssigned());

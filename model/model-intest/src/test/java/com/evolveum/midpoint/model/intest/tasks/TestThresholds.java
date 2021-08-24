@@ -504,7 +504,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     /**
      * Reconciliation that deletes owners of missing accounts (simulated). Should stop on 5th, no actions done.
      */
-    @Test(enabled = false) // MID-4856
+    @Test(enabled = false)
     public void test300ReconcileDelete5Simulate() throws Exception {
         given();
         Task task = getTestTask();
@@ -571,18 +571,18 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     /**
      * Reconciliation that deletes owners of missing accounts (simulate, then execute). Should stop on 5th, no actions done.
      */
-    @Test(enabled = false) // MID-4856
+    @Test(enabled = false)
     public void test310ReconcileDelete5SimulateExecute() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getSimulateExecuteTask();
+        TestResource<TaskType> importTask = getReconciliationSimulateExecuteTask();
 
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_ADD_10.oid));
+        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_DELETE_5.oid));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
@@ -615,18 +615,18 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     /**
      * Reconciliation that deletes owners of missing accounts (execute). Should stop on 5th after deleting four users.
      */
-    @Test(enabled = false) // MID-4856
+    @Test(enabled = false)
     public void test320ReconcileDelete5Execute() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getExecuteTask();
+        TestResource<TaskType> importTask = getReconciliationExecuteTask();
 
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_ADD_10.oid));
+        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_DELETE_5.oid));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
@@ -637,7 +637,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTaskTree(importTask.oid, "after")
                 .assertSuspended()
                 .assertFatalError()
-                .activityState(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_PATH)
+                .activityState(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH)
                     .assertInProgressLocal()
                     .assertFatalError()
                     .progress()

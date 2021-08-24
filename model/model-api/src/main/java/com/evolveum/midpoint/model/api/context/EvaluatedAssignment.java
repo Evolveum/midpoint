@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
@@ -28,7 +27,19 @@ import org.jetbrains.annotations.NotNull;
 
 public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends ShortDumpable, DebugDumpable, Serializable {
 
-    AssignmentType getAssignmentType();
+    AssignmentType getAssignment();
+
+    AssignmentType getAssignment(boolean old);
+
+    @Deprecated // use getAssignment
+    default AssignmentType getAssignmentType() {
+        return getAssignment();
+    }
+
+    @Deprecated // use getAssignment
+    default AssignmentType getAssignmentType(boolean old) {
+        return getAssignment(old);
+    }
 
     Long getAssignmentId();
 
@@ -42,12 +53,10 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends Sh
 
     PrismObject<?> getTarget();
 
-    AssignmentType getAssignmentType(boolean old);
-
     // return value of null is ambiguous: either targetRef is null or targetRef.relation is null
     QName getRelation();
 
-    QName getNormalizedRelation(RelationRegistry relationRegistry);
+    QName getNormalizedRelation();
 
     /**
      * TODO Define this concept. It looks like it mixes ideas of validity (activation, lifecycle state)
