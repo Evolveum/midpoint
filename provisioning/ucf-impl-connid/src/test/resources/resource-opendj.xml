@@ -43,6 +43,7 @@
             <icfc:maxIdle>10</icfc:maxIdle>
             <icfc:maxObjects>10</icfc:maxObjects>
             <icfc:maxWait>150000</icfc:maxWait>
+            <icfc:maxIdleTimeMillis>240000</icfc:maxIdleTimeMillis>
         </icfc:connectorPoolConfiguration>
 
         <icfc:producerBufferSize>100</icfc:producerBufferSize>

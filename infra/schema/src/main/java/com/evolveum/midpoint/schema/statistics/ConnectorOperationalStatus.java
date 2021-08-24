@@ -39,6 +39,7 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
     private Integer poolConfigMaxIdle;
     private Long poolConfigWaitTimeout;
     private Long poolConfigMinEvictableIdleTime;
+    private Long poolConfigMaxIdleTime;
 
     // pool status
     private Integer poolStatusNumIdle;
@@ -106,6 +107,14 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 
     public void setPoolConfigMinEvictableIdleTime(Long poolConfigMinEvictableIdleTime) {
         this.poolConfigMinEvictableIdleTime = poolConfigMinEvictableIdleTime;
+    }
+
+    public Long getPoolConfigMaxIdleTime() {
+        return poolConfigMaxIdleTime;
+    }
+
+    public void setPoolConfigMaxIdleTime(Long poolConfigMaxIdleTime) {
+        this.poolConfigMaxIdleTime = poolConfigMaxIdleTime;
     }
 
     public Integer getPoolStatusNumIdle() {
