@@ -78,15 +78,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
                         + SecurityContextHolder.getContext().getAuthentication() + "'");
             }
         } else {
-            if (SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication) {
-                MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
-                ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-                if (moduleAuthentication != null && moduleAuthentication.getAuthentication() == null) {
-                    Authentication authentication = createBasicAuthentication((HttpServletRequest) req);
-                    moduleAuthentication.setAuthentication(authentication);
-                    mpAuthentication.setPrincipal(authentication.getPrincipal());
-                }
-            }
+            processAuthentication(req);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("SecurityContextHolder not populated with anonymous token, as it already contained: '"
                         + SecurityContextHolder.getContext().getAuthentication() + "'");
@@ -94,6 +86,18 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         }
 
         chain.doFilter(req, res);
+    }
+
+    protected void processAuthentication(ServletRequest req) {
+        if (SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            if (moduleAuthentication != null && moduleAuthentication.getAuthentication() == null) {
+                Authentication authentication = createBasicAuthentication((HttpServletRequest) req);
+                moduleAuthentication.setAuthentication(authentication);
+                mpAuthentication.setPrincipal(authentication.getPrincipal());
+            }
+        }
     }
 
     protected Authentication createAuthentication(HttpServletRequest request) {

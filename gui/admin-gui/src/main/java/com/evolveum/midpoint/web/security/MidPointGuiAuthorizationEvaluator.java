@@ -13,6 +13,8 @@ import java.util.Map;
 
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDecisionManager;
@@ -262,6 +264,15 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
                 && new AntPathRequestMatcher(authUrl).matches(filterInvocation.getRequest())) {
             return true;
         }
+        for (String url : DescriptorLoader.getLoginPages()) {
+            AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
+            if (matcher.matches(filterInvocation.getRequest())) {
+                if (SecurityUtils.existLoginPageForActualAuthModule()) {
+                    return SecurityUtils.isLoginPageForActualAuthModule(url);
+                }
+            }
+        }
+
         for (String url : DescriptorLoader.getPermitAllUrls()) {
             AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
             if (matcher.matches(filterInvocation.getRequest())) {

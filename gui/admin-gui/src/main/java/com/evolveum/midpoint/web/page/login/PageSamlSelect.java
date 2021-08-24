@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -73,7 +74,9 @@ public class PageSamlSelect extends AbstractPageLogin implements Serializable {
 
     private boolean existSamlAuthentication(ModuleAuthentication actualModule) {
         return actualModule instanceof Saml2ModuleAuthentication
-                && actualModule.getAuthentication() instanceof SamlAuthentication;
+                && (actualModule.getAuthentication() instanceof SamlAuthentication
+                    || (actualModule.getAuthentication() instanceof AnonymousAuthenticationToken
+                        && actualModule.getAuthentication().getDetails() instanceof SamlAuthentication));
     }
 
     private List<IdentityProvider> getProviders() {
