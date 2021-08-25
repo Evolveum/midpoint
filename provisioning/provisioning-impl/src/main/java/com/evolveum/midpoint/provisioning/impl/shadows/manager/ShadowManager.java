@@ -317,6 +317,8 @@ public class ShadowManager {
      * Updates repository shadow based on object or delta from resource.
      * Updates: cached attributes and activation, shadow name, aux object classes, exists flag, caching metadata.
      *
+     * Retrieves index-only attributes from repo if needed.
+     *
      * @param currentResourceObject Current state of the resource object. Not shadowized yet.
      * @param resourceObjectDelta Delta coming from the resource (if known).
      *
