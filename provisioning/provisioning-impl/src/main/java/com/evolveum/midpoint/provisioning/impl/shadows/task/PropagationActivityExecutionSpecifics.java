@@ -1,18 +1,16 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -61,7 +59,7 @@ public class PropagationActivityExecutionSpecifics
     public SearchSpecification<ShadowType> createSearchSpecification(OperationResult result) {
         return new SearchSpecification<>(
                 ShadowType.class,
-                getPrismContext().queryFor(ShadowType.class)
+                PrismContext.get().queryFor(ShadowType.class)
                         .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
                         .and()
                         .exists(ShadowType.F_PENDING_OPERATION)

@@ -673,52 +673,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 RUtil.stringToQName(resultSet.getString(QAuditRefValue.TYPE.getName())), targetName);
     }
 
-    @Override
-    public void reindexEntry(AuditEventRecord record) {
-        LOGGER.warn("Audit reindex does nothing now and probably should not be used.");
-        /* TODO: disabled in 2020 during MID-6318, see Javadoc from interface.
-         * Consider removal if it doesn't get proper meaning in some not so distant time.
-        final String operation = "reindexEntry";
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
-        int attempt = 1;
-
-        while (true) {
-            try {
-                reindexEntryAttempt(record);
-                return;
-            } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
-                pm.registerOperationNewAttempt(opHandle, attempt);
-            } finally {
-                pm.registerOperationFinish(opHandle, attempt);
-            }
-        }
-    }
-
-    private void reindexEntryAttempt(AuditEventRecord record) {
-        Session session = baseHelper.beginTransaction();
-        try {
-            RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, prismContext, null, auditConfiguration);
-            //TODO FIXME temporary hack, merge will eventually load the object to the session if there isn't one,
-            // but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
-            // during serializing/deserializing which causes constraint violation on primary key..
-            RAuditEventRecord rRecord = session.load(RAuditEventRecord.class, record.getRepoId());
-            rRecord.getChangedItems().clear();
-            rRecord.getChangedItems().addAll(reindexed.getChangedItems());
-            session.merge(rRecord);
-
-            session.getTransaction().commit();
-        } catch (DtoTranslationException ex) {
-            baseHelper.handleGeneralCheckedException(ex, session, null);
-        } catch (RuntimeException ex) {
-            baseHelper.handleGeneralRuntimeException(ex, session, null);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
-        }
-        */
-    }
-
     private RObjectType repoObjectType(ResultSet resultList, String columnName)
             throws SQLException {
         // Yes, to detect null, you have to check again after reading int. No getInteger there.

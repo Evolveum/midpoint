@@ -12,11 +12,14 @@ import com.evolveum.midpoint.model.test.DummyResourceCollection;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
 
 /**
  * Wrapper for specific configured dummy resource.
  *
  * Unfinished. EXPERIMENTAL.
+ *
+ * Probably a bad idea at all. Consider {@link DummyTestResource} instead.
  */
 abstract class AbstractResourceDummyInterruptedSync {
 

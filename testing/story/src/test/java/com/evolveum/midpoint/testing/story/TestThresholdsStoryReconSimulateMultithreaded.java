@@ -6,77 +6,61 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author katka
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsReconSimulate extends TestThresholdsRecon {
+public class TestThresholdsStoryReconSimulateMultithreaded extends TestThresholdsStoryReconSimulate {
 
-    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_SIMULATE = new TestResource<>(TEST_DIR, "task-opendj-reconcile-simulate.xml", "10335c7c-838f-11e8-93a6-4b1dd0ab58e4");
-
-    @Override
-    protected TestResource<TaskType> getTaskTestResource() {
-        return TASK_RECONCILE_OPENDJ_SIMULATE;
-    }
+    private static final int WORKER_THREADS = 3;
 
     @Override
     protected int getWorkerThreads() {
-        return 0;
-    }
-
-    @Override
-    protected boolean isSimulate() {
-        return true;
+        return WORKER_THREADS;
     }
 
     @Override
     protected void assertAfterFirstImport(TaskType taskAfter) {
-//        assertEquals(getReconFailureCount(taskAfter), 1);
+//        assertThat(getReconFailureCount(taskAfter)).isBetween(1, WORKER_THREADS);
 //
 //        ActivitySynchronizationStatisticsType syncInfo = getReconSyncStats(taskAfter);
 //        dumpSynchronizationInformation(syncInfo);
 
 //        // user4, user5, user6, user7, user8
-//        assertEquals((Object) syncInfo.getCountUnmatched(), 5);
+//        assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
 //        assertEquals((Object) syncInfo.getCountDeleted(), 0);
 //        // jgibbs, hbarbossa, jbeckett, user1, user2, user3
 //        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers());
 //        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
 //
-//        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 5);
+//        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
 //        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
 //        assertEquals((Object) syncInfo.getCountLinkedAfter(), getDefaultUsers());
 //        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     protected void assertAfterSecondImport(TaskType taskAfter) {
-//        assertEquals(getReconFailureCount(taskAfter), 1);
+//        assertThat(getReconFailureCount(taskAfter)).isBetween(1, WORKER_THREADS);
 //
 //        ActivitySynchronizationStatisticsType syncInfo = getReconSyncStats(taskAfter);
 //        dumpSynchronizationInformation(syncInfo);
 
 //        // user4, user5, user6, user7, user8
-//        assertEquals((Object) syncInfo.getCountUnmatched(), 5);
+//        assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
 //        assertEquals((Object) syncInfo.getCountDeleted(), 0);
 //        // jgibbs, hbarbossa, jbeckett, user1, user2, user3
 //        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
 //        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
 //
-//        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 5);
+//        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
 //        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
 //        assertEquals((Object) syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
 //        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
@@ -89,13 +73,12 @@ public class TestThresholdsReconSimulate extends TestThresholdsRecon {
 //        ActivitySynchronizationStatisticsType syncInfo = getReconSyncStats(taskAfter);
 //        dumpSynchronizationInformation(syncInfo);
 
-//        assertEquals((Object) syncInfo.getCountUnmatched(), 0);
+//        //user4
 //        assertEquals((Object) syncInfo.getCountDeleted(), 0);
 //        // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
 //        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
 //        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
 //
-//        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 0);
 //        assertEquals((Object) syncInfo.getCountDeleted(), 0);
 //        // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
 //        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());

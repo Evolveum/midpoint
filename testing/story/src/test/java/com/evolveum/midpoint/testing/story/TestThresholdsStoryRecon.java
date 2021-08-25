@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-public abstract class TestThresholdsRecon extends TestThresholds {
+public abstract class TestThresholdsStoryRecon extends TestThresholdsStory {
 
     @Override
     protected Collection<ActivityState> getExecutionStates(OperationResult result)

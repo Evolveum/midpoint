@@ -23,7 +23,7 @@
 -- just in case PUBLIC schema was dropped (fastest way to remove all midpoint objects)
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
---CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
 
 -- region custom enum types
 DO $$ BEGIN

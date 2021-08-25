@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role oid="8f91bccf-fc4b-4987-8232-2e06d174dc37"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>role-add-10</name>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <modification>
+                    <operation>add</operation>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>10</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
+</role>

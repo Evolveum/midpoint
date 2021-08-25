@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TestThresholdsReconExecuteMultinode extends TestThresholdsReconExecute {
+public class TestThresholdsStoryReconExecuteMultinode extends TestThresholdsStoryReconExecute {
 
     /**
      * This task is used for common import tests drive by the superclass.

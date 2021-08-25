@@ -51,13 +51,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * 4. The _disabled accounts import_ is run: Accounts for users1..6 are disabled on the resource. Task is modified to stop
  * on disabling 3rd user, and executed. See {@link #test520ImportDisabledAccounts()}.
  *
- * There are some extensions in {@link TestThresholdsReconExecute}.
+ * There are some extensions in {@link TestThresholdsStoryReconExecute}.
  *
  * @author katka
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public abstract class TestThresholds extends AbstractStoryTest {
+public abstract class TestThresholdsStory extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "thresholds");
 

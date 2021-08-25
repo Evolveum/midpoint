@@ -355,7 +355,7 @@ public abstract class ActivityState implements DebugDumpable {
     //endregion
 
     //region Counters (thresholds)
-    public Map<String, Integer> incrementCounters(ExecutionSupport.@NotNull CountersGroup counterGroup,
+    public Map<String, Integer> incrementCounters(@NotNull ExecutionSupport.CountersGroup counterGroup,
             @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         ItemPath counterGroupItemPath = stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());

@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncSimulate.TASK_LIVESYNC_OPENDJ_SIMULATE;
-
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -20,7 +17,7 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholdsLiveSyncSimulate {
+public class TestThresholdsStoryLiveSyncSimulateMultithreaded extends TestThresholdsStoryLiveSyncSimulate {
 
     private static final int WORKER_THREADS = 2;
 

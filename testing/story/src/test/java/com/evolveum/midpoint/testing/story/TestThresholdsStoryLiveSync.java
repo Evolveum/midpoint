@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-public abstract class TestThresholdsLiveSync extends TestThresholds {
+public abstract class TestThresholdsStoryLiveSync extends TestThresholdsStory {
 
     @Override
     protected Collection<ActivityState> getExecutionStates(OperationResult result)

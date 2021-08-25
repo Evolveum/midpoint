@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -67,6 +68,7 @@ public class TestCryptoUtil extends AbstractUnitTest {
     private static final String KEYSTORE_PASSWORD = "changeit";
 
     private static final String PASSWORD_PLAINTEXT = "pass1234word";
+    private static final String PASSWORD_PLAINTEXT2 = "pass1234w0rd";
 
     private Protector protector;
 
@@ -290,6 +292,47 @@ public class TestCryptoUtil extends AbstractUnitTest {
         assertFalse("New and compromised key names are NOT different", compromisedKeyName.equals(newKeyName));
     }
 
+    @Test
+    public void test310HashWithFixedSalt() throws Exception {
+        // GIVEN
+        Protector fixedSaltProtector = createFixedSaltProtector();
+        ProtectedStringType passwordRealValue = new ProtectedStringType();
+        ProtectedStringType passwordRealValue2 = new ProtectedStringType();
+        ProtectedStringType passwordRealValue3 = new ProtectedStringType();
+        ProtectedStringType passwordRealValueOrd = new ProtectedStringType();
+        ProtectedStringType passwordRealValueOrd2 = new ProtectedStringType();
+        passwordRealValue.setClearValue(PASSWORD_PLAINTEXT);
+        passwordRealValue2.setClearValue(PASSWORD_PLAINTEXT);
+        passwordRealValue3.setClearValue(PASSWORD_PLAINTEXT2);
+        passwordRealValueOrd.setClearValue(PASSWORD_PLAINTEXT);
+        passwordRealValueOrd2.setClearValue(PASSWORD_PLAINTEXT);
+
+        // WHEN
+        // ordinary protector:
+        protector.hash(passwordRealValueOrd);
+        protector.hash(passwordRealValueOrd2);
+
+        // fixed-salt protector:
+        fixedSaltProtector.hash(passwordRealValue);
+        fixedSaltProtector.hash(passwordRealValue2);
+        fixedSaltProtector.hash(passwordRealValue3); // different password
+
+        // THEN
+        // ordinary hashing produces different hash for same input as salt changes:
+        Assert.assertNotEquals(passwordRealValueOrd.getHashedDataType().getDigestMethod().getSalt(),
+                passwordRealValueOrd2.getHashedDataType().getDigestMethod().getSalt());
+
+        Assert.assertNotEquals(passwordRealValueOrd.getHashedDataType().getDigestValue(),
+                passwordRealValueOrd2.getHashedDataType().getDigestValue());
+
+        // fixed-salt hashing produces same salt for different values and same hash for same values:
+        Assert.assertEquals(passwordRealValue.getHashedDataType().getDigestMethod().getSalt(),
+                passwordRealValue3.getHashedDataType().getDigestMethod().getSalt());
+
+        Assert.assertEquals(passwordRealValue.getHashedDataType().getDigestValue(),
+                passwordRealValue2.getHashedDataType().getDigestValue());
+    }
+
     private <T extends ObjectType> void assertReencryptDelta(String label, Collection<? extends ItemDelta<?, ?>> modifications,
             int expectedModificationsCount, PrismObject<T> oldObject, Protector protector) throws SchemaException, EncryptionException {
         System.out.println("Modifications for " + label + ":\n" + modifications);
@@ -333,6 +376,15 @@ public class TestCryptoUtil extends AbstractUnitTest {
                 .keyStorePath(KEYSTORE_PATH)
                 .encryptionKeyAlias("compromised")
                 .encryptionAlgorithm(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC)
+                .initialize();
+    }
+
+    private Protector createFixedSaltProtector() {
+        return KeyStoreBasedProtectorBuilder.create(getPrismContext())
+                .keyStorePassword(KEYSTORE_PASSWORD)
+                .keyStorePath(KEYSTORE_PATH)
+                .encryptionAlgorithm(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC)
+                .fixedSalt("mp1-salt")
                 .initialize();
     }
 }
