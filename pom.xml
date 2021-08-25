@@ -199,6 +199,7 @@
         <!-- Groovy 3.0.8 is also default for Spring Boot 2.5.0 -->
         <groovy.version>3.0.8</groovy.version>
         <xmlsec.version>2.2.2</xmlsec.version>
+        <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.5.0.18</connid.version>
         <derby.version>10.15.2.0</derby.version>
         <wro4j.version>1.10.1</wro4j.version>
