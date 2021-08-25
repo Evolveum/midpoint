@@ -156,7 +156,7 @@ public class QShadowMapping
     }
 
     private ItemDefinition<?> definitionFrom(QName name, MExtItem itemInfo) {
-        QName typeName = ExtUtils.SUPPORTED_TYPE_URI_TO_QNAME.get(itemInfo.valueType);
+        QName typeName = ExtUtils.getSupportedTypeName(itemInfo.valueType);
         final MutableItemDefinition<?> def;
         if (ObjectReferenceType.COMPLEX_TYPE.equals(typeName)) {
             def = PrismContext.get().definitionFactory().createReferenceDefinition(name, typeName);

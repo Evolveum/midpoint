@@ -129,14 +129,14 @@ public class ExtensionProcessor {
         }
 
         throw new IllegalArgumentException(
-                "Unsupported type '" + realValue.getClass() + "' for value '" + realValue + "'.");
+                "Unsupported type '" + realValue.getClass().getName() + "' for value '" + realValue + "'.");
     }
 
     private void checkRealValueType(Object realValue, MExtItem extItemInfo) {
-        Class<?> realValueType = ExtUtils.SUPPORTED_TYPE_URI_TO_REAL_CLASS.get(extItemInfo.valueType);
-        if (realValueType != null && !realValueType.isAssignableFrom(realValue.getClass()) ) {
-            throw new IllegalArgumentException("Incorrect real value type "
-                    + realValue.getClass() + " for item " + extItemInfo.itemName);
+        Class<?> realValueType = ExtUtils.getRealValueClass(extItemInfo.valueType);
+        if (realValueType != null && !realValueType.isAssignableFrom(realValue.getClass())) {
+            throw new IllegalArgumentException("Incorrect real value type '"
+                    + realValue.getClass().getName() + "' for item " + extItemInfo.itemName);
         }
     }
 
@@ -159,7 +159,7 @@ public class ExtensionProcessor {
                 return null;
             }
             // enum is recognized by having allowed values
-            if (!ExtUtils.SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
+            if (!ExtUtils.isRegisteredType(definition.getTypeName())
                     && !ExtUtils.isEnumDefinition(((PrismPropertyDefinition<?>) definition))) {
                 return null;
             }
