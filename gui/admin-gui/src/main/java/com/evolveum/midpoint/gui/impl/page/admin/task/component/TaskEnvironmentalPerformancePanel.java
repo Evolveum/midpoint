@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -31,20 +32,20 @@ import java.util.Collections;
 @PanelType(name = "environmentalPerformance")
 @PanelInstance(identifier = "environmentalPerformance", applicableFor = TaskType.class, childOf = TaskPerformancePanel.class)
 @PanelDisplay(label = "Environmental performance", order = 50)
-public class TaskEnvironmentalPerformancePanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
+public class TaskEnvironmentalPerformancePanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_STATISTICS_PANEL = "statisticsPanel";
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskEnvironmentalPerformancePanel.class);
 
-    public TaskEnvironmentalPerformancePanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel, ContainerPanelConfigurationType config) {
+    public TaskEnvironmentalPerformancePanel(String id, ObjectDetailsModels<TaskType> taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
         setOutputMarkupId(true);
     }
 
    protected void initLayout() {
-        StatisticsDtoModel statisticsDtoModel = new StatisticsDtoModel(getModel());
+        StatisticsDtoModel statisticsDtoModel = new StatisticsDtoModel(getObjectWrapperModel());
         StatisticsPanel statisticsPanel = new StatisticsPanel(ID_STATISTICS_PANEL, statisticsDtoModel);
         add(statisticsPanel);
     }

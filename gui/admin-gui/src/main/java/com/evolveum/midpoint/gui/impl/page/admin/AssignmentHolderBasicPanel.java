@@ -20,13 +20,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "basic", defaultContainerPath = "empty")
 @PanelInstance(identifier = "basic", applicableFor = AssignmentHolderType.class, defaultPanel = true, notApplicableFor = ResourceType.class)
 @PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)
-public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH> {
+public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_MAIN_PANEL = "properties";
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderBasicPanel.class);
     private static final String ID_VIRTUAL_PANELS = "virtualPanels";
 
-    public AssignmentHolderBasicPanel(String id, LoadableModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
+    public AssignmentHolderBasicPanel(String id, ObjectDetailsModels<AH> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -52,7 +52,7 @@ public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends
 //
 //            }
 //            add(view);
-            SingleContainerPanel panel = new SingleContainerPanel(ID_MAIN_PANEL, getModel(), getPanelConfiguration());
+            SingleContainerPanel panel = new SingleContainerPanel(ID_MAIN_PANEL, getObjectWrapperModel(), getPanelConfiguration());
             add(panel);
 //        } catch (SchemaException e) {
 //            LOGGER.error("Could not create focus details panel. Reason: {}", e.getMessage(), e);

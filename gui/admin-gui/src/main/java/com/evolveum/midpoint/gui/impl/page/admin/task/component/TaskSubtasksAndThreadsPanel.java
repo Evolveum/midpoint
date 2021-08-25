@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -49,7 +49,7 @@ import java.util.List;
 @PanelType(name = "subtasks")
 @PanelInstance(identifier = "subtasks", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
 @PanelDisplay(label = "Subtasks", order = 50)
-public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
+public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_WORKER_THREADS_TABLE = "workerThreadsTable";
@@ -60,7 +60,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
 
 
     public TaskSubtasksAndThreadsPanel(String id,
-                                             LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel, ContainerPanelConfigurationType config) {
+            ObjectDetailsModels<TaskType> taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
         setOutputMarkupId(true);
     }
@@ -144,7 +144,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
         propertiesToGet.add(TaskType.F_SUBTASK_REF);
         propertiesToGet.add(TaskType.F_NODE_AS_OBSERVED);
 
-        GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaService().getOperationOptionsBuilder();
+        GetOperationOptionsBuilder getOperationOptionsBuilder = getPageBase().getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
         return getOperationOptionsBuilder
                 .items(propertiesToGet.toArray(new Object[0])).retrieve()
@@ -153,7 +153,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
 
     private IModel<List<TaskType>> createWorkersModel() {
         return (IModel<List<TaskType>>) () -> {
-            PrismObject<TaskType> taskPrism = TaskSubtasksAndThreadsPanel.this.getModelObject().getObject();
+            PrismObject<TaskType> taskPrism = TaskSubtasksAndThreadsPanel.this.getObjectWrapper().getObject();
             PrismReference subtasks = taskPrism.findReference(TaskType.F_SUBTASK_REF);
 
             if (subtasks == null) {
@@ -171,7 +171,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
     }
 
     private String getParentIdentifier() {
-        PrismObject<TaskType> taskPrism = getModelObject().getObject();
+        PrismObject<TaskType> taskPrism = getObjectWrapper().getObject();
         PrismProperty<String> taskIdentifier = taskPrism.findProperty(TaskType.F_TASK_IDENTIFIER);
         if (taskIdentifier == null) {
             return null; //TODO is this valid?

@@ -8,17 +8,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -26,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 @PanelType(name = "schedule", defaultContainerPath = "schedule", defaultType = ScheduleType.class)
 @PanelInstance(identifier = "schedule", applicableFor = TaskType.class)
 @PanelDisplay(label = "Schedule", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 15)
-public class TaskSchedulePanel extends AbstractObjectMainPanel<TaskType> {
+public class TaskSchedulePanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskSchedulePanel.class);
     private static final String ID_MAIN_PANEL = "main";
@@ -35,13 +33,13 @@ public class TaskSchedulePanel extends AbstractObjectMainPanel<TaskType> {
     private static final String DOT_CLASS = TaskSchedulePanel.class.getName() + ".";
     private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateWrapper";
 
-    public TaskSchedulePanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> model, ContainerPanelConfigurationType config) {
+    public TaskSchedulePanel(String id, ObjectDetailsModels<TaskType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
     @Override
     protected void initLayout() {
-        SingleContainerPanel activityDefinitionPanel = new SingleContainerPanel(ID_MAIN_PANEL, getModel(), getPanelConfiguration());
+        SingleContainerPanel activityDefinitionPanel = new SingleContainerPanel(ID_MAIN_PANEL, getObjectWrapperModel(), getPanelConfiguration());
         add(activityDefinitionPanel);
 
     }

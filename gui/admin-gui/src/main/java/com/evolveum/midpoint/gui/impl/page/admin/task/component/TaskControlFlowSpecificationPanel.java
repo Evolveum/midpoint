@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "controlFlow", defaultContainerPath = "activity/controlFlow", defaultType = ActivityControlFlowSpecificationType.class)
 @PanelInstance(identifier = "controlFlow", applicableFor = TaskType.class, childOf = TaskActivityPanel.class)
 @PanelDisplay(label = "Control flow", order = 20)
-public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<TaskType> {
+public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskControlFlowSpecificationPanel.class);
     private static final String ID_MAIN_PANEL = "main";
@@ -32,14 +32,14 @@ public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<T
     private static final String DOT_CLASS = TaskControlFlowSpecificationPanel.class.getName() + ".";
     private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateWrapper";
 
-    public TaskControlFlowSpecificationPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> model, ContainerPanelConfigurationType config) {
+    public TaskControlFlowSpecificationPanel(String id, ObjectDetailsModels<TaskType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
     @Override
     protected void initLayout() {
         SingleContainerPanel activityDefinitionPanel = new SingleContainerPanel(ID_MAIN_PANEL,
-                PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_CONTROL_FLOW)),
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_CONTROL_FLOW)),
                 ActivityControlFlowSpecificationType.COMPLEX_TYPE);
         add(activityDefinitionPanel);
 

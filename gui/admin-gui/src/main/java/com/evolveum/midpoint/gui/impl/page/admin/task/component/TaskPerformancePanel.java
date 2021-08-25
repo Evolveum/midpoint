@@ -10,13 +10,11 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
-import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -32,14 +30,14 @@ import java.util.Collections;
 //@PanelType(name = "performance")
 @PanelInstance(identifier = "performance", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
 @PanelDisplay(label = "Performance", order = 50)
-public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
+public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_STATISTICS_PANEL = "statisticsPanel";
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskPerformancePanel.class);
 
-    public TaskPerformancePanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel, ContainerPanelConfigurationType config) {
+    public TaskPerformancePanel(String id, ObjectDetailsModels<TaskType> taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
         setOutputMarkupId(true);
     }

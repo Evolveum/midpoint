@@ -4,22 +4,48 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.admin.resources;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.common.SynchronizationUtils;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
+import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
+import com.evolveum.midpoint.web.component.box.InfoBoxType;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.page.admin.resources.CapabilitiesDto;
+import com.evolveum.midpoint.web.page.admin.resources.CapabilitiesPanel;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,38 +58,15 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
-import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
-import com.evolveum.midpoint.web.component.box.InfoBoxType;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>> {
+@PanelType(name = "resourceDetails")
+@PanelInstance(identifier = "resourceDetails", applicableFor = ResourceType.class, status = ItemStatus.NOT_CHANGED, defaultPanel = true)
+@PanelDisplay(label = "Details", order = 10)
+public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsTabPanel.class);
 
@@ -80,15 +83,15 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
 
     LoadableModel<CapabilitiesDto> capabilitiesModel;
 
-    public ResourceDetailsTabPanel(String id, final LoadableModel<PrismObject<ResourceType>> model) {
-        super(id, model);
+    public ResourceDetailsTabPanel(String id, final ObjectDetailsModels<ResourceType> model, ContainerPanelConfigurationType config) {
+        super(id, model, config);
 
         capabilitiesModel = new LoadableModel<CapabilitiesDto>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected CapabilitiesDto load() {
-                PrismObject<ResourceType> resource = model.getObject();
+                PrismObject<ResourceType> resource = model.getObjectWrapperModel().getObject().getObject();
                 return new CapabilitiesDto(resource.asObjectable());
             }
         };
@@ -96,7 +99,7 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
 
     protected void initLayout() {
 
-        PrismObject<ResourceType> resourceObject = getModelObject();
+        PrismObject<ResourceType> resourceObject = getObjectWrapper().getObject();
         ResourceType resource = resourceObject.asObjectable();
 
         add(createLastAvailabilityStatusInfo(resource));

@@ -17,18 +17,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.model.IModel;
 
 @PanelType(name = "genericSingleValue")
-public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O> {
+public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
 
-    public GenericSingleContainerPanel(String id, LoadableModel<PrismObjectWrapper<O>> model, ContainerPanelConfigurationType config) {
+    public GenericSingleContainerPanel(String id, ObjectDetailsModels<O> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
     @Override
     protected void initLayout() {
 
-        SingleContainerPanel<C> panel = new SingleContainerPanel<C>(ID_DETAILS, (IModel) getModel(), getPanelConfiguration());
+        SingleContainerPanel<C> panel = new SingleContainerPanel<C>(ID_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration());
 //        SingleContainerPanel<C> panel = new SingleContainerPanel<>(ID_DETAILS, createContainerModel(), getType());
         add(panel);
 

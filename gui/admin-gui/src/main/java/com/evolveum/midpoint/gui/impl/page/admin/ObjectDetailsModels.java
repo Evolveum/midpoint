@@ -49,7 +49,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         this.prismObjectModel = prismObjectModel;
         this.modelServiceLocator = serviceLocator;
 
-        objectWrapperModel = new LoadableModel<PrismObjectWrapper<O>>(false) {
+        objectWrapperModel = new LoadableModel<>(false) {
 
             @Override
             protected PrismObjectWrapper<O> load() {
@@ -61,7 +61,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
                 ctx.setCreateIfEmpty(true);
                 ctx.setContainerPanelConfigurationType(detailsPageConfigurationModel.getObject().getPanel());
                 try {
-                    return factory.createObjectWrapper(prismObject, isEditUser(prismObject)? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
+                    return factory.createObjectWrapper(prismObject, isEditUser(prismObject) ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
                 } catch (SchemaException e) {
                     //TODO:
                     return null;
@@ -70,7 +70,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
             }
         };
 
-        detailsPageConfigurationModel = new LoadableModel<GuiObjectDetailsPageType>(false) {
+        detailsPageConfigurationModel = new LoadableModel<>(false) {
             @Override
             protected GuiObjectDetailsPageType load() {
                 return modelServiceLocator.getCompiledGuiProfile().findObjectDetailsConfiguration(prismObjectModel.getObject().getDefinition().getTypeName());
@@ -114,7 +114,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         return prismObject.getOid() != null;
     }
 
-    private PrismContext getPrismContext() {
+    protected PrismContext getPrismContext() {
         return modelServiceLocator.getPrismContext();
     }
 
@@ -226,11 +226,11 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         return modelServiceLocator.getFormValidatorRegistry().getValidators();
     }
 
-    protected void prepareObjectForAdd(PrismObject<O> objectToAdd) {
+    protected void prepareObjectForAdd(PrismObject<O> objectToAdd) throws SchemaException {
 
     }
 
-    protected void prepareObjectDeltaForModify(ObjectDelta<O> modifyDelta) {
+    protected void prepareObjectDeltaForModify(ObjectDelta<O> modifyDelta) throws SchemaException {
 
     }
 
@@ -246,5 +246,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         summaryModel.reset();
     }
 
-
+    protected ModelServiceLocator getModelServiceLocator() {
+        return modelServiceLocator;
+    }
 }

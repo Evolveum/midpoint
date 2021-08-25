@@ -30,5 +30,4 @@ public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainer
 
     PrismObjectValueWrapper<O> getValue();
 
-    void addShadowDelta(ReferenceDelta shadowRefDelta);
 }

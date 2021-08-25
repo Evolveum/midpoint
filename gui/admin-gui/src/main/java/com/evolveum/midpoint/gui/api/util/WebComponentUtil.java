@@ -25,9 +25,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
+import com.google.common.reflect.Invokable;
+import com.google.common.reflect.TypeToken;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.apache.wicket.*;
@@ -5082,8 +5085,9 @@ public final class WebComponentUtil {
         }
 
         try {
-            Constructor constructor = panelClass.getConstructor(String.class, LoadableModel.class, ContainerPanelConfigurationType.class);
-            Panel panel = (Panel) constructor.newInstance(markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
+            Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels, panelConfig);
+//            Constructor constructor = panelClass.getConstructor(String.class, objectDetailsModels.getClass().getEnclosingClass(), ContainerPanelConfigurationType.class);
+//            Panel panel = (Panel) constructor.newInstance(markupId, objectDetailsModels, panelConfig);
             panel.setOutputMarkupId(true);
             return panel;
         } catch (Throwable e) {
@@ -5091,14 +5095,24 @@ public final class WebComponentUtil {
             LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
         }
 
-        try {
-            Constructor constructor = panelClass.getConstructor(String.class, IModel.class, ContainerPanelConfigurationType.class);
-            Panel panel = (Panel) constructor.newInstance(markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
-            panel.setOutputMarkupId(true);
-            return panel;
-        } catch (Throwable e) {
-            LOGGER.trace("No constructor found for (String, Model, ContainerPanelConfigurationType). Panel cannot be created");
-        }
+//        try {
+//            Constructor constructor = panelClass.getConstructor(String.class, LoadableModel.class, ContainerPanelConfigurationType.class);
+//            Panel panel = (Panel) constructor.newInstance(markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
+//            panel.setOutputMarkupId(true);
+//            return panel;
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
+//        }
+//
+//        try {
+//            Constructor constructor = panelClass.getConstructor(String.class, IModel.class, ContainerPanelConfigurationType.class);
+//            Panel panel = (Panel) constructor.newInstance(markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
+//            panel.setOutputMarkupId(true);
+//            return panel;
+//        } catch (Throwable e) {
+//            LOGGER.trace("No constructor found for (String, Model, ContainerPanelConfigurationType). Panel cannot be created");
+//        }
 
         return null;
     }

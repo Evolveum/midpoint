@@ -13,7 +13,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -21,7 +20,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 
 import com.evolveum.midpoint.web.application.PanelInstance;
 
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -101,7 +99,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "projections")
 @PanelInstance(identifier = "projections", applicableFor = FocusType.class)
 @PanelDisplay(label = "Projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, order = 20)
-public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {
+public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SHADOW_TABLE = "shadowTable";
@@ -114,19 +112,19 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusProjectionsPanel.class);
 
-    private final LoadableModel<List<ShadowWrapper>> projectionModel;
+//    private final LoadableModel<List<ShadowWrapper>> projectionModel;
 
-    public FocusProjectionsPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel, ContainerPanelConfigurationType config) {
+    public FocusProjectionsPanel(String id, FocusDetailsModels<F> focusModel, ContainerPanelConfigurationType config) {
         super(id, focusModel, config);
 
-        this.projectionModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<ShadowWrapper> load() {
-                return loadShadowWrappers();
-            }
-        };
+//        this.projectionModel = new LoadableModel<>(false) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected List<ShadowWrapper> load() {
+//                return loadShadowWrappers();
+//            }
+//        };
     }
 
     private PrismObjectDefinition<ShadowType> getShadowDefinition() {
@@ -183,7 +181,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                     @Override
                     protected boolean isCreateNewObjectVisible() {
-                        PrismObjectDefinition<F> def = FocusProjectionsPanel.this.getModelObject().getObject().getDefinition();
+                        PrismObjectDefinition<F> def = FocusProjectionsPanel.this.getObjectWrapperModel().getObject().getObject().getDefinition();
                         PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
                         return (ref.canRead() && ref.canAdd());
                     }
@@ -256,18 +254,22 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     private IModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {
         return () -> {
             List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
-            for (ShadowWrapper projection : projectionModel.getObject()) {
+            for (ShadowWrapper projection : getProjectionsModel().getObject()) {
                 items.add(projection.getValue());
             }
             return items;
         };
     }
 
+    private LoadableModel<List<ShadowWrapper>> getProjectionsModel() {
+        return getObjectDetailsModels().getProjectionModel();
+    }
+
     private int countDeadShadows() {
-        if (projectionModel == null) {
+        if (getProjectionsModel() == null) {
             return 0;
         }
-        List<ShadowWrapper> projectionWrappers = projectionModel.getObject();
+        List<ShadowWrapper> projectionWrappers = getProjectionsModel().getObject();
         if (projectionWrappers == null) {
                 return 0;
         }
@@ -541,7 +543,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                 ShadowWrapper wrapperNew = createShadowWrapper(shadow);
 
-                projectionModel.getObject().add(wrapperNew);
+                getProjectionsModel().getObject().add(wrapperNew);
             } catch (Exception ex) {
                 error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(),
                         ex.getMessage()));
@@ -598,7 +600,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     private List<InlineMenuItem> createShadowMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
 
-        PrismObjectDefinition<F> def = getModelObject().getObject().getDefinition();
+        PrismObjectDefinition<F> def = getObjectWrapperModel().getObject().getObject().getDefinition();
         PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
         InlineMenuItem item;
         PrismPropertyDefinition<ActivationStatusType> administrativeStatus = def
@@ -874,7 +876,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target,
             List<PrismContainerValueWrapper<ShadowType>> selected) {
-        List<ShadowWrapper> accounts = projectionModel.getObject();
+        List<ShadowWrapper> accounts = getProjectionsModel().getObject();
         for (PrismContainerValueWrapper<ShadowType> account : selected) {
             if (UserDtoStatus.ADD.equals(((ShadowWrapper) account.getParent()).getProjectionStatus())) {
                 accounts.remove(account.getParent());
@@ -890,7 +892,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         long start = System.currentTimeMillis();
         List<ShadowWrapper> list = new ArrayList<>();
 
-        PrismObjectWrapper<F> focusWrapper = getModelObject();
+        PrismObjectWrapper<F> focusWrapper = getObjectWrapperModel().getObject();
         PrismObject<F> focus = focusWrapper.getObject();
         PrismReference prismReference = focus.findReference(UserType.F_LINK_REF);
         if (prismReference == null || prismReference.isEmpty()) {
@@ -937,7 +939,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> createLoadOptionForShadowWrapper() {
-        return getSchemaService().getOperationOptionsBuilder()
+        return getPageBase().getOperationOptionsBuilder()
                 .item(ShadowType.F_RESOURCE_REF).resolve().readOnly()
                 .build();
     }

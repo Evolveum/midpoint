@@ -45,4 +45,9 @@ public abstract class PageFocusDetails<F extends FocusType> extends PageAssignme
             }
         };
     }
+
+    @Override
+    protected ObjectDetailsModels<F> createObjectDetailsModels() {
+        return new FocusDetailsModels<>(createPrismObejctModel(), this);
+    }
 }

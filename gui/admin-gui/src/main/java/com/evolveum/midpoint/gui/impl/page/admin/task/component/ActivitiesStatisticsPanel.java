@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -20,13 +20,11 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.page.admin.server.SynchronizationSituationTransitionPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ActivitiesStatisticsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -41,7 +39,6 @@ import org.apache.wicket.model.PropertyModel;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -53,7 +50,7 @@ import java.util.List;
 @PanelType(name = "statistics")
 @PanelInstance(identifier = "statistics", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
 @PanelDisplay(label = "Statistics", order = 50)
-public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType> {
+public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final String ID_ITEM_PROCESSING = "itemProcessing";
     private static final String ID_SYNCHRONIZATION_STATISTICS = "synchronizationStatistics";
@@ -65,7 +62,7 @@ public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType>
 
     private final LoadableModel<ActivitiesStatisticsDto> statisticsModel;
 
-    public ActivitiesStatisticsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> model, ContainerPanelConfigurationType config) {
+    public ActivitiesStatisticsPanel(String id, ObjectDetailsModels<TaskType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
 
         statisticsModel = LoadableModel.create(
@@ -187,7 +184,7 @@ public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType>
 //    }
 
     private TaskType getTask() {
-        PrismObjectWrapper<TaskType> taskWrapper = getModelObject();
+        PrismObjectWrapper<TaskType> taskWrapper = getObjectWrapperModel().getObject();
         return taskWrapper != null ? taskWrapper.getObject().asObjectable() : null;
     }
 }

@@ -31,11 +31,11 @@ import java.util.Collections;
 import java.util.List;
 
 @PanelType(name = "genericMultiValue")
-public class GenericMultivalueContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O> {
+public class GenericMultivalueContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
 
-    public GenericMultivalueContainerPanel(String id, LoadableModel<PrismObjectWrapper<O>> model, ContainerPanelConfigurationType config) {
+    public GenericMultivalueContainerPanel(String id, ObjectDetailsModels<O> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 

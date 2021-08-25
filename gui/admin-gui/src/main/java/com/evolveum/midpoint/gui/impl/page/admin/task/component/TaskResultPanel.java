@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -15,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,7 +51,7 @@ import java.util.*;
 @PanelType(name = "results")
 @PanelInstance(identifier = "results", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
 @PanelDisplay(label = "Results", order = 70)
-public class TaskResultPanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
+public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_OPERATION_RESULT = "operationResult";
@@ -59,7 +59,7 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType> implement
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskResultPanel.class);
 
-    public TaskResultPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel, ContainerPanelConfigurationType config) {
+    public TaskResultPanel(String id, ObjectDetailsModels<TaskType> taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
 
     }
@@ -83,7 +83,7 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType> implement
                     return;
                 }
                 AjaxRequestTarget target = optionalTarget.get();
-                PrismObjectWrapper<TaskType> taskWrapper = TaskResultPanel.this.getModelObject();
+                PrismObjectWrapper<TaskType> taskWrapper = TaskResultPanel.this.getObjectWrapper();
                 TaskType taskType = taskWrapper.getObject().asObjectable();
                 OperationResult opResult = OperationResult.createOperationResult(taskType.getResult());
                 OperationResultPanel body = new OperationResultPanel(
@@ -101,7 +101,7 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType> implement
     }
 
     private List<OperationResult> createOperationResultList() {
-        PrismObject<TaskType> taskPrism = getModelObject().getObject();
+        PrismObject<TaskType> taskPrism = getObjectWrapper().getObject();
         if (taskPrism == null) {
             return null;
         }

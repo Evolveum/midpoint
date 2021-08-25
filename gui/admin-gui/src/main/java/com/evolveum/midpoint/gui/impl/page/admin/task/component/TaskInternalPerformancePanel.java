@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.Format;
@@ -43,7 +43,7 @@ import java.util.Locale;
 @PanelType(name = "internalPerformance")
 @PanelInstance(identifier = "internalPerformance", applicableFor = TaskType.class, childOf = TaskPerformancePanel.class)
 @PanelDisplay(label = "Internal performance", order = 50)
-public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
+public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_FORMAT = "format";
@@ -52,7 +52,7 @@ public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskTy
 
     private static final String LINE = "\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 
-    public TaskInternalPerformancePanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskModel, ContainerPanelConfigurationType config) {
+    public TaskInternalPerformancePanel(String id, ObjectDetailsModels<TaskType> taskModel, ContainerPanelConfigurationType config) {
         super(id, taskModel, config);
     }
 
@@ -114,7 +114,7 @@ public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskTy
 
     @SuppressWarnings("Duplicates")
     private String getStatistics() {
-        PrismObjectWrapper<TaskType> taskWrapper = getModelObject();
+        PrismObjectWrapper<TaskType> taskWrapper = getObjectWrapper();
         TaskType task = taskWrapper != null ? PrismObject.asObjectable(taskWrapper.getObject()) : null;
         if (task == null) {
             return "No task available";

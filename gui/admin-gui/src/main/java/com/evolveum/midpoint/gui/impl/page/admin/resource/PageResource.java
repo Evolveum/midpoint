@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -35,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
                         label = "PageResource.auth.resource.label",
                         description = "PageResource.auth.resource.description")
         })
-public class PageResource extends AbstractPageObjectDetails<ResourceType> {
+public class PageResource extends AbstractPageObjectDetails<ResourceType, ObjectDetailsModels<ResourceType>> {
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);

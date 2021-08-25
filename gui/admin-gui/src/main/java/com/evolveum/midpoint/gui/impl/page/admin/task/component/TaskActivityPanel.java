@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 @PanelType(name = "activity", defaultContainerPath = "activity")
 @PanelInstance(identifier = "activity", applicableFor = TaskType.class, defaultPanel = true)
 @PanelDisplay(label = "Activity", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 15)
-public class TaskActivityPanel extends AbstractObjectMainPanel<TaskType> {
+public class TaskActivityPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskActivityPanel.class);
     private static final String ID_MAIN_PANEL = "main";
@@ -33,13 +34,13 @@ public class TaskActivityPanel extends AbstractObjectMainPanel<TaskType> {
     private static final String DOT_CLASS = TaskActivityPanel.class.getName() + ".";
     private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateWrapper";
 
-    public TaskActivityPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> model, ContainerPanelConfigurationType config) {
+    public TaskActivityPanel(String id, ObjectDetailsModels<TaskType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
     @Override
     protected void initLayout() {
-        SingleContainerPanel activityDefinitionPanel = new SingleContainerPanel(ID_MAIN_PANEL, getModel(), getPanelConfiguration()) {
+        SingleContainerPanel activityDefinitionPanel = new SingleContainerPanel(ID_MAIN_PANEL, getObjectWrapperModel(), getPanelConfiguration()) {
 
             @Override
             protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {

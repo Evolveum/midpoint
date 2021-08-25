@@ -4,46 +4,38 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.admin.resources;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * @author semancik
  */
-public class ResourceConnectorPanel extends BasePanel<PrismObjectWrapper<ResourceType>> {
+@PanelType(name = "resourceConnector")
+@PanelInstance(identifier = "resourceConnector", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class)
+@PanelDisplay(label = "Connector", order = 70)
+public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceConnectorPanel.class);
@@ -64,17 +56,17 @@ public class ResourceConnectorPanel extends BasePanel<PrismObjectWrapper<Resourc
     private static final String ID_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
 
 
-    public ResourceConnectorPanel(String id, LoadableModel<PrismObjectWrapper<ResourceType>> model) {
-        super(id, model);
+    public ResourceConnectorPanel(String id, ObjectDetailsModels<ResourceType> model, ContainerPanelConfigurationType config) {
+        super(id, model, config);
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
+//    @Override
+//    protected void onInitialize() {
+//        super.onInitialize();
+//        initLayout();
+//    }
 
-    private void initLayout() {
+    protected void initLayout() {
         setOutputMarkupId(true);
 
         IModel<List<ConnectorOperationalStatus>> statsModel = new IModel<>() {
@@ -86,10 +78,10 @@ public class ResourceConnectorPanel extends BasePanel<PrismObjectWrapper<Resourc
                 OperationResult result = task.getResult();
                 List<ConnectorOperationalStatus> status = null;
                 try {
-                    status = getPageBase().getModelInteractionService().getConnectorOperationalStatus(getModelObject().getOid(), task, result);
+                    status = getPageBase().getModelInteractionService().getConnectorOperationalStatus(getObjectWrapper().getOid(), task, result);
                 } catch (SchemaException | ObjectNotFoundException | CommunicationException
                         | ConfigurationException | ExpressionEvaluationException e) {
-                    LOGGER.error("Error getting connector status for {}: {}", getModelObject(), e.getMessage(), e);
+                    LOGGER.error("Error getting connector status for {}: {}", getObjectWrapper(), e.getMessage(), e);
                     getPageBase().showResult(result);
                 }
                 return status;

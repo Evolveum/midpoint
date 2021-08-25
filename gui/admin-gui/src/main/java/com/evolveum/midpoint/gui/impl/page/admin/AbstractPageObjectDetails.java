@@ -61,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public abstract class AbstractPageObjectDetails<O extends ObjectType> extends PageBase {
+public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extends ObjectDetailsModels<O>> extends PageBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractPageObjectDetails.class);
 
@@ -80,7 +80,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType> extends Pa
     private static final String ID_PROGRESS_PANEL = "progressPanel";
     private static final String ID_DETAILS = "details";
 
-    private ObjectDetailsModels<O> objectDetailsModels;
+    private ODM objectDetailsModels;
 
     private ProgressPanel progressPanel;
     protected boolean previewRequested;
@@ -98,11 +98,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType> extends Pa
         return objectDetailsModels;
     }
 
-    private ObjectDetailsModels<O> createObjectDetailsModels() {
-        return new ObjectDetailsModels<>(createPrismObejctModel(), this);
+    //TODO should be abstract??
+    protected ODM createObjectDetailsModels() {
+        return (ODM) new ObjectDetailsModels<>(createPrismObejctModel(), this);
     }
 
-    private LoadableModel<PrismObject<O>> createPrismObejctModel() {
+    protected LoadableModel<PrismObject<O>> createPrismObejctModel() {
         return new LoadableModel<>(false) {
 
             @Override

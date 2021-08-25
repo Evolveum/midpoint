@@ -6,17 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -46,7 +43,7 @@ import java.util.Collections;
 @PanelType(name = "operation")
 @PanelInstance(identifier = "operation", applicableFor = TaskType.class)
 @PanelDisplay(label = "Operation", order = 60)
-public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
+public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_MODEL_OPERATION_STATUS_PANEL = "modelOperationStatusPanel";
@@ -55,13 +52,13 @@ public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType> implem
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskOperationPanel.class);
 
-    public TaskOperationPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> modelContextModel, ContainerPanelConfigurationType config) {
+    public TaskOperationPanel(String id, ObjectDetailsModels<TaskType> modelContextModel, ContainerPanelConfigurationType config) {
         super(id, modelContextModel, config);
         setOutputMarkupId(true);
     }
 
        private LensContextType getLensContextType() {
-            LensContextType lensContextType = getModelObject().getObject().asObjectable().getLensContext();
+            LensContextType lensContextType = getObjectWrapper().getObject().asObjectable().getLensContext();
             if (lensContextType.getState() == null) {
                 return null;
             }

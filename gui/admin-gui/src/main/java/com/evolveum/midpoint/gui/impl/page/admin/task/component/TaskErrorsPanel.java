@@ -6,13 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -55,12 +54,12 @@ import java.util.List;
 @PanelType(name = "taskErrors")
 @PanelInstance(identifier = "taskErrors", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
 @PanelDisplay(label = "Task errors", order = 50)
-public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
+public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_ERRORS = "taskErrors";
 
-    public TaskErrorsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel, ContainerPanelConfigurationType config) {
+    public TaskErrorsPanel(String id, ObjectDetailsModels<TaskType> taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
 
     }
@@ -71,12 +70,12 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType> implement
 
             @Override
             public SelectableBean<ObjectType> createDataObjectWrapper(ObjectType obj) {
-                return new TaskErrorSelectableBeanImpl<>(obj, getModelObject().getOid());
+                return new TaskErrorSelectableBeanImpl<>(obj, getObjectWrapper().getOid());
             }
 
             @Override
             public ObjectQuery getQuery() {
-                return createContentQuery(getModelObject().getOid(), getPageBase());
+                return createContentQuery(getObjectWrapper().getOid(), getPageBase());
             }
 
             @NotNull
@@ -175,6 +174,6 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType> implement
     @Override
     protected void detachModel() {
         super.detachModel();
-        ((LoadableModel<?>) getModel()).reset();
+        ((LoadableModel<?>) getObjectWrapperModel()).reset();
     }
 }
