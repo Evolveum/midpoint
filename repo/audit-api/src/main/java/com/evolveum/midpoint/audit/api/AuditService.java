@@ -57,6 +57,7 @@ public interface AuditService {
 
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
+     * @deprecated use {@link #countObjects(ObjectQuery, Collection, OperationResult)} instead
      */
     long countObjects(String query, Map<String, Object> params);
 

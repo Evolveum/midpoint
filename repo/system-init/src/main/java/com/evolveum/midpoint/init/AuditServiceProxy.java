@@ -232,12 +232,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
     @Override
     public boolean supportsRetrieval() {
-        for (AuditService service : services) {
-            if (service.supportsRetrieval()) {
-                return true;
-            }
-        }
-        return false;
+        return services.stream().anyMatch(s -> s.supportsRetrieval());
     }
 
     @Override
