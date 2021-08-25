@@ -6,13 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.user;
 
-import com.evolveum.midpoint.gui.impl.page.admin.PageAssignmentHolder;
-
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObject;
+import com.evolveum.midpoint.gui.impl.page.admin.PageFocusDetails;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                         label = "PageUser.auth.user.label",
                         description = "PageUser.auth.user.description")
         })
-public class PageUser extends PageAssignmentHolder<UserType> {
+public class PageUser extends PageFocusDetails<UserType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 

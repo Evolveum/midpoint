@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import java.util.Locale;
 
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,4 +95,6 @@ public interface ModelServiceLocator {
     <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException;
 
     <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException;
+
+    MidpointFormValidatorRegistry getFormValidatorRegistry();
 }

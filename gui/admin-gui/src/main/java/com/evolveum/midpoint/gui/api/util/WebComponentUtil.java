@@ -23,6 +23,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -1572,6 +1574,49 @@ public final class WebComponentUtil {
         }
     }
 
+    public static void encryptCredentials(ObjectDelta delta, boolean encrypt, ModelServiceLocator serviceLocator) {
+        if (delta == null || delta.isEmpty()) {
+            return;
+        }
+
+        PropertyDelta propertyDelta = delta.findPropertyDelta(SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE);
+        if (propertyDelta == null) {
+            return;
+        }
+
+        Collection<PrismPropertyValue<ProtectedStringType>> values = propertyDelta
+                .getValues(ProtectedStringType.class);
+        for (PrismPropertyValue<ProtectedStringType> value : values) {
+            ProtectedStringType string = value.getValue();
+            encryptProtectedString(string, encrypt, serviceLocator);
+        }
+    }
+
+    public static void encryptProtectedString(ProtectedStringType string, boolean encrypt,
+            ModelServiceLocator serviceLocator) {
+        if (string == null) {
+            return;
+        }
+        Protector protector = serviceLocator.getPrismContext().getDefaultProtector();
+        try {
+            if (encrypt) {
+                if (StringUtils.isEmpty(string.getClearValue())) {
+                    return;
+                }
+                protector.encrypt(string);
+            } else {
+                if (string.getEncryptedDataType() == null) {
+                    return;
+                }
+                protector.decrypt(string);
+            }
+        } catch (EncryptionException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't encrypt protected string", ex);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't encrypt/decrypt protected string", e);
+        }
+    }
+
     public static void encryptCredentials(PrismObject object, boolean encrypt, MidPointApplication app) {
         PrismContainer password = object.findContainer(SchemaConstants.PATH_CREDENTIALS_PASSWORD);
         if (password == null) {
@@ -1587,6 +1632,23 @@ public final class WebComponentUtil {
                 .getRealValue(ProtectedStringType.class);
 
         encryptProtectedString(string, encrypt, app);
+    }
+
+    public static void encryptCredentials(PrismObject object, boolean encrypt, ModelServiceLocator serviceLocator) {
+        PrismContainer password = object.findContainer(SchemaConstants.PATH_CREDENTIALS_PASSWORD);
+        if (password == null) {
+            return;
+        }
+        PrismProperty protectedStringProperty = password.findProperty(PasswordType.F_VALUE);
+        if (protectedStringProperty == null
+                || protectedStringProperty.getRealValue(ProtectedStringType.class) == null) {
+            return;
+        }
+
+        ProtectedStringType string = (ProtectedStringType) protectedStringProperty
+                .getRealValue(ProtectedStringType.class);
+
+        encryptProtectedString(string, encrypt, serviceLocator);
     }
 
     public static void encryptProtectedString(ProtectedStringType string, boolean encrypt,
@@ -5013,14 +5075,15 @@ public final class WebComponentUtil {
         });
     }
 
-    public static <T> Panel createPanel(Class<? extends Panel> panelClass, String markupId, IModel<T> model, ContainerPanelConfigurationType panelConfig) {
+    //TODO
+    public static <T extends ObjectType> Panel createPanel(Class<? extends Panel> panelClass, String markupId, ObjectDetailsModels<T> objectDetailsModels, ContainerPanelConfigurationType panelConfig) {
         if (panelClass == null) {
             return null;
         }
 
         try {
             Constructor constructor = panelClass.getConstructor(String.class, LoadableModel.class, ContainerPanelConfigurationType.class);
-            Panel panel = (Panel) constructor.newInstance(markupId, model, panelConfig);
+            Panel panel = (Panel) constructor.newInstance(markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
             panel.setOutputMarkupId(true);
             return panel;
         } catch (Throwable e) {
@@ -5030,7 +5093,7 @@ public final class WebComponentUtil {
 
         try {
             Constructor constructor = panelClass.getConstructor(String.class, IModel.class, ContainerPanelConfigurationType.class);
-            Panel panel = (Panel) constructor.newInstance(markupId, model, panelConfig);
+            Panel panel = (Panel) constructor.newInstance(markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
             panel.setOutputMarkupId(true);
             return panel;
         } catch (Throwable e) {

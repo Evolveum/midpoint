@@ -40,11 +40,11 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     private static final String ID_COUNT = "count";
     private static final String ID_NAVIGATION_DETAILS = "navLinkStyle";
 
-    private IModel<PrismObjectWrapper<O>> objectModel;
+    private ObjectDetailsModels<O> objectDetialsModel;
 
-    public DetailsNavigationPanel(String id, IModel<PrismObjectWrapper<O>> objectModel, IModel<List<ContainerPanelConfigurationType>> model) {
+    public DetailsNavigationPanel(String id, ObjectDetailsModels<O> objectDetialsModel, IModel<List<ContainerPanelConfigurationType>> model) {
         super(id, model);
-        this.objectModel = objectModel;
+        this.objectDetialsModel = objectDetialsModel;
     }
 
     @Override
@@ -61,7 +61,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
                 WebMarkupContainer navigationDetails = new WebMarkupContainer(ID_NAVIGATION_DETAILS);
                 navigationDetails.add(AttributeAppender.append("class", new ReadOnlyModel<>(() -> {
-                    ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectModel.getObject().getCompileTimeClass().getSimpleName());
+                    ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectDetialsModel.getObjectWrapperModel().getObject().getCompileTimeClass().getSimpleName());
                     ContainerPanelConfigurationType storageConfig = storage.getDefaultConfiguration();
                     ContainerPanelConfigurationType itemModelObject = item.getModelObject();
                     if (storageConfig.getIdentifier().equals(itemModelObject.getIdentifier())) {
@@ -92,7 +92,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 label.add(new VisibleBehaviour(() -> countModel.getObject() != null));
                 navigationDetails.add(label);
 
-                DetailsNavigationPanel subPanel = new DetailsNavigationPanel(ID_SUB_NAVIGATION, objectModel, Model.ofList(item.getModelObject().getPanel())) {
+                DetailsNavigationPanel subPanel = new DetailsNavigationPanel(ID_SUB_NAVIGATION, objectDetialsModel, Model.ofList(item.getModelObject().getPanel())) {
 
                     @Override
                     protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
@@ -118,7 +118,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             ContainerPanelConfigurationType config = panelModel.getObject();
             String panelIdentifier = config.getPanelType();
             if ("assignments".equals(panelIdentifier)) {
-                AssignmentCounter counter = new AssignmentCounter(objectModel);
+                AssignmentCounter counter = new AssignmentCounter(objectDetialsModel);
                 int count = counter.count();
                 if (count == 0) {
                     return null;

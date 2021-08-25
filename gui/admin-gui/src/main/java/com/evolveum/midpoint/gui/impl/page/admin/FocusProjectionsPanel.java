@@ -13,12 +13,15 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 
 import com.evolveum.midpoint.web.application.PanelInstance;
 
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -158,10 +161,9 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                     @Override
                     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
-                        List<QName> supportedTypes = new ArrayList<>(1);
-                        supportedTypes.add(ResourceType.COMPLEX_TYPE);
+                        List<QName> supportedTypes = Arrays.asList(ResourceType.COMPLEX_TYPE);
                         PageBase pageBase = FocusProjectionsPanel.this.getPageBase();
-                        ObjectBrowserPanel<ResourceType> resourceSelectionPanel = new ObjectBrowserPanel<ResourceType>(
+                        ObjectBrowserPanel<ResourceType> resourceSelectionPanel = new ObjectBrowserPanel<>(
                                 pageBase.getMainPopupBodyId(), ResourceType.class, supportedTypes, true,
                                 pageBase) {
 
@@ -169,7 +171,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                             @Override
                             protected void addPerformed(AjaxRequestTarget target, QName type,
-                                    List<ResourceType> selected) {
+                                                        List<ResourceType> selected) {
                                 FocusProjectionsPanel.this.addSelectedAccountPerformed(target,
                                         selected);
                             }
@@ -252,16 +254,12 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     }
 
     private IModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {
-        return new IModel<List<PrismContainerValueWrapper<ShadowType>>>() {
-
-            @Override
-            public List<PrismContainerValueWrapper<ShadowType>> getObject() {
-                List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
-                for (ShadowWrapper projection : projectionModel.getObject()) {
-                    items.add(projection.getValue());
-                }
-                return items;
+        return () -> {
+            List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
+            for (ShadowWrapper projection : projectionModel.getObject()) {
+                items.add(projection.getValue());
             }
+            return items;
         };
     }
 
@@ -380,12 +378,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
             @Override
             protected DisplayNamePanel<ShadowType> createDisplayNamePanel(String displayNamePanelId) {
-                IModel<ShadowType> shadowModel = new IModel<ShadowType>() {
-                    @Override
-                    public ShadowType getObject() {
-                        return createShadowType(item.getModel());
-                    }
-                };
+                IModel<ShadowType> shadowModel = () -> createShadowType(item.getModel());
                 return new ProjectionDisplayNamePanel(displayNamePanelId, shadowModel);
             }
 
@@ -530,32 +523,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
         for (ResourceType resource : newResources) {
             try {
-                ShadowType shadow = new ShadowType();
-                ObjectReferenceType resourceRef = new ObjectReferenceType();
-                resourceRef.asReferenceValue().setObject(resource.asPrismObject());
-                shadow.setResourceRef(resourceRef);
-                ResourceType usedResource = resource;
-
-                RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
-                        resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
-                if (refinedSchema == null) {
-                    Task task = getPageBase().createSimpleTask(FocusPersonasTabPanel.class.getSimpleName() + ".loadResource");
-                    OperationResult result = task.getResult();
-                    PrismObject<ResourceType> loadedResource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
-                    result.recomputeStatus();
-
-                    refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
-                            loadedResource, LayerType.PRESENTATION, getPrismContext());
-
-                    if (refinedSchema == null) {
-                        error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",
-                                resource.getName()));
-                        continue;
-                    }
-
-//                    shadow.setResource(loadedResource.asObjectable());
-                    usedResource = loadedResource.asObjectable();
-                }
+                RefinedResourceSchema refinedSchema = getRefinedSchema(resource);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
                 }
@@ -568,25 +536,11 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     continue;
                 }
 //                shadow.asPrismContainer().findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition(accountDefinition.toResourceAttributeContainerDefinition());
-                QName objectClass = accountDefinition.getObjectClassDefinition().getTypeName();
-                ObjectReferenceType usedResourceRef = new ObjectReferenceType();
-                usedResourceRef.asReferenceValue().setObject(usedResource.asPrismObject());
-                shadow.setResourceRef(usedResourceRef);
-                shadow.setObjectClass(objectClass);
-                shadow.setIntent(accountDefinition.getObjectClassDefinition().getIntent());
-                shadow.setKind(accountDefinition.getObjectClassDefinition().getKind());
-                getPrismContext().adopt(shadow);
 
-                Task task = getPageBase().createSimpleTask(OPERATION_ADD_ACCOUNT);
-                PrismObjectWrapperFactory<ShadowType> factory = getPageBase().getRegistry().getObjectWrapperFactory(shadow.asPrismContainer().getDefinition());
-                WrapperContext context = new WrapperContext(task, task.getResult());
-                ShadowWrapper wrapperNew = (ShadowWrapper) factory.createObjectWrapper(shadow.asPrismContainer(), ItemStatus.ADDED, context);
-                if (task.getResult() != null
-                        && !WebComponentUtil.isSuccessOrHandledError(task.getResult())) {
-                    getPageBase().showResult(task.getResult(), false);
-                }
+                ShadowType shadow = createNewShadow(resource, accountDefinition);
 
-                wrapperNew.setProjectionStatus(UserDtoStatus.ADD);
+                ShadowWrapper wrapperNew = createShadowWrapper(shadow);
+
                 projectionModel.getObject().add(wrapperNew);
             } catch (Exception ex) {
                 error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(),
@@ -595,6 +549,50 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             }
         }
         target.add(getMultivalueContainerListPanel());
+    }
+
+    private ShadowType createNewShadow(ResourceType resource, RefinedObjectClassDefinition accountDefinition) {
+        ShadowType shadow = new ShadowType(getPrismContext());
+        shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource, SchemaConstants.ORG_DEFAULT));
+        QName objectClass = accountDefinition.getTypeName();
+        shadow.setObjectClass(objectClass);
+        shadow.setIntent(accountDefinition.getIntent());
+        shadow.setKind(accountDefinition.getKind());
+        return shadow;
+    }
+
+    private RefinedResourceSchema getRefinedSchema(ResourceType resource) throws SchemaException {
+        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
+                resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
+        if (refinedSchema == null) {
+            Task task = getPageBase().createSimpleTask(FocusPersonasTabPanel.class.getSimpleName() + ".loadResource");
+            OperationResult result = task.getResult();
+            resource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result).asObjectable();
+            result.recomputeStatus();
+
+            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
+                    resource, LayerType.PRESENTATION, getPrismContext());
+
+            if (refinedSchema == null) {
+                error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",
+                        resource.getName()));
+            }
+        }
+        return refinedSchema;
+    }
+
+    private ShadowWrapper createShadowWrapper(ShadowType shadow) throws SchemaException {
+        Task task = getPageBase().createSimpleTask(OPERATION_ADD_ACCOUNT);
+        PrismObjectWrapperFactory<ShadowType> factory = getPageBase().findObjectWrapperFactory(shadow.asPrismContainer().getDefinition());
+        WrapperContext context = new WrapperContext(task, task.getResult());
+        ShadowWrapper wrapperNew = (ShadowWrapper) factory.createObjectWrapper(shadow.asPrismContainer(), ItemStatus.ADDED, context);
+
+        if (task.getResult() != null
+                && !WebComponentUtil.isSuccessOrHandledError(task.getResult())) {
+            getPageBase().showResult(task.getResult(), false);
+        }
+        wrapperNew.setProjectionStatus(UserDtoStatus.ADD);
+        return wrapperNew;
     }
 
     private List<InlineMenuItem> createShadowMenu() {

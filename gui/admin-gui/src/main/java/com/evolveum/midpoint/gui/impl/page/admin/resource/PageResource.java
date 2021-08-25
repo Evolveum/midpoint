@@ -17,7 +17,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObject;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceSummaryPanel;
@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
                         label = "PageResource.auth.resource.label",
                         description = "PageResource.auth.resource.description")
         })
-public class PageResource extends AbstractPageObject<ResourceType> {
+public class PageResource extends AbstractPageObjectDetails<ResourceType> {
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);

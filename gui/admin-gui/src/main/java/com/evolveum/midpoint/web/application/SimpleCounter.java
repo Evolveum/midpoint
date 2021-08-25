@@ -8,17 +8,19 @@ package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+
 import org.apache.wicket.model.IModel;
 
 public class SimpleCounter {
 
-    private IModel<? extends PrismContainerWrapper<?>> model;
+    private ObjectDetailsModels objectDetailsModels;
 
-    public SimpleCounter(IModel<? extends PrismContainerWrapper<?>> model) {
-        this.model = model;
+    public SimpleCounter(ObjectDetailsModels objectDetailsModels) {
+        this.objectDetailsModels = objectDetailsModels;
     }
 
-    public IModel<? extends PrismContainerWrapper<?>> getModel() {
-        return model;
+    public ObjectDetailsModels getObjectDetailsModels() {
+        return objectDetailsModels;
     }
 }

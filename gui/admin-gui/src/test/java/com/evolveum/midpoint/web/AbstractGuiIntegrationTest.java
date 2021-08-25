@@ -18,6 +18,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -239,6 +241,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
                 ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper, null);
 
                 return factory.createValueWrapper(parentWrapper, newValue, status, context);
+            }
+
+            @Override
+            public MidpointFormValidatorRegistry getFormValidatorRegistry() {
+                return null;
             }
         };
     }

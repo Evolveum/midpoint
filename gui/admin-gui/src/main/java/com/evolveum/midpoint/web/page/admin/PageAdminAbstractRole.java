@@ -33,11 +33,6 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
     }
 
     @Override
-    protected void prepareObjectForAdd(PrismObject<T> focus) throws SchemaException {
-        super.prepareObjectForAdd(focus);
-    }
-
-    @Override
     protected void initializeModel(final PrismObject<T> objectToEdit, boolean isNewObject, boolean isReadonly) {
         super.initializeModel(objectToEdit, isNewObject, isReadonly);
     }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.application;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -24,12 +25,12 @@ import java.util.List;
 
 public class AssignmentCounter extends SimpleCounter {
 
-    public AssignmentCounter(IModel<? extends PrismContainerWrapper<?>> model) {
-        super(model);
+    public AssignmentCounter(ObjectDetailsModels objectDetailsModels) {
+        super(objectDetailsModels);
     }
 
     public int count() {
-        PrismObjectWrapper<?> modelObject = (PrismObjectWrapper<?>) getModel().getObject();
+        PrismObjectWrapper<?> modelObject = (PrismObjectWrapper<?>) getObjectDetailsModels().getObjectWrapperModel().getObject();
         AssignmentHolderType object = (AssignmentHolderType) modelObject.getObject().asObjectable();
 
         List<AssignmentType> assignments = object.getAssignment();

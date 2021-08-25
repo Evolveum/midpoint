@@ -52,65 +52,6 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
         WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
         assignments.setOutputMarkupId(true);
         add(assignments);
-//        PrismContainerWrapperModel<AH, AssignmentType> assignmentModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), AssignmentHolderType.F_ASSIGNMENT);
-//        List<ITab> tabs = createAssignmentTabs(assignmentModel);
-//        TabbedAssignmentTypePanel panel = new TabbedAssignmentTypePanel(ID_ASSIGNMENTS_PANEL, tabs, assignmentModel, getPanelConfiguration());
-//
-////        SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, assignmentModel);
-//
-//        assignments.add(panel);
-    }
-
-    private List<ITab> createAssignmentTabs(PrismContainerWrapperModel<AH, AssignmentType> assignmentModel) {
-        List<ITab> tabs = new ArrayList<>();
-        for (ContainerPanelConfigurationType panelConfig : getAssignmentPanels()) {
-            if (isNotVisible(panelConfig)) {
-                continue;
-            }
-            tabs.add(new AbstractTab(createStringResource(getLabel(panelConfig))) {
-                @Override
-                public WebMarkupContainer getPanel(String s) {
-
-                    String panelIdentifier =  panelConfig.getPanelType();
-                    Class<? extends Panel> panelClass = getPageBase().findObjectPanel(panelIdentifier);
-                    Panel panel = WebComponentUtil.createPanel(panelClass, s, assignmentModel, panelConfig);
-                    return panel;
-                }
-            });
-        }
-        return tabs;
-    }
-
-    private boolean isNotVisible(ContainerPanelConfigurationType config) {
-        if (config == null) {
-            return false;
-        }
-
-        UserInterfaceElementVisibilityType visibility = config.getVisibility();
-        if (visibility == null) {
-            return false;
-        }
-
-        return UserInterfaceElementVisibilityType.HIDDEN == visibility;
-    }
-
-    private String getLabel(ContainerPanelConfigurationType panelConfig) {
-        if (panelConfig == null) {
-            return "N/A";
-        }
-        if (panelConfig.getDisplay() == null) {
-            return "N/A";
-        }
-        return WebComponentUtil.getOrigStringFromPoly(panelConfig.getDisplay().getLabel());
-    }
-
-    private List<ContainerPanelConfigurationType> getAssignmentPanels() {
-        List<ContainerPanelConfigurationType> subPanels = getPanelConfiguration().getPanel();
-        Map<String, ContainerPanelConfigurationType> panelsMap = new HashMap<>();
-        for (ContainerPanelConfigurationType subPanel : subPanels) {
-            panelsMap.put(subPanel.getIdentifier(), subPanel);
-        }
-        return subPanels;
     }
 
     protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<AH, AssignmentType> model) {
