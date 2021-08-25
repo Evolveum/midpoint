@@ -75,7 +75,11 @@ class ObjectNotFoundHandler extends HardErrorHandler {
         if (getErrorReportingMethod(rootOptions) == FetchErrorReportingMethodType.FORCED_EXCEPTION) {
             LOGGER.debug("Trying to handle {} but 'forced exception' mode is selected. Will rethrow it.",
                     cause.getClass().getSimpleName());
-            return super.handleGetError(ctx, null, rootOptions, cause, task, parentResult);
+
+            if (repositoryShadow != null && ShadowUtil.isExists(repositoryShadow.asObjectable())) {
+                markShadowTombstoneIfExecutionMode(repositoryShadow, task, parentResult);
+                return super.handleGetError(ctx, null, rootOptions, cause, task, parentResult);
+            }
         }
 
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), rootOptions)) {
@@ -84,19 +88,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
         if (repositoryShadow != null) {
             if (ShadowUtil.isExists(repositoryShadow.asObjectable())) {
-                // This is some kind of reality mismatch. We obviously have shadow that is supposed
-                // to be alive (exists=true). But it does not exist on resource.
-                // This is NOT gestation quantum state, as that is handled directly in ShadowCache.
-                // This may be "lost shadow" - shadow which exists but the resource object has disappeared without trace.
-                // Or this may be a corpse - quantum state that has just collapsed to to tombstone.
-                // Either way, it should be safe to set exists=false.
-                if (TaskUtil.isExecute(task)) {
-                    LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.",
-                            repositoryShadow);
-                    repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, task, parentResult);
-                } else {
-                    LOGGER.trace("Not in execute mode ({}). Keeping shadow marked as 'exists'.", TaskUtil.getExecutionMode(task));
-                }
+                repositoryShadow = markShadowTombstoneIfExecutionMode(repositoryShadow, task, parentResult);
             } else {
                 // We always want to return repository shadow it such shadow is available.
                 // The shadow may be dead, or it may be marked as "not exists", but we want
@@ -110,6 +102,24 @@ class ObjectNotFoundHandler extends HardErrorHandler {
         } else {
             return super.handleGetError(ctx, null, rootOptions, cause, task, parentResult);
         }
+    }
+
+    private PrismObject<ShadowType> markShadowTombstoneIfExecutionMode(PrismObject<ShadowType> repositoryShadow, Task task,
+            OperationResult parentResult) throws SchemaException {
+        // This is some kind of reality mismatch. We obviously have shadow that is supposed
+        // to be alive (exists=true). But it does not exist on resource.
+        // This is NOT gestation quantum state, as that is handled directly in ShadowCache.
+        // This may be "lost shadow" - shadow which exists but the resource object has disappeared without trace.
+        // Or this may be a corpse - quantum state that has just collapsed to to tombstone.
+        // Either way, it should be safe to set exists=false.
+        if (TaskUtil.isExecute(task)) {
+            LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.",
+                    repositoryShadow);
+            repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, task, parentResult);
+        } else {
+            LOGGER.trace("Not in execute mode ({}). Keeping shadow marked as 'exists'.", TaskUtil.getExecutionMode(task));
+        }
+        return repositoryShadow;
     }
 
     @Override
