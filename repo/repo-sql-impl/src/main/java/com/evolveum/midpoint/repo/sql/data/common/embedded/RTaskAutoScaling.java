@@ -11,7 +11,6 @@ import javax.persistence.Embeddable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskAutoScalingMode;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -24,15 +23,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAutoScalingType;
 @JaxbType(type = TaskAutoScalingType.class)
 public class RTaskAutoScaling {
 
-    private RTaskAutoScalingMode autoScalingMode; // the name of the column in m_task
+    private RTaskAutoScalingMode mode;
 
-    @JaxbName(localPart = "mode")
-    public RTaskAutoScalingMode getAutoScalingMode() {
-        return autoScalingMode;
+    public RTaskAutoScalingMode getMode() {
+        return mode;
     }
 
-    public void setAutoScalingMode(RTaskAutoScalingMode autoScalingMode) {
-        this.autoScalingMode = autoScalingMode;
+    public void setMode(RTaskAutoScalingMode mode) {
+        this.mode = mode;
     }
 
     public static void fromJaxb(TaskAutoScalingType jaxb, RTaskAutoScaling repo)
@@ -40,7 +38,7 @@ public class RTaskAutoScaling {
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         Objects.requireNonNull(repo, "Repo object must not be null.");
 
-        repo.setAutoScalingMode(RUtil.getRepoEnumValue(jaxb.getMode(), RTaskAutoScalingMode.class));
+        repo.setMode(RUtil.getRepoEnumValue(jaxb.getMode(), RTaskAutoScalingMode.class));
     }
 
     public static void copyToJAXB(RTaskAutoScaling repo, TaskAutoScalingType jaxb,
@@ -48,8 +46,8 @@ public class RTaskAutoScaling {
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         Objects.requireNonNull(repo, "Repo object must not be null.");
 
-        if (repo.getAutoScalingMode() != null) {
-            jaxb.setMode(repo.getAutoScalingMode().getSchemaValue());
+        if (repo.getMode() != null) {
+            jaxb.setMode(repo.getMode().getSchemaValue());
         }
     }
 
@@ -60,11 +58,11 @@ public class RTaskAutoScaling {
         if (!super.equals(o)) { return false; }
 
         RTaskAutoScaling that = (RTaskAutoScaling) o;
-        return autoScalingMode == that.autoScalingMode;
+        return mode == that.mode;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(autoScalingMode);
+        return Objects.hash(mode);
     }
 }

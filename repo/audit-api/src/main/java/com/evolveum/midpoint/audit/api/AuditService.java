@@ -56,16 +56,8 @@ public interface AuditService {
     List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result);
 
     /**
-     * Reindex audit record - <b>currently does nothing</b>.
-     * Previously it effectively created missing changed items detail entities,
-     * which is less and less useful nowadays.
-     * TODO: In the future we may consider reindexing of new columns, but the functionality
-     * is currently not fully specified.
-     */
-    void reindexEntry(AuditEventRecord record);
-
-    /**
      * @throws UnsupportedOperationException if object retrieval is not supported
+     * @deprecated use {@link #countObjects(ObjectQuery, Collection, OperationResult)} instead
      */
     long countObjects(String query, Map<String, Object> params);
 

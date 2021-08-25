@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -135,10 +135,6 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
     }
 
     private ItemVisibility getBasicTabVisibility(ItemPath path) {
-//        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).equivalent(path)) {
-//            return ItemVisibility.HIDDEN;
-//        }
-
         if (TaskType.F_SUBTASK_REF.equivalent(path)) {
             return ItemVisibility.HIDDEN;
         }
@@ -207,8 +203,6 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME),
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME),
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_LOG_ON_INFO_LEVEL_QNAME));
-        } else if (taskHandler.endsWith("model/auditReindex/handler-3")) {
-            //no extension attributes
         } else if (taskHandler.endsWith("task/lightweight-partitioning/handler-3")
                 || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
                 || taskHandler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3")

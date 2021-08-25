@@ -26,7 +26,7 @@
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
 CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
---CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
 
 -- region custom enum types
 -- Some enums are from schema, some are only defined in repo-sqale.
@@ -1777,3 +1777,4 @@ END $$;
 
 -- For Quartz tables see:
 -- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
+

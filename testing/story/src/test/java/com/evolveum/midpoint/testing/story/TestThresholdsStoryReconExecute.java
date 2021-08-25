@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsReconExecute extends TestThresholdsRecon {
+public class TestThresholdsStoryReconExecute extends TestThresholdsStoryRecon {
 
     /**
      * This task is used for common import tests drive by the superclass.

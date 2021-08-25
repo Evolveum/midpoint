@@ -14,7 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsLiveSyncExecuteMultithreaded extends TestThresholdsLiveSyncExecute {
+public class TestThresholdsStoryLiveSyncExecuteMultithreaded extends TestThresholdsStoryLiveSyncExecute {
 
     @Override
     protected int getWorkerThreads() {

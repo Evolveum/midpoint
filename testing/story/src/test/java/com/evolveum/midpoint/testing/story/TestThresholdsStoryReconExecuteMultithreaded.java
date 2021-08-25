@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.testing.story;
 
-public class TestThresholdsReconExecuteMultithreaded extends TestThresholdsReconExecute {
+public class TestThresholdsStoryReconExecuteMultithreaded extends TestThresholdsStoryReconExecute {
 
     @Override
     protected int getWorkerThreads() {

@@ -182,6 +182,8 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_ATTRIBUTES = ItemPath.create(C_ATTRIBUTES);
     public static final ItemPath PATH_ASSIGNMENT = ItemPath.create(FocusType.F_ASSIGNMENT);
     public static final ItemPath PATH_INDUCEMENT = ItemPath.create(AbstractRoleType.F_INDUCEMENT);
+    public static final ItemPath PATH_INDUCEMENT_POLICY_RULE = ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE);
+
     public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = ItemPath
             .create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
     public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = ItemPath

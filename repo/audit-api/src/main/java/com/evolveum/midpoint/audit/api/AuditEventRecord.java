@@ -10,8 +10,6 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
-
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +29,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -45,13 +44,12 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * Audit event record describes a single event (usually data change) in a format suitable for audit.
- *
- * @author Radovan Semancik
+ * This is more or less equivalent to {@link AuditEventRecordType}.
  */
 public class AuditEventRecord implements DebugDumpable, Serializable {
 
     /**
-     * TODO: what is this?
+     * Repository assigned identifier.
      */
     private Long repoId;
 
@@ -562,7 +560,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         auditRecordType.setTaskOID(taskOid);
         auditRecordType.getResourceOid().addAll(resourceOids);
         auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
-        for (ObjectDeltaOperation delta : deltas) {
+        for (ObjectDeltaOperation<?> delta : deltas) {
             ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
             try {
                 DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();

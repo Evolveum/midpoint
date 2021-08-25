@@ -1162,7 +1162,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     public void test200AutzJackModifyOrgunit() throws Exception {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
+        assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORG_UNIT_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1221,7 +1221,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     public void test202AutzJackModifyOrgunitAndAssignRole() throws Exception {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
+        assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORG_UNIT_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);

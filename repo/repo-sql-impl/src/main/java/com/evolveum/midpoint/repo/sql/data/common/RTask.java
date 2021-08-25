@@ -88,6 +88,9 @@ public class RTask extends RObject implements OperationResultFull {
     }
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "mode", column = @Column(name = "autoScalingMode"))
+    })
     public RTaskAutoScaling getAutoScaling() {
         return autoScaling;
     }
