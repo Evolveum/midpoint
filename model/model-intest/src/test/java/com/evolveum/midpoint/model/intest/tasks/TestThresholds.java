@@ -504,7 +504,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     /**
      * Reconciliation that deletes owners of missing accounts (simulated). Should stop on 5th, no actions done.
      */
-    @Test(enabled = false)
+    @Test
     public void test300ReconcileDelete5Simulate() throws Exception {
         given();
         Task task = getTestTask();
@@ -524,6 +524,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
+                .display()
                 .assertSuspended()
                 .assertFatalError()
                 .rootActivityState()
@@ -531,12 +532,6 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                     .policyRulesCounters()
                         .display()
                         .assertCounter(ruleDeleteId, USER_DELETE_ALLOWED + 1)
-                    .end()
-                    .actionsExecuted()
-                        .resulting()
-                            .display()
-                            .assertCount(ChangeTypeType.DELETE, UserType.COMPLEX_TYPE, 0, 0)
-                        .end()
                     .end();
         // @formatter:on
 
@@ -557,13 +552,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                     .display()
                     .policyRulesCounters()
                         .display()
-                        .assertCounter(ruleAddId, USER_DELETE_ALLOWED + 2)
-                    .end()
-                    .actionsExecuted()
-                        .resulting()
-                            .display()
-                            .assertCount(ChangeTypeType.DELETE, UserType.COMPLEX_TYPE, 0, 0)
-                        .end()
+                        .assertCounter(ruleDeleteId, USER_DELETE_ALLOWED + 2)
                     .end();
         // @formatter:on
     }
@@ -571,7 +560,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     /**
      * Reconciliation that deletes owners of missing accounts (simulate, then execute). Should stop on 5th, no actions done.
      */
-    @Test(enabled = false)
+    @Test
     public void test310ReconcileDelete5SimulateExecute() throws Exception {
         given();
         Task task = getTestTask();
@@ -591,18 +580,26 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
+                .display()
                 .assertSuspended()
                 .assertFatalError()
                 .rootActivityState()
                     .assertInProgressLocal()
                     .assertFatalError()
+                    .policyRulesCounters()
+                        .display()
+                    .end()
                     .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_SIMULATION_ID)
                         .assertInProgressLocal()
                         .assertFatalError()
                         .itemProcessingStatistics()
                             .display()
-                            .assertTotalCounts(USER_DELETE_ALLOWED, 1, 0)
+                            .assertTotalCounts(USER_DELETE_ALLOWED, 1, 0) // TODO
                         .end()
+                    .end()
+                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
+                        .display()
+                        .assertRealizationState(null) // this should not even start
                     .end()
                     .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID)
                         .display()
@@ -615,7 +612,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     /**
      * Reconciliation that deletes owners of missing accounts (execute). Should stop on 5th after deleting four users.
      */
-    @Test(enabled = false)
+    @Test
     public void test320ReconcileDelete5Execute() throws Exception {
         given();
         Task task = getTestTask();
@@ -635,8 +632,14 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
+                .display()
                 .assertSuspended()
                 .assertFatalError()
+                .rootActivityState()
+                    .policyRulesCounters()
+                        .display()
+                    .end()
+                .end()
                 .activityState(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH)
                     .assertInProgressLocal()
                     .assertFatalError()
@@ -647,12 +650,6 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                     .itemProcessingStatistics()
                         .display()
                         .assertTotalCounts(USER_DELETE_ALLOWED, 1, 0)
-                    .end()
-                    .actionsExecuted()
-                        .resulting()
-                            .display()
-                            .assertCount(ChangeTypeType.DELETE, UserType.COMPLEX_TYPE, USER_DELETE_ALLOWED, 0)
-                        .end()
                     .end();
         // @formatter:on
     }

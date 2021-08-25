@@ -24,6 +24,50 @@
                 </resourceObjects>
             </reconciliation>
         </work>
-        <executionMode>simulate</executionMode>
+        <tailoring>
+            <change>
+                <reference>resourceObjectsSimulation</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+            </change>
+            <change>
+                <reference>remainingShadowsSimulation</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+                <!--<monitoring>-->
+                <!--    <tracing>-->
+                <!--        <interval>1</interval>-->
+                <!--        <tracingProfile>-->
+                <!--            <fileNamePattern>trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}</fileNamePattern>-->
+                <!--            <collectLogEntries>true</collectLogEntries>-->
+                <!--            <loggingOverride>-->
+                <!--                <levelOverride>-->
+                <!--                    <logger>com.evolveum.midpoint.model</logger>-->
+                <!--                    <logger>com.evolveum.midpoint.provisioning</logger>-->
+                <!--                    <level>TRACE</level>-->
+                <!--                </levelOverride>-->
+                <!--            </loggingOverride>-->
+                <!--            <tracingTypeProfile>-->
+                <!--                <level>normal</level>-->
+                <!--            </tracingTypeProfile>-->
+                <!--        </tracingProfile>-->
+                <!--    </tracing>-->
+                <!--</monitoring>-->
+            </change>
+            <change>
+                <reference>resourceObjects</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+            </change>
+            <change>
+                <reference>remainingShadows</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+            </change>
+        </tailoring>
     </activity>
 </task>

@@ -682,7 +682,8 @@ class EntitlementConverter {
                 if (!ShadowUtil.isFullShadow(subjectShadow)) {
                     Collection<ResourceAttribute<?>> subjectIdentifiers = ShadowUtil.getAllIdentifiers(subjectShadow);
                     LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentifiers);
-                    subjectShadow = resourceObjectReferenceResolver.fetchResourceObject(subjectCtx, subjectIdentifiers, null, result);
+                    subjectShadow = resourceObjectReferenceResolver.fetchResourceObject(subjectCtx, subjectIdentifiers,
+                            null, subjectShadow.getOid(), result);
                     subjectShadowAfter = subjectShadow;
                     valueAttr = ShadowUtil.getAttribute(subjectShadow, valueAttrName);
                 }
@@ -721,7 +722,8 @@ class EntitlementConverter {
                 PrismObject<ShadowType> currentObjectShadow = operations.getCurrentShadow();
                 if (currentObjectShadow == null) {
                     LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})", entitlementIdentifiersFromAssociation, entitlementIntent);
-                    currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx, entitlementIdentifiersFromAssociation, null, result);
+                    currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx,
+                            entitlementIdentifiersFromAssociation, null, null, result);
                     operations.setCurrentShadow(currentObjectShadow);
                 }
                 // TODO it seems that duplicate values are checked twice: once here and the second time in ResourceObjectConverter.executeModify

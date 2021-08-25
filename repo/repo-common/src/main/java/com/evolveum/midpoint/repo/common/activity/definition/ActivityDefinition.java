@@ -253,6 +253,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     public void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
         controlFlowDefinition.applyChangeTailoring(tailoring);
         distributionDefinition.applyChangeTailoring(tailoring);
+        monitoringDefinition.applyChangeTailoring(tailoring);
         applyExecutionModeTailoring(tailoring);
     }
 

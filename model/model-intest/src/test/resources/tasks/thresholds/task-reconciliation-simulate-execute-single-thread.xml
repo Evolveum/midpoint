@@ -32,13 +32,13 @@
                 </controlFlow>
             </change>
             <change>
-                <reference>resourceObjects</reference>
+                <reference>remainingShadowsSimulation</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
             </change>
             <change>
-                <reference>remainingShadowsSimulation</reference>
+                <reference>resourceObjects</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>

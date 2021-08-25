@@ -454,6 +454,10 @@ public abstract class IterativeActivityExecution<
         return getExecutionMode() == ExecutionModeType.DRY_RUN;
     }
 
+    public boolean isExecute() {
+        return getExecutionMode() == ExecutionModeType.EXECUTE;
+    }
+
     public @NotNull String getRootTaskOid() {
         return getRunningTask().getRootTaskOid();
     }
@@ -499,6 +503,12 @@ public abstract class IterativeActivityExecution<
     public abstract boolean processItem(@NotNull ItemProcessingRequest<I> request, @NotNull RunningTask workerTask,
             OperationResult result) throws ActivityExecutionException, CommonException;
 
+    /**
+     * Returns true if this activity execution should ignore profiling and tracing configuration.
+     *
+     * Currently this feature is used to limit profiling/tracing to selected worker tasks in coordinator-workers
+     * scenarios.
+     */
     public boolean isExcludedFromProfilingAndTracing() {
         return false;
     }

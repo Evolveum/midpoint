@@ -16667,10 +16667,23 @@
             <xsd:enumeration value="exception">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Errors are indicated as exceptions.
+                        Errors are indicated as exceptions. (Unless handled by an error handler.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXCEPTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="forcedException">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Errors are indicated as exceptions. "Object not found" error handler is disabled.
+                        Currently all the other ones are kept enabled. This is because we always need the
+                        processing of e.g. communication exceptions. We are only interested in skipping handling
+                        "object not found" cases. (Maybe the name of this option should be changed.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FORCED_EXCEPTION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

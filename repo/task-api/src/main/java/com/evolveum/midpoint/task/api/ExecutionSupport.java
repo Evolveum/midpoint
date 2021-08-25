@@ -22,6 +22,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 /**
  * Functionality that supports the activity execution that is going on within this task.
+ *
+ * This interface is used in those places in code that need to interact with the activity execution
+ * but have no direct access to an object of type `AbstractActivityExecution`. The only thing they have
+ * is a {@link Task} that can provide instance of this interface to them (see {@link Task#getExecutionSupport()}).
  */
 public interface ExecutionSupport {
 

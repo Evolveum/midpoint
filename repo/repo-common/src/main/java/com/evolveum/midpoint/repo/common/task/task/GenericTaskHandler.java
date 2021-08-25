@@ -14,8 +14,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil;
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -94,8 +92,6 @@ public class GenericTaskHandler implements TaskHandler {
      * Main entry point.
      *
      * We basically delegate all the processing to a TaskExecution object.
-     * Error handling is delegated to {@link TaskExceptionHandlingUtil#processException(Throwable, Trace, ActivityDefinition, String, TaskRunResult)}
-     * method.
      */
     @Override
     public TaskRunResult run(@NotNull RunningTask localCoordinatorTask)
