@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.component.autocomplete;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,7 +53,6 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
         ObjectQuery query = pageBase.getPrismContext().queryFor(type)
                 .item(ObjectType.F_NAME)
                 .eq(value)
-//                .matchingOrig()
                 .matchingNorm()
                 .build();
         List<PrismObject<ObjectType>> objectsList = WebModelServiceUtils.searchObjects(
@@ -74,7 +74,7 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
                 } else {
                     ref.setRelation(((ObjectReferenceType) baseComponent.getModelObject()).getRelation());
                 }
-                ref.setType(((ObjectReferenceType) baseComponent.getModelObject()).getType());
+                ref.setType(WebComponentUtil.classToQName(PrismContext.get(), type));
             }
         }
         return ref;

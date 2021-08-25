@@ -4891,7 +4891,7 @@ public final class WebComponentUtil {
         Object value = null;
         try {
 
-            value = ExpressionUtil.evaluateExpression(new VariablesMap(), null,
+            value = ExpressionUtil.evaluateExpressionNative(null, new VariablesMap(), null,
                     expression, MiscSchemaUtil.getExpressionProfile(),
                     pageBase.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
         } catch (Exception e) {
@@ -4903,19 +4903,22 @@ public final class WebComponentUtil {
             value = ((PrismPropertyValue) value).getRealValue();
         }
 
-        if (!(value instanceof List)) {
-            LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
+        if (!(value instanceof Set)) {
+            LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
             pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
             return allowedValues;
         }
 
-        if (!((List<?>) value).isEmpty()) {
-            if (!(((List<?>) value).get(0) instanceof DisplayableValue)) {
-                LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
+        if (!((Set<?>) value).isEmpty()) {
+            if (!(((Set<?>) value).iterator().next() instanceof PrismPropertyValue)
+                    || !(((PrismPropertyValue)(((Set<?>) value).iterator().next())).getValue() instanceof DisplayableValue)) {
+                LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
                 pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
                 return allowedValues;
             }
-            return (List<DisplayableValue<?>>) value;
+
+            return (List<DisplayableValue<?>>) ((Set<PrismPropertyValue<?>>) value).stream()
+                    .map(PrismPropertyValue::getValue).collect(Collectors.toList());
         }
         return allowedValues;
     }
