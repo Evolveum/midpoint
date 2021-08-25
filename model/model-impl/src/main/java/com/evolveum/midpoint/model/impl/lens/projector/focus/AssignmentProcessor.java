@@ -171,8 +171,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
-        if (focusContext.isDelete()) {
+
+        if (focusContext.isDeleted()) {
+            LOGGER.trace("Focus is gone, therefore we cannot compute assignments. "
+                    + "We just mark all projections as illegal, to ensure they will get removed.");
             markProjectionsAsIllegal(context);
+            return;
         }
 
         checkAssignmentDeltaSanity(context);
@@ -230,6 +234,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
             } else {
                 LOGGER.trace("Skipping processing projections. Not a focus.");
             }
+        }
+
+        if (focusContext.isDelete()) {
+            LOGGER.trace("Focus is going to be deleted. If some of the projections remained legal (e.g. because the of the"
+                    + " assignment enforcement mode) we will mark them as illegal now.");
+            markProjectionsAsIllegal(context);
         }
     }
 
@@ -568,10 +578,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
         OperationResult result = parentResult.createMinorSubresult(OP_DISTRIBUTE_CONSTRUCTIONS);
         try {
+            LOGGER.trace("Starting construction distribution");
             constructionProcessor.distributeConstructions(evaluatedAssignmentTriple,
                     EvaluatedAssignmentImpl::getConstructionTriple,
                     construction -> getConstructionMapKey(context, construction, task, result),
                     consumer);
+            LOGGER.trace("Finished construction distribution");
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;

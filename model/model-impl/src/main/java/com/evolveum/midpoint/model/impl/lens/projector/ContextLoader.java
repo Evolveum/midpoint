@@ -378,10 +378,11 @@ public class ContextLoader implements ProjectorProcessor {
                 return;
             }
 
-            if (focusContext.getObjectCurrent() != null && ObjectDelta.isDelete(objectDelta)) {
-                // do not reload if the delta is delete. the reload will most likely fail anyway
-                // but DO NOT set the fresh flag in this case, it may be misleading
-                result.addReturnComment("Not loading as delta is DELETE");
+            if (focusContext.isDeleted()) {
+                focusContext.setObjectCurrent(null);
+                focusContext.setObjectNew(null);
+                focusContext.setFresh(true);
+                result.addReturnComment("Not loading as the focus was deleted");
                 return;
             }
 
