@@ -90,6 +90,7 @@ public class ExtensionProcessor {
     }
 
     private Object convertExtItemValue(Object realValue, ExtItemInfo extItemInfo) {
+        checkRealValueType(realValue, extItemInfo.item);
         if (realValue instanceof String
                 || realValue instanceof Number
                 || realValue instanceof Boolean) {
@@ -129,6 +130,14 @@ public class ExtensionProcessor {
 
         throw new IllegalArgumentException(
                 "Unsupported type '" + realValue.getClass() + "' for value '" + realValue + "'.");
+    }
+
+    private void checkRealValueType(Object realValue, MExtItem extItemInfo) {
+        Class<?> realValueType = ExtUtils.SUPPORTED_TYPE_URI_TO_REAL_CLASS.get(extItemInfo.valueType);
+        if (realValueType != null && !realValueType.isAssignableFrom(realValue.getClass()) ) {
+            throw new IllegalArgumentException("Incorrect real value type "
+                    + realValue.getClass() + " for item " + extItemInfo.itemName);
+        }
     }
 
     /**
