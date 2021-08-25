@@ -129,12 +129,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         initialTs = getTimeSafely();
 
-        // WHEN
         when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString("Kid"));
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -160,12 +158,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         //noinspection unused
         XMLGregorianCalendar hermanInitialTs = getTimeSafely();
 
-        // WHEN
         when();
 
         addObject(userHermanBefore, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -189,12 +185,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         objectDelta.addModificationReplaceProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.DISABLED);
 
-        // WHEN
         when();
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -217,12 +211,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         objectDelta.addModificationReplaceProperty(UserType.F_DESCRIPTION, "Marooned on Monkey Island");
         objectDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, true));
 
-        // WHEN
         when();
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -245,12 +237,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         objectDelta.addModificationReplaceProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.ENABLED);
 
-        // WHEN
         when();
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -279,12 +269,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         objectDelta.addModification(createAssignmentModification(ROLE_RED_SAILOR_OID, RoleType.COMPLEX_TYPE,
                 null, null, null, true));
 
-        // WHEN
         when();
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -307,12 +295,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         objectDelta.addModification(createAssignmentModification(ROLE_RED_SAILOR_OID, RoleType.COMPLEX_TYPE,
                 null, null, null, false));
 
-        // WHEN
         when();
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -330,18 +316,16 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        given();
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         // precondition
         PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, createPolyString("Captain"));
 
-        // WHEN
         when();
+        PrismObject<UserType> jackReconstructed = modelAuditService.reconstructObject(
+                UserType.class, USER_JACK_OID, jackSailorEid, task, result);
 
-        PrismObject<UserType> jackReconstructed = modelAuditService.reconstructObject(UserType.class, USER_JACK_OID,
-                jackSailorEid, task, result);
-
-        // THEN
         then();
         assertSuccess(result);
 
@@ -358,18 +342,17 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        given();
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         // precondition
         PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, createPolyString("Captain"));
 
-        // WHEN
         when();
 
         PrismObject<UserType> jackReconstructed = modelAuditService.reconstructObject(UserType.class, USER_JACK_OID,
                 jackKidEid, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -388,6 +371,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        given();
         PrismObject<UserType> userBefore = getUser(USER_HERMAN_OID);
         display("User before", userBefore);
         // precondition
@@ -396,13 +380,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userBefore, UserType.F_NICK_NAME);
         assertAssignments(userBefore, 1);
 
-        // WHEN
         when();
-
         PrismObject<UserType> hermanReconstructed = modelAuditService.reconstructObject(UserType.class, USER_HERMAN_OID,
                 hermanCreatedEid, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -425,13 +406,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
-
         PrismObject<UserType> hermanReconstructed = modelAuditService.reconstructObject(UserType.class, USER_HERMAN_OID,
                 hermanMaroonedEid, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -455,13 +433,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
-
         PrismObject<UserType> hermanReconstructed = modelAuditService.reconstructObject(UserType.class, USER_HERMAN_OID,
                 hermanHermitEid, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
