@@ -247,6 +247,9 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         PrismObject<AH> focus = focusContext.getObjectCurrent();
         if (focus == null) {
             focus = focusContext.getObjectNew();
+        } if (focus == null && focusContext.isDeleted()) {
+            // This is a very special case, where the focus was deleted.
+            focus = focusContext.getObjectOld();
         }
         List<GlobalPolicyRuleType> globalPolicyRuleList = systemConfiguration.asObjectable().getGlobalPolicyRule();
         LOGGER.trace("Checking {} global policy rules", globalPolicyRuleList.size());
