@@ -60,10 +60,36 @@ public class ProtectorConfiguration {
         this.xmlCipher = xmlCipher;
     }
 
+    /**
+     * Returns fixed salt value, used for all salt-hashed values.
+     *
+     * WARNING: USE OF FIXED SALT IS DANGEROUS.
+     * Fixed salt makes all the salting ineffective.
+     * DO NOT USE unless you really know what you are doing, and if you want to sacrifice security for convenience.
+     *
+     * Fixed salt was implemented to allow new scenarios when using hashed password storage.
+     * E.g. with fixed salt passive-cached credentials in ShadowTypes can be compared to password history in UserType
+     * as hashes for same password values are equivalent.
+     * New config.xml option keystore/fixedSalt need to be set to any arbitrary value and is used globally as
+     * single fixed salt for all hashed values in midPoint.
+     */
     public String getFixedSalt() {
         return fixedSalt;
     }
 
+    /**
+     * Sets the fixed salt value, used for all salt-hashed values.
+     *
+     * WARNING: USE OF FIXED SALT IS DANGEROUS.
+     * Fixed salt makes all the salting ineffective.
+     * DO NOT USE unless you really know what you are doing, and if you want to sacrifice security for convenience.
+     *
+     * Fixed salt was implemented to allow new scenarios when using hashed password storage.
+     * E.g. with fixed salt passive-cached credentials in ShadowTypes can be compared to password history in UserType
+     * as hashes for same password values are equivalent.
+     * New config.xml option keystore/fixedSalt need to be set to any arbitrary value and is used globally as
+     * single fixed salt for all hashed values in midPoint.
+     */
     public void setFixedSalt(String fixedSalt) {
         this.fixedSalt = fixedSalt;
     }
