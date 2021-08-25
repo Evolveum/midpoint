@@ -18,12 +18,14 @@ public class ProtectorConfiguration {
     private String keyStorePassword;
     private String encryptionKeyAlias;
     private String xmlCipher;
+    private String fixedSalt;
 
     public ProtectorConfiguration(Configuration configuration) {
         this.setKeyStorePath(configuration.getString("keyStorePath"));
         this.setKeyStorePassword(configuration.getString("keyStorePassword"));
         this.setEncryptionKeyAlias(configuration.getString("encryptionKeyAlias"));
         this.setXmlCipher(configuration.getString("xmlCipher"));
+        this.setFixedSalt(configuration.getString("fixedSalt"));
     }
 
     public String getEncryptionKeyAlias() {
@@ -56,5 +58,13 @@ public class ProtectorConfiguration {
 
     public void setXmlCipher(String xmlCipher) {
         this.xmlCipher = xmlCipher;
+    }
+
+    public String getFixedSalt() {
+        return fixedSalt;
+    }
+
+    public void setFixedSalt(String fixedSalt) {
+        this.fixedSalt = fixedSalt;
     }
 }
