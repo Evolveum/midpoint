@@ -191,8 +191,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.selfService", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.selfDashboard", GuiStyleConstants.CLASS_ICON_DASHBOARD,
                 PageSelfDashboard.class));
+        PageParameters pageParameters = new PageParameters();
+        pageParameters.add(OnePageParameterEncoder.PARAMETER, WebModelServiceUtils.getLoggedInFocusOid());
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.profile", GuiStyleConstants.CLASS_ICON_PROFILE,
-                WebComponentUtil.resolveSelfPage()));
+                WebComponentUtil.resolveSelfPage(), pageParameters));
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.credentials", GuiStyleConstants.CLASS_ICON_CREDENTIALS,
                 PageSelfCredentials.class));
         if (WebModelServiceUtils.getLoggedInFocus() instanceof UserType) {
@@ -681,6 +683,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
     private MainMenuItem createMainMenuItem(String key, String icon, Class<? extends PageBase> page) {
         return new MainMenuItem(key, icon, page);
+    }
+
+    private MainMenuItem createMainMenuItem(String key, String icon, Class<? extends PageBase> page, PageParameters params) {
+        return new MainMenuItem(key, icon, page, params);
     }
 
     public List<SideBarMenuItem> getItems() {
