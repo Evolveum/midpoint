@@ -24,9 +24,10 @@ import static java.util.Collections.emptyList;
 
 /**
  * Carries out and holds assignment evaluation:
- * 1) evaluation of the condition
- * 2) evaluation of payload (delegates to {@link PayloadEvaluation})
- * 3) evaluation of targets (delegates to {@link TargetsEvaluation}).
+ *
+ * 1. evaluation of the condition,
+ * 2. evaluation of payload (delegates to {@link PayloadEvaluation}),
+ * 3. evaluation of targets (delegates to {@link TargetsEvaluation}).
  */
 class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluation<AH> {
 
@@ -120,8 +121,9 @@ class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEva
         if (segment.isMatchingOrder) {
             // Validity of segment that is sourced at focus (either directly or indirectly i.e. through inducements)
             // is determined using focus lifecycle state model.
-            AH focusNew = ctx.ae.focusOdoAbsolute.getNewObject().asObjectable();
-            active = LensUtil.isAssignmentValid(focusNew, segment.assignment, ctx.ae.now, ctx.ae.activationComputer, ctx.ae.focusStateModel);
+            AH focusNewOrCurrent = ctx.ae.lensContext.getFocusContextRequired().getObjectNewOrCurrentRequired().asObjectable();
+            active = LensUtil.isAssignmentValid(focusNewOrCurrent, segment.assignment,
+                    ctx.ae.now, ctx.ae.activationComputer, ctx.ae.focusStateModel);
         } else {
             // But for other assignments/inducements we consider their validity by regarding their actual source.
             // So, even if (e.g.) focus is in "draft" state, only validity of direct assignments should be influenced by this fact.
@@ -222,10 +224,6 @@ class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEva
         if (extensionContainer != null) {
             if (extensionContainer.getDefinition() == null) {
                 throw new SchemaException("Extension does not have a definition in assignment "+assignment+" in "+segment.sourceDescription);
-            }
-
-            if (extensionContainer.getValue().getItems() == null) {
-                throw new SchemaException("Extension without items in assignment " + assignment + " in " + segment.sourceDescription + ", empty extension tag?");
             }
 
             for (Item<?,?> item: extensionContainer.getValue().getItems()) {

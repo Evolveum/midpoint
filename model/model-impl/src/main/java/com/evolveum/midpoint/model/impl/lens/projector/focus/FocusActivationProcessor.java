@@ -106,7 +106,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
             if (evaluatedAssignment.isVirtual()) {
                 continue;
             }
-            AssignmentType assignment = evaluatedAssignment.getAssignmentType();
+            AssignmentType assignment = evaluatedAssignment.getAssignment();
             ActivationType currentActivation = assignment.getActivation();
             ActivationStatusType currentEffectiveStatus = currentActivation != null ? currentActivation.getEffectiveStatus() : null;
             ActivationStatusType expectedEffectiveStatus = activationComputer.getEffectiveStatus(assignment.getLifecycleState(),
