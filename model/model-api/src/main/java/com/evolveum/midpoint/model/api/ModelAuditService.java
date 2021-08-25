@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.api;
 
 import java.util.Collection;
-import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +46,17 @@ public interface ModelAuditService {
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
+    long countObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * @throws UnsupportedOperationException if object retrieval is not supported
+     */
     @NotNull
     SearchResultList<AuditEventRecordType> searchObjects(
             @Nullable ObjectQuery query,
@@ -57,16 +67,9 @@ public interface ModelAuditService {
             ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
-     * @throws UnsupportedOperationException if object retrieval is not supported
-     */
-    long countObjects(String query, Map<String, Object> params, Task task, OperationResult parentResult)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
-
-    /**
      * Returns true if retrieval of objects from the audit trail is supported.
      * This applies to listRecords, countObjects, reconstructObject and similar
      * operations.
      */
     boolean supportsRetrieval();
-
 }

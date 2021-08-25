@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,13 +11,6 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchColl
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -31,16 +24,21 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,6 +46,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 /**
@@ -170,7 +170,7 @@ public class WebModelServiceUtils {
         return null;
     }
 
-    public static <O extends ObjectType> String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase) {
+    public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase) {
         try {
             ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
             pageBase.getPrismContext().adopt(delta);
@@ -469,7 +469,7 @@ public class WebModelServiceUtils {
     }
 
     public static <C extends Containerable> List<C> searchContainers(Class<C> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result, PageBase page){
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result, PageBase page) {
         LOGGER.debug("Searching {}, options {}", type.getSimpleName(), options);
 
         OperationResult subResult;
@@ -482,7 +482,8 @@ public class WebModelServiceUtils {
         try {
             Task task = page.createSimpleTask(subResult.getOperation());
             List<C> list;
-            if (AuditEventRecordType.class.equals(type)){
+            if (AuditEventRecordType.class.equals(type)) {
+                // TODO: This goes around any authorization, is it what we want? If yes, delete this TODO, please. :-)
                 list = (List<C>) page.getAuditService().searchObjects(query, options, subResult);
             } else {
                 list = page.getModelService().searchContainers(type, query, options, task, subResult);
@@ -513,7 +514,8 @@ public class WebModelServiceUtils {
         OperationResult parentResult = new OperationResult(OPERATION_COUNT_CONTAINERS);
         int count = 0;
         try {
-            if (AuditEventRecordType.class.equals(type)){
+            if (AuditEventRecordType.class.equals(type)) {
+                // TODO: This goes around any authorization, is it what we want? If yes, delete this TODO, please. :-)
                 count = page.getAuditService().countObjects(query, options, parentResult);
             } else {
                 count = page.getModelService().countContainers(type, query, options, task, parentResult);
@@ -533,10 +535,8 @@ public class WebModelServiceUtils {
 
         ItemPath path = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
         ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
-        ObjectDelta objectDelta = context.deltaFactory().object().createModificationReplaceProperty(type, oid, path,
-                status);
-
-        return objectDelta;
+        return context.deltaFactory().object()
+                .createModificationReplaceProperty(type, oid, path, status);
     }
 
     public static FocusType getLoggedInFocus() {
@@ -615,7 +615,7 @@ public class WebModelServiceUtils {
     public static <O extends ObjectType> PrismObject<O> reconstructObject(Class<O> type,
             String oid, String eventIdentifier, Task task, OperationResult result) {
         try {
-            MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+            MidPointApplication application = MidPointApplication.get();
             return application.getAuditService().reconstructObject(type, oid, eventIdentifier, task, result);
         } catch (Exception ex) {
             LOGGER.debug("Error occurred while reconsructing the object, " + ex.getMessage());

@@ -73,11 +73,16 @@ public class AuditController implements ModelAuditService {
         return auditService.searchObjects(query, options, parentResult);
     }
 
-    // TODO rework to countObject(ObjectQuery,...)
     @Override
-    public long countObjects(String query, Map<String, Object> params, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        authorize(ModelAuthorizationAction.AUDIT_READ, task, result);
-        return auditService.countObjects(query, params);
+    public long countObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ObjectNotFoundException {
+        authorize(ModelAuthorizationAction.AUDIT_READ, task, parentResult);
+        return auditService.countObjects(query, options, parentResult);
     }
 
     @Override
