@@ -169,13 +169,13 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         row.oid = oidToUUid(schemaObject.getOid());
         // objectType MUST be left NULL for INSERT, it's determined by PG
         setPolyString(schemaObject.getName(), o -> row.nameOrig = o, n -> row.nameNorm = n);
-        // fullObject is managed outside of this method
+        // fullObject is managed outside this method
         setReference(schemaObject.getTenantRef(),
                 o -> row.tenantRefTargetOid = o,
                 t -> row.tenantRefTargetType = t,
                 r -> row.tenantRefRelationId = r);
         row.lifecycleState = schemaObject.getLifecycleState();
-        // containerIdSeq is managed outside of this method
+        // containerIdSeq is managed outside this method
         row.version = SqaleUtils.objectVersionAsInt(schemaObject);
 
         // complex DB fields
