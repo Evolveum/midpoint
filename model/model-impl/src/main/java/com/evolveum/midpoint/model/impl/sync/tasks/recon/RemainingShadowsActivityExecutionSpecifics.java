@@ -186,9 +186,15 @@ class RemainingShadowsActivityExecutionSpecifics
         reactShadowGone(shadow, task, result);
     }
 
-    private void reactShadowGone(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void reactShadowGone(PrismObject<ShadowType> originalShadow, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+
+        // We reload e.g. to get current tombstone status. Otherwise the clockwork is confused.
+        PrismObject<ShadowType> shadow = reloadShadow(originalShadow, result);
+
         getModelBeans().provisioningService.applyDefinition(shadow, task, result);
+
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON));
         change.setResource(objectClassSpec.getResource().asPrismObject());
@@ -197,6 +203,21 @@ class RemainingShadowsActivityExecutionSpecifics
         change.setSimulate(activityExecution.isSimulate());
         ModelImplUtils.clearRequestee(task);
         getModelBeans().eventDispatcher.notifyChange(change, task, result);
+    }
+
+    private PrismObject<ShadowType> reloadShadow(PrismObject<ShadowType> originalShadow, OperationResult result)
+            throws SchemaException {
+        try {
+            return getBeans().repositoryService.getObject(ShadowType.class, originalShadow.getOid(), null, result);
+        } catch (ObjectNotFoundException e) {
+            // TODO Could be the shadow deleted during preprocessing?
+            //  Try to find out if it can occur.
+            LOGGER.debug("Shadow disappeared. But we need to notify the model! Shadow: {}", originalShadow);
+
+            originalShadow.asObjectable().setDead(true);
+            originalShadow.asObjectable().setExists(false);
+            return originalShadow;
+        }
     }
 
     @VisibleForTesting
