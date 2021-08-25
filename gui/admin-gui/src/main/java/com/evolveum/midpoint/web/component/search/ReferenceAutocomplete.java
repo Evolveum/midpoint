@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
@@ -28,11 +27,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author honchar
@@ -52,7 +48,9 @@ public class ReferenceAutocomplete extends AutoCompleteTextPanel<ObjectReference
     @Override
     public Iterator<ObjectReferenceType> getIterator(String input) {
         FormComponent<ObjectReferenceType> inputField = getBaseFormComponent();
-        String realInput = StringUtils.isEmpty(input) ? inputField.getRawInput() : input;
+        String realInput = StringUtils.isEmpty(input) ?
+                (!inputField.hasRawInput() ? inputField.getValue() : inputField.getRawInput())
+                : input;
         if (StringUtils.isEmpty(realInput)) {
             return Collections.emptyIterator();
         }

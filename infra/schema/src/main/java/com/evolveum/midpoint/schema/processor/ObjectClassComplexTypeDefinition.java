@@ -245,4 +245,9 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
     boolean matches(ShadowType shadow);
 
     MutableObjectClassComplexTypeDefinition toMutable();
+
+    default boolean hasIndexOnlyAttributes() {
+        return getAttributeDefinitions().stream()
+                .anyMatch(ItemDefinition::isIndexOnly);
+    }
 }

@@ -430,7 +430,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
             AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
             var.put(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget(), actx.evaluatedAssignment.getTarget().getDefinition());
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
-            AssignmentType assignment = actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE);
+            AssignmentType assignment = actx.evaluatedAssignment.getAssignment(actx.state == ObjectState.BEFORE);
             var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, getAssignmentDefinition(assignment, prismContext));
         } else if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
             PrismContext prismContext = rctx.lensContext.getPrismContext();

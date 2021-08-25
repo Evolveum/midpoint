@@ -115,6 +115,13 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
      */
     private ShadowLivenessState shadowLivenessState;
 
+    /**
+     * True if the object was successfully deleted.
+     * Currently supported for repository-managed objects (e.g. focus).
+     * The meaning for projections is undefined.
+     */
+    private boolean deleted;
+
     DeltaExecution(@NotNull LensContext<O> context, @NotNull LensElementContext<E> elementContext, ObjectDelta<E> delta,
             ConflictResolutionType conflictResolution, @NotNull Task task, @NotNull ModelBeans modelBeans) {
 
@@ -695,6 +702,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 }
                 objectAfterModification = null;
             }
+            deleted = true;
             task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE, context.getChannel(), null);
         } catch (Throwable t) {
             task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE, context.getChannel(), t);
@@ -910,6 +918,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     ShadowLivenessState getShadowLivenessState() {
         return shadowLivenessState;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
     }
     //endregion
 }

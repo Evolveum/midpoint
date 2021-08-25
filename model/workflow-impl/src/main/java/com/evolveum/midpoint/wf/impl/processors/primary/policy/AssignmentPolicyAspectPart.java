@@ -242,7 +242,7 @@ public class AssignmentPolicyAspectPart {
             @NotNull ObjectTreeDeltas<?> objectTreeDeltas, ModelInvocationContext<?> ctx) throws SchemaException {
         assert assignmentMode == PLUS || assignmentMode == MINUS;
         @SuppressWarnings("unchecked")
-        PrismContainerValue<AssignmentType> assignmentValue = evaluatedAssignment.getAssignmentType().asPrismContainerValue();
+        PrismContainerValue<AssignmentType> assignmentValue = evaluatedAssignment.getAssignment().asPrismContainerValue();
         boolean assignmentRemoved = assignmentMode == MINUS;
         boolean reallyRemoved = objectTreeDeltas.subtractFromFocusDelta(FocusType.F_ASSIGNMENT, assignmentValue, assignmentRemoved, false);
         if (!reallyRemoved) {
@@ -258,7 +258,7 @@ public class AssignmentPolicyAspectPart {
         }
         String objectOid = ctx.getFocusObjectOid();
         return assignmentToDelta(ctx.modelContext.getFocusClass(),
-                evaluatedAssignment.getAssignmentType(), assignmentRemoved, objectOid);
+                evaluatedAssignment.getAssignment(), assignmentRemoved, objectOid);
     }
 
     private void logApprovalActions(EvaluatedAssignment<?> newAssignment,

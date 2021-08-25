@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 /**
@@ -20,7 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
  *
  *  (Currently we use only fixed target specification.)
  */
-
 public abstract class TargetObjectSpecification<T extends AssignmentHolderType> {
 
     /**

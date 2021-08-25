@@ -178,7 +178,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
             return null;
         }
         AbstractRoleType targetRole = (AbstractRoleType) target.asObjectable();
-        QName relation = assignment.getNormalizedRelation(relationRegistry);
+        QName relation = assignment.getNormalizedRelation();
         if (relation == null || !containsRelation(constraint.getValue(), relation)) {
             return null;
         }

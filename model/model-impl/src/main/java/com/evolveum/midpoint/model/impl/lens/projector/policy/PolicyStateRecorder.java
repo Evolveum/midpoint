@@ -68,8 +68,8 @@ public class PolicyStateRecorder {
         if (focusContext.isDelete()) {
             return;
         }
-        AssignmentType assignmentNew = evaluatedAssignment.getAssignmentType(false);
-        AssignmentType assignmentOld = evaluatedAssignment.getAssignmentType(true);
+        AssignmentType assignmentNew = evaluatedAssignment.getAssignment(false);
+        AssignmentType assignmentOld = evaluatedAssignment.getAssignment(true);
         if (assignmentOld == null && assignmentNew == null) {
             throw new IllegalStateException("Policy situation/rules for assignment cannot be updated, because the "
                     + "assignment itself is missing in "+evaluatedAssignment+", in object "+focusContext.getObjectAny());

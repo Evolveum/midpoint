@@ -36,7 +36,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     }
 
     @Test
-    public void test010GetUserAdministrator() throws Exception {
+    public void test025GetUserAdministrator() throws Exception {
         resetAuthentication();
 
         // WHEN

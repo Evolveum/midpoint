@@ -154,6 +154,10 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
                 focusOdo;
 
         PrismObject<T> targetObject = targetSpecification.getTargetObject();
+        if (targetObject == null) {
+            LOGGER.trace("No target object, skipping mapping evaluation"); // probably the focus is being deleted
+            return null;
+        }
 
         return beans.mappingEvaluator.createFocusMapping(context,
                 request, updatedFocusOdo, targetObject, iteration, iterationToken,
