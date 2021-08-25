@@ -7,9 +7,9 @@
   -->
 
 <task oid="046ee785-2b23-4ceb-ba41-7a183045be24"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>task-import-simulate-execute-single-thread</name>
+    <name>task-import-simulate-execute-single</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>

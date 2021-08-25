@@ -6,24 +6,38 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="c615aa46-a890-45e6-ab4a-94f14fbd204f"
+<task oid="bc114530-a111-4baf-9888-1a51dd99a558"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>task-import-simulate-single-thread</name>
+    <name>task-reconciliation-execute-multi</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
 
     <activity>
         <work>
-            <import>
+            <reconciliation>
                 <resourceObjects>
                     <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5" />
                     <kind>account</kind>
                     <intent>default</intent>
                 </resourceObjects>
-            </import>
+            </reconciliation>
         </work>
-        <executionMode>simulate</executionMode>
+        <tailoring>
+            <change>
+                <reference>remainingShadows</reference>
+                <distribution>
+                    <buckets>
+                        <oidSegmentation/>
+                    </buckets>
+                    <workers>
+                        <workersPerNode>
+                            <count>2</count>
+                        </workersPerNode>
+                    </workers>
+                </distribution>
+            </change>
+        </tailoring>
     </activity>
 </task>

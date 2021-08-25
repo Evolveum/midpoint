@@ -34,6 +34,11 @@ public class ActivityCounterGroupAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public ActivityCounterGroupAsserter<RA> assertCounterMinMax(String identifier, int min, int max) {
+        assertMinMax("counter " + identifier, min, max, getValue(identifier));
+        return this;
+    }
+
     public ActivityCounterGroupAsserter<RA> assertTotal(int value) {
         assertThat(getTotal()).as("total").isEqualTo(value);
         return this;

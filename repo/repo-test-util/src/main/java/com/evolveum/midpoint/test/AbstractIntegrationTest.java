@@ -3049,6 +3049,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
+    /** Implants worker threads to the root activity definition. */
     protected Consumer<PrismObject<TaskType>> rootActivityWorkerThreadsCustomizer(int threads) {
         return taskObject -> {
             if (threads != 0) {
@@ -3059,6 +3060,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         };
     }
 
+    /** Implants worker threads to the component activities definitions. */
+    protected Consumer<PrismObject<TaskType>> compositeActivityWorkerThreadsCustomizer(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                ActivityDefinitionType activityDef = requireNonNull(
+                        taskObject.asObjectable().getActivity(), "no activity definition");
+                activityDef.getComposition().getActivity()
+                        .forEach(a ->
+                                ActivityDefinitionUtil.findOrCreateDistribution(a)
+                                        .setWorkerThreads(threads));
+            }
+        };
+    }
+
+    /** Implants worker threads to embedded activities definitions (via tailoring). */
     protected Consumer<PrismObject<TaskType>> tailoringWorkerThreadsCustomizer(int threads) {
         return taskObject -> {
             if (threads != 0) {

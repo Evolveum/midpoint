@@ -6,10 +6,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="4f0c53e1-c10e-486f-9552-d2db4bfc1240"
+<task oid="29d2a62c-6c31-42a4-9364-ecfb0dad0825"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>task-reconciliation-simulate-single-thread</name>
+    <name>task-reconciliation-simulate-execute-single</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
@@ -36,36 +36,17 @@
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
-                <!--<monitoring>-->
-                <!--    <tracing>-->
-                <!--        <interval>1</interval>-->
-                <!--        <tracingProfile>-->
-                <!--            <fileNamePattern>trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}</fileNamePattern>-->
-                <!--            <collectLogEntries>true</collectLogEntries>-->
-                <!--            <loggingOverride>-->
-                <!--                <levelOverride>-->
-                <!--                    <logger>com.evolveum.midpoint.model</logger>-->
-                <!--                    <logger>com.evolveum.midpoint.provisioning</logger>-->
-                <!--                    <level>TRACE</level>-->
-                <!--                </levelOverride>-->
-                <!--            </loggingOverride>-->
-                <!--            <tracingTypeProfile>-->
-                <!--                <level>normal</level>-->
-                <!--            </tracingTypeProfile>-->
-                <!--        </tracingProfile>-->
-                <!--    </tracing>-->
-                <!--</monitoring>-->
             </change>
             <change>
                 <reference>resourceObjects</reference>
                 <controlFlow>
-                    <processingOption>skip</processingOption>
+                    <processingOption>process</processingOption>
                 </controlFlow>
             </change>
             <change>
                 <reference>remainingShadows</reference>
                 <controlFlow>
-                    <processingOption>skip</processingOption>
+                    <processingOption>process</processingOption>
                 </controlFlow>
             </change>
         </tailoring>

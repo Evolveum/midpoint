@@ -16,13 +16,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
@@ -42,41 +44,31 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * Tests the thresholds functionality.
  *
- * UNFINISHED - currently single-thread only
- *
  * The purpose of this class is _not_ to test thresholds in any specific activity handler.
- * For simplicity we concentrate on the import activity (plus reconciliation when accounts are deleted).
+ * For simplicity we concentrate on the import and reconciliation activity.
  *
  * We need to test basic functionality of thresholds in single threaded, multi threaded, multi node setup;
  * with different kinds of policy rules (add, modify, delete).
  *
- * Threshold manipulation in specific activities (e.g. reconciliation) is checked in tests devoted to these activities.
+ * Threshold manipulation in specific activities (e.g. live sync) will be checked in tests devoted to these activities.
  *
- * Performance of thresholds is also tested in separate class (run on demand).
+ * Performance of thresholds will be also tested in separate class (run on demand).
  *
  * Yet another thresholds-related tests are in the `story` module.
  */
 @SuppressWarnings("SameParameterValue")
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholds extends AbstractEmptyModelIntegrationTest {
+public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
-    private static final File TEST_DIR = new File("src/test/resources/tasks/thresholds");
+    static final File TEST_DIR = new File("src/test/resources/tasks/thresholds");
 
-    private static final TestResource<TaskType> TASK_IMPORT_SINGLE_THREAD_SIMULATE = new TestResource<>(TEST_DIR, "task-import-simulate-single-thread.xml", "c615aa46-a890-45e6-ab4a-94f14fbd204f");
-    private static final TestResource<TaskType> TASK_IMPORT_SINGLE_THREAD_SIMULATE_EXECUTE = new TestResource<>(TEST_DIR, "task-import-simulate-execute-single-thread.xml", "046ee785-2b23-4ceb-ba41-7a183045be24");
-    private static final TestResource<TaskType> TASK_IMPORT_SINGLE_THREAD_EXECUTE = new TestResource<>(TEST_DIR, "task-import-execute-single-thread.xml", "8576985e-79e4-4d0c-bedd-72652db3c760");
-    private static final TestResource<TaskType> TASK_RECONCILIATION_SINGLE_THREAD_SIMULATE = new TestResource<>(TEST_DIR, "task-reconciliation-simulate-single-thread.xml", "4f0c53e1-c10e-486f-9552-d2db4bfc1240");
-    private static final TestResource<TaskType> TASK_RECONCILIATION_SINGLE_THREAD_SIMULATE_EXECUTE = new TestResource<>(TEST_DIR, "task-reconciliation-simulate-execute-single-thread.xml", "29d2a62c-6c31-42a4-9364-ecfb0dad0825");
-    private static final TestResource<TaskType> TASK_RECONCILIATION_SINGLE_THREAD_EXECUTE = new TestResource<>(TEST_DIR, "task-reconciliation-execute-single-thread.xml", "7652ea69-c8bc-4320-a03e-ab37bb0accc7");
-
-    private static final TestResource<TaskType> TASK_IMPORT_MULTIPLE_THREADS = new TestResource<>(TEST_DIR, "task-import-multiple-threads.xml", "");
-    private static final TestResource<TaskType> TASK_IMPORT_MULTIPLE_WORKERS = new TestResource<>(TEST_DIR, "task-import-multiple-workers.xml", "");
+    /** Used also for "import without limits" in {@link #test130ImportWithoutLimits()}. */
+    static final TestResource<TaskType> TASK_IMPORT_EXECUTE_SINGLE = new TestResource<>(TEST_DIR, "task-import-execute-single.xml", "8576985e-79e4-4d0c-bedd-72652db3c760");
 
     private static final TestResource<RoleType> ROLE_ADD_10 = new TestResource<>(TEST_DIR, "role-add-10.xml", "8f91bccf-fc4b-4987-8232-2e06d174dc37");
     private static final TestResource<RoleType> ROLE_MODIFY_COST_CENTER_5 = new TestResource<>(TEST_DIR, "role-modify-cost-center-5.xml", "6b0003a4-65bf-471d-af2c-ed575deaf199");
@@ -86,25 +78,22 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(TEST_DIR, "resource-dummy-source.xml",
             "40f8fb21-a473-4da7-bbd0-7019d3d450a5", "source", DummyResourceContoller::populateWithDefaultSchema);
 
-    private static final int ACCOUNTS = 100;
-    private static final String ACCOUNT_NAME_PATTERN = "a%04d";
+    static final int ACCOUNTS = 100;
+    private static final String ACCOUNT_NAME_PATTERN = "a%02d";
 
-    private static final int USER_ADD_ALLOWED = 9;
-    private static final int USER_MODIFY_ALLOWED = 4;
-    private static final int USER_DELETE_ALLOWED = 4;
+    static final int USER_ADD_ALLOWED = 9;
+    static final int USER_MODIFY_ALLOWED = 4;
+    static final int USER_DELETE_ALLOWED = 4;
 
-    private static final long TIMEOUT = 10000;
-    private static final long SLEEP = 200;
-
-    private static final ActivityPath SIMULATE = ActivityPath.fromId("simulate");
-    private static final ActivityPath EXECUTE = ActivityPath.fromId("execute");
+    static final ActivityPath SIMULATE = ActivityPath.fromId("simulate");
+    static final ActivityPath EXECUTE = ActivityPath.fromId("execute");
 
     private int usersBefore;
 
-    private String ruleAddId;
-    private String ruleModifyCostCenterId;
-    private String ruleModifyFullNameId;
-    private String ruleDeleteId;
+    String ruleAddId;
+    String ruleModifyCostCenterId;
+    String ruleModifyFullNameId;
+    String ruleDeleteId;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -136,6 +125,28 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .execute();
     }
 
+    abstract int getWorkerThreads();
+
+    /** Total threads of processing (1 for single-thread scenario). */
+    int getThreads() {
+        return Math.max(1, getWorkerThreads());
+    }
+
+    /** Implants worker threads to the root activity definition. */
+    private Consumer<PrismObject<TaskType>> getRootWorkerThreadsCustomizer() {
+        return rootActivityWorkerThreadsCustomizer(getWorkerThreads());
+    }
+
+    /** Implants worker threads to the component activities definitions. */
+    private Consumer<PrismObject<TaskType>> getCompositeWorkerThreadsCustomizer() {
+        return compositeActivityWorkerThreadsCustomizer(getWorkerThreads());
+    }
+
+    /** Implants worker threads to embedded activities definitions (via tailoring). */
+    private Consumer<PrismObject<TaskType>> getReconWorkerThreadsCustomizer() {
+        return tailoringWorkerThreadsCustomizer(getWorkerThreads());
+    }
+
     /**
      * Imports accounts from the source in simulate mode. Should stop on 10th added user.
      */
@@ -150,75 +161,30 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_ADD_10.oid));
+        addObject(importTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_ADD_10.oid),
+                        getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertCreated(0);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "after")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .display()
-                    .simulationModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleAddId, USER_ADD_ALLOWED + 1)
-                    .end()
-                    .progress()
-                        .display()
-                        .assertUncommitted(USER_ADD_ALLOWED, 1, 0)
-                    .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
-                    .end()
-                    .actionsExecuted()
-                        .resulting()
-                            .display()
-                            .assertCount(UserType.COMPLEX_TYPE, 0, 0)
-                        .end()
-                    .end();
-        // @formatter:on
+        assertTest100Task(importTask);
 
         when("repeated execution");
 
-        taskManager.resumeTask(importTask.oid, result);
+        taskManager.resumeTaskTree(importTask.oid, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then("repeated execution");
 
         assertCreated(0);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "after repeated execution")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .display()
-                    .simulationModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleAddId, USER_ADD_ALLOWED + 2)
-                    .end()
-                    .progress()
-                        .display()
-                        .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters
-                    .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(USER_ADD_ALLOWED, 2, 0)
-                    .end()
-                    .actionsExecuted()
-                        .resulting()
-                            .display()
-                            .assertCount(UserType.COMPLEX_TYPE, 0, 0)
-                        .end()
-                    .end();
-        // @formatter:on
+        assertTest100TaskAfterRepeatedExecution(importTask);
     }
 
+    abstract void assertTest100Task(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest100TaskAfterRepeatedExecution(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Imports accounts from the source in "simulate then execute" mode. Should stop on 10th added user.
@@ -234,39 +200,19 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_ADD_10.oid));
+        addObject(importTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_ADD_10.oid),
+                        getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertCreated(0);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "after")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                .end()
-                .activityState(SIMULATE)
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                    .progress()
-                        .display()
-                        .assertUncommitted(USER_ADD_ALLOWED, 1, 0)
-                    .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
-                    .end()
-                .end()
-                .activityState(EXECUTE)
-                    .display()
-                    .assertRealizationState(null) // this should not even start
-                .end();
-        // @formatter:on
+        assertTest110TaskAfter(importTask);
     }
+
+    abstract void assertTest110TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Imports accounts from the source in "execute" mode. Should create 9 users and then stop on 10th user.
@@ -282,36 +228,19 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_ADD_10.oid));
+        addObject(importTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_ADD_10.oid),
+                        getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertCreated(USER_ADD_ALLOWED);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "after")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                    .progress()
-                        .display()
-                        .assertUncommitted(USER_ADD_ALLOWED, 1, 0)
-                    .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
-                    .end()
-                    .actionsExecuted()
-                        .resulting()
-                            .display()
-                            .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, USER_ADD_ALLOWED, 0)
-                        .end()
-                    .end();
-        // @formatter:on
+        assertTest120TaskAfter(importTask);
     }
+
+    abstract void assertTest120TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Imports all accounts. This sets the scene for testing modification policy rules.
@@ -324,17 +253,17 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
         when();
 
-        TestResource<TaskType> importTask = getExecuteTask();
-        deleteIfPresent(importTask, result);
-        addObject(importTask, task, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, 10 * getTimeout(), 10 * getSleep());
+        deleteIfPresent(TASK_IMPORT_EXECUTE_SINGLE, result);
+        addObject(TASK_IMPORT_EXECUTE_SINGLE, task, result,
+                getRootWorkerThreadsCustomizer());
+        waitForTaskTreeCloseCheckingSuspensionWithError(TASK_IMPORT_EXECUTE_SINGLE.oid, result, 10 * getTimeout(), 10 * getSleep());
 
         then();
 
         assertCreated(ACCOUNTS);
 
         // @formatter:off
-        assertTaskTree(importTask.oid, "after")
+        assertTaskTree(TASK_IMPORT_EXECUTE_SINGLE.oid, "after")
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
@@ -372,54 +301,31 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid));
+        addObject(importTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid),
+                        getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertModifiedCostCenter(0, result);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "task after")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .display()
-                    .simulationModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleModifyCostCenterId, USER_MODIFY_ALLOWED + 1)
-                    .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(USER_MODIFY_ALLOWED*4, 1, 0)
-                    .end();
-        // @formatter:on
+        assertTest200TaskAfter(importTask);
 
         when("repeated execution");
 
-        taskManager.resumeTask(importTask.oid, result);
+        taskManager.resumeTaskTree(importTask.oid, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then("repeated execution");
 
         assertModifiedCostCenter(0, result);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "task after repeated execution")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .display()
-                    .simulationModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleModifyCostCenterId, USER_MODIFY_ALLOWED + 2)
-                    .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(USER_MODIFY_ALLOWED*4, 2, 0)
-                    .end();
-        // @formatter:on
+        assertTest200TaskAfterRepeatedExecution(importTask);
     }
+
+    abstract void assertTest200TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest200TaskAfterRepeatedExecution(TestResource<TaskType> importTask)
+            throws SchemaException, ObjectNotFoundException;
 
     /**
      * Re-imports accounts from the source in "simulate then execute" mode. Should stop on 5th modified user.
@@ -435,35 +341,19 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid));
+        addObject(importTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid),
+                        getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertModifiedCostCenter(0, result);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "after")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                .end()
-                .activityState(SIMULATE)
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(USER_MODIFY_ALLOWED*4, 1, 0)
-                    .end()
-                .end()
-                .activityState(EXECUTE)
-                    .display()
-                    .assertRealizationState(null) // this should not even start
-                .end();
-        // @formatter:on
+        assertTest210TaskAfter(importTask);
     }
+
+    abstract void assertTest210TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Re-imports accounts from the source in "execute" mode. Should modify 4 users and then stop on 5th user.
@@ -479,26 +369,19 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid));
+        addObject(importTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid),
+                        getRootWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertModifiedCostCenter(USER_MODIFY_ALLOWED, result);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "after")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(USER_MODIFY_ALLOWED*4, 1, 0)
-                    .end();
-        // @formatter:on
+        assertTest220TaskAfter(importTask);
     }
+
+    abstract void assertTest220TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Re-imports accounts from the source in "simulate then execute" mode.
@@ -521,43 +404,19 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid));
+        addObject(importTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid),
+                        getCompositeWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertModifiedFullName(1, 4, result);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "after")
-                .assertClosed()
-                .assertSuccess()
-                .activityState(SIMULATE)
-                    .assertComplete()
-                    .assertSuccess()
-                    .simulationModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleModifyFullNameId, 4)
-                    .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(ACCOUNTS, 0, 0)
-                    .end()
-                .end()
-                .activityState(EXECUTE)
-                    .assertComplete()
-                    .assertSuccess()
-                    .executionModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleModifyFullNameId, 4)
-                    .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(ACCOUNTS, 0, 0)
-                    .end()
-                .end();
-        // @formatter:on
+        assertTest300TaskAfter(importTask);
     }
+
+    abstract void assertTest300TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Re-imports accounts from the source in "simulate then execute" mode.
@@ -579,45 +438,19 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(reconTask, result);
-        addObject(reconTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid));
-        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout(), getSleep());
+        addObject(reconTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid),
+                        getReconWorkerThreadsCustomizer()));
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, 5*getTimeout(), getSleep());
 
         then();
 
         assertModifiedFullName(2, 4, result);
-
-        // @formatter:off
-        assertTaskTree(reconTask.oid, "after")
-                .assertClosed()
-                .assertSuccess()
-                .rootActivityState()
-                    .simulationModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleModifyFullNameId, 4)
-                    .end()
-                    .executionModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleModifyFullNameId, 4)
-                    .end()
-                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_SIMULATION_ID)
-                        .assertComplete()
-                        .assertSuccess()
-                        .itemProcessingStatistics()
-                            .display()
-                            .assertTotalCounts(ACCOUNTS, 0, 0)
-                        .end()
-                    .end()
-                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
-                        .assertComplete()
-                        .assertSuccess()
-                        .itemProcessingStatistics()
-                            .display()
-                            .assertTotalCounts(ACCOUNTS, 0, 0)
-                        .end()
-                    .end()
-                .end();
-        // @formatter:on
+        assertTest310TaskAfter(reconTask);
     }
+
+    abstract void assertTest310TaskAfter(TestResource<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Deletes each 4th account, to trigger deletion policy rules.
@@ -645,47 +478,31 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(reconTask, result);
-        addObject(reconTask, task, result, roleAssignmentCustomizer(ROLE_DELETE_5.oid));
+        addObject(reconTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_DELETE_5.oid),
+                        getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertDeleted(0);
-
-        // @formatter:off
-        assertTaskTree(reconTask.oid, "after")
-                .display()
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .display()
-                    .simulationModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleDeleteId, USER_DELETE_ALLOWED + 1)
-                    .end();
-        // @formatter:on
+        assertTest400TaskAfter(reconTask);
 
         when("repeated execution");
 
-        taskManager.resumeTask(reconTask.oid, result);
+        taskManager.resumeTaskTree(reconTask.oid, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout(), getSleep());
 
         then("repeated execution");
 
         assertDeleted(0);
-
-        // @formatter:off
-        assertTaskTree(reconTask.oid, "after repeated execution")
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .display()
-                    .simulationModePolicyRulesCounters()
-                        .display()
-                        .assertCounter(ruleDeleteId, USER_DELETE_ALLOWED + 2)
-                    .end();
-        // @formatter:on
+        assertTest400TaskAfterRepeatedExecution(reconTask);
     }
+
+    abstract void assertTest400TaskAfter(TestResource<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest400TaskAfterRepeatedExecution(TestResource<TaskType> reconTask)
+            throws SchemaException, ObjectNotFoundException;
 
     /**
      * Reconciliation that deletes owners of missing accounts (simulate, then execute). Should stop on 5th, no actions done.
@@ -701,43 +518,19 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_DELETE_5.oid));
+        addObject(importTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_DELETE_5.oid),
+                        getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertDeleted(0);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "after")
-                .display()
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                    .simulationModePolicyRulesCounters()
-                        .display()
-                    .end()
-                    .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_SIMULATION_ID)
-                        .assertInProgressLocal()
-                        .assertFatalError()
-                        .itemProcessingStatistics()
-                            .display()
-                            .assertTotalCounts(USER_DELETE_ALLOWED, 1, 0) // TODO
-                        .end()
-                    .end()
-                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
-                        .display()
-                        .assertRealizationState(null) // this should not even start
-                    .end()
-                    .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID)
-                        .display()
-                        .assertRealizationState(null) // this should not even start
-                    .end()
-                .end();
-        // @formatter:on
+        assertTest410TaskAfter(importTask);
     }
+
+    abstract void assertTest410TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Reconciliation that deletes owners of missing accounts (execute). Should stop on 5th after deleting four users.
@@ -753,68 +546,35 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_DELETE_5.oid));
+        addObject(importTask, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_DELETE_5.oid),
+                        getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
         assertDeleted(USER_DELETE_ALLOWED);
-
-        // @formatter:off
-        assertTaskTree(importTask.oid, "after")
-                .display()
-                .assertSuspended()
-                .assertFatalError()
-                .rootActivityState()
-                    .executionModePolicyRulesCounters()
-                        .display()
-                    .end()
-                .end()
-                .activityState(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH)
-                    .assertInProgressLocal()
-                    .assertFatalError()
-                    .progress()
-                        .display()
-                        .assertUncommitted(USER_DELETE_ALLOWED, 1, 0)
-                    .end()
-                    .itemProcessingStatistics()
-                        .display()
-                        .assertTotalCounts(USER_DELETE_ALLOWED, 1, 0)
-                    .end();
-        // @formatter:on
+        assertTest420TaskAfter(importTask);
     }
 
-    private TestResource<TaskType> getSimulateTask() {
-        return TASK_IMPORT_SINGLE_THREAD_SIMULATE;
-    }
+    abstract void assertTest420TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
-    private TestResource<TaskType> getSimulateExecuteTask() {
-        return TASK_IMPORT_SINGLE_THREAD_SIMULATE_EXECUTE;
-    }
+    abstract TestResource<TaskType> getSimulateTask();
 
-    private TestResource<TaskType> getExecuteTask() {
-        return TASK_IMPORT_SINGLE_THREAD_EXECUTE;
-    }
+    abstract TestResource<TaskType> getSimulateExecuteTask();
 
-    private TestResource<TaskType> getReconciliationSimulateTask() {
-        return TASK_RECONCILIATION_SINGLE_THREAD_SIMULATE;
-    }
+    abstract TestResource<TaskType> getExecuteTask();
 
-    private TestResource<TaskType> getReconciliationSimulateExecuteTask() {
-        return TASK_RECONCILIATION_SINGLE_THREAD_SIMULATE_EXECUTE;
-    }
+    abstract TestResource<TaskType> getReconciliationSimulateTask();
 
-    private TestResource<TaskType> getReconciliationExecuteTask() {
-        return TASK_RECONCILIATION_SINGLE_THREAD_EXECUTE;
-    }
+    abstract TestResource<TaskType> getReconciliationSimulateExecuteTask();
 
-    long getTimeout() {
-        return TIMEOUT;
-    }
+    abstract TestResource<TaskType> getReconciliationExecuteTask();
 
-    long getSleep() {
-        return SLEEP;
-    }
+    abstract long getTimeout();
+
+    abstract long getSleep();
 
     private void assertModifiedCostCenter(int expected, OperationResult result) throws SchemaException {
         int changed = repositoryService.countObjects(UserType.class,

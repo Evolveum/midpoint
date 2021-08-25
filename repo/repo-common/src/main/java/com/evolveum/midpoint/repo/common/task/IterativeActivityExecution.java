@@ -13,7 +13,8 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 
 import java.util.Objects;
 
-import com.google.common.base.MoreObjects;
+import com.evolveum.midpoint.repo.common.activity.state.OtherActivityState;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -516,9 +517,29 @@ public abstract class IterativeActivityExecution<
     @Override
     protected @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        return MoreObjects.firstNonNull(
-                executionSpecifics.useOtherActivityStateForCounters(result),
-                activityState);
+
+        ActivityState explicit = executionSpecifics.useOtherActivityStateForCounters(result);
+        if (explicit != null) {
+            return explicit;
+        }
+
+        if (activityState.isWorker()) {
+            return getCoordinatorActivityState();
+        } else {
+            return activityState;
+        }
+    }
+
+    /** Returns activity state of the coordinator task. Assuming we are in worker task. */
+    private ActivityState getCoordinatorActivityState() {
+        Task parentTask = java.util.Objects.requireNonNull(
+                getRunningTask().getParentTask(), "No parent task");
+        return new OtherActivityState(
+                parentTask,
+                parentTask.getActivitiesStateOrClone(),
+                getActivityPath(),
+                getActivityStateDefinition().getWorkStateTypeName(),
+                beans);
     }
 
     public @NotNull AES getExecutionSpecifics() {

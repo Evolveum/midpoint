@@ -50,7 +50,7 @@ public abstract class ActivityState implements DebugDumpable {
 
     private static final int MAX_TREE_DEPTH = 30;
 
-    @NotNull private final CommonTaskBeans beans;
+    @NotNull protected final CommonTaskBeans beans;
 
     /**
      * Path to the work state container value related to this execution. Can be null if the state was not
@@ -273,7 +273,7 @@ public abstract class ActivityState implements DebugDumpable {
             throws SchemaException, ObjectNotFoundException {
         ActivityPath activityPath = getActivityPath();
         argCheck(!activityPath.isEmpty(), "Root activity has no parent");
-        return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, 0, beans, result);
+        return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, beans, result);
     }
 
     /**
