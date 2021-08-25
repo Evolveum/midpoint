@@ -50,6 +50,15 @@
                 </inbound>
             </attribute>
             <attribute>
+                <ref>ri:fullname</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
                 <ref>ri:description</ref>
                 <inbound>
                     <strength>strong</strength>

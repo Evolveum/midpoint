@@ -8,17 +8,24 @@ package com.evolveum.midpoint.model.intest.tasks;
 
 import static com.evolveum.icf.dummy.resource.DummyAccount.ATTR_DESCRIPTION_NAME;
 
+import static com.evolveum.icf.dummy.resource.DummyAccount.ATTR_FULLNAME_NAME;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.Objects;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,6 +61,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
  *
  * Yet another thresholds-related tests are in the `story` module.
  */
+@SuppressWarnings("SameParameterValue")
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestThresholds extends AbstractEmptyModelIntegrationTest {
@@ -71,7 +79,8 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<TaskType> TASK_IMPORT_MULTIPLE_WORKERS = new TestResource<>(TEST_DIR, "task-import-multiple-workers.xml", "");
 
     private static final TestResource<RoleType> ROLE_ADD_10 = new TestResource<>(TEST_DIR, "role-add-10.xml", "8f91bccf-fc4b-4987-8232-2e06d174dc37");
-    private static final TestResource<RoleType> ROLE_MODIFY_5 = new TestResource<>(TEST_DIR, "role-modify-5.xml", "6b0003a4-65bf-471d-af2c-ed575deaf199");
+    private static final TestResource<RoleType> ROLE_MODIFY_COST_CENTER_5 = new TestResource<>(TEST_DIR, "role-modify-cost-center-5.xml", "6b0003a4-65bf-471d-af2c-ed575deaf199");
+    private static final TestResource<RoleType> ROLE_MODIFY_FULL_NAME_5 = new TestResource<>(TEST_DIR, "role-modify-full-name-5.xml", "11562df4-c3e7-4e9e-a8f9-0b7f1bb7df75");
     private static final TestResource<RoleType> ROLE_DELETE_5 = new TestResource<>(TEST_DIR, "role-delete-5.xml", "9447439f-e6fd-4fb8-bf30-e918e16b42be");
 
     private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(TEST_DIR, "resource-dummy-source.xml",
@@ -93,7 +102,8 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     private int usersBefore;
 
     private String ruleAddId;
-    private String ruleModifyId;
+    private String ruleModifyCostCenterId;
+    private String ruleModifyFullNameId;
     private String ruleDeleteId;
 
     @Override
@@ -103,8 +113,11 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         repoAdd(ROLE_ADD_10, initResult);
         ruleAddId = determineSingleInducedRuleId(ROLE_ADD_10.oid, initResult);
 
-        repoAdd(ROLE_MODIFY_5, initResult);
-        ruleModifyId = determineSingleInducedRuleId(ROLE_MODIFY_5.oid, initResult);
+        repoAdd(ROLE_MODIFY_COST_CENTER_5, initResult);
+        ruleModifyCostCenterId = determineSingleInducedRuleId(ROLE_MODIFY_COST_CENTER_5.oid, initResult);
+
+        repoAdd(ROLE_MODIFY_FULL_NAME_5, initResult);
+        ruleModifyFullNameId = determineSingleInducedRuleId(ROLE_MODIFY_FULL_NAME_5.oid, initResult);
 
         repoAdd(ROLE_DELETE_5, initResult);
         ruleDeleteId = determineSingleInducedRuleId(ROLE_DELETE_5.oid, initResult);
@@ -150,7 +163,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertFatalError()
                 .rootActivityState()
                     .display()
-                    .policyRulesCounters()
+                    .simulationModePolicyRulesCounters()
                         .display()
                         .assertCounter(ruleAddId, USER_ADD_ALLOWED + 1)
                     .end()
@@ -185,7 +198,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertFatalError()
                 .rootActivityState()
                     .display()
-                    .policyRulesCounters()
+                    .simulationModePolicyRulesCounters()
                         .display()
                         .assertCounter(ruleAddId, USER_ADD_ALLOWED + 2)
                     .end()
@@ -333,17 +346,15 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Modifies each 4th account, to trigger modification policy rules.
+     * Modifies description (-> cost center) of each 4th account, to trigger cost center modification policy rule.
+     * - fullName of each 25th, to allow full name modification policy rule to pass (4 users are changed).
      */
     @Test
-    public void test199ModifyAccounts() throws Exception {
+    public void test199ModifyAccountDescription() throws Exception {
         for (int i = 0; i < ACCOUNTS; i += 4) {
-            String accountName = String.format(ACCOUNT_NAME_PATTERN, i);
-            DummyAccount account = Objects.requireNonNull(
-                    RESOURCE_SOURCE.controller.getDummyResource().getAccountByUsername(accountName),
-                    () -> "No account named " + accountName);
+            DummyAccount account = getAccount(i);
             account.replaceAttributeValue(ATTR_DESCRIPTION_NAME, "changed");
-            System.out.println("Changed: " + accountName);
+            System.out.println("Changed description (cost center): " + account.getName());
         }
     }
 
@@ -351,7 +362,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
      * Re-imports accounts from the source in simulate mode. Should stop on 5th modified user.
      */
     @Test
-    public void test200ImportModify5Simulate() throws Exception {
+    public void test200ImportModifyCostCenter5Simulate() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -361,12 +372,12 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_5.oid));
+        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
-        assertModified(0, result);
+        assertModifiedCostCenter(0, result);
 
         // @formatter:off
         assertTaskTree(importTask.oid, "task after")
@@ -374,9 +385,9 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertFatalError()
                 .rootActivityState()
                     .display()
-                    .policyRulesCounters()
+                    .simulationModePolicyRulesCounters()
                         .display()
-                        .assertCounter(ruleModifyId, USER_MODIFY_ALLOWED + 1)
+                        .assertCounter(ruleModifyCostCenterId, USER_MODIFY_ALLOWED + 1)
                     .end()
                     .itemProcessingStatistics()
                         .display()
@@ -391,7 +402,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
         then("repeated execution");
 
-        assertModified(0, result);
+        assertModifiedCostCenter(0, result);
 
         // @formatter:off
         assertTaskTree(importTask.oid, "task after repeated execution")
@@ -399,9 +410,9 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertFatalError()
                 .rootActivityState()
                     .display()
-                    .policyRulesCounters()
+                    .simulationModePolicyRulesCounters()
                         .display()
-                        .assertCounter(ruleModifyId, USER_MODIFY_ALLOWED + 2)
+                        .assertCounter(ruleModifyCostCenterId, USER_MODIFY_ALLOWED + 2)
                     .end()
                     .itemProcessingStatistics()
                         .display()
@@ -414,7 +425,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
      * Re-imports accounts from the source in "simulate then execute" mode. Should stop on 5th modified user.
      */
     @Test
-    public void test210ImportModify5SimulateExecute() throws Exception {
+    public void test210ImportModifyCostCenter5SimulateExecute() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -424,12 +435,12 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_5.oid));
+        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
-        assertModified(0, result);
+        assertModifiedCostCenter(0, result);
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
@@ -458,7 +469,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
      * Re-imports accounts from the source in "execute" mode. Should modify 4 users and then stop on 5th user.
      */
     @Test
-    public void test220ImportModify5Execute() throws Exception {
+    public void test220ImportModifyCostCenter5Execute() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -468,12 +479,12 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when();
 
         deleteIfPresent(importTask, result);
-        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_5.oid));
+        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid));
         waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
 
         then();
 
-        assertModified(USER_MODIFY_ALLOWED, result);
+        assertModifiedCostCenter(USER_MODIFY_ALLOWED, result);
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
@@ -490,10 +501,129 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
+     * Re-imports accounts from the source in "simulate then execute" mode.
+     *
+     * This time there are only 4 users with changed full name, so both simulate and execute
+     * activities should proceed.
+     */
+    @Test
+    public void test300ImportModifyFullName5SimulateExecute() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Modifies description (-> cost center) of each 25th account, to trigger cost center modification policy rule.
+        // 4 accounts are changed in total.
+        changeFullNameOnResource(1);
+
+        TestResource<TaskType> importTask = getSimulateExecuteTask();
+
+        when();
+
+        deleteIfPresent(importTask, result);
+        addObject(importTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid));
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+
+        then();
+
+        assertModifiedFullName(1, 4, result);
+
+        // @formatter:off
+        assertTaskTree(importTask.oid, "after")
+                .assertClosed()
+                .assertSuccess()
+                .activityState(SIMULATE)
+                    .assertComplete()
+                    .assertSuccess()
+                    .simulationModePolicyRulesCounters()
+                        .display()
+                        .assertCounter(ruleModifyFullNameId, 4)
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(ACCOUNTS, 0, 0)
+                    .end()
+                .end()
+                .activityState(EXECUTE)
+                    .assertComplete()
+                    .assertSuccess()
+                    .executionModePolicyRulesCounters()
+                        .display()
+                        .assertCounter(ruleModifyFullNameId, 4)
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(ACCOUNTS, 0, 0)
+                    .end()
+                .end();
+        // @formatter:on
+    }
+
+    /**
+     * Re-imports accounts from the source in "simulate then execute" mode.
+     * This time the reconciliation is used, because of its implementation (5 sub-activities, shared state).
+     *
+     * There are only 4 users with changed full name, so both simulate and execute
+     * activities should proceed.
+     */
+    @Test
+    public void test310ReconModifyFullName5SimulateExecute() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        changeFullNameOnResource(2);
+
+        TestResource<TaskType> reconTask = getReconciliationSimulateExecuteTask();
+
+        when();
+
+        deleteIfPresent(reconTask, result);
+        addObject(reconTask, task, result, roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid));
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout(), getSleep());
+
+        then();
+
+        assertModifiedFullName(2, 4, result);
+
+        // @formatter:off
+        assertTaskTree(reconTask.oid, "after")
+                .assertClosed()
+                .assertSuccess()
+                .rootActivityState()
+                    .simulationModePolicyRulesCounters()
+                        .display()
+                        .assertCounter(ruleModifyFullNameId, 4)
+                    .end()
+                    .executionModePolicyRulesCounters()
+                        .display()
+                        .assertCounter(ruleModifyFullNameId, 4)
+                    .end()
+                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_SIMULATION_ID)
+                        .assertComplete()
+                        .assertSuccess()
+                        .itemProcessingStatistics()
+                            .display()
+                            .assertTotalCounts(ACCOUNTS, 0, 0)
+                        .end()
+                    .end()
+                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
+                        .assertComplete()
+                        .assertSuccess()
+                        .itemProcessingStatistics()
+                            .display()
+                            .assertTotalCounts(ACCOUNTS, 0, 0)
+                        .end()
+                    .end()
+                .end();
+        // @formatter:on
+    }
+
+    /**
      * Deletes each 4th account, to trigger deletion policy rules.
      */
     @Test
-    public void test299DeleteSomeAccounts() throws Exception {
+    public void test399DeleteSomeAccounts() throws Exception {
         for (int i = 0; i < ACCOUNTS; i += 4) {
             String accountName = String.format(ACCOUNT_NAME_PATTERN, i);
             RESOURCE_SOURCE.controller.deleteAccount(accountName);
@@ -505,7 +635,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
      * Reconciliation that deletes owners of missing accounts (simulated). Should stop on 5th, no actions done.
      */
     @Test
-    public void test300ReconcileDelete5Simulate() throws Exception {
+    public void test400ReconcileDelete5Simulate() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -529,7 +659,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertFatalError()
                 .rootActivityState()
                     .display()
-                    .policyRulesCounters()
+                    .simulationModePolicyRulesCounters()
                         .display()
                         .assertCounter(ruleDeleteId, USER_DELETE_ALLOWED + 1)
                     .end();
@@ -550,7 +680,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertFatalError()
                 .rootActivityState()
                     .display()
-                    .policyRulesCounters()
+                    .simulationModePolicyRulesCounters()
                         .display()
                         .assertCounter(ruleDeleteId, USER_DELETE_ALLOWED + 2)
                     .end();
@@ -561,7 +691,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
      * Reconciliation that deletes owners of missing accounts (simulate, then execute). Should stop on 5th, no actions done.
      */
     @Test
-    public void test310ReconcileDelete5SimulateExecute() throws Exception {
+    public void test410ReconcileDelete5SimulateExecute() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -586,7 +716,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .rootActivityState()
                     .assertInProgressLocal()
                     .assertFatalError()
-                    .policyRulesCounters()
+                    .simulationModePolicyRulesCounters()
                         .display()
                     .end()
                     .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_SIMULATION_ID)
@@ -613,7 +743,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
      * Reconciliation that deletes owners of missing accounts (execute). Should stop on 5th after deleting four users.
      */
     @Test
-    public void test320ReconcileDelete5Execute() throws Exception {
+    public void test420ReconcileDelete5Execute() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -636,7 +766,7 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertSuspended()
                 .assertFatalError()
                 .rootActivityState()
-                    .policyRulesCounters()
+                    .executionModePolicyRulesCounters()
                         .display()
                     .end()
                 .end()
@@ -686,10 +816,31 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
         return SLEEP;
     }
 
-    private void assertModified(int expected, OperationResult result) throws SchemaException {
+    private void assertModifiedCostCenter(int expected, OperationResult result) throws SchemaException {
         int changed = repositoryService.countObjects(UserType.class,
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_COST_CENTER).eq("changed")
+                        .build(), null, result);
+        assertThat(changed).as("changed users").isEqualTo(expected);
+    }
+
+    private void changeFullNameOnResource(int wave)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        for (int i = 0; i < ACCOUNTS; i += 25) {
+            DummyAccount account = getAccount(i);
+            account.replaceAttributeValue(ATTR_FULLNAME_NAME, getValueForWave(wave));
+            System.out.println("Changed full name: " + account.getName());
+        }
+    }
+
+    private @NotNull String getValueForWave(int wave) {
+        return "changed" + wave;
+    }
+
+    private void assertModifiedFullName(int wave, int expected, OperationResult result) throws SchemaException {
+        int changed = repositoryService.countObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_FULL_NAME).eq(getValueForWave(wave))
                         .build(), null, result);
         assertThat(changed).as("changed users").isEqualTo(expected);
     }
@@ -702,5 +853,12 @@ public class TestThresholds extends AbstractEmptyModelIntegrationTest {
     private void assertDeleted(int expected) throws CommonException {
         int usersDeleted = usersBefore + ACCOUNTS - getObjectCount(UserType.class);
         assertThat(usersDeleted).as("users deleted").isEqualTo(expected);
+    }
+
+    private @NotNull DummyAccount getAccount(int i) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        String accountName = String.format(ACCOUNT_NAME_PATTERN, i);
+        return Objects.requireNonNull(
+                RESOURCE_SOURCE.controller.getDummyResource().getAccountByUsername(accountName),
+                () -> "No account named " + accountName);
     }
 }

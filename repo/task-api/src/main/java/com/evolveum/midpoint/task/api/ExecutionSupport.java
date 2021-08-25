@@ -49,9 +49,14 @@ public interface ExecutionSupport {
     enum CountersGroup {
 
         /**
-         * Counters used to monitor policy rules thresholds.
+         * Counters used to monitor policy rules thresholds in simulation mode.
          */
-        POLICY_RULES(ActivityCounterGroupsType.F_POLICY_RULES);
+        SIMULATION_MODE_POLICY_RULES(ActivityCounterGroupsType.F_SIMULATION_MODE_POLICY_RULES),
+
+        /**
+         * Counters used to monitor policy rules thresholds in execution mode.
+         */
+        EXECUTION_MODE_POLICY_RULES(ActivityCounterGroupsType.F_EXECUTION_MODE_POLICY_RULES);
 
         @NotNull private final ItemName itemName;
 
