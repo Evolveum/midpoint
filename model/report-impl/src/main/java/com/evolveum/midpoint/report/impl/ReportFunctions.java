@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.report.impl;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -24,6 +22,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -209,48 +209,50 @@ public class ReportFunctions {
         return resolvedAssignments;
     }
 
-    public List<AuditEventRecord> searchAuditRecords(String query, Map<String, Object> params) {
-
-        if (StringUtils.isBlank(query)) {
-            return new ArrayList<>();
-        }
+    public List<AuditEventRecordType> searchAuditRecords(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> option)
+            throws SchemaException {
         OperationResult result = new OperationResult("searchAuditRecords");
 
-        List<AuditEventRecord> records = auditService.listRecords(query, ReportUtils.paramsToAuditParams(params), result);
+        List<AuditEventRecordType> records = auditService.searchObjects(query, option, result);
         result.computeStatus();
         return records;
     }
 
-    public List<AuditEventRecord> searchAuditRecordsAsWorkflows(String query, Map<String, Object> params) {
-        return transformToWorkflows(searchAuditRecords(query, params));
+    public List<AuditEventRecordType> searchAuditRecordsAsWorkflows(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> option) throws SchemaException {
+        return transformToWorkflows(searchAuditRecords(query, option));
     }
 
-    private List<AuditEventRecord> transformToWorkflows(List<AuditEventRecord> auditEvents) {
+    private List<AuditEventRecordType> transformToWorkflows(List<AuditEventRecordType> auditEvents) {
         if (auditEvents == null || auditEvents.isEmpty()) {
             return auditEvents;
         }
 
         // group all records by property/wf.processInstanceId
-        Map<String, List<AuditEventRecord>> workflows = auditEvents.stream().collect(Collectors.groupingBy(event -> {
-            Set<String> processInstanceIds = event.getPropertyValues(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
+        Map<String, List<AuditEventRecordType>> workflows = auditEvents.stream().collect(Collectors.groupingBy(event -> {
+            List<String> processInstanceIds = new ArrayList<>();
+            event.getProperty().stream()
+                    .filter(property -> WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID.equals(property.getName()))
+                    .findFirst().ifPresent(property -> processInstanceIds.addAll(property.getValue()));
 
             Iterator<String> it = processInstanceIds.iterator();
             return it.hasNext() ? it.next() : "default workflow";
         }));
 
         // map of workflows in order of first request timestamp
-        Map<Long, List<AuditEventRecord>> workflowsFiltered = new TreeMap<>();
+        Map<Long, List<AuditEventRecordType>> workflowsFiltered = new TreeMap<>();
         workflows.forEach((key, wf) -> {
             // leave only the first request in each workflow
-            List<AuditEventRecord> filtered = new ArrayList<>();
-            wf.stream().filter(record -> record.getEventStage() == AuditEventStage.REQUEST).findFirst()
+            List<AuditEventRecordType> filtered = new ArrayList<>();
+            wf.stream().filter(record -> AuditEventStageType.REQUEST.equals(record.getEventStage())).findFirst()
                     .ifPresent(filtered::add);
             // and all executions with decision
-            wf.stream().filter(record -> record.getEventStage() == AuditEventStage.EXECUTION)
+            wf.stream().filter(record -> AuditEventStageType.EXECUTION.equals(record.getEventStage()))
                     .filter(record -> record.getMessage() == null || !record.getMessage().contains("(no decision)"))
                     .forEach(filtered::add);
 
-            wf.stream().findFirst().ifPresent(record -> workflowsFiltered.put(record.getTimestamp(), filtered));
+            wf.stream().findFirst().ifPresent(record -> workflowsFiltered.put(
+                    record.getTimestamp().toGregorianCalendar().getTime().getTime(), filtered));
         });
 
         return workflowsFiltered.values().stream().flatMap(List::stream)

@@ -4,15 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sqale.audit;
 
-import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
-
-import java.sql.Types;
 import java.time.Instant;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
+import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 
 import com.querydsl.sql.ColumnMetadata;
@@ -25,24 +23,14 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.sql.audit.AuditSqlQueryContext;
-import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
-import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.audit.mapping.*;
-import com.evolveum.midpoint.repo.sql.audit.querymodel.*;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
+import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
+import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.*;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
@@ -50,50 +38,52 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 
 /**
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}).
- * This is NOT a managed bean, it is completely created by {@link SqlAuditServiceFactory} and any
- * of the dependencies must be dependencies of that factory to assure proper initialization.
- * <p>
- * Design notes:
- * No repo.sql.data.audit.* entities are used (stage/type enums are OK).
+ * TODO: rethink the initialization, will we use factory class again?
  */
-public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
+public class SqaleAuditService implements AuditService {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SqaleAuditService.class);
 
-    private static final String OP_NAME_PREFIX = SqlAuditServiceImpl.class.getSimpleName() + '.';
+    private static final String OP_NAME_PREFIX = SqaleAuditService.class.getSimpleName() + '.';
 
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
-    private final BaseHelper baseHelper; // only for logging/exception handling
-    private final SqlRepoContext sqlRepoContext;
+    private final SqaleRepoContext sqlRepoContext;
     private final SchemaService schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
+    private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
+
+    private SqlPerformanceMonitorImpl performanceMonitor; // set to null in destroy
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
-    public SqlAuditServiceImpl(
-            BaseHelper baseHelper,
-            SqlRepoContext sqlRepoContext,
-            SchemaService schemaService) {
-        this.baseHelper = baseHelper;
+    public SqaleAuditService(
+            SqaleRepoContext sqlRepoContext,
+            SchemaService schemaService,
+            JdbcRepositoryConfiguration repositoryConfiguration,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
+        this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
+
+        // monitor initialization and registration
+        performanceMonitor = new SqlPerformanceMonitorImpl(
+                repositoryConfiguration.getPerformanceStatisticsLevel(),
+                repositoryConfiguration.getPerformanceStatisticsFile());
+        sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
     public SqlRepoContext getSqlRepoContext() {
@@ -101,28 +91,21 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     @Override
-    public SqlRepositoryConfiguration sqlConfiguration() {
-        return (SqlRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
-    }
-
-    @Override
     public void audit(AuditEventRecord record, Task task, OperationResult result) {
         Objects.requireNonNull(record, "Audit event record must not be null.");
         Objects.requireNonNull(task, "Task must not be null.");
 
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_AUDIT, AuditEventRecord.class);
-        int attempt = 1;
-
+        long opHandle = registerOperationStart(OP_AUDIT);
         while (true) {
             try {
                 auditAttempt(record);
                 return;
             } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(null, OP_AUDIT, attempt, ex, result);
-                pm.registerOperationNewAttempt(opHandle, attempt);
+                // TODO
+//                attempt = baseHelper.logOperationAttempt(null, OP_AUDIT, attempt, ex, result);
+//                pm.registerOperationNewAttempt(opHandle, attempt);
             } finally {
-                pm.registerOperationFinish(opHandle, attempt);
+                registerOperationFinish(opHandle, 1);
             }
         }
     }
@@ -202,6 +185,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         MAuditDelta mAuditDelta = new MAuditDelta();
         mAuditDelta.recordId = recordId;
 
+        /* TODO
         try {
             ObjectDelta<? extends ObjectType> delta = deltaOperation.getObjectDelta();
             if (delta != null) {
@@ -248,6 +232,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } catch (Exception ex) {
             throw new SystemException("Problem during audit delta conversion", ex);
         }
+        */
         return mAuditDelta;
     }
 
@@ -278,6 +263,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         + " critical for storing the audit record.", recordId, e);
             }
         }
+        /*
         if (!changedItemPaths.isEmpty()) {
             QAuditItem qAuditItem = QAuditItemMapping.get().defaultAlias();
             SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditItem);
@@ -289,6 +275,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             insertBatch.setBatchToBulk(true);
             insertBatch.execute();
         }
+        */
     }
 
     private void insertProperties(
@@ -297,6 +284,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
+        /*
         QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.get().defaultAlias();
         SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditPropertyValue);
         for (String propertyName : properties.keySet()) {
@@ -314,6 +302,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         insertBatch.setBatchToBulk(true);
         insertBatch.execute();
+        */
     }
 
     private void insertReferences(JdbcSession jdbcSession,
@@ -322,6 +311,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
+        /*
         QAuditRefValue qAuditRefValue = QAuditRefValueMapping.get().defaultAlias();
         SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditRefValue);
         for (String refName : references.keySet()) {
@@ -343,6 +333,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         insertBatch.setBatchToBulk(true);
         insertBatch.execute();
+        */
     }
 
     private void insertResourceOids(
@@ -351,6 +342,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
+        /*
         QAuditResource qAuditResource = QAuditResourceMapping.get().defaultAlias();
         SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditResource);
         for (String resourceOid : resourceOids) {
@@ -361,6 +353,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         insertBatch.setBatchToBulk(true);
         insertBatch.execute();
+        */
     }
 
     @Override
@@ -381,8 +374,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         final String operation = "deletingMaxAge";
 
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_AGE, AuditEventRecord.class);
+        long opHandle = registerOperationStart(OP_CLEANUP_AUDIT_MAX_AGE);
         int attempt = 1;
 
         Duration duration = policy.getMaxAge();
@@ -391,8 +383,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
         Date minValue = new Date();
         duration.addTo(minValue);
-
-        checkTemporaryTablesSupport();
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -421,12 +411,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     } while (count > 0);
                     return;
                 } catch (RuntimeException ex) {
-                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, parentResult);
-                    pm.registerOperationNewAttempt(opHandle, attempt);
+                    // TODO
+//                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, parentResult);
+//                    pm.registerOperationNewAttempt(opHandle, attempt);
                 }
             }
         } finally {
-            pm.registerOperationFinish(opHandle, attempt);
+            registerOperationFinish(opHandle, attempt);
             LOGGER.info("Audit cleanup based on age finished; deleted {} entries in {} seconds.",
                     totalCountHolder.getValue(), (System.currentTimeMillis() - start) / 1000L);
         }
@@ -439,14 +430,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         final String operation = "deletingMaxRecords";
 
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(
-                OP_CLEANUP_AUDIT_MAX_RECORDS, AuditEventRecord.class);
+        long opHandle = registerOperationStart(OP_CLEANUP_AUDIT_MAX_RECORDS);
         int attempt = 1;
 
         int recordsToKeep = policy.getMaxRecords();
-
-        checkTemporaryTablesSupport();
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -474,27 +461,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     } while (count > 0);
                     return;
                 } catch (RuntimeException ex) {
-                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, parentResult);
-                    pm.registerOperationNewAttempt(opHandle, attempt);
+                    // TODO
+//                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, parentResult);
+//                    pm.registerOperationNewAttempt(opHandle, attempt);
                 }
             }
         } finally {
-            pm.registerOperationFinish(opHandle, attempt);
+            registerOperationFinish(opHandle, attempt);
             LOGGER.info("Audit cleanup based on record count finished; deleted {} entries in {} seconds.",
                     totalCountHolder.getValue(), (System.currentTimeMillis() - start) / 1000L);
-        }
-    }
-
-    private void checkTemporaryTablesSupport() {
-        SupportedDatabase database = sqlConfiguration().getDatabaseType();
-        try {
-            TemporaryTableDialect.getTempTableDialect(database);
-        } catch (SystemException e) {
-            LOGGER.error(
-                    "Database type {} doesn't support temporary tables, couldn't cleanup audit logs.",
-                    database);
-            throw new SystemException("Database type " + database
-                    + " doesn't support temporary tables, couldn't cleanup audit logs.");
         }
     }
 
@@ -510,6 +485,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             try {
+                /* TODO completely rework and just delete the main entries, the rest will cascade
                 TemporaryTableDialect ttDialect = TemporaryTableDialect
                         .getTempTableDialect(sqlConfiguration().getDatabaseType());
 
@@ -557,6 +533,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         System.currentTimeMillis() - batchStart, totalCount);
 
                 return count;
+                */
+                return -1; // TODO
             } catch (RuntimeException ex) {
                 LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",
                         System.currentTimeMillis() - batchStart, ex.getMessage());
@@ -582,13 +560,14 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 // we limit the query, but we don't care about order, eventually we'll get them all
                 .limit(CLEANUP_AUDIT_BATCH_SIZE);
 
-        QAuditTemp tmp = new QAuditTemp("tmp", tempTable);
-        return (int) jdbcSession.newInsert(tmp).select(populateQuery).execute();
+//        QAuditTemp tmp = new QAuditTemp("tmp", tempTable);
+//        return (int) jdbcSession.newInsert(tmp).select(populateQuery).execute();
+        return -1; // TODO
     }
 
     private int selectRecordsByNumberToKeep(
             JdbcSession jdbcSession, String tempTable, int recordsToKeep) {
-
+        /*
         QAuditEventRecord aer = QAuditEventRecordMapping.get().defaultAlias();
         long totalAuditRecords = jdbcSession.newQuery().from(aer).fetchCount();
 
@@ -609,33 +588,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         QAuditTemp tmp = new QAuditTemp("tmp", tempTable);
         return (int) jdbcSession.newInsert(tmp).select(populateQuery).execute();
+        */
+        return -1; // TODO
     }
 
-    /**
-     * This method creates temporary table for cleanup audit method.
-     */
-    private void createTemporaryTable(JdbcSession jdbcSession, final String tempTable) {
-        // check if table exists
-        if (!sqlConfiguration().isUsingPostgreSQL()) {
-            try {
-                jdbcSession.executeStatement("select id from " + tempTable + " where id = 1");
-                // table already exists
-                return;
-            } catch (Exception ex) {
-                // we expect this on the first time
-            }
-        }
-
-        TemporaryTableDialect ttDialect =
-                TemporaryTableDialect.getTempTableDialect(sqlConfiguration().getDatabaseType());
-
-        jdbcSession.executeStatement(ttDialect.getCreateTemporaryTableString()
-                + ' ' + tempTable + " (id "
-                + jdbcSession.getNativeTypeName(Types.BIGINT)
-                + " not null)"
-                + ttDialect.getCreateTemporaryTablePostfix());
-    }
-
+    /*
     private String createDeleteQuery(
             String objectTable, String tempTable, ColumnMetadata idColumn) {
         if (sqlConfiguration().isUsingMySqlCompatible()) {
@@ -667,6 +624,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 + " where " + idColumn.getName() + " in (select id from " + tempTable
                 + ')';
     }
+    */
 
     @Override
     public boolean supportsRetrieval() {
@@ -688,11 +646,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 .build();
 
         try {
-            var queryContext = AuditSqlQueryContext.from(
+            var queryContext = SqaleQueryContext.from(
                     AuditEventRecordType.class, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
         } catch (RepositoryException | RuntimeException e) {
-            baseHelper.handleGeneralException(e, operationResult);
+            // TODO
+//            baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
@@ -709,18 +668,20 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult)
             throws SchemaException {
+
         OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_OBJECTS)
                 .addParam("query", query)
                 .build();
 
         try {
-            var queryContext = AuditSqlQueryContext.from(
+            var queryContext = SqaleQueryContext.from(
                     AuditEventRecordType.class, sqlRepoContext);
             SearchResultList<AuditEventRecordType> result =
                     sqlQueryExecutor.list(queryContext, query, options);
             return result;
         } catch (RepositoryException | RuntimeException e) {
-            baseHelper.handleGeneralException(e, operationResult);
+            // TODO
+//            baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
@@ -728,5 +689,25 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } finally {
             operationResult.computeStatusIfUnknown();
         }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (performanceMonitor != null) {
+            performanceMonitor.shutdown();
+            sqlPerformanceMonitorsCollection.deregister(performanceMonitor);
+            performanceMonitor = null;
+        }
+    }
+
+    /**
+     * Registers operation start with specified short operation type name, class is prefixed automatically.
+     */
+    private long registerOperationStart(String kind) {
+        return performanceMonitor.registerOperationStart(OP_NAME_PREFIX + kind, AuditEventRecordType.class);
+    }
+
+    private void registerOperationFinish(long opHandle, int attempt) {
+        performanceMonitor.registerOperationFinish(opHandle, attempt);
     }
 }

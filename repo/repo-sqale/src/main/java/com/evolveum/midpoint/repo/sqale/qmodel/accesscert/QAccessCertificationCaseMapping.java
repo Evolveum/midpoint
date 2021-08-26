@@ -218,7 +218,7 @@ public class QAccessCertificationCaseMapping
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         PrismContainer<AccessCertificationCaseType> caseContainer =
-                (PrismContainer) updateContext.findValueOrItem(AccessCertificationCampaignType.F_CASE);
+                updateContext.findValueOrItem(AccessCertificationCampaignType.F_CASE);
         // row in context already knows its CID
         PrismContainerValue<AccessCertificationCaseType> caseContainerValue =
                 caseContainer.findValue(updateContext.row().cid);

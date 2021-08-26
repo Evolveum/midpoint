@@ -7,8 +7,6 @@
 package com.evolveum.midpoint.audit.api;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,8 +34,6 @@ public interface AuditService {
     String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
     String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
     String OP_COUNT_OBJECTS = "countObjects";
-    String OP_LIST_RECORDS = "listRecords";
-    String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
     String OP_SEARCH_OBJECTS = "searchObjects";
 
     void audit(AuditEventRecord record, Task task, OperationResult result);
@@ -48,18 +44,6 @@ public interface AuditService {
      * @param policy Records will be deleted base on this policy.
      */
     void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult);
-
-    /**
-     * @throws UnsupportedOperationException if object retrieval is not supported
-     * @deprecated use {@link #searchObjects(ObjectQuery, Collection, OperationResult)} instead
-     */
-    List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result);
-
-    /**
-     * @throws UnsupportedOperationException if object retrieval is not supported
-     * @deprecated use {@link #countObjects(ObjectQuery, Collection, OperationResult)} instead
-     */
-    long countObjects(String query, Map<String, Object> params);
 
     /**
      * Returns true if retrieval of objects from the audit trail is supported.

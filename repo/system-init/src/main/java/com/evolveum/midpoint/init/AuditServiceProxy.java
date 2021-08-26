@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resol
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -202,32 +201,6 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             };
             resolveNames(delta, nameResolver, prismContext);
         }
-    }
-
-    @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult parentResult) {
-        List<AuditEventRecord> result = new ArrayList<>();
-        for (AuditService service : services) {
-            if (service.supportsRetrieval()) {
-                List<AuditEventRecord> records = service.listRecords(query, params, parentResult);
-                if (records != null && !records.isEmpty()) {
-                    result.addAll(records);
-                }
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public long countObjects(String query, Map<String, Object> params) {
-        long count = 0;
-        for (AuditService service : services) {
-            if (service.supportsRetrieval()) {
-                long c = service.countObjects(query, params);
-                count += c;
-            }
-        }
-        return count;
     }
 
     @Override
