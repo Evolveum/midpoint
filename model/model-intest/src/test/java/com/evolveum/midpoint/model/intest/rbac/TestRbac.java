@@ -4375,7 +4375,10 @@ public class TestRbac extends AbstractRbacTest {
         executeChangesAssertSuccess(delta, getDefaultOptions(), task, result);
     }
 
-    @Test(enabled = false)          // MID-4856
+    /**
+     * MID-4856
+     */
+    @Test
     public void test890DeleteRoleUndeletable() throws Exception {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -4395,7 +4398,10 @@ public class TestRbac extends AbstractRbacTest {
         }
     }
 
-    @Test           // MID-4856
+    /**
+     * Workaround for MID-4856 (important before the issue was fixed).
+     */
+    @Test
     public void test892DeleteRoleUndeletableGlobal() throws Exception {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 

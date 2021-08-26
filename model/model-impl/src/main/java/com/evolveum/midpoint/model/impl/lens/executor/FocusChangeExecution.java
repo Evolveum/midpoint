@@ -276,6 +276,9 @@ public class FocusChangeExecution<O extends ObjectType> {
             b.clockworkConflictResolver.createConflictWatcherAfterFocusAddition(context, focusDelta.getOid(),
                     focusDelta.getObjectToAdd().getVersion());
         }
+        if (deltaExecution.isDeleted()) {
+            focusContext.setDeleted();
+        }
     }
 
     private void applyArchetypePolicyToAddedObject() {

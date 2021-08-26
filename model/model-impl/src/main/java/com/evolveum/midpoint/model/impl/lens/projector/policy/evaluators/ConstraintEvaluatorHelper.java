@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
@@ -68,8 +67,8 @@ public class ConstraintEvaluatorHelper {
             var.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION,
                     LocalizationUtil.createLocalizableMessageType(createDisplayInformation(target, false)), LocalizableMessageType.class);
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
-            AssignmentType assignmentType = actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE);
-            var.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentType, assignmentType.asPrismContainerValue().getDefinition());
+            AssignmentType assignment = actx.evaluatedAssignment.getAssignment(actx.state == ObjectState.BEFORE);
+            var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, AssignmentType.class);
         } else {
             PrismObjectDefinition<ObjectType> targetDef = rctx.lensContext.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
             var.put(ExpressionConstants.VAR_TARGET, null, targetDef);

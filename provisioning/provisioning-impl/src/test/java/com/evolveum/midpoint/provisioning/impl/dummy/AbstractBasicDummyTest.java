@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -20,7 +21,10 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -53,10 +57,6 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -1433,7 +1433,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         };
     }
 
-    protected <T> void assertRepoShadowCachedAttributeValue(PrismObject<ShadowType> shadowRepo, String attrName, T... attrValues) {
+    protected void assertRepoShadowCachedAttributeValue(PrismObject<ShadowType> shadowRepo, String attrName, Object... attrValues) {
         PrismAsserts.assertNoItem(shadowRepo, ItemPath.create(ShadowType.F_ATTRIBUTES,
                 new ItemName(ResourceTypeUtil.getResourceNamespace(resource), attrName)));
     }
@@ -1468,4 +1468,22 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNull("Unexpected password value in repo shadow " + shadowRepo, passwordValue);
     }
 
+    protected ResourceAttributeDefinition<?> getAccountAttrDef(String name) throws SchemaException {
+        return requireNonNull(
+                getAccountObjectClassDefinition().findAttributeDefinition(name));
+    }
+
+    protected ResourceAttributeDefinition<?> getAccountAttrDef(QName name) throws SchemaException {
+        return requireNonNull(
+                getAccountObjectClassDefinition().findAttributeDefinition(name));
+    }
+
+    @NotNull
+    private ObjectClassComplexTypeDefinition getAccountObjectClassDefinition() throws SchemaException {
+        ResourceSchema resourceSchema =
+                requireNonNull(
+                        RefinedResourceSchema.getResourceSchema(resource, prismContext));
+        return requireNonNull(
+                resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+    }
 }

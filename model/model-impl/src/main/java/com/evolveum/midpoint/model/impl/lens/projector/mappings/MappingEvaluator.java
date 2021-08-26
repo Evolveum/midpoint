@@ -16,6 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -573,7 +574,7 @@ public class MappingEvaluator {
     public <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType>
     MappingImpl<V, D> createFocusMapping(
             LensContext<AH> context, FocalMappingEvaluationRequest<?, ?> request,
-            ObjectDeltaObject<AH> focusOdo, PrismObject<T> targetContext, Integer iteration, String iterationToken,
+            ObjectDeltaObject<AH> focusOdo, @NotNull PrismObject<T> targetContext, Integer iteration, String iterationToken,
             PrismObject<SystemConfigurationType> configuration, XMLGregorianCalendar now, String contextDesc,
             Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,

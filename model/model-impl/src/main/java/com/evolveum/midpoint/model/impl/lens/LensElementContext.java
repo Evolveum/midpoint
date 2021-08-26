@@ -43,6 +43,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Lens context for a computation element - a focus or a projection.
@@ -249,6 +250,23 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             return objectCurrent;
         }
         return objectOld;
+    }
+
+    public @Nullable PrismObject<O> getObjectCurrentOrNew() {
+        if (objectCurrent != null) {
+            return objectCurrent;
+        }
+        return objectNew;
+    }
+
+    public @NotNull PrismObject<O> getObjectNewOrCurrentRequired() {
+        if (objectNew != null) {
+            return objectNew;
+        } else if (objectCurrent != null) {
+            return objectCurrent;
+        } else {
+            throw new IllegalStateException("Both object new and object current are null");
+        }
     }
 
     /**

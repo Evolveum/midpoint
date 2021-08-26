@@ -7,12 +7,14 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.ext;
 
 import java.util.Objects;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Querydsl "row bean" type related to {@link QExtItem}.
@@ -21,7 +23,12 @@ public class MExtItem {
 
     public Integer id;
     public String itemName;
-    public String valueType; // references use ObjectReferenceType#COMPLEX_TYPE
+
+    /**
+     * Value type as URI produced by {@link QNameUtil#qNameToUri(QName)}.
+     * References use URI for {@link ObjectReferenceType#COMPLEX_TYPE} (midPoint, not Prism one).
+     */
+    public String valueType;
     public MExtItemHolderType holderType;
     public MExtItemCardinality cardinality;
 

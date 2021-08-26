@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.task.api.TaskUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -160,6 +162,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             // Otherwise the synchronization situation won't be updated because SynchronizationService could think that
             // there is not shadow at all.
             change.setShadowedResourceObject(repositoryShadow);
+            change.setSimulate(TaskUtil.isSimulate(task));
             eventDispatcher.notifyChange(change, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);

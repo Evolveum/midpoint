@@ -8,8 +8,12 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -18,9 +22,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 
 class Util {
 
@@ -55,9 +62,9 @@ class Util {
     }
 
     @Nullable
-    static QName getRelation(AssignmentType assignmentType, RelationRegistry relationRegistry) {
-        return assignmentType.getTargetRef() != null ?
-                relationRegistry.normalizeRelation(assignmentType.getTargetRef().getRelation()) : null;
+    static QName getNormalizedRelation(@NotNull AssignmentType assignment) {
+        return assignment.getTargetRef() != null ?
+                SchemaService.get().normalizeRelation(assignment.getTargetRef().getRelation()) : null;
     }
 
     static boolean shouldCollectMembership(AssignmentPathSegmentImpl segment) {
@@ -71,4 +78,27 @@ class Util {
          */
         return !segment.isArchetypeHierarchy() && (segment.direct || segment.isMatchingOrder || segment.source instanceof UserType);
     }
+
+    static AssignmentType getAssignment(
+            ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            boolean evaluateOld) {
+        return asContainerable(assignmentIdi.getSingleValue(evaluateOld));
+    }
+
+//    static @NotNull AssignmentType getAssignmentAny(
+//            @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+//            boolean evaluateOld) {
+//        AssignmentType matching = getAssignment(assignmentIdi, evaluateOld);
+//        if (matching != null) {
+//            return matching;
+//        }
+//
+//        AssignmentType theOther = getAssignment(assignmentIdi, !evaluateOld);
+//        if (theOther != null) {
+//            return theOther;
+//        }
+//
+//        throw new IllegalStateException("Neither 'old' nor 'new' assignment found in " + assignmentIdi +
+//                " (evaluateOld = " + evaluateOld + ")");
+//    }
 }

@@ -1777,4 +1777,3 @@ END $$;
 
 -- For Quartz tables see:
 -- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
-
