@@ -17,8 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskUnpauseActionTyp
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
-
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -88,7 +86,7 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
     @Experimental
     default @NotNull ExecutionModeType getExecutionMode() {
         ExecutionSupport executionSupport = getExecutionSupport();
-        return executionSupport != null ? executionSupport.getExecutionMode() : ExecutionModeType.EXECUTE;
+        return executionSupport != null ? executionSupport.getExecutionMode() : ExecutionModeType.FULL;
     }
 
     ExecutionSupport getExecutionSupport();

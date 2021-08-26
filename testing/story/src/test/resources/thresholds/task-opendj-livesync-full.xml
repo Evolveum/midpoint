@@ -29,7 +29,6 @@
                 </resourceObjects>
             </liveSynchronization>
         </work>
-        <executionMode>execute</executionMode>
     </activity>
     <activityState>
         <activity>

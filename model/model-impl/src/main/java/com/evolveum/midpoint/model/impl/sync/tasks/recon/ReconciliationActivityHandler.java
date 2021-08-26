@@ -120,7 +120,7 @@ public class ReconciliationActivityHandler
     private ActivityDefinition<ReconciliationWorkDefinition> createSimulationDefinition(
             @NotNull ActivityDefinition<ReconciliationWorkDefinition> original) {
         ActivityDefinition<ReconciliationWorkDefinition> clone = original.clone();
-        clone.getWorkDefinition().setExecutionMode(ExecutionModeType.SIMULATE);
+        clone.getWorkDefinition().setExecutionMode(ExecutionModeType.PREVIEW);
         clone.getControlFlowDefinition().setSkip();
         return clone;
     }
@@ -171,7 +171,7 @@ public class ReconciliationActivityHandler
     // TODO generalize
     private String modeSuffix(
             ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context) {
-        return context.getActivity().getWorkDefinition().getExecutionMode() == ExecutionModeType.SIMULATE ?
+        return context.getActivity().getWorkDefinition().getExecutionMode() == ExecutionModeType.PREVIEW ?
                 " (simulated)" : "";
     }
 }

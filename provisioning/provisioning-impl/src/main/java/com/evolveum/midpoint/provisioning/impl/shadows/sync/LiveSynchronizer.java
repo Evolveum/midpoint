@@ -151,8 +151,8 @@ public class LiveSynchronizer {
         LiveSyncToken oldestTokenProcessed = ctx.oldestTokenWatcher.getOldestTokenProcessed();
         LOGGER.trace("oldestTokenProcessed = {}, synchronization result = {}", oldestTokenProcessed, ctx.syncResult);
         LiveSyncToken tokenToSet;
-        if (ctx.isSimulate()) {
-            LOGGER.trace("Simulation mode -> token will not be updated.");
+        if (ctx.isPreview()) {
+            LOGGER.trace("Preview mode -> token will not be updated.");
             tokenToSet = null;
         } else if (isDryRun && !updateTokenInDryRun) {
             LOGGER.trace("Dry run mode with updateTokenInDryRun=false -> token will not be updated.");
@@ -201,7 +201,7 @@ public class LiveSynchronizer {
         if (currentToken == null) {
             LOGGER.warn("No current token provided by resource: {}. Live sync will not proceed: {}",
                     ctx.context.getShadowCoordinates(), ctx.task);
-        } else if (!ctx.isSimulate()) {
+        } else if (!ctx.isPreview()) {
             LOGGER.debug("Setting initial live sync token ({}) in task: {}.", currentToken, ctx.task);
             ctx.tokenStorage.setToken(currentToken, result);
             ctx.syncResult.setTokenUpdatedTo(currentToken);
@@ -239,8 +239,8 @@ public class LiveSynchronizer {
             return getInitialToken() != null;
         }
 
-        private boolean isSimulate() {
-            return options.getExecutionMode() == ExecutionModeType.SIMULATE;
+        private boolean isPreview() {
+            return options.getExecutionMode() == ExecutionModeType.PREVIEW;
         }
 
         private boolean isDryRun() {

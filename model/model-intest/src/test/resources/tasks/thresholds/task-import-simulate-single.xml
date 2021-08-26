@@ -24,6 +24,6 @@
                 </resourceObjects>
             </import>
         </work>
-        <executionMode>simulate</executionMode>
+        <executionMode>preview</executionMode>
     </activity>
 </task>

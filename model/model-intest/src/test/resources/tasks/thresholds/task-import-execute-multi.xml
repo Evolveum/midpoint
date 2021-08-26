@@ -25,7 +25,6 @@
                 </resourceObjects>
             </import>
         </work>
-        <executionMode>execute</executionMode>
         <distribution>
             <buckets>
                 <stringSegmentation>

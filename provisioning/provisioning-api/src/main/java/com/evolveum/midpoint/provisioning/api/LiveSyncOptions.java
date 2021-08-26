@@ -30,7 +30,7 @@ public class LiveSyncOptions {
     private final boolean updateLiveSyncTokenInDryRun;
 
     public LiveSyncOptions() {
-        this(ExecutionModeType.EXECUTE, null, false);
+        this(ExecutionModeType.FULL, null, false);
     }
 
     public LiveSyncOptions(@NotNull ExecutionModeType executionMode, Integer batchSize, boolean updateLiveSyncTokenInDryRun) {

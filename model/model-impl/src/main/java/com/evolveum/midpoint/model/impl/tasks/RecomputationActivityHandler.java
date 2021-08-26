@@ -114,7 +114,7 @@ public class RecomputationActivityHandler
         public boolean processObject(@NotNull PrismObject<ObjectType> object,
                 @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
                 throws CommonException, ActivityExecutionException {
-            boolean simulate = activityExecution.isSimulate();
+            boolean simulate = activityExecution.isPreview();
             String action = simulate ? "Simulated recomputation" : "Recomputation";
 
             LOGGER.trace("{} of object {}", action, object);

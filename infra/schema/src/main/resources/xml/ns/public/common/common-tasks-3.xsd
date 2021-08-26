@@ -2528,6 +2528,32 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Full execution mode. Changes are computed and also executed.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="preview">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            A preview (simulation) of changes: Changes are computed, but nothing is executed.
+                            Used for example to check the thresholds before the full (real) execution.
+                            In the future midPoint may also store the computed changes for later analysis.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PREVIEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="dryRun">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2541,38 +2567,29 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="simulate">
+            <xsd:enumeration value="none">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Changes are computed, but nothing is executed. E.g. preview changes is run for
-                            objects and the computed deltas are stored to be processed later. E.g. simulate
-                            how many changes will be processed during the reconciliation. After reconciliation
-                            finished, proper action is taken to show results during simulation.
+                            Items are fetched from repository or resource, but no specific processing
+                            is executed. This is very similar to dryRun, but - technically speaking -
+                            items are discarded right after being fetched from the source. Provisioning
+                            pre-processing of shadows may or may not be done, depending on the implementation.
+                            This mode is used just to test the object retrieval process.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SIMULATE"/>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                        <a:since>4.4</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="execute">
+            <xsd:enumeration value="bucketAnalysis">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Full execution mode. Changes are computed and also executed.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXECUTE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="bucketsAnalysis">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Only the division into buckets is analyzed. Nothing more is executed.
+                            In this mode no items are really fetched. Only the size of individual buckets
+                            is measured.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

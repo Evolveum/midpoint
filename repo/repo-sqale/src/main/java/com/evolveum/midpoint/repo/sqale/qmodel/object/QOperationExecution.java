@@ -54,8 +54,8 @@ public class QOperationExecution<OR extends MObject> extends QContainer<MOperati
             ColumnMetadata.named("taskRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata TASK_REF_RELATION_ID =
             ColumnMetadata.named("taskRefRelationId").ofType(Types.INTEGER);
-    public static final ColumnMetadata TIMESTAMP_VALUE =
-            ColumnMetadata.named("timestampValue").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata TIMESTAMP =
+            ColumnMetadata.named("timestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
     // attributes
 
@@ -75,8 +75,8 @@ public class QOperationExecution<OR extends MObject> extends QContainer<MOperati
             createEnum("taskRefTargetType", MObjectType.class, TASK_REF_TARGET_TYPE);
     public final NumberPath<Integer> taskRefRelationId =
             createInteger("taskRefRelationId", TASK_REF_RELATION_ID);
-    public final DateTimePath<Instant> timestampValue =
-            createInstant("timestampValue", TIMESTAMP_VALUE);
+    public final DateTimePath<Instant> timestamp =
+            createInstant("timestamp", TIMESTAMP);
 
     public QOperationExecution(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

@@ -447,16 +447,20 @@ public abstract class IterativeActivityExecution<
         return reportingOptions;
     }
 
-    public boolean isSimulate() {
-        return getExecutionMode() == ExecutionModeType.SIMULATE;
+    public boolean isPreview() {
+        return getExecutionMode() == ExecutionModeType.PREVIEW;
     }
 
     public boolean isDryRun() {
         return getExecutionMode() == ExecutionModeType.DRY_RUN;
     }
 
-    public boolean isExecute() {
-        return getExecutionMode() == ExecutionModeType.EXECUTE;
+    public boolean isFullExecution() {
+        return getExecutionMode() == ExecutionModeType.FULL;
+    }
+
+    boolean isNoExecution() {
+        return getExecutionMode() == ExecutionModeType.NONE;
     }
 
     public @NotNull String getRootTaskOid() {
