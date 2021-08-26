@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.orgs;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -137,7 +138,7 @@ public class PageOrgs extends PageAdmin {
     private void orgDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageOrgUnit.class, parameters);
+        navigateToNext(PageOrg.class, parameters);
     }
 
     private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){

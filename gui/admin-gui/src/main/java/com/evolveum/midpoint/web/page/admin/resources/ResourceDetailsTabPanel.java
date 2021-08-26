@@ -94,6 +94,12 @@ public class ResourceDetailsTabPanel extends BasePanel<PrismObject<ResourceType>
         };
     }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
     protected void initLayout() {
 
         PrismObject<ResourceType> resourceObject = getModelObject();

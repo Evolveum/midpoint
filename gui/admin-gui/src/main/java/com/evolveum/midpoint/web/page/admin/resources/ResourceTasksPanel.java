@@ -97,6 +97,12 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
 //
 //    }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
     protected void initLayout() {
         final MainObjectListPanel<TaskType> tasksPanel =
                 new MainObjectListPanel<>(ID_TASKS_TABLE, TaskType.class, null) {

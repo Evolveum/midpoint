@@ -784,8 +784,7 @@ public final class WebComponentUtil {
             return archetypeRef;
         }
         for (AssignmentType assignment : assignmentHolder.getAssignment()) {
-            if (StringUtils.isNotEmpty(assignment.getTargetRef().getOid())
-                    && assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+            if (isArchetypeAssignment(assignment)) {
                 archetypeRef = assignment.getTargetRef();
             }
         }
@@ -798,13 +797,6 @@ public final class WebComponentUtil {
             return archetypeRef.getOid();
         }
         return null;
-    }
-
-    public static void iterativeExecuteBulkAction(PageBase pageBase, ExecuteScriptType script, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-
-        pageBase.getScriptingService().evaluateIterativeExpressionInBackground(script, task, result);
     }
 
     public static boolean isAuthorized(String... action) {
