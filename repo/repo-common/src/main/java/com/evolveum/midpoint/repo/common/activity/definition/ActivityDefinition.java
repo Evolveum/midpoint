@@ -40,8 +40,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     /** Tailorable. */
     @NotNull private final ActivityDistributionDefinition distributionDefinition;
 
-    /** Definition for tracing and profiling. Currently not tailorable. */
-    @NotNull private final ActivityMonitoringDefinition monitoringDefinition;
+    /** Definition for activity reporting. Tailorable. */
+    @NotNull private final ActivityReportingDefinition reportingDefinition;
 
     /**
      * Reporting options specified for specific activity. These are merged with default reporting options
@@ -49,7 +49,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      *
      * Currently not tailorable.
      */
-    @NotNull private final TaskReportingOptionsType specificReportingOptions;
+    @NotNull private final ActivityReportingDefinitionType specificReportingOptions;
 
     @NotNull private final WorkDefinitionFactory workDefinitionFactory;
 
@@ -57,14 +57,14 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
             @NotNull WD workDefinition,
             @NotNull ActivityControlFlowDefinition controlFlowDefinition,
             @NotNull ActivityDistributionDefinition distributionDefinition,
-            @NotNull ActivityMonitoringDefinition monitoringDefinition,
-            @NotNull TaskReportingOptionsType specificReportingOptions,
+            @NotNull ActivityReportingDefinition reportingDefinition,
+            @NotNull ActivityReportingDefinitionType specificReportingOptions,
             @NotNull WorkDefinitionFactory workDefinitionFactory) {
         this.identifierFromDefinition = identifierFromDefinition;
         this.workDefinition = workDefinition;
         this.controlFlowDefinition = controlFlowDefinition;
         this.distributionDefinition = distributionDefinition;
-        this.monitoringDefinition = monitoringDefinition;
+        this.reportingDefinition = reportingDefinition;
         this.specificReportingOptions = specificReportingOptions;
         this.workDefinitionFactory = workDefinitionFactory;
     }
@@ -87,32 +87,32 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
         ActivityDistributionDefinition distributionDefinition =
                 ActivityDistributionDefinition.create(bean, getWorkerThreadsSupplier(rootTask));
-        ActivityMonitoringDefinition monitoringDefinition = ActivityMonitoringDefinition.create(bean, rootTask);
+        ActivityReportingDefinition reportingDefinition = ActivityReportingDefinition.create(bean, rootTask);
 
         return new ActivityDefinition<>(
                 bean != null ? bean.getIdentifier() : null,
                 rootWorkDefinition,
                 controlFlowDefinition,
                 distributionDefinition,
-                monitoringDefinition,
+                reportingDefinition,
                 getReportingOptionsCloned(bean, rootTask),
                 factory);
     }
 
-    private static @NotNull TaskReportingOptionsType getReportingOptionsCloned(ActivityDefinitionType bean, Task task) {
+    private static @NotNull ActivityReportingDefinitionType getReportingOptionsCloned(ActivityDefinitionType bean, Task task) {
         if (bean != null && bean.getReporting() != null) {
             return bean.getReporting().clone();
         }
 
         if (task != null) {
-            TaskReportingOptionsType fromTask =
+            ActivityReportingDefinitionType fromTask =
                     task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_REPORTING_OPTIONS);
             if (fromTask != null) {
                 return fromTask.clone();
             }
         }
 
-        return new TaskReportingOptionsType(PrismContext.get());
+        return new ActivityReportingDefinitionType(PrismContext.get());
     }
 
     /**
@@ -136,7 +136,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
         ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean, () -> null);
-        ActivityMonitoringDefinition monitoringDefinition = ActivityMonitoringDefinition.create(bean, null);
+        ActivityReportingDefinition monitoringDefinition = ActivityReportingDefinition.create(bean, null);
 
         return new ActivityDefinition<>(
                 bean.getIdentifier(),
@@ -253,7 +253,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     public void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
         controlFlowDefinition.applyChangeTailoring(tailoring);
         distributionDefinition.applyChangeTailoring(tailoring);
-        monitoringDefinition.applyChangeTailoring(tailoring);
+        reportingDefinition.applyChangeTailoring(tailoring);
         applyExecutionModeTailoring(tailoring);
     }
 
@@ -279,16 +279,16 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 (WD) workDefinition.clone(),
                 controlFlowDefinition.clone(),
                 distributionDefinition.clone(),
-                monitoringDefinition.clone(),
+                reportingDefinition.clone(),
                 specificReportingOptions.clone(),
                 workDefinitionFactory);
     }
 
-    public @NotNull ActivityMonitoringDefinition getMonitoringDefinition() {
-        return monitoringDefinition;
+    public @NotNull ActivityReportingDefinition getReportingDefinition() {
+        return reportingDefinition;
     }
 
-    public @NotNull TaskReportingOptionsType getSpecificReportingOptions() {
+    public @NotNull ActivityReportingDefinitionType getSpecificReportingOptions() {
         return specificReportingOptions;
     }
 
