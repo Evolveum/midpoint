@@ -9,7 +9,7 @@
 <task oid="29d2a62c-6c31-42a4-9364-ecfb0dad0825"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>task-reconciliation-simulate-execute-single-thread</name>
+    <name>task-reconciliation-simulate-execute-single</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
@@ -32,13 +32,13 @@
                 </controlFlow>
             </change>
             <change>
-                <reference>resourceObjects</reference>
+                <reference>remainingShadowsSimulation</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
             </change>
             <change>
-                <reference>remainingShadowsSimulation</reference>
+                <reference>resourceObjects</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>

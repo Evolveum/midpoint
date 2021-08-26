@@ -6,10 +6,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="8576985e-79e4-4d0c-bedd-72652db3c760"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<task oid="c615aa46-a890-45e6-ab4a-94f14fbd204f"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>task-import-execute-single-thread</name>
+    <name>task-import-simulate-single</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
@@ -24,6 +24,6 @@
                 </resourceObjects>
             </import>
         </work>
-        <executionMode>execute</executionMode>
+        <executionMode>simulate</executionMode>
     </activity>
 </task>

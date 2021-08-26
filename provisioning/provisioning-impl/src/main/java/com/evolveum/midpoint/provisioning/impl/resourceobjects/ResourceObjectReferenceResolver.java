@@ -15,6 +15,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -174,9 +175,14 @@ class ResourceObjectReferenceResolver {
         return primaryIdentifiers;
     }
 
+    /**
+     * @param oidToReportAsNotFound When we know the shadow OID corresponding to the object being fetched, we should provide
+     * it here. It is stored in {@link ObjectNotFoundException} should that be thrown.
+     */
     PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
+            @Nullable String oidToReportAsNotFound,
             OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
@@ -202,7 +208,7 @@ class ResourceObjectReferenceResolver {
             parentResult.recordFatalErrorNotFinish("Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
             throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
                         PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())+": "
-                    + e.getMessage(), e);
+                    + e.getMessage(), e, oidToReportAsNotFound);
         } catch (CommunicationException e) {
             parentResult.recordFatalErrorNotFinish("Error communication with the connector " + connector
                     + ": " + e.getMessage(), e);

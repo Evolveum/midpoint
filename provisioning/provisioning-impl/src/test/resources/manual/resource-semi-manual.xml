@@ -74,4 +74,10 @@
         <reshreshOnRead>true</reshreshOnRead>
     </consistency>
 
+    <business>
+        <operatorRef oid="operators-organization" type="OrgType"/>
+        <operatorRef oid="operators-role" type="RoleType"/>
+        <operatorRef oid="operator-user" type="UserType"/>
+    </business>
+
 </resource>

@@ -1883,9 +1883,6 @@ public class SqaleRepositoryService implements RepositoryService {
     private void recordException(
             @NotNull Throwable ex, OperationResult operationResult, boolean fatal) {
         String message = Strings.isNullOrEmpty(ex.getMessage()) ? "null" : ex.getMessage();
-        if (Strings.isNullOrEmpty(message)) {
-            message = ex.getMessage();
-        }
 
         // non-fatal errors will NOT be put into OperationResult, not to confuse the user
         if (operationResult != null && fatal) {

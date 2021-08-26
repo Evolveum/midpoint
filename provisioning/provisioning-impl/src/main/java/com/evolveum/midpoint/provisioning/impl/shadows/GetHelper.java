@@ -226,7 +226,7 @@ class GetHelper {
 
             try {
 
-                resourceObject = resourceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
+                resourceObject = resourceObjectConverter.getResourceObject(ctx, identifiers, repoShadow.getOid(), true, parentResult);
 
             } catch (ObjectNotFoundException e) {
                 // This may be OK, e.g. for connectors that have running async add operation.
@@ -358,7 +358,10 @@ class GetHelper {
             GetOperationOptions rootOptions,
             Exception cause,
             Task task,
-            OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            OperationResult parentResult)
+            throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+            ExpressionEvaluationException {
         ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
         if (handler == null) {
             parentResult.recordFatalError("Error without a handler: " + cause.getMessage(), cause);

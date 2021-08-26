@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 import com.evolveum.midpoint.repo.common.task.*;
@@ -30,6 +32,8 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Activity execution for report import.
  */
@@ -45,6 +49,9 @@ class ClassicReportImportActivityExecutionSpecifics
 
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
+
+    /** Parsed VariablesMap for lines of file. */
+    private List<VariablesMap> variables;
 
     private ImportController controller;
 
@@ -66,6 +73,16 @@ class ClassicReportImportActivityExecutionSpecifics
         controller = new ImportController(
                 report, reportService, support.existCollectionConfiguration() ? support.getCompiledCollectionView(result) : null);
         controller.initialize();
+        try {
+            variables = controller.parseColumnsAsVariablesFromFile(support.getReportData());
+        } catch (IOException e) {
+            LOGGER.error("Couldn't read content of imported file", e);
+        }
+    }
+
+    @Override
+    public @Nullable Long determineExpectedTotal(OperationResult result) throws CommonException {
+        return (long) variables.size();
     }
 
     @Override
@@ -77,11 +94,9 @@ class ClassicReportImportActivityExecutionSpecifics
                     new InputReportLineProcessingRequest(line, activityExecution),
                     result);
         };
-
-        try {
-            controller.parseColumnsAsVariablesFromFile(support.getReportData(), handler);
-        } catch (IOException e) {
-            LOGGER.error("Couldn't read content of imported file", e);
+        AtomicInteger sequence = new AtomicInteger(1);
+        for (VariablesMap variablesMap : variables) {
+            handler.accept(sequence.getAndIncrement(), variablesMap);
         }
     }
 

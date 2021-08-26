@@ -37,7 +37,7 @@ public class TaskUtil {
         return tasks.stream().filter(t -> identifier.equals(t.getTaskIdentifier())).findFirst().orElse(null);
     }
 
-    public static ExecutionModeType getExecutionMode(Task task) {
+    public static @NotNull ExecutionModeType getExecutionMode(Task task) {
         if (task instanceof RunningTask) {
             return ((RunningTask) task).getExecutionMode();
         } else {
@@ -51,6 +51,10 @@ public class TaskUtil {
 
     public static boolean isSimulate(Task task) {
         return getExecutionMode(task) == ExecutionModeType.SIMULATE;
+    }
+
+    public static boolean isExecute(Task task) {
+        return getExecutionMode(task) == ExecutionModeType.EXECUTE;
     }
 
     public static boolean findExtensionItemValueInThisOrParent(Task task, QName path, boolean defaultValue) throws SchemaException {

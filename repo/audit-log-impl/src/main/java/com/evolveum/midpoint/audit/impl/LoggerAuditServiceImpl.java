@@ -11,8 +11,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,16 +146,6 @@ public class LoggerAuditServiceImpl implements AuditService {
         }
         sb.append("]");
         return sb.toString();
-    }
-
-    @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
-    }
-
-    @Override
-    public long countObjects(String query, Map<String, Object> params) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
     }
 
     @Override

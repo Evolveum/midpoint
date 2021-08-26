@@ -102,9 +102,6 @@ public class QAuditEventRecordMapping
                         ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                         rootToQueryItem)));
 
-        /*
-         * There is also no F_ATTORNEY_TYPE and similar paths - unless these are "extension" columns?
-         */
         addItemMapping(F_INITIATOR_REF, AuditRefItemFilterProcessor.mapper(
                 q -> q.initiatorOid, q -> q.initiatorName, q -> q.initiatorType));
         addItemMapping(F_ATTORNEY_REF, AuditRefItemFilterProcessor.mapper(q -> q.attorneyOid,

@@ -194,7 +194,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         addExtensionValue(user1Extension, "string", "string-value");
         addExtensionValue(user1Extension, "int", 1);
         addExtensionValue(user1Extension, "long", 2L);
-        addExtensionValue(user1Extension, "short", 3);
+        addExtensionValue(user1Extension, "short", (short) 3);
         addExtensionValue(user1Extension, "decimal",
                 new BigDecimal("12345678901234567890.12345678901234567890"));
         addExtensionValue(user1Extension, "double", Double.MAX_VALUE);
@@ -218,7 +218,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         user1.assignment(new AssignmentType(prismContext)
                 .lifecycleState("assignment1-3-ext")
                 .extension(user1AssignmentExtension));
-        addExtensionValue(user1AssignmentExtension, "integer", 47);
+        addExtensionValue(user1AssignmentExtension, "integer", BigInteger.valueOf(47));
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
 
         UserType user2 = new UserType(prismContext).name("user-2")
@@ -237,7 +237,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 asXMLGregorianCalendar(Instant.ofEpochMilli(1633_100_000_000L)));
         addExtensionValue(user2Extension, "int", 2);
         addExtensionValue(user2Extension, "double", Double.MIN_VALUE); // positive, close to zero
-        addExtensionValue(user2Extension, "float", 0);
+        addExtensionValue(user2Extension, "float", 0f);
         addExtensionValue(user2Extension, "ref", ref(orgXOid, OrgType.COMPLEX_TYPE));
         addExtensionValue(user2Extension, "string-mv", "string-value2", "string-value3");
         addExtensionValue(user2Extension, "poly", PolyString.fromOrig("poly-value-user2"));

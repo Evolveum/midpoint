@@ -18,7 +18,6 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
-import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -301,15 +299,24 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Trimming the value to the column size from column metadata (must be specified).
+     * Object reference with target name.
      */
-    protected @Nullable String trim(
-            @Nullable String value, @NotNull ColumnMetadata columnMetadata) {
-        if (!columnMetadata.hasSize()) {
-            throw new IllegalArgumentException(
-                    "trimString with column metadata without specified size: " + columnMetadata);
+    @Nullable
+    protected ObjectReferenceType objectReference(
+            @Nullable UUID oid, MObjectType repoObjectType, String targetName) {
+        if (oid == null) {
+            return null;
         }
-        return MiscUtil.trimString(value, columnMetadata.getSize());
+        if (repoObjectType == null) {
+            throw new IllegalArgumentException(
+                    "NULL object type provided for object reference with OID " + oid);
+        }
+
+        return new ObjectReferenceType()
+                .oid(oid.toString())
+                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
+                .description(targetName)
+                .targetName(targetName);
     }
 
     /**
@@ -437,11 +444,15 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected S parseSchemaObject(byte[] fullObject, String identifier) throws SchemaException {
+        return parseSchemaObject(fullObject, identifier, schemaType());
+    }
+
+    protected <T> T parseSchemaObject(byte[] fullObject, String identifier, Class<T> clazz) throws SchemaException {
         String serializedForm = new String(fullObject, StandardCharsets.UTF_8);
         try {
-            RepositoryObjectParseResult<S> result =
-                    repositoryContext().parsePrismObject(serializedForm, schemaType());
-            S schemaObject = result.prismObject;
+            RepositoryObjectParseResult<T> result =
+                    repositoryContext().parsePrismObject(serializedForm, clazz);
+            T schemaObject = result.prismValue;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
                         schemaObject.toString(),
@@ -452,7 +463,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             // This is a serious thing. We have corrupted XML in the repo. This may happen even
             // during system init. We want really loud and detailed error here.
             logger.error("Couldn't parse object {} {}: {}: {}\n{}",
-                    schemaType().getSimpleName(), identifier,
+                    clazz.getSimpleName(), identifier,
                     e.getClass().getName(), e.getMessage(), serializedForm, e);
             throw e;
         }

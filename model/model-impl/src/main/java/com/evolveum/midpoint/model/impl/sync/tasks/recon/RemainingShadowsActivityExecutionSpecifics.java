@@ -13,12 +13,17 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Reconciliatio
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.schema.SchemaService;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
@@ -75,10 +80,23 @@ class RemainingShadowsActivityExecutionSpecifics
     @Override
     public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
+
+        // We doing dry run or simulation, we must look after synchronizationTimestamp, because this is the one that
+        // is updated in resource objects activity in dry run or simulation mode. However, when doing execution,
+        // we look after fullSynchronizationTimestamp.
+        //
+        // Besides being more logical, this allows us to run both simulation and execution in a single reconciliation activity:
+        // simulation sets synchronization timestamps, keeping full sync timestamps intact. So this one can be used in
+        // the execution activities to distinguish between shadows seen and not seen.
+        ItemName syncTimestampItem =
+                activityExecution.isExecute() ?
+                        ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP :
+                        ShadowType.F_SYNCHRONIZATION_TIMESTAMP;
+
         return getBeans().prismContext.queryFor(ShadowType.class)
                 .block()
-                    .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(getReconciliationStartTimestamp(result))
-                    .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
+                    .item(syncTimestampItem).le(getReconciliationStartTimestamp(result))
+                    .or().item(syncTimestampItem).isNull()
                 .endBlock()
                     .and().item(ShadowType.F_RESOURCE_REF).ref(objectClassSpec.getResourceOid())
                     .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassSpec.getObjectClassDefinitionRequired().getTypeName())
@@ -124,39 +142,82 @@ class RemainingShadowsActivityExecutionSpecifics
         return true;
     }
 
+    /**
+     * Originally we relied on provisioning discovery mechanism to handle objects that couldn't be found on the resource.
+     * However, in order to detect errors in the processing, we need to have more strict control over the process:
+     * the result must not be marked as `HANDLED_ERROR` as it's currently the case in provisioning handling.
+     */
     private void reconcileShadow(PrismObject<ShadowType> shadow, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
         LOGGER.trace("Reconciling shadow {}, fullSynchronizationTimestamp={}", shadow,
                 shadow.asObjectable().getFullSynchronizationTimestamp());
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options;
-            if (activityExecution.isDryRun()) {
-                options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
-            } else {
-                options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());
-            }
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    SchemaService.get().getOperationOptionsBuilder()
+                            .doNotDiscovery() // We are doing "discovery" ourselves
+                            .errorReportingMethod(FetchErrorReportingMethodType.FORCED_EXCEPTION) // As well as complete handling!
+                            .forceRefresh(!activityExecution.isDryRun())
+                            .build();
             getModelBeans().provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, result);
-            // In normal case, we do not get ObjectNotFoundException. The provisioning simply discovers that the shadow
-            // does not exist on the resource, and invokes the discovery that marks the shadow as dead and synchronizes it.
         } catch (ObjectNotFoundException e) {
-            result.muteLastSubresultError();
-            reactShadowGone(shadow, task, result);
+            handleObjectNotFoundException(shadow, e, task, result);
         }
     }
 
-    private void reactShadowGone(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void handleObjectNotFoundException(PrismObject<ShadowType> shadow, ObjectNotFoundException e, Task task,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        if (!shadow.getOid().equals(e.getOid())) {
+            LOGGER.debug("Got unrelated ObjectNotFoundException, rethrowing: " + e.getMessage(), e);
+            throw e;
+        }
+
+        LOGGER.debug("We have a shadow that seemingly does not exist on the resource. Will handle that.");
+
+        result.muteLastSubresultError();
+
+        if (ShadowUtil.isDead(shadow) || !ShadowUtil.isExists(shadow)) {
+            LOGGER.debug("Shadow already marked as dead and/or not existing. "
+                    + "DELETE notification will not be issued. Shadow: {}", shadow);
+            return;
+        }
+
+        reactShadowGone(shadow, task, result);
+    }
+
+    private void reactShadowGone(PrismObject<ShadowType> originalShadow, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+
+        // We reload e.g. to get current tombstone status. Otherwise the clockwork is confused.
+        PrismObject<ShadowType> shadow = reloadShadow(originalShadow, result);
+
         getModelBeans().provisioningService.applyDefinition(shadow, task, result);
+
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON));
         change.setResource(objectClassSpec.getResource().asPrismObject());
-        ObjectDelta<ShadowType> shadowDelta = shadow.getPrismContext().deltaFactory().object()
-                .createDeleteDelta(ShadowType.class, shadow.getOid());
-        change.setObjectDelta(shadowDelta);
+        change.setObjectDelta(shadow.createDeleteDelta());
         change.setShadowedResourceObject(shadow);
+        change.setSimulate(activityExecution.isSimulate());
         ModelImplUtils.clearRequestee(task);
         getModelBeans().eventDispatcher.notifyChange(change, task, result);
+    }
+
+    private PrismObject<ShadowType> reloadShadow(PrismObject<ShadowType> originalShadow, OperationResult result)
+            throws SchemaException {
+        try {
+            return getBeans().repositoryService.getObject(ShadowType.class, originalShadow.getOid(), null, result);
+        } catch (ObjectNotFoundException e) {
+            // TODO Could be the shadow deleted during preprocessing?
+            //  Try to find out if it can occur.
+            LOGGER.debug("Shadow disappeared. But we need to notify the model! Shadow: {}", originalShadow);
+
+            originalShadow.asObjectable().setDead(true);
+            originalShadow.asObjectable().setExists(false);
+            return originalShadow;
+        }
     }
 
     @VisibleForTesting
