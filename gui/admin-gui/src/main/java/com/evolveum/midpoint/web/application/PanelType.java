@@ -22,6 +22,7 @@ public @interface PanelType {
     String name() default "";
     boolean generic() default false;
     String defaultContainerPath() default "";
+    boolean experimental() default false;
 
     Class<? extends Containerable> defaultType() default Containerable.class;
 

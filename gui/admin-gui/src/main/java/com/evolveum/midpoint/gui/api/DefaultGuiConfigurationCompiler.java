@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.application.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -49,6 +50,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.component.objectdetails", //Old panels
             "com.evolveum.midpoint.web.component.assignment",  //Assignments
             "com.evolveum.midpoint.gui.impl.page.admin",
+            "com.evolveum.midpoint.gui.impl.page.admin.component",
             "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component",
             "com.evolveum.midpoint.gui.impl.page.admin.focus.component",
             "com.evolveum.midpoint.gui.impl.page.admin.resource.component",
@@ -56,13 +58,13 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.gui.impl.component.assignment",
             "com.evolveum.midpoint.gui.impl.component.assignmentType.assignment",
             "com.evolveum.midpoint.gui.impl.component.assignmentType.inducement"
-
-
     };
 
     private Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
 
     private Map<String, SimpleCounter> countersMap = new HashMap<>();
+
+    private Boolean experimentalFeaturesEnabled = false;
 
     @Override
     @PostConstruct
@@ -80,6 +82,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     @Override
     public void postProcess(CompiledGuiProfile compiledGuiProfile) {
+        experimentalFeaturesEnabled = compiledGuiProfile.isEnableExperimentalFeatures();
         fillInPanelsMap();
 
         GuiObjectDetailsSetType defaultDetailsPages = compileDefaultGuiObjectDetailsSetType();
@@ -210,21 +213,24 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         List<ContainerPanelConfigurationType> children = processChildren(classes, objectType, clazz);
         config.getPanel().addAll(children);
 
+        if (isDefault) {
+            config.setDefault(true);
+        }
+
+        setupCountersForPanelInstance(identifier, clazz);
+        return config;
+    }
+
+    private void setupCountersForPanelInstance(String panenInstanceIdentifier, Class<?> clazz) {
         Counter counterDefinition = clazz.getAnnotation(Counter.class);
         if (counterDefinition != null) {
             Class<? extends SimpleCounter> counterProvider = counterDefinition.provider();
             try {
-                countersMap.put(identifier, counterProvider.getDeclaredConstructor().newInstance());
+                countersMap.put(panenInstanceIdentifier, counterProvider.getDeclaredConstructor().newInstance());
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-               //TODO log at least
+                //TODO log at least
             }
         }
-
-        if (isDefault) {
-            config.setDefault(true);
-//            defaultContainerPanelConfigurationMap.put(objectType, config);
-        }
-        return config;
     }
 
     private void addPanelTypeConfiguration(Class<?> clazz, ContainerPanelConfigurationType config) {
@@ -240,6 +246,10 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             }
         }
         compileDefaultContainerSpecification(panelType, config);
+
+        if (panelType.experimental() && BooleanUtils.isNotTrue(experimentalFeaturesEnabled)) {
+            config.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+        }
     }
 
     private void compileDefaultContainerSpecification(PanelType panelType, ContainerPanelConfigurationType config) {

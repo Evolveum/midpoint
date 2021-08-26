@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
+import org.apache.wicket.model.PropertyModel;
 import org.opensaml.xmlsec.signature.P;
 
 public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List<ContainerPanelConfigurationType>> {
@@ -94,7 +95,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 label.add(new VisibleBehaviour(() -> countModel.getObject() != null));
                 navigationDetails.add(label);
 
-                DetailsNavigationPanel subPanel = new DetailsNavigationPanel(ID_SUB_NAVIGATION, objectDetialsModel, Model.ofList(item.getModelObject().getPanel())) {
+                DetailsNavigationPanel subPanel = new DetailsNavigationPanel(ID_SUB_NAVIGATION, objectDetialsModel, new PropertyModel<>(item.getModel(), ContainerPanelConfigurationType.F_PANEL.getLocalPart())) {
 
                     @Override
                     protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
@@ -105,6 +106,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                         DetailsNavigationPanel.this.onClickPerformed(config, target);
                     }
                 };
+                subPanel.add(new VisibleBehaviour(() -> !item.getModelObject().getPanel().isEmpty()));
                 navigationDetails.add(subPanel);
                 item.add(new VisibleBehaviour(() -> isMenuItemVisible(item.getModelObject())));
 
