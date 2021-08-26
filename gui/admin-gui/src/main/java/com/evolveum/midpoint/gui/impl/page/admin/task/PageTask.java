@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -81,7 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
                         label = "PageUser.auth.user.label",
                         description = "PageUser.auth.user.description")
         })
-public class PageTask extends PageAssignmentHolderDetails<TaskType> {
+public class PageTask extends PageAssignmentHolderDetails<TaskType, AssignmentHolderDetailsModel<TaskType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageTask.class);
 

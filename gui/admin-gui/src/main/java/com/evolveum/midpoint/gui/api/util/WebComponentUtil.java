@@ -23,11 +23,9 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
-import com.google.common.reflect.Invokable;
-import com.google.common.reflect.TypeToken;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;

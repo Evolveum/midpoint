@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-public abstract class PageFocusDetails<F extends FocusType> extends PageAssignmentHolderDetails<F> {
+public abstract class PageFocusDetails<F extends FocusType> extends PageAssignmentHolderDetails<F, FocusDetailsModels<F>> {
 
     public PageFocusDetails(PageParameters pageParameters) {
         super(pageParameters);
@@ -41,7 +41,7 @@ public abstract class PageFocusDetails<F extends FocusType> extends PageAssignme
     }
 
     @Override
-    protected ObjectDetailsModels<F> createObjectDetailsModels() {
+    protected FocusDetailsModels<F> createObjectDetailsModels() {
         return new FocusDetailsModels<>(createPrismObejctModel(), this);
     }
 }

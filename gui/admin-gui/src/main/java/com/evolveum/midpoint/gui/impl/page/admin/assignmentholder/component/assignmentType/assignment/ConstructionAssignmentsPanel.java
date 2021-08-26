@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.component.assignmentType.assignment;
+package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public abstract class ConstructionAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
+public class ConstructionAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
 
     public ConstructionAssignmentsPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
         super(id, model, config);

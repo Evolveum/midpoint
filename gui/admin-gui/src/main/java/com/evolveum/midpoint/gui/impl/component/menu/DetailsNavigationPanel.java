@@ -110,7 +110,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 navigationDetails.add(subPanel);
                 item.add(new VisibleBehaviour(() -> isMenuItemVisible(item.getModelObject())));
 
-//                item.add(new Label(ID_NAV_ITEM, item.getModel()));
+//                item.add(new Label(ID_NAV_ITEM, item.getModel()));o
             }
         };
         listView.setOutputMarkupId(true);

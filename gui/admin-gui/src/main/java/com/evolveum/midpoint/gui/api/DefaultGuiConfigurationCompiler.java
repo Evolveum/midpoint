@@ -52,12 +52,13 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.gui.impl.page.admin",
             "com.evolveum.midpoint.gui.impl.page.admin.component",
             "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component",
             "com.evolveum.midpoint.gui.impl.page.admin.focus.component",
             "com.evolveum.midpoint.gui.impl.page.admin.resource.component",
             "com.evolveum.midpoint.gui.impl.page.admin.task.component",
             "com.evolveum.midpoint.gui.impl.component.assignment",
-            "com.evolveum.midpoint.gui.impl.component.assignmentType.assignment",
-            "com.evolveum.midpoint.gui.impl.component.assignmentType.inducement"
+            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment",
+            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement",
     };
 
     private Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
@@ -157,6 +158,21 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private List<ContainerPanelConfigurationType> getPanelsFor(Class<? extends ObjectType> objectType, Set<Class<?>> allClasses) {
         List<ContainerPanelConfigurationType> panels = new ArrayList<>();
         for (Class<?> clazz : allClasses) {
+            PanelInstances panelInstances = clazz.getAnnotation(PanelInstances.class);
+            if (panelInstances != null) {
+                for (PanelInstance panelInstance : panelInstances.instances()) {
+                    if (isNotApplicableFor(objectType, panelInstance)) {
+                        continue;
+                    }
+
+                    if (isSubPanel(panelInstance)) {
+                        continue;
+                    }
+                    ContainerPanelConfigurationType config = compileContainerPanelConfiguration(panelInstance.identifier(), panelInstance.defaultPanel(), clazz, objectType, allClasses);
+                    panels.add(config);
+                }
+            }
+
             PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
             if (isNotApplicableFor(objectType, panelInstance)) {
                 continue;

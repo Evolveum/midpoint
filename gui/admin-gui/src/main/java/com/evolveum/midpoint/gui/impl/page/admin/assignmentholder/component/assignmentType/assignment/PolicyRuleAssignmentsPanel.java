@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.component.assignmentType.assignment;
+package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
@@ -32,6 +33,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +43,7 @@ import java.util.List;
         applicableFor = AbstractRoleType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Policy rule", icon = GuiStyleConstants.CLASS_POLICY_RULES_ICON, order = 60)
-public abstract class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
+public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleAssignmentsPanel.class);
 
@@ -62,6 +64,11 @@ public abstract class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType
         columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), AssignmentType.F_ORDER, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
 
         return columns;
+    }
+
+    @Override
+    protected QName getAssignmentType() {
+        return null;
     }
 
     @Override

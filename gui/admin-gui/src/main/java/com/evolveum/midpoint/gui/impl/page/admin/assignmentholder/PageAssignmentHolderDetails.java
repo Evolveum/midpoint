@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderType> extends AbstractPageObjectDetails<AH, ObjectDetailsModels<AH>> implements ProgressReportingAwarePage {
+public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderType, AHDM extends AssignmentHolderDetailsModel<AH>> extends AbstractPageObjectDetails<AH, AHDM> implements ProgressReportingAwarePage {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentHolderDetails.class);
     public PageAssignmentHolderDetails(PageParameters pageParameters) {

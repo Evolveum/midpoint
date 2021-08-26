@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.component.assignmentType.assignment;
+package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment;
 
 import javax.xml.namespace.QName;
 
@@ -19,21 +19,21 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-@PanelType(name = "serviceAssignments")
-@PanelInstance(identifier = "serviceAssignments",
+@PanelType(name = "orgAssignments")
+@PanelInstance(identifier = "orgAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Service", icon = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, order = 40)
-public class ServiceAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel<AH> {
+@PanelDisplay(label = "Org", icon = GuiStyleConstants.CLASS_OBJECT_ORG_ICON, order = 30)
+public class OrgAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel<AH> {
 
-    public ServiceAssignmentsPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
+    public OrgAssignmentsPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
     @Override
     protected QName getAssignmentType() {
-        return ServiceType.COMPLEX_TYPE;
+        return OrgType.COMPLEX_TYPE;
     }
 }

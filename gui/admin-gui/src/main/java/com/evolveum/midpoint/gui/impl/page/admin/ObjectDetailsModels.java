@@ -98,22 +98,6 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         return modelServiceLocator.getCompiledGuiProfile().findObjectDetailsConfiguration(prismObject.getDefinition().getTypeName());
     }
 
-    public LoadableModel<PrismObjectWrapper<O>> getObjectWrapperModel() {
-        return objectWrapperModel;
-    }
-
-    private PrismObjectWrapper<O> getObjectWrapper() {
-        return getObjectWrapperModel().getObject();
-    }
-
-    protected PrismObject<O> getPrismObject() {
-        return getObjectWrapper().getObject();
-    }
-
-    public LoadableModel<GuiObjectDetailsPageType> getObjectDetailsPageConfiguration() {
-        return detailsPageConfigurationModel;
-    }
-
     //TODO change summary panels to wrappers?
     public LoadableModel<O> getSummaryModel() {
         return summaryModel;
@@ -261,5 +245,25 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
 
     protected AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
         return modelServiceLocator.getAdminGuiConfigurationMergeManager();
+    }
+
+    public LoadableModel<PrismObjectWrapper<O>> getObjectWrapperModel() {
+        return objectWrapperModel;
+    }
+
+    private PrismObjectWrapper<O> getObjectWrapper() {
+        return getObjectWrapperModel().getObject();
+    }
+
+    protected PrismObject<O> getPrismObject() {
+        return getObjectWrapper().getObject();
+    }
+
+    public LoadableModel<GuiObjectDetailsPageType> getObjectDetailsPageConfiguration() {
+        return detailsPageConfigurationModel;
+    }
+
+    public O getObjectType() {
+        return getPrismObject().asObjectable();
     }
 }

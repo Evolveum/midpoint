@@ -5,40 +5,42 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.objectdetails;
-
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-
-import org.apache.wicket.markup.html.WebMarkupContainer;
+package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.assignment.ApplicablePolicyConfigPanel;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import org.apache.wicket.markup.html.WebMarkupContainer;
 
 /**
  * Created by honchar.
  */
-public class FocusApplicablePoliciesTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
+@PanelType(name = "applicablePolicies")
+@PanelInstance(identifier = "applicablePolicies",
+        applicableFor = AbstractRoleType.class)
+@PanelDisplay(label = "Applicable policies", order = 60)
+public class FocusApplicablePoliciesPanel<AR extends AbstractRoleType> extends AbstractObjectMainPanel<AR, FocusDetailsModels<AR>> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_APPLICABLE_POLICIES_CONTAINER = "applicablePoliciesContainer";
     private static final String ID_APPLICABLE_POLICIES_PANEL = "applicablePolicyPanel";
 
-    public FocusApplicablePoliciesTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
-        super(id, focusWrapperModel);
-        initLayout();
+    public FocusApplicablePoliciesPanel(String id, FocusDetailsModels<AR> focusWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, focusWrapperModel, config);
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         WebMarkupContainer applicablePoliciesContainer = new WebMarkupContainer(ID_APPLICABLE_POLICIES_CONTAINER);
         applicablePoliciesContainer.setOutputMarkupId(true);
         add(applicablePoliciesContainer);

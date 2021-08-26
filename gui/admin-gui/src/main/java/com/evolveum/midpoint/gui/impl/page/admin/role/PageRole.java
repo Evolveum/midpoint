@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -27,7 +29,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
-public class PageRole extends AbstractPageObjectDetails<RoleType, ObjectDetailsModels<RoleType>> {
+public class PageRole extends PageFocusDetails<RoleType> {
 
     public PageRole(PageParameters pageParameters) {
         super(pageParameters);
