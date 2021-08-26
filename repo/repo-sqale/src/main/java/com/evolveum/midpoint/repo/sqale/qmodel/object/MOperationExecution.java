@@ -26,5 +26,5 @@ public class MOperationExecution extends MContainer {
     public UUID taskRefTargetOid;
     public MObjectType taskRefTargetType;
     public Integer taskRefRelationId;
-    public Instant timestampValue;
+    public Instant timestamp;
 }

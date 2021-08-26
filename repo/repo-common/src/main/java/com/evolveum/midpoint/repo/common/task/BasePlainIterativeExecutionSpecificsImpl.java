@@ -33,4 +33,5 @@ public abstract class BasePlainIterativeExecutionSpecificsImpl<
     public @NotNull ProcessingCoordinator<I> getProcessingCoordinator() {
         return activityExecution.getCoordinator();
     }
+
 }

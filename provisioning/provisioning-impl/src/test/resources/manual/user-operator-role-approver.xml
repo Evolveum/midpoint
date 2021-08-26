@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="operator-role-approver">
+    <name>operator-role-approver</name>
+    <assignment>
+        <targetRef oid="operators-role" relation="org:approver" type="c:RoleType">
+            <!-- Operators role -->
+        </targetRef>
+    </assignment>
+    <roleMembershipRef oid="operators-role" relation="org:approver" type="c:RoleType">
+        <!-- Operators role -->
+    </roleMembershipRef>
+</user>
+
+

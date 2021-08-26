@@ -29,6 +29,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommonException;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Activity execution specifics for classical collection report export.
  */
@@ -89,6 +91,15 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
 
         controller.initialize(task, result);
         controller.beforeBucketExecution(1, result);
+    }
+
+    @Override
+    public @Nullable Long determineExpectedTotal(OperationResult result) throws CommonException {
+        return support.countRecords(
+                searchSpecificationHolder.getType(),
+                searchSpecificationHolder.getQuery(),
+                searchSpecificationHolder.getOptions(),
+                result);
     }
 
     @Override

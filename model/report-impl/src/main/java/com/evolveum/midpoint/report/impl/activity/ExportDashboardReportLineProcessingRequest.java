@@ -13,7 +13,10 @@ import com.evolveum.midpoint.repo.common.task.GenericProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.IterativeActivityExecution;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper for export dashboard report line object.
@@ -39,14 +42,25 @@ public class ExportDashboardReportLineProcessingRequest
         return new IterationItemInformation(
                 getName(),
                 null,
-                null,
-                null);
+                item.getContainer().asPrismContainerValue().getTypeName(),
+                getItemOid());
     }
 
     private String getName() {
-        return "dashboard " +
-                (item.getWidgetIdentifier() != null ? item.getWidgetIdentifier() : "") +
-                "line #" +
-                item.getLineNumber();
+        ObjectType object = null;
+        if (item.getContainer() instanceof ObjectType) {
+            object = ((ObjectType) item.getContainer());
+        }
+        return (item.getWidgetIdentifier() != null ? ("widget " + item.getWidgetIdentifier()) : "") +
+                (object != null ? ("object " + object.getName() + "(" + object.getOid() + ")") : "") +
+                "line #" + item.getLineNumber();
+    }
+
+    @Override
+    public @Nullable String getItemOid() {
+        if (item.getContainer() instanceof ObjectType) {
+            return ((ObjectType) item.getContainer()).getOid();
+        }
+        return super.getItemOid();
     }
 }
