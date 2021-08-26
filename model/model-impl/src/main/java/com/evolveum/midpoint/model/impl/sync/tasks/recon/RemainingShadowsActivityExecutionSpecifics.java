@@ -89,7 +89,7 @@ class RemainingShadowsActivityExecutionSpecifics
         // simulation sets synchronization timestamps, keeping full sync timestamps intact. So this one can be used in
         // the execution activities to distinguish between shadows seen and not seen.
         ItemName syncTimestampItem =
-                activityExecution.isExecute() ?
+                activityExecution.isFullExecution() ?
                         ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP :
                         ShadowType.F_SYNCHRONIZATION_TIMESTAMP;
 
@@ -200,7 +200,7 @@ class RemainingShadowsActivityExecutionSpecifics
         change.setResource(objectClassSpec.getResource().asPrismObject());
         change.setObjectDelta(shadow.createDeleteDelta());
         change.setShadowedResourceObject(shadow);
-        change.setSimulate(activityExecution.isSimulate());
+        change.setSimulate(activityExecution.isPreview());
         ModelImplUtils.clearRequestee(task);
         getModelBeans().eventDispatcher.notifyChange(change, task, result);
     }

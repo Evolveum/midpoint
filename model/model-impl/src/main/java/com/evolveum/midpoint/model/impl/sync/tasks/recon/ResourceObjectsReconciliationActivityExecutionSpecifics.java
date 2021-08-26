@@ -61,7 +61,7 @@ public class ResourceObjectsReconciliationActivityExecutionSpecifics
                 objectsFilter,
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_RECON,
-                activityExecution.isSimulate(),
+                activityExecution.isPreview(),
                 false);
     }
 

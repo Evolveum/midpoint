@@ -28,7 +28,7 @@
                 </resourceObjects>
             </liveSynchronization>
         </work>
-        <executionMode>simulate</executionMode>
+        <executionMode>preview</executionMode>
     </activity>
     <activityState>
         <activity>

@@ -130,7 +130,7 @@ public class LiveSyncActivityExecutionSpecifics
             if (event.isComplete()) {
                 ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
                 changeDescription.setItemProcessingIdentifier(request.getIdentifier()); // hack?
-                changeDescription.setSimulate(activityExecution.isSimulate());
+                changeDescription.setSimulate(activityExecution.isPreview());
                 getModelBeans().eventDispatcher.notifyChange(changeDescription, workerTask, result);
             } else if (event.isNotApplicable()) {
                 result.recordNotApplicable();

@@ -123,7 +123,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             task.onSynchronizationStart(change.getItemProcessingIdentifier(), change.getShadowOid(), syncCtx.getSituation());
 
             ExecutionModeType executionMode = TaskUtil.getExecutionMode(task);
-            boolean fullSync = executionMode == ExecutionModeType.EXECUTE;
+            boolean fullSync = executionMode == ExecutionModeType.FULL;
             boolean dryRun = executionMode == ExecutionModeType.DRY_RUN;
 
             saveSyncMetadata(syncCtx, change, fullSync, result);

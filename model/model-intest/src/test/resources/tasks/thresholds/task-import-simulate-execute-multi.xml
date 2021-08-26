@@ -29,7 +29,7 @@
                         </resourceObjects>
                     </import>
                 </work>
-                <executionMode>simulate</executionMode>
+                <executionMode>preview</executionMode>
                 <distribution>
                     <buckets>
                         <stringSegmentation>
@@ -63,7 +63,6 @@
                         </resourceObjects>
                     </import>
                 </work>
-                <executionMode>execute</executionMode>
                 <distribution>
                     <buckets>
                         <stringSegmentation>

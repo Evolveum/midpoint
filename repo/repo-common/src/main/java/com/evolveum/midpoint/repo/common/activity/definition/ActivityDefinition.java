@@ -131,7 +131,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
             throw new SchemaException("Child work definition is not present for " + bean);
         }
 
-        definition.setExecutionMode(determineExecutionMode(bean, () -> ExecutionModeType.EXECUTE));
+        definition.setExecutionMode(determineExecutionMode(bean, () -> ExecutionModeType.FULL));
         definition.addTailoringFrom(bean);
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
@@ -202,7 +202,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     private static Supplier<ExecutionModeType> getModeSupplier(Task task) {
         return () -> {
             Boolean taskDryRun = task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-            return Boolean.TRUE.equals(taskDryRun) ? ExecutionModeType.DRY_RUN : ExecutionModeType.EXECUTE;
+            return Boolean.TRUE.equals(taskDryRun) ? ExecutionModeType.DRY_RUN : ExecutionModeType.FULL;
         };
     }
 
