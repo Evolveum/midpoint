@@ -11,8 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
@@ -32,9 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -73,7 +69,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired private AuditService auditService;
+    @Autowired private ModelAuditService modelAuditService;
     @Autowired private FunctionLibrary logFunctionLibrary;
     @Autowired private FunctionLibrary basicFunctionLibrary;
     @Autowired private FunctionLibrary midpointFunctionLibrary;
@@ -131,7 +127,7 @@ public class ReportServiceImpl implements ReportService {
         FunctionLibrary midPointLib = new FunctionLibrary();
         midPointLib.setVariableName("report");
         midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-        ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaService, model, taskManager, auditService);
+        ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaService, model, taskManager, modelAuditService);
         midPointLib.setGenericFunctions(reportFunctions);
 
         Collection<FunctionLibrary> functions = new ArrayList<>();
@@ -348,8 +344,8 @@ public class ReportServiceImpl implements ReportService {
         return modelService;
     }
 
-    public AuditService getAuditService() {
-        return auditService;
+    public ModelAuditService getModelAuditService() {
+        return modelAuditService;
     }
 
     public ModelInteractionService getModelInteractionService() {

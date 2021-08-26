@@ -8,6 +8,7 @@ package com.evolveum.midpoint.report.impl;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -52,15 +53,15 @@ public class ReportFunctions {
     private final SchemaService schemaService;
     private final ModelService model;
     private final TaskManager taskManager;
-    private final AuditService auditService;
+    private final ModelAuditService modelAuditService;
 
     public ReportFunctions(PrismContext prismContext, SchemaService schemaService,
-            ModelService modelService, TaskManager taskManager, AuditService auditService) {
+            ModelService modelService, TaskManager taskManager, ModelAuditService modelAuditService) {
         this.prismContext = prismContext;
         this.schemaService = schemaService;
         this.model = modelService;
         this.taskManager = taskManager;
-        this.auditService = auditService;
+        this.modelAuditService = modelAuditService;
     }
 
     public <O extends ObjectType> O resolveObject(ObjectReferenceType ref) {
@@ -209,18 +210,16 @@ public class ReportFunctions {
         return resolvedAssignments;
     }
 
-    public List<AuditEventRecordType> searchAuditRecords(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> option)
-            throws SchemaException {
-        OperationResult result = new OperationResult("searchAuditRecords");
-
-        List<AuditEventRecordType> records = auditService.searchObjects(query, option, result);
-        result.computeStatus();
+    public List<AuditEventRecordType> searchAuditRecords(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> option,
+            Task task, OperationResult result) throws CommonException {
+        List<AuditEventRecordType> records = modelAuditService.searchObjects(query, option, task, result);
         return records;
     }
 
     public List<AuditEventRecordType> searchAuditRecordsAsWorkflows(
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> option) throws SchemaException {
-        return transformToWorkflows(searchAuditRecords(query, option));
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> option,
+            Task task, OperationResult result) throws CommonException {
+        return transformToWorkflows(searchAuditRecords(query, option, task, result));
     }
 
     private List<AuditEventRecordType> transformToWorkflows(List<AuditEventRecordType> auditEvents) {
