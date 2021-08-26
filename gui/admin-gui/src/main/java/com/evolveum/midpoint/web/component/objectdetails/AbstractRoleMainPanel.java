@@ -99,11 +99,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
-            }
-
-            @Override
             public void onClick(AjaxRequestTarget target) {
                 AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(getObject().asObjectable(), UserDtoStatus.ADD, parentPage);
                 dto.setSimpleView(true);

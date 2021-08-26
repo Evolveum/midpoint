@@ -774,11 +774,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
-            }
-
-            @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 navigateToNext(new PageAssignmentsList(true));
             }

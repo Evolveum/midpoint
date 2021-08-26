@@ -94,11 +94,6 @@ public abstract class ExpressionTypeSelectPopup extends BasePanel implements Pop
                 addExpressionPerformed(target, expressionType);
             }
 
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
-            }
         };
         add(select);
 

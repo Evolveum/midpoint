@@ -296,12 +296,6 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 AbstractShoppingCartTabPanel.this.addAllAssignmentsPerformed(ajaxRequestTarget);
             }
-
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
-            }
         };
         addAllButton.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -326,11 +320,6 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
         AjaxButton goToShoppingCartButton = new AjaxButton(ID_GO_TO_SHOPPING_CART_BUTTON, createStringResource("AbstractShoppingCartTabPanel.goToShoppingCartButton")) {
             private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
-            }
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {

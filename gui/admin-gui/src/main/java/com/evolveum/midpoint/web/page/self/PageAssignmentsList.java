@@ -236,12 +236,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
                 }
             }
 
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
-            }
-
         };
         requestAssignments.add(new VisibleEnableBehaviour() {
             @Override
