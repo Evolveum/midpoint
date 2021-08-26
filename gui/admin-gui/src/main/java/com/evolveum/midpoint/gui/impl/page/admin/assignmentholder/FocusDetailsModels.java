@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin;
+package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class FocusDetailsModels<F extends FocusType> extends ObjectDetailsModels<F> {
+public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDetailsModel<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsModels.class);
 

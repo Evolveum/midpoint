@@ -14,11 +14,6 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractRoleInducementPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.commons.collections4.CollectionUtils;

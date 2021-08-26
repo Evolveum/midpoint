@@ -4,12 +4,14 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin;
+package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -211,16 +213,5 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         getProgressPanel().hideContinueEditingButton(target);
         target.add(this);
     }
-
-//    @Override
-//    protected GuiObjectDetailsPageType loadPageConfiguration(PrismObject<AH> prismObject) {
-//        AH modelObject = prismObject.asObjectable();
-//        List<ObjectReferenceType> archetypes = modelObject.getArchetypeRef();
-//
-//        GuiObjectDetailsPageType defaultPageConfig = getCompiledGuiProfile().findObjectDetailsConfiguration(getType());
-//
-//        OperationResult result = new OperationResult("mergeArchetypeConfig");
-//        return getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, archetypes, result);
-//    }
 
 }

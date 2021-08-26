@@ -23,7 +23,6 @@ import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -44,8 +43,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.DetailsNavigationMainItem;
-import com.evolveum.midpoint.gui.impl.component.DetailsNavigationPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -360,20 +357,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
         progressPanel = new ProgressPanel(ID_PROGRESS_PANEL);
         add(progressPanel);
-    }
-
-    protected Panel createDetailsNavigation() {
-        return new DetailsNavigationPanel(ID_NAVIGATION, createNavigationModel());
-    }
-
-    protected IModel<List<DetailsNavigationMainItem>> createNavigationModel() {
-        return new LoadableModel<List<DetailsNavigationMainItem>>(false) {
-
-            @Override
-            protected List<DetailsNavigationMainItem> load() {
-                return Arrays.asList(new DetailsNavigationMainItem("Assignments"), new DetailsNavigationMainItem("Projections"), new DetailsNavigationMainItem("Bla"));
-            }
-        };
     }
 
     protected abstract ObjectSummaryPanel<O> createSummaryPanel(IModel<O> summaryModel);

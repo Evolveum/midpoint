@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -73,7 +74,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         detailsPageConfigurationModel = new LoadableModel<>(false) {
             @Override
             protected GuiObjectDetailsPageType load() {
-                return modelServiceLocator.getCompiledGuiProfile().findObjectDetailsConfiguration(prismObjectModel.getObject().getDefinition().getTypeName());
+                return loadDetailsPageConfiguration();
             }
         };
 
@@ -93,12 +94,20 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         };
     }
 
+    protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
+        return modelServiceLocator.getCompiledGuiProfile().findObjectDetailsConfiguration(prismObjectModel.getObject().getDefinition().getTypeName());
+    }
+
     public LoadableModel<PrismObjectWrapper<O>> getObjectWrapperModel() {
         return objectWrapperModel;
     }
 
     private PrismObjectWrapper<O> getObjectWrapper() {
         return getObjectWrapperModel().getObject();
+    }
+
+    protected PrismObject<O> getPrismObject() {
+        return getObjectWrapper().getObject();
     }
 
     public LoadableModel<GuiObjectDetailsPageType> getObjectDetailsPageConfiguration() {
@@ -248,5 +257,9 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
 
     protected ModelServiceLocator getModelServiceLocator() {
         return modelServiceLocator;
+    }
+
+    protected AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
+        return modelServiceLocator.getAdminGuiConfigurationMergeManager();
     }
 }
