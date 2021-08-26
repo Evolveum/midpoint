@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -104,6 +106,22 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     protected static final String ATTR_DESCRIPTION = "description";
     protected static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
 
+    protected static final File ORG_OPERATORS_FILE = new File(TEST_DIR, "organization-operators.xml");
+
+    protected static final File ROLE_OPERATORS_FILE = new File(TEST_DIR, "role-operators.xml");
+
+    protected static final File USER_OPERATOR_ORG_MEMBER_FILE = new File(TEST_DIR, "user-operator-org-member.xml");
+    protected static final String USER_OPERATOR_ORG_MEMBER_OID = "operator-org-member";
+
+    protected static final File USER_OPERATOR_ORG_MANAGER_FILE = new File(TEST_DIR, "user-operator-org-manager.xml");
+
+    protected static final File USER_OPERATOR_ROLE_MEMBER_FILE = new File(TEST_DIR, "user-operator-role-member.xml");
+    protected static final String USER_OPERATOR_ROLE_MEMBER_OID = "operator-role-member";
+
+    protected static final File USER_OPERATOR_ROLE_APPROVER_FILE = new File(TEST_DIR, "user-operator-role-approver.xml");
+
+    protected static final File USER_OPERATOR_FILE = new File(TEST_DIR, "user-operator.xml");
+    protected static final String USER_OPERATOR_OID = "operator-user";
 
     protected PrismObject<ResourceType> resource;
     protected ResourceType resourceType;
@@ -132,6 +150,20 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         super.initSystem(initTask, initResult);
 
         InternalsConfig.setSanityChecks(true);
+
+        addOperatorsObjects(initResult);
+    }
+
+    private void addOperatorsObjects(OperationResult initResult) throws Exception {
+        display("Adding operators organization", repoAddObjectFromFile(ORG_OPERATORS_FILE, initResult));
+        display("Adding operators organization member", repoAddObjectFromFile(USER_OPERATOR_ORG_MEMBER_FILE, initResult));
+        display("Adding operators organization manager", repoAddObjectFromFile(USER_OPERATOR_ORG_MANAGER_FILE, initResult));
+
+        display("Adding operators role", repoAddObjectFromFile(ROLE_OPERATORS_FILE, initResult));
+        display("Adding operators role member", repoAddObjectFromFile(USER_OPERATOR_ROLE_MEMBER_FILE, initResult));
+        display("Adding operators role approver", repoAddObjectFromFile(USER_OPERATOR_ROLE_APPROVER_FILE, initResult));
+
+        display("Adding operator user", repoAddObjectFromFile(USER_OPERATOR_FILE, initResult));
     }
 
     protected abstract File getResourceFile();
@@ -1345,6 +1377,29 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
         assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+    }
+
+    @Test
+    public void test231CaseHasExpectedNumbersOfWorkItemsWithExpectedAssignees() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
+
+        int expectedNumberOfWorkItems = 3;
+        List<String> expectedWorkItemsAssigneesOids = Stream.of
+                (USER_OPERATOR_ROLE_MEMBER_OID, USER_OPERATOR_OID, USER_OPERATOR_ORG_MEMBER_OID)
+                .sorted(String::compareToIgnoreCase).collect(Collectors.toList());
+
+        CaseType caseType = repositoryService.getObject(CaseType.class, willLastCaseOid, null, result).asObjectable();
+
+        List<String> actualWorkItemsAssigneesOids = caseType.getWorkItem().stream().flatMap(caseWorkItemType ->
+                caseWorkItemType.getAssigneeRef().stream())
+                .map(ObjectReferenceType::getOid).sorted(String::compareToIgnoreCase).collect(Collectors.toList());
+        int actualNumberOfWorkItems = caseType.getWorkItem().size();
+
+        assertEquals(expectedNumberOfWorkItems, actualNumberOfWorkItems);
+        assertEquals(expectedWorkItemsAssigneesOids, actualWorkItemsAssigneesOids);
     }
 
     /**

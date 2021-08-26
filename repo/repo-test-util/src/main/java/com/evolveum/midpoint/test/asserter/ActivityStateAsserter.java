@@ -104,15 +104,28 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return asserter;
     }
 
-    public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> policyRulesCounters() {
+    public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> simulationModePolicyRulesCounters() {
         ActivityCounterGroupType counters = Objects.requireNonNull(
                 Objects.requireNonNull(
                         activityState.getCounters(), "no counters")
-                        .getPolicyRules(),
-                "no policy rules counters");
+                        .getSimulationModePolicyRules(),
+                "no simulation mode policy rules counters");
 
         ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> asserter =
-                        new ActivityCounterGroupAsserter<>(counters, this, getDetails());
+                        new ActivityCounterGroupAsserter<>(counters, this, "simulation rules counters in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> executionModePolicyRulesCounters() {
+        ActivityCounterGroupType counters = Objects.requireNonNull(
+                Objects.requireNonNull(
+                        activityState.getCounters(), "no counters")
+                        .getExecutionModePolicyRules(),
+                "no execution mode policy rules counters");
+
+        ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> asserter =
+                        new ActivityCounterGroupAsserter<>(counters, this, "execution rules counters in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }

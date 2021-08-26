@@ -7,6 +7,7 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import static com.evolveum.midpoint.common.SynchronizationUtils.*;
 import static com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils.isLogDebug;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
@@ -122,9 +123,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             task.onSynchronizationStart(change.getItemProcessingIdentifier(), change.getShadowOid(), syncCtx.getSituation());
 
             ExecutionModeType executionMode = TaskUtil.getExecutionMode(task);
+            boolean fullSync = executionMode == ExecutionModeType.EXECUTE;
             boolean dryRun = executionMode == ExecutionModeType.DRY_RUN;
 
-            saveSyncMetadata(syncCtx, change, !dryRun, result);
+            saveSyncMetadata(syncCtx, change, fullSync, result);
 
             if (!dryRun) {
                 reactToChange(syncCtx, change, result);
@@ -332,7 +334,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     + syncCtx.getShadowedResourceObject().asObjectable().getObjectClass() + ") " + " on " + syncCtx.getResource()
                     + ", ignoring change from channel " + syncCtx.getChannel();
             LOGGER.debug(message);
-            List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, false);
+            List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, false); // TODO record always full sync?
             executeShadowModifications(syncCtx.getShadowedResourceObject(), modifications, task, result);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
             task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.NO_SYNCHRONIZATION_POLICY);
@@ -343,7 +345,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             String message = "SYNCHRONIZATION is not enabled for " + syncCtx.getResource()
                     + " ignoring change from channel " + syncCtx.getChannel();
             LOGGER.debug(message);
-            List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
+            List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true); // TODO record always full sync?
             executeShadowModifications(syncCtx.getShadowedResourceObject(), modifications, task, result);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
             task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.SYNCHRONIZATION_DISABLED);
@@ -351,7 +353,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
 
         if (syncCtx.isProtected()) {
-            List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
+            List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true); // TODO record always full sync?
             executeShadowModifications(syncCtx.getShadowedResourceObject(), modifications, task, result);
             result.recordSuccess();
             task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.PROTECTED);
@@ -362,18 +364,18 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         return false;
     }
 
-    private <F extends FocusType> List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(SynchronizationContext<F> syncCtx, boolean saveIntent) throws SchemaException {
-        Validate.notNull(syncCtx.getShadowedResourceObject(), "No current nor old shadow present: ");
-        ShadowType applicableShadowType = syncCtx.getShadowedResourceObject().asObjectable();
-        List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(syncCtx.getShadowedResourceObject(),
-                prismContext);
+    private <F extends FocusType> List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(
+            SynchronizationContext<F> syncCtx, boolean saveIntent) throws SchemaException {
+        Validate.notNull(syncCtx.getShadowedResourceObject(), "No current nor old shadow present");
+        ShadowType applicableShadow = syncCtx.getShadowedResourceObject().asObjectable();
+        List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDeltas(syncCtx.getShadowedResourceObject());
         if (saveIntent) {
-            if (StringUtils.isNotBlank(syncCtx.getIntent()) && !syncCtx.getIntent().equals(applicableShadowType.getIntent())) {
+            if (StringUtils.isNotBlank(syncCtx.getIntent()) && !syncCtx.getIntent().equals(applicableShadow.getIntent())) {
                 PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_INTENT,
                         syncCtx.getShadowedResourceObject().getDefinition(), syncCtx.getIntent());
                 modifications.add(intentDelta);
             }
-            if (StringUtils.isNotBlank(syncCtx.getTag()) && !syncCtx.getTag().equals(applicableShadowType.getTag())) {
+            if (StringUtils.isNotBlank(syncCtx.getTag()) && !syncCtx.getTag().equals(applicableShadow.getTag())) {
                 PropertyDelta<String> tagDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_TAG,
                         syncCtx.getShadowedResourceObject().getDefinition(), syncCtx.getTag());
                 modifications.add(tagDelta);
@@ -806,6 +808,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     /**
      * Saves situation, timestamps, kind and intent (if needed)
+     *
+     * @param full if true, we consider this synchronization to be "full", and set the appropriate flag
+     * in `synchronizationSituationDescription` as well as update `fullSynchronizationTimestamp`.
      */
     private <F extends FocusType> void saveSyncMetadata(SynchronizationContext<F> syncCtx,
             ResourceObjectShadowChangeDescription change, boolean full, OperationResult result) {
@@ -817,9 +822,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             ShadowType shadowBean = shadow.asObjectable();
             // new situation description
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-            List<PropertyDelta<?>> deltas = SynchronizationUtils
-                    .createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
-                            change.getSourceChannel(), full, now, prismContext);
+            List<PropertyDelta<?>> deltas = createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
+                            change.getSourceChannel(), full, now);
 
             if (ShadowUtil.isNotKnown(shadowBean.getKind())) {
                 PropertyDelta<ShadowKindType> kindDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),

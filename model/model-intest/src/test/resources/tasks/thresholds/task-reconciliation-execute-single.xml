@@ -9,7 +9,7 @@
 <task oid="7652ea69-c8bc-4320-a03e-ab37bb0accc7"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>task-reconciliation-execute-single-thread</name>
+    <name>task-reconciliation-execute-single</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>

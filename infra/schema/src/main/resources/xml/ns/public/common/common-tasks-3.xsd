@@ -2211,6 +2211,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="monitoring" type="tns:ActivityMonitoringDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How the activity is monitored, e.g. using tracing or dynamic profiling.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -7052,10 +7059,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="policyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
+            <xsd:element name="simulationModePolicyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Counters for policy rules.
+                        Counters for policy rules in simulation mode.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionModePolicyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters for policy rules in execution mode.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -7,7 +7,7 @@
 
 <role oid="6b0003a4-65bf-471d-af2c-ed575deaf199"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>role-modify-5</name>
+    <name>role-modify-cost-center-5</name>
     <inducement>
         <policyRule>
             <policyConstraints>

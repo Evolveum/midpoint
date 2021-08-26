@@ -52,7 +52,7 @@ public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType
         Collection<SelectorOptions<GetOperationOptions>> optionsToSet =
                 activityExecution.getSchemaService().getOperationOptionsBuilder()
                         .noFetch(false)
-                        .errorReportingMethod(FetchErrorReportingMethodType.EXCEPTION) // we need exceptions!
+                        .errorReportingMethod(FetchErrorReportingMethodType.FORCED_EXCEPTION) // we need exceptions!
                         .build();
         return GetOperationOptions.merge(activityExecution.getPrismContext(), originalOptions, optionsToSet);
     }

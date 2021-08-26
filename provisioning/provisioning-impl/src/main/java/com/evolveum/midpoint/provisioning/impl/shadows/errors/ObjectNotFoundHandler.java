@@ -11,6 +11,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.task.api.TaskUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +52,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.getErrorReportingMethod;
+
 @Component
 class ObjectNotFoundHandler extends HardErrorHandler {
 
@@ -68,32 +72,54 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
+        if (getErrorReportingMethod(rootOptions) == FetchErrorReportingMethodType.FORCED_EXCEPTION) {
+            LOGGER.debug("Trying to handle {} but 'forced exception' mode is selected. Will rethrow it.",
+                    cause.getClass().getSimpleName());
+
+            if (repositoryShadow != null && ShadowUtil.isExists(repositoryShadow.asObjectable())) {
+                markShadowTombstoneIfExecutionMode(repositoryShadow, task, parentResult);
+                return super.handleGetError(ctx, null, rootOptions, cause, task, parentResult);
+            }
+        }
+
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), rootOptions)) {
             discoverDeletedShadow(ctx, repositoryShadow, cause, task, parentResult);
         }
 
         if (repositoryShadow != null) {
             if (ShadowUtil.isExists(repositoryShadow.asObjectable())) {
-                // This is some kind of reality mismatch. We obviously have shadow that is supposed
-                // to be alive (exists=true). But it does not exist on resource.
-                // This is NOT gestation quantum state, as that is handled directly in ShadowCache.
-                // This may be "lost shadow" - shadow which exists but the resource object has disappeared without trace.
-                // Or this may be a corpse - quantum state that has just collapsed to to tombstone.
-                // Either way, it should be safe to set exists=false.
-                LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.", repositoryShadow);
-                repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, task, parentResult);
+                repositoryShadow = markShadowTombstoneIfExecutionMode(repositoryShadow, task, parentResult);
             } else {
                 // We always want to return repository shadow it such shadow is available.
                 // The shadow may be dead, or it may be marked as "not exists", but we want
                 // to return something if shadow exists in the repo. Otherwise model may
                 // unlink the shadow or otherwise "forget" about it.
-                LOGGER.debug("Shadow {} not found on the resource. However still have it in the repository. Therefore returning repository version.", repositoryShadow);
+                LOGGER.debug("Shadow {} not found on the resource. However still have it in the repository. "
+                        + "Therefore returning repository version.", repositoryShadow);
             }
             parentResult.setStatus(OperationResultStatus.HANDLED_ERROR);
             return repositoryShadow;
         } else {
             return super.handleGetError(ctx, null, rootOptions, cause, task, parentResult);
         }
+    }
+
+    private PrismObject<ShadowType> markShadowTombstoneIfExecutionMode(PrismObject<ShadowType> repositoryShadow, Task task,
+            OperationResult parentResult) throws SchemaException {
+        // This is some kind of reality mismatch. We obviously have shadow that is supposed
+        // to be alive (exists=true). But it does not exist on resource.
+        // This is NOT gestation quantum state, as that is handled directly in ShadowCache.
+        // This may be "lost shadow" - shadow which exists but the resource object has disappeared without trace.
+        // Or this may be a corpse - quantum state that has just collapsed to to tombstone.
+        // Either way, it should be safe to set exists=false.
+        if (TaskUtil.isExecute(task)) {
+            LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.",
+                    repositoryShadow);
+            repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, task, parentResult);
+        } else {
+            LOGGER.trace("Not in execute mode ({}). Keeping shadow marked as 'exists'.", TaskUtil.getExecutionMode(task));
+        }
+        return repositoryShadow;
     }
 
     @Override
@@ -152,7 +178,12 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             // It may return null in case that the shadow is deleted from repository already.
             // However, in that case we will have nothing to base notifications on.
             // Using the "old" repo shadow is still a better option. (MID-6574)
-            shadowManager.markShadowTombstone(repositoryShadow, task, result);
+            if (TaskUtil.isExecute(task)) {
+                shadowManager.markShadowTombstone(repositoryShadow, task, result);
+            } else {
+                // The deleted shadow discovery should be repeatable in execution mode.
+                LOGGER.trace("Not marking shadow as tombstone because mode is {}", TaskUtil.getExecutionMode(task));
+            }
 
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
             change.setResource(ctx.getResource().asPrismObject());
