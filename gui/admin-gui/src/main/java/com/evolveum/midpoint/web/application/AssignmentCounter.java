@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -23,15 +24,15 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
 import java.util.List;
 
-public class AssignmentCounter extends SimpleCounter {
+public class AssignmentCounter<AH extends AssignmentHolderType> extends SimpleCounter<AssignmentHolderDetailsModel<AH>, AH> {
 
-    public AssignmentCounter(ObjectDetailsModels objectDetailsModels) {
-        super(objectDetailsModels);
+    public AssignmentCounter() {
+        super();
     }
 
-    public int count() {
-        PrismObjectWrapper<?> modelObject = (PrismObjectWrapper<?>) getObjectDetailsModels().getObjectWrapperModel().getObject();
-        AssignmentHolderType object = (AssignmentHolderType) modelObject.getObject().asObjectable();
+    public int count(AssignmentHolderDetailsModel<AH> objectDetailsModels) {
+        PrismObjectWrapper<AH> assignmentHolderWrapper = objectDetailsModels.getObjectWrapperModel().getObject();
+        AH object = assignmentHolderWrapper.getObject().asObjectable();
 
         List<AssignmentType> assignments = object.getAssignment();
         int count = 0;

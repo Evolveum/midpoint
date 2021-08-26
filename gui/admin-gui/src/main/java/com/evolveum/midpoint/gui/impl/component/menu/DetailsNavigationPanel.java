@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
+import org.opensaml.xmlsec.signature.P;
 
 public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List<ContainerPanelConfigurationType>> {
 
@@ -115,16 +118,18 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     private IModel<String> createCountModel(IModel<ContainerPanelConfigurationType> panelModel) {
         return new ReadOnlyModel<>( () -> {
             ContainerPanelConfigurationType config = panelModel.getObject();
-            String panelIdentifier = config.getPanelType();
-            if ("assignments".equals(panelIdentifier)) {
-                AssignmentCounter counter = new AssignmentCounter(objectDetialsModel);
-                int count = counter.count();
-                if (count == 0) {
-                    return null;
-                }
-                return String.valueOf(count);
+            String panelInstanceIdentifier = config.getIdentifier();
+
+            SimpleCounter counter = getPageBase().getCounterProvider(panelInstanceIdentifier);
+            if (counter == null || counter.getClass().equals(SimpleCounter.class)) {
+                return null;
             }
-            return null;
+
+            int count = counter.count(objectDetialsModel);
+//            if (count == 0) {
+//                return null;
+//            }
+            return String.valueOf(count);
         });
     }
 

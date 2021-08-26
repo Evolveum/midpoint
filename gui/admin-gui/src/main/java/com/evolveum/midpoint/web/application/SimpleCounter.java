@@ -10,11 +10,21 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.model.IModel;
 
-public class SimpleCounter {
+public class SimpleCounter<ODM extends ObjectDetailsModels<O>, O extends ObjectType> {
 
     private ObjectDetailsModels objectDetailsModels;
+
+    public SimpleCounter() {
+
+    }
+
+    public int count(ODM objectDetailsModels) {
+        return 0;
+    }
 
     public SimpleCounter(ObjectDetailsModels objectDetailsModels) {
         this.objectDetailsModels = objectDetailsModels;

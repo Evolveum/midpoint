@@ -1,71 +1,65 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.objectdetails;
+package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryFactory;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author honchar
  */
-public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
+@PanelType(name = "personas")
+@PanelInstance(identifier = "personas",
+        applicableFor = UserType.class)
+@PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60)
+public class FocusPersonasPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
     private static final long serialVersionUID = 1L;
-    private static final String DOT_CLASS = FocusPersonasTabPanel.class.getName() + ".";
+    private static final String DOT_CLASS = FocusPersonasPanel.class.getName() + ".";
     private static final String OPERATION_SEARCH_PERSONAS_OBJECTS = DOT_CLASS + "searchPersonas";
 
     private static final String ID_PERSONAS_TABLE = "personasTable";
 
-    private ContainerPanelConfigurationType config;
-
-    public FocusPersonasTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel) {
-        super(id, focusModel);
+    public FocusPersonasPanel(String id, FocusDetailsModels focusDetailsModels, ContainerPanelConfigurationType config) {
+        super(id, focusDetailsModels, config);
     }
 
-    @Override
-    protected void onInitialize(){
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
+    protected void initLayout() {
         MainObjectListPanel<F> userListPanel =
                 new MainObjectListPanel<F>(ID_PERSONAS_TABLE,
                 (Class<F>) FocusType.class, null) {
@@ -98,8 +92,8 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                                 F personaRefObj = personaRefSelectableBean.getValue();
                                 ObjectReferenceType ort = new ObjectReferenceType();
                                 ort.setOid(personaRefObj.getOid());
-                                ort.setType(WebComponentUtil.classToQName(FocusPersonasTabPanel.this.getPrismContext(), personaRefObj.getClass()));
-                                WebComponentUtil.dispatchToObjectDetailsPage(ort, FocusPersonasTabPanel.this, false);
+                                ort.setType(WebComponentUtil.classToQName(FocusPersonasPanel.this.getPrismContext(), personaRefObj.getClass()));
+                                WebComponentUtil.dispatchToObjectDetailsPage(ort, FocusPersonasPanel.this, false);
                             }
                         };
                     }

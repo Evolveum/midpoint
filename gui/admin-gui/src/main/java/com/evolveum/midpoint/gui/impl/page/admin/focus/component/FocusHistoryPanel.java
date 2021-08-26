@@ -1,27 +1,43 @@
 /*
- * Copyright (c) 2016 Evolveum and contributors
+ * Copyright (c) 2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.objectdetails;
+package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 
-import java.util.List;
-
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnitHistory;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
-
 import com.evolveum.midpoint.web.page.admin.roles.PageRoleHistory;
 import com.evolveum.midpoint.web.page.admin.services.PageServiceHistory;
 import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
+import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
+import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
-
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -34,55 +50,34 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
-import com.evolveum.midpoint.web.session.AuditLogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import java.util.List;
 
 /**
  * Created by honchar.
  */
-public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
+@PanelType(name = "history")
+@PanelInstance(identifier = "history", applicableFor = FocusType.class, status = ItemStatus.NOT_CHANGED)
+@PanelDisplay(label = "History", icon = "fa fa-history", order = 40)
+public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_PANEL = "mainPanel";
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectHistoryTabPanel.class);
-    private static final String DOT_CLASS = ObjectHistoryTabPanel.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(FocusHistoryPanel.class);
+    private static final String DOT_CLASS = FocusHistoryPanel.class.getName() + ".";
     private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
 
-    private ContainerPanelConfigurationType config;
-
-    public ObjectHistoryTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
-        super(id, focusWrapperModel);
+    public FocusHistoryPanel(String id, FocusDetailsModels<F> focusModel, ContainerPanelConfigurationType config) {
+        super(id, focusModel, config);
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
         getPageBase().getSessionStorage().setObjectHistoryAuditLog(getObjectWrapper().getTypeName(), new AuditLogStorage());
-
-        initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL) {
             private static final long serialVersionUID = 1L;
 

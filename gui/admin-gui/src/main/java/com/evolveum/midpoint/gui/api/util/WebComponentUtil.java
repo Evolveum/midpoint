@@ -4932,6 +4932,10 @@ public final class WebComponentUtil {
     }
 
     public static String countLinkFroNonDeadShadows(Collection<ObjectReferenceType> refs) {
+        return Integer.toString(countLinkForNonDeadShadows(refs));
+    }
+
+    public static int countLinkForNonDeadShadows(Collection<ObjectReferenceType> refs) {
         int count = 0;
         for (ObjectReferenceType ref : refs) {
             if (QNameUtil.match(ref.getRelation(), SchemaConstants.ORG_RELATED)) {
@@ -4939,7 +4943,7 @@ public final class WebComponentUtil {
             }
             count++;
         }
-        return Integer.toString(count);
+        return count;
     }
 
     public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {

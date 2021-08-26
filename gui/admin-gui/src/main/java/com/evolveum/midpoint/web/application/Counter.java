@@ -12,6 +12,6 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Counter {
 
-    Class<?> provider() default SimpleCounter.class;
+    Class<? extends SimpleCounter> provider() default SimpleCounter.class;
 
 }

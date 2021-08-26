@@ -17,6 +17,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 
+import com.evolveum.midpoint.web.application.SimpleCounter;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -1878,5 +1880,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public Class<? extends Panel> findObjectPanel(String identifier) {
         return guiConfigurationRegistry.findPanel(identifier);
+    }
+
+    public SimpleCounter getCounterProvider(String identifier) {
+        return guiConfigurationRegistry.findCounter(identifier);
     }
 }

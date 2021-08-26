@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -129,6 +130,11 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 
             @Override
             public MidpointFormValidatorRegistry getFormValidatorRegistry() {
+                return null;
+            }
+
+            @Override
+            public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
                 return null;
             }
         };

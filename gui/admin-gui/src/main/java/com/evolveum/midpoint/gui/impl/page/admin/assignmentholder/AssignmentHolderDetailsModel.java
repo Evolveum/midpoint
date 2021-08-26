@@ -25,11 +25,10 @@ public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> exten
     }
 
     @Override
-    protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
-        GuiObjectDetailsPageType defaultPageConfig = super.loadDetailsPageConfiguration();
+    protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<AH> assignmentHolder) {
+        GuiObjectDetailsPageType defaultPageConfig = super.loadDetailsPageConfiguration(assignmentHolder);
 
-        AH modelObject = getPrismObject().asObjectable();
-        List<ObjectReferenceType> archetypes = modelObject.getArchetypeRef();
+        List<ObjectReferenceType> archetypes = assignmentHolder.asObjectable().getArchetypeRef();
 
         OperationResult result = new OperationResult("mergeArchetypeConfig");
         return getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, archetypes, result);

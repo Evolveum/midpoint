@@ -28,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_ASSIGNMENTS = "assignmentsContainer";
-    private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 
     public AssignmentHolderAssignmentPanel(String id, ObjectDetailsModels<AH> model, ContainerPanelConfigurationType config) {
         super(id, model, config);

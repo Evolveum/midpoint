@@ -16,6 +16,7 @@ import java.io.File;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
@@ -245,6 +246,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public MidpointFormValidatorRegistry getFormValidatorRegistry() {
+                return null;
+            }
+
+            @Override
+            public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
                 return null;
             }
         };

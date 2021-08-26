@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.api;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
@@ -18,6 +19,8 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.prism.path.UniformItemPath;
+
+import com.evolveum.midpoint.web.application.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -32,9 +35,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.ClassPathUtil;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -49,14 +49,20 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.component.objectdetails", //Old panels
             "com.evolveum.midpoint.web.component.assignment",  //Assignments
             "com.evolveum.midpoint.gui.impl.page.admin",
+            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.focus.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.resource.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.task.component",
             "com.evolveum.midpoint.gui.impl.component.assignment",
             "com.evolveum.midpoint.gui.impl.component.assignmentType.assignment",
-            "com.evolveum.midpoint.gui.impl.component.assignmentType.inducement",
-            "com.evolveum.midpoint.gui.impl.page.admin.task.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.resource.component"
+            "com.evolveum.midpoint.gui.impl.component.assignmentType.inducement"
+
+
     };
 
     private Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
+
+    private Map<String, SimpleCounter> countersMap = new HashMap<>();
 
     @Override
     @PostConstruct
@@ -66,6 +72,10 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     public Class<? extends Panel> findPanel(String identifier) {
         return panelsMap.get(identifier);
+    }
+
+    public SimpleCounter findCounter(String idenifier) {
+        return countersMap.get(idenifier);
     }
 
     @Override
@@ -199,6 +209,16 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
         List<ContainerPanelConfigurationType> children = processChildren(classes, objectType, clazz);
         config.getPanel().addAll(children);
+
+        Counter counterDefinition = clazz.getAnnotation(Counter.class);
+        if (counterDefinition != null) {
+            Class<? extends SimpleCounter> counterProvider = counterDefinition.provider();
+            try {
+                countersMap.put(identifier, counterProvider.getDeclaredConstructor().newInstance());
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+               //TODO log at least
+            }
+        }
 
         if (isDefault) {
             config.setDefault(true);
