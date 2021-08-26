@@ -46,8 +46,8 @@ import java.util.List;
  */
 @PanelType(name = "personas")
 @PanelInstance(identifier = "personas",
-        applicableFor = UserType.class)
-@PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60)
+        applicableFor = UserType.class,
+        display = @PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60))
 public class FocusPersonasPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
     private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = FocusPersonasPanel.class.getName() + ".";

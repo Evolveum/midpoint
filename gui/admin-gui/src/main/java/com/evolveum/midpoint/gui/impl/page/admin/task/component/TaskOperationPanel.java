@@ -41,8 +41,8 @@ import java.util.Collections;
 
 //TODO implement correctly
 @PanelType(name = "operation")
-@PanelInstance(identifier = "operation", applicableFor = TaskType.class)
-@PanelDisplay(label = "Operation", order = 60)
+@PanelInstance(identifier = "operation", applicableFor = TaskType.class,
+        display = @PanelDisplay(label = "Operation", order = 60))
 public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
@@ -59,7 +59,7 @@ public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, Object
 
        private LensContextType getLensContextType() {
             LensContextType lensContextType = getObjectWrapper().getObject().asObjectable().getLensContext();
-            if (lensContextType.getState() == null) {
+            if (lensContextType == null || lensContextType.getState() == null) {
                 return null;
             }
             return lensContextType;

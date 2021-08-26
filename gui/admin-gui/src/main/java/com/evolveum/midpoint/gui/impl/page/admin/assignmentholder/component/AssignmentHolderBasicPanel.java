@@ -18,8 +18,11 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "basic", defaultContainerPath = "empty")
-@PanelInstance(identifier = "basic", applicableFor = AssignmentHolderType.class, defaultPanel = true, notApplicableFor = ResourceType.class)
-@PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)
+@PanelInstance(identifier = "basic",
+        applicableFor = AssignmentHolderType.class,
+        defaultPanel = true,
+        notApplicableFor = ResourceType.class,
+        display = @PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
 public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_MAIN_PANEL = "properties";

@@ -33,8 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * @author semancik
  */
 @PanelType(name = "resourceConnector")
-@PanelInstance(identifier = "resourceConnector", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class)
-@PanelDisplay(label = "Connector", order = 70)
+@PanelInstance(identifier = "resourceConnector", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class,
+        display = @PanelDisplay(label = "Connector", order = 70))
 public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> {
     private static final long serialVersionUID = 1L;
 

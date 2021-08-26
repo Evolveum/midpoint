@@ -20,8 +20,8 @@ import org.apache.wicket.model.IModel;
 @PanelType(name = "policyRuleInducements")
 @PanelInstance(identifier = "policyRuleInducements",
         applicableFor = AbstractRoleType.class,
-        childOf = AbstractRoleInducementPanel.class)
-@PanelDisplay(label = "Policy rule", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 60)
+        childOf = AbstractRoleInducementPanel.class,
+        display = @PanelDisplay(label = "Policy rule", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 60))
 public class PolicyRuleInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
     public PolicyRuleInducementsPanel(String id, IModel<PrismObjectWrapper<AR>> model, ContainerPanelConfigurationType config) {

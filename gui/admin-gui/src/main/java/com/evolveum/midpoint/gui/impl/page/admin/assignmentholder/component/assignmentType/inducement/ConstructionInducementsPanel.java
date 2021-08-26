@@ -20,8 +20,8 @@ import org.apache.wicket.model.IModel;
 @PanelType(name = "constructionInducements")
 @PanelInstance(identifier = "constructionInducements",
         applicableFor = AbstractRoleType.class,
-        childOf = AbstractRoleInducementPanel.class)
-@PanelDisplay(label = "Resource", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 50)
+        childOf = AbstractRoleInducementPanel.class,
+        display = @PanelDisplay(label = "Resource", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 50))
 public class ConstructionInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
     public ConstructionInducementsPanel(String id, IModel<PrismObjectWrapper<AR>> model, ContainerPanelConfigurationType config) {

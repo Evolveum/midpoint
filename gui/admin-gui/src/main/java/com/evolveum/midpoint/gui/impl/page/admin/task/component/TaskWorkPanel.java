@@ -21,8 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @PanelType(name = "work")
-@PanelInstance(identifier = "work", applicableFor = TaskType.class, childOf = TaskActivityPanel.class)
-@PanelDisplay(label = "Work", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)
+@PanelInstance(identifier = "work", applicableFor = TaskType.class, childOf = TaskActivityPanel.class,
+        display = @PanelDisplay(label = "Work", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
 public class TaskWorkPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskWorkPanel.class);

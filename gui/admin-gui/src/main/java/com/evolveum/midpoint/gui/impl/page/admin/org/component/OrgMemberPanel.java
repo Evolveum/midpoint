@@ -31,10 +31,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "orgMembers")
 @PanelInstances(instances = {
-        @PanelInstance(identifier = "orgMembers", applicableFor = OrgType.class),
-        @PanelInstance(identifier = "orgGovernance", applicableFor = OrgType.class)
+        @PanelInstance(identifier = "orgMembers", applicableFor = OrgType.class,
+                display = @PanelDisplay(label = "Members", order = 60)),
+        @PanelInstance(identifier = "orgGovernance", applicableFor = OrgType.class,
+                display = @PanelDisplay(label = "Governance", order = 60))
 })
-@PanelDisplay(label = "Members", order = 60)
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     private static final long serialVersionUID = 1L;
 

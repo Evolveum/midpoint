@@ -30,8 +30,8 @@ import java.util.Collections;
  * @author semancik
  */
 @PanelType(name = "environmentalPerformance")
-@PanelInstance(identifier = "environmentalPerformance", applicableFor = TaskType.class, childOf = TaskPerformancePanel.class)
-@PanelDisplay(label = "Environmental performance", order = 50)
+@PanelInstance(identifier = "environmentalPerformance", applicableFor = TaskType.class, childOf = TaskPerformancePanel.class,
+        display = @PanelDisplay(label = "Environmental performance", order = 50))
 public class TaskEnvironmentalPerformancePanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

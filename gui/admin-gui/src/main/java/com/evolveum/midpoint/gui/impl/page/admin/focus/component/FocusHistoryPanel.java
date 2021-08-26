@@ -56,8 +56,8 @@ import java.util.List;
  * Created by honchar.
  */
 @PanelType(name = "history")
-@PanelInstance(identifier = "history", applicableFor = FocusType.class, status = ItemStatus.NOT_CHANGED)
-@PanelDisplay(label = "History", icon = "fa fa-history", order = 40)
+@PanelInstance(identifier = "history", applicableFor = FocusType.class, status = ItemStatus.NOT_CHANGED,
+        display = @PanelDisplay(label = "History", icon = "fa fa-history", order = 40))
 public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
 
     private static final long serialVersionUID = 1L;

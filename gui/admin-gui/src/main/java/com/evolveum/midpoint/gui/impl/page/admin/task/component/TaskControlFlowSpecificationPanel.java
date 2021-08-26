@@ -21,8 +21,8 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "controlFlow", defaultContainerPath = "activity/controlFlow", defaultType = ActivityControlFlowSpecificationType.class)
-@PanelInstance(identifier = "controlFlow", applicableFor = TaskType.class, childOf = TaskActivityPanel.class)
-@PanelDisplay(label = "Control flow", order = 20)
+@PanelInstance(identifier = "controlFlow", applicableFor = TaskType.class, childOf = TaskActivityPanel.class,
+        display = @PanelDisplay(label = "Control flow", order = 20))
 public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskControlFlowSpecificationPanel.class);

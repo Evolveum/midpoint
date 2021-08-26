@@ -48,8 +48,8 @@ import java.util.List;
  * provide detailed information later.)
  */
 @PanelType(name = "statistics")
-@PanelInstance(identifier = "statistics", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
-@PanelDisplay(label = "Statistics", order = 50)
+@PanelInstance(identifier = "statistics", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED,
+        display = @PanelDisplay(label = "Statistics", order = 50))
 public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final String ID_ITEM_PROCESSING = "itemProcessing";

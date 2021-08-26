@@ -21,8 +21,8 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "reporting", defaultContainerPath = "activity/reporting", defaultType = TaskReportingOptionsType.class)
-@PanelInstance(identifier = "reporting", applicableFor = TaskType.class, childOf = TaskActivityPanel.class)
-@PanelDisplay(label = "Reporting", order = 50)
+@PanelInstance(identifier = "reporting", applicableFor = TaskType.class, childOf = TaskActivityPanel.class,
+        display = @PanelDisplay(label = "Reporting", order = 50))
 public class TaskReportingPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskReportingPanel.class);

@@ -10,17 +10,12 @@ package com.evolveum.midpoint.gui.api;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemPathParser;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.application.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -168,7 +163,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                     if (isSubPanel(panelInstance)) {
                         continue;
                     }
-                    ContainerPanelConfigurationType config = compileContainerPanelConfiguration(panelInstance.identifier(), panelInstance.defaultPanel(), clazz, objectType, allClasses);
+                    ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, allClasses, panelInstance);
                     panels.add(config);
                 }
             }
@@ -181,7 +176,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             if (isSubPanel(panelInstance)) {
                 continue;
             }
-            ContainerPanelConfigurationType config = compileContainerPanelConfiguration(panelInstance.identifier(), panelInstance.defaultPanel(), clazz, objectType, allClasses);
+            ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, allClasses, panelInstance);
             panels.add(config);
         }
 
@@ -219,21 +214,21 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     Map<Class<? extends ObjectType>, ContainerPanelConfigurationType> defaultContainerPanelConfigurationMap = new HashMap<>();
 
-    private ContainerPanelConfigurationType compileContainerPanelConfiguration(String identifier, boolean isDefault, Class<?> clazz, Class<? extends ObjectType> objectType, Set<Class<?>> classes) {
+    private ContainerPanelConfigurationType compileContainerPanelConfiguration(Class<?> clazz, Class<? extends ObjectType> objectType, Set<Class<?>> classes, PanelInstance panelInstance) {
         ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
-        config.setIdentifier(identifier);
+        config.setIdentifier(panelInstance.identifier());
 
         addPanelTypeConfiguration(clazz, config);
-        compileDisplay(clazz, config);
+        compileDisplay(panelInstance, config);
 
         List<ContainerPanelConfigurationType> children = processChildren(classes, objectType, clazz);
         config.getPanel().addAll(children);
 
-        if (isDefault) {
+        if (panelInstance.defaultPanel()) {
             config.setDefault(true);
         }
 
-        setupCountersForPanelInstance(identifier, clazz);
+        setupCountersForPanelInstance(panelInstance.identifier(), clazz);
         return config;
     }
 
@@ -282,8 +277,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         config.getContainer().add(defaultContainer);
     }
 
-    private void compileDisplay(Class<?> clazz, ContainerPanelConfigurationType config) {
-        PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
+    private void compileDisplay(PanelInstance panelInstance, ContainerPanelConfigurationType config) {
+        PanelDisplay display = panelInstance.display();
         if (display != null) {
             config.setDisplay(createDisplayType(display));
             config.setDisplayOrder(display.order());
@@ -306,7 +301,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 continue;
             }
 
-            ContainerPanelConfigurationType config = compileContainerPanelConfiguration(panelInstance.identifier(), panelInstance.defaultPanel(), clazz, objectType, classes);
+            ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, classes, panelInstance);
             configs.add(config);
         }
 

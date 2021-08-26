@@ -16,8 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 @PanelType(name = "resourceAccounts")
-@PanelInstance(identifier = "resourceAccounts", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class)
-@PanelDisplay(label = "Accounts", order = 30)
+@PanelInstance(identifier = "resourceAccounts", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class,
+        display = @PanelDisplay(label = "Accounts", order = 30))
 public class ResourceAccountsPanel extends ResourceContentTabPanel {
 
 

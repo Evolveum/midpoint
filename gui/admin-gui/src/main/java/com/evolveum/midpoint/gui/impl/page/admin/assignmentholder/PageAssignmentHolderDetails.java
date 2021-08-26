@@ -214,4 +214,8 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         target.add(this);
     }
 
+    protected AHDM createObjectDetailsModels() {
+        return (AHDM) new AssignmentHolderDetailsModel<>(createPrismObejctModel(), this);
+    }
+
 }

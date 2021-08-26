@@ -29,8 +29,8 @@ import java.util.List;
 @PanelType(name = "focusMappingsAssignments")
 @PanelInstance(identifier = "focusMappingsAssignments",
         applicableFor = AbstractRoleType.class,
-        childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Focus mappings", order = 70)
+        childOf = AssignmentHolderAssignmentPanel.class,
+        display = @PanelDisplay(label = "Focus mappings", order = 70))
 public class FocusMappingsAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusMappingsAssignmentsPanel.class);

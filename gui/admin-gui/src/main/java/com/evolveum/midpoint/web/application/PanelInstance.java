@@ -25,4 +25,6 @@ public @interface PanelInstance {
     boolean defaultPanel() default false;
 
     Class<? extends ObjectType> notApplicableFor() default SystemConfigurationType.class;
+
+    PanelDisplay display();
 }

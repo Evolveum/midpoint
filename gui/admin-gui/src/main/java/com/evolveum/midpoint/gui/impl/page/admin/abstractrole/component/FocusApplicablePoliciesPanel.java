@@ -28,8 +28,8 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
  */
 @PanelType(name = "applicablePolicies")
 @PanelInstance(identifier = "applicablePolicies",
-        applicableFor = AbstractRoleType.class)
-@PanelDisplay(label = "Applicable policies", order = 60)
+        applicableFor = AbstractRoleType.class,
+        display = @PanelDisplay(label = "Applicable policies", order = 60))
 public class FocusApplicablePoliciesPanel<AR extends AbstractRoleType> extends AbstractObjectMainPanel<AR, FocusDetailsModels<AR>> {
     private static final long serialVersionUID = 1L;
 

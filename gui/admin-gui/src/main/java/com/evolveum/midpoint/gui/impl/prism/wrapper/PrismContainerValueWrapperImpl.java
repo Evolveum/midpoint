@@ -273,14 +273,10 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
             collectExtensionItems(item, false, nonContainers);
 
-            if (!(item instanceof PrismContainerWrapper) && onlyForDeltaComputation(item)) {
+            if (!(item instanceof PrismContainerWrapper)) {
                 nonContainers.add(item);
             }
         }
-    }
-
-    private boolean onlyForDeltaComputation(ItemWrapper<?, ?> item) {
-        return item instanceof PrismReferenceWrapper && !((PrismReferenceWrapper<?>) item).isOnlyForDeltaComputation();
     }
 
     private void collectVirtualContainers() {

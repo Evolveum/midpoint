@@ -53,8 +53,8 @@ import java.util.List;
 @PanelType(name = "indirectAssignments")
 @PanelInstance(identifier = "indirectAssignments",
         applicableFor = AssignmentHolderType.class,
-        childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "With indirect")
+        childOf = AssignmentHolderAssignmentPanel.class,
+        display = @PanelDisplay(label = "With indirect"))
 public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
     private static final long serialVersionUID = 1L;
 

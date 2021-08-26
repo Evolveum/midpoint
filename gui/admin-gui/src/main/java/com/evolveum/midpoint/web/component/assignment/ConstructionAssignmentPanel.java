@@ -36,8 +36,8 @@ import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 @PanelType(name = "constructionAssignments")
 @PanelInstance(identifier = "constructionAssignments",
         applicableFor = FocusType.class,
-        childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Resource", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, order = 50)
+        childOf = AssignmentHolderAssignmentPanel.class,
+        display = @PanelDisplay(label = "Resource", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, order = 50))
 public class ConstructionAssignmentPanel<AH extends AssignmentHolderType> extends AssignmentPanel<AH> {
     private static final long serialVersionUID = 1L;
 

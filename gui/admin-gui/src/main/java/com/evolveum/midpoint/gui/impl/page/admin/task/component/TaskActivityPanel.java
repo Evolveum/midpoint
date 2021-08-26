@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -23,8 +24,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
 @PanelType(name = "activity", defaultContainerPath = "activity")
-@PanelInstance(identifier = "activity", applicableFor = TaskType.class, defaultPanel = true)
-@PanelDisplay(label = "Activity", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 15)
+@PanelInstance(identifier = "activity", applicableFor = TaskType.class, defaultPanel = true,
+        display = @PanelDisplay(label = "Activity", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 15))
 public class TaskActivityPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskActivityPanel.class);
@@ -34,7 +35,7 @@ public class TaskActivityPanel extends AbstractObjectMainPanel<TaskType, ObjectD
     private static final String DOT_CLASS = TaskActivityPanel.class.getName() + ".";
     private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateWrapper";
 
-    public TaskActivityPanel(String id, ObjectDetailsModels<TaskType> model, ContainerPanelConfigurationType config) {
+    public TaskActivityPanel(String id, AssignmentHolderDetailsModel<TaskType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 

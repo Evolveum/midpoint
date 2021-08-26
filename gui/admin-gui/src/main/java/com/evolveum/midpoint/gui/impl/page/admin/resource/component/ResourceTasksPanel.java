@@ -48,8 +48,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PanelType(name = "resourceTasks")
-@PanelInstance(identifier = "resourceTasks", applicableFor = ResourceType.class, status = ItemStatus.NOT_CHANGED)
-@PanelDisplay(label = "Defined tasks", order = 20)
+@PanelInstance(identifier = "resourceTasks", applicableFor = ResourceType.class, status = ItemStatus.NOT_CHANGED,
+        display = @PanelDisplay(label = "Defined tasks", order = 20))
+
 public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> implements Popupable {
     private static final long serialVersionUID = 1L;
 

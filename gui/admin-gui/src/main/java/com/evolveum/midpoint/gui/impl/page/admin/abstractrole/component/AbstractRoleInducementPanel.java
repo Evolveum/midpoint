@@ -15,8 +15,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.web.application.*;
 
 //@PanelType(name = "inducements", defaultContainerPath = "inducement")
-@PanelInstance(identifier = "inducements", applicableFor = AbstractRoleType.class)
-@PanelDisplay(label = "Inducements", order = 70)
+@PanelInstance(identifier = "inducements", applicableFor = AbstractRoleType.class,
+        display = @PanelDisplay(label = "Inducements", order = 70))
 public class AbstractRoleInducementPanel<AR extends AbstractRoleType> extends AbstractObjectMainPanel<AR, ObjectDetailsModels<AR>> {
 
     public AbstractRoleInducementPanel(String id, ObjectDetailsModels<AR> model, ContainerPanelConfigurationType config) {

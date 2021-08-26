@@ -22,8 +22,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 //@PanelType(name = "assignments", defaultContainerPath = "assignment")
-@PanelInstance(identifier = "assignments", applicableFor = AssignmentHolderType.class)
-@PanelDisplay(label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 30)
+@PanelInstance(identifier = "assignments",
+        applicableFor = AssignmentHolderType.class,
+        display = @PanelDisplay(label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 30))
 @Counter(provider = AssignmentCounter.class)
 public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 

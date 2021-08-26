@@ -47,8 +47,8 @@ import java.util.List;
  * @author semancik
  */
 @PanelType(name = "subtasks")
-@PanelInstance(identifier = "subtasks", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED)
-@PanelDisplay(label = "Subtasks", order = 50)
+@PanelInstance(identifier = "subtasks", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED,
+        display = @PanelDisplay(label = "Subtasks", order = 50))
 public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
