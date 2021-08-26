@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -103,6 +104,19 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
                 mapOfWidgetsController.put(widgetIdentifier, new DashboardWidgetHolder(searchSpecificationHolder, controller));
             }
         }
+    }
+
+    @Override
+    public @Nullable Long determineExpectedTotal(OperationResult result) throws CommonException {
+        long expectedTotal = support.getDashboard().getWidget().size();
+        for (DashboardWidgetHolder holder : mapOfWidgetsController.values()) {
+            expectedTotal =+ support.countRecords(
+                    holder.getSearchSpecificationHolder().getType(),
+                    holder.getSearchSpecificationHolder().getQuery(),
+                    holder.getSearchSpecificationHolder().getOptions(),
+                    result);
+        }
+        return expectedTotal;
     }
 
     @Override

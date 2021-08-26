@@ -377,7 +377,7 @@ public class ImportController {
         return reportService.getPrismContext().parserFor(embeeded).xml().definition(def).parseRealValue();
     }
 
-    public void parseColumnsAsVariablesFromFile(ReportDataType reportData, BiConsumer<Integer, VariablesMap> handler)
+    public List<VariablesMap> parseColumnsAsVariablesFromFile(ReportDataType reportData)
             throws IOException {
         List<String> headers = new ArrayList<>();
         Reader reader = Files.newBufferedReader(Paths.get(reportData.getFilePath()));
@@ -416,7 +416,8 @@ public class ImportController {
         if (headers.isEmpty()) {
             headers = csvParser.getHeaderNames();
         }
-        AtomicInteger sequence = new AtomicInteger(1);
+
+        List<VariablesMap> variablesMaps = new ArrayList<>();
         for (CSVRecord csvRecord : csvParser) {
             VariablesMap variables = new VariablesMap();
             for (String name : headers) {
@@ -436,8 +437,9 @@ public class ImportController {
                     variables.put(name, value, String.class);
                 }
             }
-            handler.accept(sequence.getAndIncrement(), variables);
+            variablesMaps.add(variables);
         }
+        return variablesMaps;
     }
 
 }
