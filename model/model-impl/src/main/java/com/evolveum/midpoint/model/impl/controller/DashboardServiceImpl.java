@@ -231,50 +231,18 @@ public class DashboardServiceImpl implements DashboardService {
         if (collection == null && collectionRef.getFilter() == null) {
             return null;
         }
-        AuditSearchType auditSearch = collection != null ? collection.getAuditSearch() : null;
-        SearchFilterType filter = collectionRef.getFilter() != null ? collectionRef.getFilter() : null;
-        filter = collection != null ? collection.getFilter() : filter;
-        Integer value = 0;
         Integer domainValue = null;
-        if (filter != null) {
-            value = countAuditEvents(collectionRef, collection, task, result);
-            if (value == null) {
-                return null;
-            }
-            if (collection != null && collection.getDomain() != null && collection.getDomain().getCollectionRef() != null
-                    && collection.getDomain().getCollectionRef().getOid() != null) {
-                @NotNull PrismObject<ObjectCollectionType> domainCollection = modelService.getObject(ObjectCollectionType.class, collection.getDomain().getCollectionRef().getOid(),
-                        null, task, result);
-                domainValue = countAuditEvents(collection.getDomain(), domainCollection.asObjectable(), task, result);
-            }
-        } else if (auditSearch != null) {
-            if (auditSearch.getRecordQuery() == null) {
-                LOGGER.error("RecordQuery of auditSearch is not defined in widget " +
-                        widget.getIdentifier());
-                return null;
-            }
-
-            Map<String, Object> parameters = new HashMap<>();
-            String query = getQueryForCount(createQuery(collection,
-                    parameters, false, clock));
-            LOGGER.debug("Parameters for select: " + parameters);
-            value = (int) auditService.countObjects(
-                    query, parameters);
-            domainValue = null;
-            if (auditSearch.getDomainQuery() == null) {
-                LOGGER.error("DomainQuery of auditSearch is not defined");
-            } else {
-                parameters = new HashMap<>();
-                query = getQueryForCount(createQuery(collection,
-                        parameters, true, clock));
-                LOGGER.debug("Parameters for select: " + parameters);
-                domainValue = (int) auditService.countObjects(
-                        query, parameters);
-            }
-        } else {
-            LOGGER.error("Filter or auditSearch of ObjectCollection is not found in widget " +
+        Integer value = countAuditEvents(collectionRef, collection, task, result);
+        if (value == null) {
+            LOGGER.error("Filter of ObjectCollection is not found in widget " +
                     widget.getIdentifier());
             return null;
+        }
+        if (collection != null && collection.getDomain() != null && collection.getDomain().getCollectionRef() != null
+                && collection.getDomain().getCollectionRef().getOid() != null) {
+            @NotNull PrismObject<ObjectCollectionType> domainCollection = modelService.getObject(ObjectCollectionType.class, collection.getDomain().getCollectionRef().getOid(),
+                    null, task, result);
+            domainValue = countAuditEvents(collection.getDomain(), domainCollection.asObjectable(), task, result);
         }
         LOGGER.debug("Value: {}, Domain value: {}", value, domainValue);
         IntegerStatType statType = generateIntegerStat(value, domainValue);
