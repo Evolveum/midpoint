@@ -8043,8 +8043,7 @@
     <xsd:complexType name="ProportionalExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
-                Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
-                But this is all experimental. Later it will probably get entire AuditSearchType object.
+                Expression gets IntegerStatType as an input, IntegerStatType is derived from collection.
                 This expression evaluator may autodetect that input is a ObjectCollectionType and find IntegerStatType inside.
             </xsd:documentation>
             <xsd:appinfo>
@@ -15125,28 +15124,6 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                  Specification of an explicit or implicit object collection that will be used as data source for the view.
-
-                                  EXTREMELY ABSOLUTELY GIGANTICALLY ENORMOUSLY MEGA GIGA TERA SUPER HYPER EXPERIMENTAL
-
-                                  This is almost certain to change in the future. It does not even belong here well
-                                  as this is supposed to be *object* collection and not audit collection. But for now it solves a
-                                  couple of problems in dashboards and report functionality, which is also experimental.
-                                  Therefore this is a good temporary choice.
-                                  However, if you ever rely on this element the karma will get you, eventually.
-                                  If that happens, don't come to us crying. You have been warned.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>ObjectCollectionType.auditSearch</a:displayName>
-                                <a:experimental>true</a:experimental>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="baseCollection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -15337,55 +15314,6 @@
                             retrieved or computed.
                         </p>
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="AuditSearchType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specification of search criteria for audit trails.
-                EXTREMELY EXPERIMENTAL. This is almost certain to change in the future.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.0</a:since>
-                <a:experimental>true</a:experimental>
-                <a:deprecated>true</a:deprecated>
-                <a:plannedRemoval>4.4</a:plannedRemoval>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="recordQuery" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AuditSearchType.recordQuery</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="domainQuery" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AuditSearchType.domainQuery</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="interval" type="xsd:duration" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AuditSearchType.interval</a:displayName>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
