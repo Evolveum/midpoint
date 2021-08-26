@@ -202,7 +202,7 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
 
     @Override
     protected ObjectSummaryPanel<CaseType> createSummaryPanel(IModel<CaseType> summaryModel) {
-        return new CaseSummaryPanel(ID_SUMMARY_PANEL, CaseType.class, summaryModel, this);
+        return new CaseSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
     }
 
     protected void initOperationalButtons(RepeatingView repeatingView) {

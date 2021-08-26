@@ -58,6 +58,7 @@ public final class DescriptorLoader implements DebugDumpable {
             "com.evolveum.midpoint.web.page.self",
             "com.evolveum.midpoint.web.component.prism.show",
             "com.evolveum.midpoint.gui.impl.page.admin",
+            "com.evolveum.midpoint.gui.impl.page.admin.cases",
             "com.evolveum.midpoint.gui.impl.page.admin.org",
             "com.evolveum.midpoint.gui.impl.page.admin.resource",
             "com.evolveum.midpoint.gui.impl.page.admin.role",

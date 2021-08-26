@@ -14,7 +14,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -43,8 +46,9 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
     }
 
     @Override
-    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, List<ObjectReferenceType> archetypes, OperationResult result) {
+    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration, List<ObjectReferenceType> archetypes, OperationResult result) {
         GuiObjectDetailsPageType mergedPageConfiguration = defaultPageConfiguration.cloneWithoutId();
+
         for (ObjectReferenceType archetypeRef : archetypes) {
             ArchetypeType archetypeType = null;
             try {
@@ -98,6 +102,7 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
                 return;
             }
         }
+
         mergedPanels.add(configuredPanel.cloneWithoutId());
     }
 

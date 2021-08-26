@@ -38,8 +38,8 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
     private static final String DOT_CLASS = CaseSummaryPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME = DOT_CLASS + "loadParentCaseDisplayName";
 
-    public CaseSummaryPanel(String id, Class<CaseType> type, IModel<CaseType> model, ModelServiceLocator serviceLocator) {
-        super(id, type, model, serviceLocator);
+    public CaseSummaryPanel(String id, IModel<CaseType> model, ModelServiceLocator serviceLocator) {
+        super(id, CaseType.class, model, serviceLocator);
     }
 
     @Override
