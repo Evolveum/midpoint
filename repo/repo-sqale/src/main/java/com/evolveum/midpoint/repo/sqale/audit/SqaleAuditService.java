@@ -49,12 +49,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
- * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}.
- * This is NOT a managed bean, it is completely created by {@link SqlAuditServiceFactory} and any
- * of the dependencies must be dependencies of that factory to assure proper initialization.
- * <p>
- * Design notes:
- * No repo.sql.data.audit.* entities are used (stage/type enums are OK).
+ * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}).
+ * TODO: rethink the initialization, will we use factory class again?
  */
 public class SqaleAuditService implements AuditService {
 
@@ -360,14 +356,6 @@ public class SqaleAuditService implements AuditService {
         */
     }
 
-    /** @deprecated use {@link #searchObjects(ObjectQuery, Collection, OperationResult)} instead */
-    @Override
-    @Deprecated
-    public List<AuditEventRecord> listRecords(
-            String query, Map<String, Object> params, OperationResult parentResult) {
-        throw new UnsupportedOperationException(); // TODO
-    }
-
     @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
         Objects.requireNonNull(policy, "Cleanup policy must not be null.");
@@ -637,11 +625,6 @@ public class SqaleAuditService implements AuditService {
                 + ')';
     }
     */
-
-    // TODO remove the method
-    public long countObjects(String query, Map<String, Object> params) {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public boolean supportsRetrieval() {
