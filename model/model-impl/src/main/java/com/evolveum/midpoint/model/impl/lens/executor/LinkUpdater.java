@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -423,7 +424,7 @@ class LinkUpdater<F extends FocusType> {
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
             List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
                     .createSynchronizationSituationAndDescriptionDelta(currentShadow, newSituation, task.getChannel(),
-                            projCtx.hasFullShadow(), now, prismContext);
+                            projCtx.hasFullShadow() && TaskUtil.isExecute(task), now);
 
             try {
                 ModelImplUtils.setRequestee(task, focusContext);

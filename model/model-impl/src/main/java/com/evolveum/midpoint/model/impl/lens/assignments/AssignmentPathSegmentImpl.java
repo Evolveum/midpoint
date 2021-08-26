@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
-import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
-
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
@@ -29,6 +27,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Primary duty of this class is to be a part of assignment path. (This is what is visible through its interface,
@@ -63,7 +63,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      * Item-delta-item form of the assignment.
      * TODO which ODO (absolute/relative)? MID-6404
      */
-    private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+    @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 
     /**
      * Are we evaluating the old or new state of the assignment?
@@ -72,9 +72,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     private final boolean evaluateOld;
 
     /**
-     * Pure form of the assignment (new or old): taking "evaluateForOld" into account.
+     * Pure form of the assignment (new or old): taking {@link #evaluateOld} into account.
      */
-    final AssignmentType assignment;
+    @NotNull final AssignmentType assignment;
 
     /**
      * Relation of the assignment; normalized.
@@ -223,7 +223,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
             throw new IllegalArgumentException("Attempt to set segment assignment IDI without a definition");
         }
         evaluateOld = builder.evaluateOld;
-        assignment = getAssignment(assignmentIdi, evaluateOld);
+        assignment = Util.getAssignment(assignmentIdi, evaluateOld);
         relation = getRelation(assignment, getRelationRegistry());
         isAssignment = builder.isAssignment;
         target = builder.target;
@@ -278,18 +278,13 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         return archetypeHierarchy;
     }
 
+    @NotNull
     public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
         return assignmentIdi;
     }
 
-    public AssignmentType getAssignment(boolean evaluateOld) {
-        return getAssignment(assignmentIdi, evaluateOld);
-    }
-
-    private static AssignmentType getAssignment(
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            boolean evaluateOld) {
-        return asContainerable(assignmentIdi.getSingleValue(evaluateOld));
+    public @Nullable AssignmentType getAssignment(boolean evaluateOld) {
+        return Util.getAssignment(assignmentIdi, evaluateOld);
     }
 
     private static QName getRelation(AssignmentType assignment, RelationRegistry relationRegistry) {
@@ -297,20 +292,17 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
                 relationRegistry.normalizeRelation(assignment.getTargetRef().getRelation()) : null;
     }
 
-    public AssignmentType getAssignment() {
+    public @NotNull AssignmentType getAssignment() {
         return assignment;
     }
 
     public AssignmentType getAssignmentAny() {
-        if (assignmentIdi == null) {
-            return null;
-        }
         return assignmentIdi.getItemNew() != null ? getAssignment(false) : getAssignment(true);
     }
 
     @Override
     public AssignmentType getAssignmentNew() {
-        if (assignmentIdi == null || assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
+        if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
             return null;
         }
         return ((PrismContainer<AssignmentType>) assignmentIdi.getItemNew()).getRealValue();
@@ -605,8 +597,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     }
 
     public Long getAssignmentId() {
-        AssignmentType assignment = getAssignmentAny();
-        return assignment != null ? assignment.getId() : null;
+        return assignment.getId();
     }
 
     @NotNull private RelationRegistry getRelationRegistry() {

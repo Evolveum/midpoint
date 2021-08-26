@@ -70,6 +70,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
+    public static final String OP_IS_ANY_SUBORDINATE = "isAnySubordinate"; // not part of API anymore
+
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
 

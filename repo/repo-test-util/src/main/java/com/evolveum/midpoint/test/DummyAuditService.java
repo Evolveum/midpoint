@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -530,23 +530,8 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     }
 
     @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
-    }
-
-    @Override
-    public long countObjects(String query, Map<String, Object> params) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
-    }
-
-    @Override
     public boolean supportsRetrieval() {
         return false;
-    }
-
-    @Override
-    public void reindexEntry(AuditEventRecord record) {
-        // not needed in dummy
     }
 
     public boolean isEnabled() {

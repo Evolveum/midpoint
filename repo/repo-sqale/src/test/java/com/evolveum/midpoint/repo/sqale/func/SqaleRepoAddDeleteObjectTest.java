@@ -714,7 +714,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(extensionContainer, "int", 1);
         addExtensionValue(extensionContainer, "short", (short) 2);
         addExtensionValue(extensionContainer, "long", 3L);
-        addExtensionValue(extensionContainer, "integer", 4);
+        addExtensionValue(extensionContainer, "integer", BigInteger.valueOf(4));
         addExtensionValue(extensionContainer, "decimal",
                 new BigDecimal("12345678901234567890.12345678901234567890"));
         addExtensionValue(extensionContainer, "decimal-2", new BigDecimal("12345678901234567890"));
@@ -742,7 +742,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .containsEntry(extensionKey(extensionContainer, "int"), 1)
                 .containsEntry(extensionKey(extensionContainer, "short"), 2) // returned as Integer
                 .containsEntry(extensionKey(extensionContainer, "long"), 3) // returned as Integer
-                .containsEntry(extensionKey(extensionContainer, "integer"), 4)
+                .containsEntry(extensionKey(extensionContainer, "integer"), 4) // returned as Integer
                 .containsEntry(extensionKey(extensionContainer, "decimal"),
                         new BigDecimal("12345678901234567890.12345678901234567890"))
                 .containsEntry(extensionKey(extensionContainer, "decimal-2"),
@@ -868,7 +868,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .assignment(assignment);
         ExtensionType extensionContainer = assignment.getExtension();
         addExtensionValue(extensionContainer, "string-mv", "string-value1", "string-value2");
-        addExtensionValue(extensionContainer, "integer", 1);
+        addExtensionValue(extensionContainer, "integer", BigInteger.valueOf(1));
         String targetOid = UUID.randomUUID().toString();
         addExtensionValue(extensionContainer, "ref", ref(targetOid, UserType.COMPLEX_TYPE));
 
@@ -885,7 +885,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(Jsonb.toMap(row.ext))
                 .containsEntry(extensionKey(extensionContainer, "string-mv"),
                         List.of("string-value1", "string-value2"))
-                .containsEntry(extensionKey(extensionContainer, "integer"), 1)
+                .containsEntry(extensionKey(extensionContainer, "integer"), 1) // returned as Integer
                 .containsEntry(extensionKey(extensionContainer, "ref"),
                         Map.of("o", targetOid,
                                 "t", MObjectType.USER.name(),

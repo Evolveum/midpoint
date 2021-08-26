@@ -6,18 +6,20 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -32,27 +34,42 @@ public class ExtUtils {
     /**
      * Supported types for extension properties - without references and enums treated differently.
      */
-    public static final Set<QName> SUPPORTED_INDEXED_EXTENSION_TYPES = Set.of(
-            DOMUtil.XSD_BOOLEAN,
-            DOMUtil.XSD_INT,
-            DOMUtil.XSD_LONG,
-            DOMUtil.XSD_SHORT,
-            DOMUtil.XSD_INTEGER,
-            DOMUtil.XSD_DECIMAL,
-            DOMUtil.XSD_STRING,
-            DOMUtil.XSD_DOUBLE,
-            DOMUtil.XSD_FLOAT,
-            DOMUtil.XSD_DATETIME,
-            PolyStringType.COMPLEX_TYPE);
-
-    public static final Map<String,QName> SUPPORTED_TYPE_URI_TO_QNAME;
+    private static final Map<String, SupportedExtensionTypeInfo> SUPPORTED_INDEXED_EXTENSION_TYPES = new HashMap<>();
 
     static {
-        HashMap<String, QName> uriMap = new HashMap<>();
-        for (QName name : SUPPORTED_INDEXED_EXTENSION_TYPES) {
-            uriMap.put(QNameUtil.qNameToUri(name), name);
-        }
-        SUPPORTED_TYPE_URI_TO_QNAME = Collections.unmodifiableMap(uriMap);
+        addType(DOMUtil.XSD_BOOLEAN, Boolean.class);
+        addType(DOMUtil.XSD_INT, Integer.class);
+        addType(DOMUtil.XSD_LONG, Long.class);
+        addType(DOMUtil.XSD_SHORT, Short.class);
+        addType(DOMUtil.XSD_INTEGER, BigInteger.class);
+        addType(DOMUtil.XSD_DECIMAL, BigDecimal.class);
+        addType(DOMUtil.XSD_STRING, String.class);
+        addType(DOMUtil.XSD_FLOAT, Float.class);
+        addType(DOMUtil.XSD_DOUBLE, Double.class);
+        addType(DOMUtil.XSD_DATETIME, XMLGregorianCalendar.class);
+        addType(PolyStringType.COMPLEX_TYPE, PolyString.class);
+    }
+
+    private static void addType(QName typeName, Class<?> valueClass) {
+        String uri = QNameUtil.qNameToUri(typeName);
+        SUPPORTED_INDEXED_EXTENSION_TYPES.put(uri,
+                new SupportedExtensionTypeInfo(uri, typeName, valueClass));
+    }
+
+    /**
+     * Returns expected class for real values for registered types, or `null`.
+     */
+    public static @Nullable Class<?> getRealValueClass(String typeUri) {
+        SupportedExtensionTypeInfo info = SUPPORTED_INDEXED_EXTENSION_TYPES.get(typeUri);
+        return info != null ? info.realValueClass : null;
+    }
+
+    public static boolean isRegisteredType(QName typeName) {
+        return SUPPORTED_INDEXED_EXTENSION_TYPES.containsKey(QNameUtil.qNameToUri(typeName));
+    }
+
+    public static QName getSupportedTypeName(String typeUri) {
+        return SUPPORTED_INDEXED_EXTENSION_TYPES.get(typeUri).typeName;
     }
 
     public static boolean isEnumDefinition(PrismPropertyDefinition<?> definition) {
@@ -65,5 +82,17 @@ public class ExtUtils {
         return MiscUtil.asInstant(dateTime)
                 .truncatedTo(ChronoUnit.MILLIS)
                 .toString();
+    }
+
+    public static class SupportedExtensionTypeInfo {
+        public final String uri; // see QNameUtil.qNameToUri()
+        public final QName typeName;
+        public final Class<?> realValueClass;
+
+        public SupportedExtensionTypeInfo(String uri, QName typeName, Class<?> realValueClass) {
+            this.uri = uri;
+            this.typeName = typeName;
+            this.realValueClass = realValueClass;
+        }
     }
 }

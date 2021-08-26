@@ -44,14 +44,14 @@ class SchemaActionComputer {
 
     /**
      * For database schema versioning please see
-     * <a href="https://wiki.evolveum.com/display/midPoint/Database+schema+versioning">wiki page about DB versioning</a>.
+     * <a href="https://docs.evolveum.com/midpoint/reference/repository/database-schema-versioning/">wiki page about DB versioning</a>.
      */
-    public static final String REQUIRED_DATABASE_SCHEMA_VERSION = "4.3";
+    public static final String REQUIRED_DATABASE_SCHEMA_VERSION = "4.4";
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaActionComputer.class);
 
     private static final String RELEASE_NOTES_URL_PREFIX = "https://docs.evolveum.com/midpoint/release/";
-    private static final String SQL_SCHEMA_SCRIPTS_URL = "https://wiki.evolveum.com/display/midPoint/SQL+Schema+Scripts";
+    private static final String SQL_SCHEMA_SCRIPTS_URL = "https://docs.evolveum.com/midpoint/reference/repository/sql-schema-scripts/";
 
     @Autowired private SqlRepositoryConfiguration repositoryConfiguration;
 
@@ -62,7 +62,8 @@ class SchemaActionComputer {
                     new ImmutablePair<>("3.8", "3.9"),
                     new ImmutablePair<>("3.9", "4.0"),
                     new ImmutablePair<>("4.0", "4.2"),
-                    new ImmutablePair<>("4.2", "4.3")));
+                    new ImmutablePair<>("4.2", "4.3"),
+                    new ImmutablePair<>("4.3", "4.4")));
 
     enum State {
         COMPATIBLE, NO_TABLES, AUTOMATICALLY_UPGRADEABLE, MANUALLY_UPGRADEABLE, INCOMPATIBLE

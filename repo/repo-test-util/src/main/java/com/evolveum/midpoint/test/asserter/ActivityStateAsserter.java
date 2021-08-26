@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
@@ -14,10 +20,6 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * TODO
@@ -98,6 +100,32 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
     public ActivityProgressAsserter<ActivityStateAsserter<RA>> progress() {
         ActivityProgressAsserter<ActivityStateAsserter<RA>> asserter =
                 new ActivityProgressAsserter<>(activityState.getProgress(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> simulationModePolicyRulesCounters() {
+        ActivityCounterGroupType counters = Objects.requireNonNull(
+                Objects.requireNonNull(
+                        activityState.getCounters(), "no counters")
+                        .getSimulationModePolicyRules(),
+                "no simulation mode policy rules counters");
+
+        ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> asserter =
+                        new ActivityCounterGroupAsserter<>(counters, this, "simulation rules counters in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> executionModePolicyRulesCounters() {
+        ActivityCounterGroupType counters = Objects.requireNonNull(
+                Objects.requireNonNull(
+                        activityState.getCounters(), "no counters")
+                        .getExecutionModePolicyRules(),
+                "no execution mode policy rules counters");
+
+        ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> asserter =
+                        new ActivityCounterGroupAsserter<>(counters, this, "execution rules counters in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }

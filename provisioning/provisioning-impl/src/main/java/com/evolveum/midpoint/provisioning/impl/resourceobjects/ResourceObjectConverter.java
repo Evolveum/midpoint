@@ -108,7 +108,8 @@ public class ResourceObjectConverter {
     public static final String FULL_SHADOW_KEY = ResourceObjectConverter.class.getName()+".fullShadow";
 
     public @NotNull PrismObject<ShadowType> getResourceObject(ProvisioningContext ctx,
-            Collection<? extends ResourceAttribute<?>> identifiers, boolean fetchAssociations, OperationResult parentResult)
+            Collection<? extends ResourceAttribute<?>> identifiers, String shadowOid, boolean fetchAssociations,
+            OperationResult parentResult)
                     throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
                     SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
 
@@ -117,7 +118,7 @@ public class ResourceObjectConverter {
         AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
 
         PrismObject<ShadowType> resourceShadow = fetchResourceObject(ctx, identifiers,
-                attributesToReturn, fetchAssociations, parentResult); // todo consider whether it is always necessary to fetch the entitlements
+                attributesToReturn, shadowOid, fetchAssociations, parentResult); // todo consider whether it is always necessary to fetch the entitlements
 
         LOGGER.trace("Got resource object\n{}", resourceShadow.debugDumpLazily());
 
@@ -140,7 +141,7 @@ public class ResourceObjectConverter {
 
         if (hasAllIdentifiers(identifiers, ctx.getObjectClassDefinition())) {
             return fetchResourceObject(ctx, identifiers,
-                    attributesToReturn, true, parentResult);    // todo consider whether it is always necessary to fetch the entitlements
+                    attributesToReturn, null, true, parentResult);    // todo consider whether it is always necessary to fetch the entitlements
         } else {
             // Search
             Collection<? extends RefinedAttributeDefinition> secondaryIdentifierDefs = ctx.getObjectClassDefinition().getSecondaryIdentifiers();
@@ -846,7 +847,7 @@ public class ResourceObjectConverter {
             // TODO eliminate this fetch if this is first wave and there are no explicitly requested attributes
             // but make sure currentShadow contains all required attributes
             LOGGER.trace("Fetching object because of READ+REPLACE mode");
-            PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, attributesToReturn, false, result);
+            PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, attributesToReturn, null, false, result);
             operationsWave = convertToReplace(ctx, operationsWave, currentShadow, false);
         }
         UpdateCapabilityType updateCapability = ctx.getEffectiveCapability(UpdateCapabilityType.class);
@@ -854,7 +855,7 @@ public class ResourceObjectConverter {
             AttributeContentRequirementType attributeContentRequirement = updateCapability.getAttributeContentRequirement();
             if (AttributeContentRequirementType.ALL.equals(attributeContentRequirement)) {
                 LOGGER.trace("AttributeContentRequirement: {} for {}", attributeContentRequirement, ctx.getResource());
-                PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, null, false, result);
+                PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, null, null, false, result);
                 if (currentShadow == null) {
                     throw new SystemException("Attribute content requirement set for resource "+ctx.toHumanReadableDescription()+", but read of shadow returned null, identifiers: "+identifiers);
                 }
@@ -886,7 +887,7 @@ public class ResourceObjectConverter {
         attributesToReturn.setAttributesToReturn(neededExtraAttributes);
         try {
             currentShadow = fetchResourceObject(ctx, identifiers,
-                attributesToReturn, fetchEntitlements, parentResult);
+                attributesToReturn, null, fetchEntitlements, parentResult);
         } catch (ObjectNotFoundException e) {
             // This may happen for semi-manual connectors that are not yet up to date.
             // No big deal. We will have to work without it.
@@ -1457,14 +1458,20 @@ public class ResourceObjectConverter {
         return TokenUtil.fromUcf(lastToken);
     }
 
+    /**
+     * @param oidToReportAsNotFound When we know the shadow OID corresponding to the object being fetched, we should provide
+     * it here. It is stored in {@link ObjectNotFoundException} should that be thrown.
+     */
     public PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
+            @Nullable String oidToReportAsNotFound,
             boolean fetchAssociations,
             OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        PrismObject<ShadowType> resourceObject = resourceObjectReferenceResolver.fetchResourceObject(ctx, identifiers, attributesToReturn, parentResult);
+        PrismObject<ShadowType> resourceObject = resourceObjectReferenceResolver.fetchResourceObject(ctx, identifiers,
+                attributesToReturn, oidToReportAsNotFound, parentResult);
         postProcessResourceObjectRead(ctx, resourceObject, fetchAssociations, parentResult);
         return resourceObject;
     }

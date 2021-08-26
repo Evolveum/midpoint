@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,8 +11,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -151,23 +149,8 @@ public class LoggerAuditServiceImpl implements AuditService {
     }
 
     @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
-    }
-
-    @Override
-    public long countObjects(String query, Map<String, Object> params) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
-    }
-
-    @Override
     public boolean supportsRetrieval() {
         return false;
-    }
-
-    @Override
-    public void reindexEntry(AuditEventRecord record) {
-        throw new UnsupportedOperationException("Reindex entry not supported");
     }
 
     @Override

@@ -83,7 +83,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
         try {
             // todo consider whether it is always necessary to fetch the entitlements
             resourceObject = localBeans.resourceObjectConverter
-                    .fetchResourceObject(context, identifiers, attributesToReturn, true, result);
+                    .fetchResourceObject(context, identifiers, attributesToReturn, null, true, result);
         } catch (ObjectNotFoundException ex) {
             result.recordHandledError(
                     "Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);

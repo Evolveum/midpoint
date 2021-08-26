@@ -2801,6 +2801,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return shadow;
     }
 
+    protected PrismObject<ShadowType> getShadowRepoRetrieveAllAttributes(String shadowOid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        // We need to read the shadow as raw, so repo will look for some kind of rudimentary attribute
+        // definitions here. Otherwise we will end up with raw values for non-indexed (cached) attributes
+        logger.info("Getting repo shadow {}", shadowOid);
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                .raw()
+                .item(ShadowType.F_ATTRIBUTES).retrieve()
+                .build();
+        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, options, result);
+        logger.info("Got repo shadow\n{}", shadow.debugDumpLazily(1));
+        assertSuccess(result);
+        return shadow;
+    }
+
     protected Collection<ObjectDelta<? extends ObjectType>> createDetlaCollection(ObjectDelta<?>... deltas) {
         return (Collection) MiscUtil.createCollection(deltas);
     }
@@ -3034,6 +3049,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
+    /** Implants worker threads to the root activity definition. */
     protected Consumer<PrismObject<TaskType>> rootActivityWorkerThreadsCustomizer(int threads) {
         return taskObject -> {
             if (threads != 0) {
@@ -3044,6 +3060,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         };
     }
 
+    /** Implants worker threads to the component activities definitions. */
+    protected Consumer<PrismObject<TaskType>> compositeActivityWorkerThreadsCustomizer(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                ActivityDefinitionType activityDef = requireNonNull(
+                        taskObject.asObjectable().getActivity(), "no activity definition");
+                activityDef.getComposition().getActivity()
+                        .forEach(a ->
+                                ActivityDefinitionUtil.findOrCreateDistribution(a)
+                                        .setWorkerThreads(threads));
+            }
+        };
+    }
+
+    /** Implants worker threads to embedded activities definitions (via tailoring). */
     protected Consumer<PrismObject<TaskType>> tailoringWorkerThreadsCustomizer(int threads) {
         return taskObject -> {
             if (threads != 0) {
@@ -3855,5 +3886,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         waitFor("Waiting for the children to be running",
                 () -> hasRunningChildren(root, runningChildren, result),
                 10000, 500);
+    }
+
+    protected void deleteIfPresent(TestResource<?> resource, OperationResult result) throws SchemaException, IOException {
+        try {
+            repositoryService.deleteObject(resource.getType(), resource.oid, result);
+        } catch (ObjectNotFoundException e) {
+            // ok
+        }
     }
 }

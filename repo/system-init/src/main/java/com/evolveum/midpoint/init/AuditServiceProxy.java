@@ -11,10 +11,6 @@ import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resol
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -36,11 +32,13 @@ import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 
@@ -206,48 +204,8 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     }
 
     @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult parentResult) {
-        List<AuditEventRecord> result = new ArrayList<>();
-        for (AuditService service : services) {
-            if (service.supportsRetrieval()) {
-                List<AuditEventRecord> records = service.listRecords(query, params, parentResult);
-                if (records != null && !records.isEmpty()) {
-                    result.addAll(records);
-                }
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public void reindexEntry(AuditEventRecord record) {
-        for (AuditService service : services) {
-            if (service.supportsRetrieval()) {
-                service.reindexEntry(record);
-            }
-        }
-    }
-
-    @Override
-    public long countObjects(String query, Map<String, Object> params) {
-        long count = 0;
-        for (AuditService service : services) {
-            if (service.supportsRetrieval()) {
-                long c = service.countObjects(query, params);
-                count += c;
-            }
-        }
-        return count;
-    }
-
-    @Override
     public boolean supportsRetrieval() {
-        for (AuditService service : services) {
-            if (service.supportsRetrieval()) {
-                return true;
-            }
-        }
-        return false;
+        return services.stream().anyMatch(s -> s.supportsRetrieval());
     }
 
     @Override

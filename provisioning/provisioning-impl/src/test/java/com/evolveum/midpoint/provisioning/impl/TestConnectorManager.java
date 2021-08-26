@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Evolveum and contributors
+ * Copyright (c) 2017-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 @DirtiesContext
 public class TestConnectorManager extends AbstractIntegrationTest {
 
-    private static final String CONNID_FRAMEWORK_VERSION = "1.5.0.17";
+    private static final String CONNID_FRAMEWORK_VERSION = "1.5.0.18";
 
     @Autowired private ConnectorManager connectorManager;
 

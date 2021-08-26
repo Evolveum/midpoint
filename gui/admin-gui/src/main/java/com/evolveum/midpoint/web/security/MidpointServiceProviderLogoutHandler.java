@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.saml.SamlAuthentication;
 import org.springframework.security.saml.SamlException;
@@ -23,6 +24,7 @@ import org.springframework.security.saml.saml2.metadata.Binding;
 import org.springframework.security.saml.saml2.metadata.IdentityProviderMetadata;
 import org.springframework.security.saml.saml2.metadata.ServiceProviderMetadata;
 import org.springframework.security.saml.spi.opensaml.OpenSamlVelocityEngine;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -62,8 +64,8 @@ public class MidpointServiceProviderLogoutHandler extends ServiceProviderLogoutH
 
         if (authentication instanceof MidpointAuthentication) {
             ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
-            if (moduleAuthentication.getAuthentication() instanceof SamlAuthentication) {
-                SamlAuthentication sa = (SamlAuthentication) moduleAuthentication.getAuthentication();
+            SamlAuthentication sa = getSamlAuth(moduleAuthentication);
+            if (sa != null) {
                 ServiceProviderService provider = provisioning.getHostedProvider();
                 IdentityProviderMetadata idp = provider.getRemoteProvider(sa.getAssertingEntityId());
                 LogoutRequest lr = provider.logoutRequest(idp, (NameIdPrincipal) sa.getSamlPrincipal());
@@ -81,6 +83,17 @@ public class MidpointServiceProviderLogoutHandler extends ServiceProviderLogoutH
                     + " of authentication for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
             throw new IllegalArgumentException(message);
         }
+    }
+
+    private SamlAuthentication getSamlAuth(ModuleAuthentication moduleAuthentication) {
+        if (moduleAuthentication.getAuthentication() instanceof SamlAuthentication) {
+            return (SamlAuthentication) moduleAuthentication.getAuthentication();
+        } else if ((moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken
+                || moduleAuthentication.getAuthentication() instanceof PreAuthenticatedAuthenticationToken)
+                && moduleAuthentication.getAuthentication().getDetails() instanceof SamlAuthentication) {
+            return (SamlAuthentication) moduleAuthentication.getAuthentication().getDetails();
+        }
+        return null;
     }
 
     private void processPostLogout(HttpServletRequest request, HttpServletResponse response,

@@ -15,8 +15,13 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.page.login.*;
+
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.ComponentTag;
@@ -39,10 +44,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -89,16 +90,32 @@ public class SecurityUtils {
     }
 
     private static final Map<String, String> LOCAL_PATH_AND_CHANNEL;
+    private static final Map<String, Set<String>> LOGIN_URL_AND_TYPE;
 
     static {
-        Map<String, String> map = new HashMap<>();
-        map.put("ws", SchemaConstants.CHANNEL_REST_URI);
-        map.put("rest", SchemaConstants.CHANNEL_REST_URI);
-        map.put("api", SchemaConstants.CHANNEL_REST_URI);
-        map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
-        map.put("resetPassword", SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
-        map.put("registration", SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
-        LOCAL_PATH_AND_CHANNEL = Collections.unmodifiableMap(map);
+        LOCAL_PATH_AND_CHANNEL = ImmutableMap.<String, String>builder()
+                .put("ws", SchemaConstants.CHANNEL_REST_URI)
+                .put("rest", SchemaConstants.CHANNEL_REST_URI)
+                .put("api", SchemaConstants.CHANNEL_REST_URI)
+                .put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI)
+                .put("resetPassword", SchemaConstants.CHANNEL_RESET_PASSWORD_URI)
+                .put("registration", SchemaConstants.CHANNEL_SELF_REGISTRATION_URI)
+                .build();
+
+        LOGIN_URL_AND_TYPE = ImmutableMap.<String, Set<String>>builder()
+                .put(AuthenticationModuleNameConstants.LOGIN_FORM,
+                        Arrays.stream(PageLogin.class.getAnnotation(PageDescriptor.class).urls())
+                                .map(Url::matchUrlForSecurity).collect(Collectors.toSet()))
+                .put(AuthenticationModuleNameConstants.SAML_2,
+                        Arrays.stream(PageSamlSelect.class.getAnnotation(PageDescriptor.class).urls())
+                                .map(Url::matchUrlForSecurity).collect(Collectors.toSet()))
+                .put(AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM,
+                        Arrays.stream(PageSecurityQuestions.class.getAnnotation(PageDescriptor.class).urls())
+                                .map(Url::matchUrlForSecurity).collect(Collectors.toSet()))
+                .put(AuthenticationModuleNameConstants.MAIL_NONCE,
+                        Arrays.stream(PageEmailNonse.class.getAnnotation(PageDescriptor.class).urls())
+                                .map(Url::matchUrlForSecurity).collect(Collectors.toSet()))
+                .build();
     }
 
     public static GuiProfiledPrincipal getPrincipalUser(Authentication authentication) {
@@ -749,5 +766,24 @@ public class SecurityUtils {
             return SecurityUtil.isRecordSessionLessAccessChannel(channel);
         }
         return false;
+    }
+
+    public static boolean existLoginPageForActualAuthModule() {
+        ModuleAuthentication authModule = getProcessingModule(false);
+        if (authModule ==  null) {
+            return false;
+        }
+        String moduleType = authModule.getNameOfModuleType();
+        return LOGIN_URL_AND_TYPE.containsKey(moduleType);
+    }
+
+    public static boolean isLoginPageForActualAuthModule(String url) {
+        if (Arrays.stream(PageSelfRegistration.class.getAnnotation(PageDescriptor.class).urls())
+                .map(Url::matchUrlForSecurity).collect(Collectors.toSet()).contains(url)) {
+            return true;
+        }
+        ModuleAuthentication authModule = getProcessingModule(true);
+        String moduleType = authModule.getNameOfModuleType();
+        return LOGIN_URL_AND_TYPE.get(moduleType).contains(url);
     }
 }

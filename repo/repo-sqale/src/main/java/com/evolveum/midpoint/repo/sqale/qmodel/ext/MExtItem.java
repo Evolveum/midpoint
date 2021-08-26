@@ -7,12 +7,14 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.ext;
 
 import java.util.Objects;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Querydsl "row bean" type related to {@link QExtItem}.
@@ -21,7 +23,12 @@ public class MExtItem {
 
     public Integer id;
     public String itemName;
-    public String valueType; // references use ObjectReferenceType#COMPLEX_TYPE
+
+    /**
+     * Value type as URI produced by {@link QNameUtil#qNameToUri(QName)}.
+     * References use URI for {@link ObjectReferenceType#COMPLEX_TYPE} (midPoint, not Prism one).
+     */
+    public String valueType;
     public MExtItemHolderType holderType;
     public MExtItemCardinality cardinality;
 
@@ -82,30 +89,24 @@ public class MExtItem {
     public static class ItemNameKey {
         public String itemName;
         public MExtItemHolderType holderType;
+
         @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((holderType == null) ? 0 : holderType.hashCode());
-            result = prime * result + ((itemName == null) ? 0 : itemName.hashCode());
-            return result;
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ItemNameKey key = (ItemNameKey) o;
+
+            return Objects.equals(itemName, key.itemName)
+                    && holderType == key.holderType;
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (!(obj instanceof ItemNameKey))
-                return false;
-            ItemNameKey other = (ItemNameKey) obj;
-            if (holderType != other.holderType)
-                return false;
-            if (itemName == null) {
-                if (other.itemName != null)
-                    return false;
-            } else if (!itemName.equals(other.itemName))
-                return false;
-            return true;
+        public int hashCode() {
+            return Objects.hash(itemName, holderType);
         }
     }
 
@@ -121,6 +122,13 @@ public class MExtItem {
         return key;
     }
 
+    public static @NotNull ItemNameKey itemNameKey(ItemName elementName, MExtItemHolderType type) {
+        ItemNameKey ret = new ItemNameKey();
+        ret.itemName = QNameUtil.qNameToUri(elementName);
+        ret.holderType = type;
+        return ret;
+    }
+
     @Override
     public String toString() {
         return "MExtItem{" +
@@ -130,12 +138,5 @@ public class MExtItem {
                 ", holderType=" + holderType +
                 ", cardinality=" + cardinality +
                 '}';
-    }
-
-    public static @NotNull MExtItem.ItemNameKey itemNameKey(ItemName elementName, MExtItemHolderType type) {
-        ItemNameKey ret = new ItemNameKey();
-        ret.itemName = QNameUtil.qNameToUri(elementName);
-        ret.holderType = type;
-        return ret;
     }
 }

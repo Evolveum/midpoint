@@ -97,7 +97,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
-        QName relation = ctx.evaluatedAssignment.getNormalizedRelation(relationRegistry);
+        QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
                 .arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
@@ -121,7 +121,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
-        QName relation = ctx.evaluatedAssignment.getNormalizedRelation(relationRegistry);
+        QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage builtInMessage;
 
         if (relation == null || relation == prismContext.getDefaultRelation()) {
@@ -143,7 +143,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 
     private <AH extends AssignmentHolderType> boolean relationMatches(AssignmentModificationPolicyConstraintType constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx) {
-        QName normalizedAssignmentRelation = ctx.evaluatedAssignment.getNormalizedRelation(relationRegistry);
+        QName normalizedAssignmentRelation = ctx.evaluatedAssignment.getNormalizedRelation();
         List<QName> relationsToCheck = constraint.getRelation().isEmpty() ?
                 singletonList(null) : constraint.getRelation();
         for (QName constraintRelation : relationsToCheck) {
@@ -191,10 +191,10 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
         } else {
             for (ItemPathType path : constraint.getItem()) {
                 ItemPath itemPath = prismContext.toPath(path);
-                if (ctx.isAdded && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignmentType(false), itemPath)) {
+                if (ctx.isAdded && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignment(false), itemPath)) {
                     LOGGER.trace("pathsMatch: returns false because isAdded and path {} does not match new assignment", itemPath);
                     return false;
-                } else if (ctx.isDeleted && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignmentType(true), itemPath)) {
+                } else if (ctx.isDeleted && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignment(true), itemPath)) {
                     LOGGER.trace("pathsMatch: returns false because isDeleted and path {} does not match old assignment", itemPath);
                     return false;
                 } else {

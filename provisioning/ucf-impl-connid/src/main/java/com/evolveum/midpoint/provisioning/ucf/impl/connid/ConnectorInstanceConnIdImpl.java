@@ -303,6 +303,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             status.setPoolConfigMaxIdle(poolConfiguration.getMaxIdle());
             status.setPoolConfigWaitTimeout(poolConfiguration.getMaxWait());
             status.setPoolConfigMinEvictableIdleTime(poolConfiguration.getMinEvictableIdleTimeMillis());
+            status.setPoolConfigMaxIdleTime(poolConfiguration.getMaxIdleTimeMillis());
         }
 
         ObjectPool<PoolableConnector> pool = connectorOperationalContext.getPool();

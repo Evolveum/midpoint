@@ -10,10 +10,13 @@ package com.evolveum.midpoint.web.security.filter.configurers;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.MidpointExceptionTranslationFilter;
+
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
@@ -91,12 +94,21 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
     public void configure(H http) throws Exception {
         AuthenticationEntryPoint entryPoint = getAuthenticationEntryPoint(http);
         ExceptionTranslationFilter exceptionTranslationFilter = new MidpointExceptionTranslationFilter(
-                entryPoint, getRequestCache(http));
+                entryPoint, getRequestCache(http)) {
+            @Override
+            protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication) {
+                return MidpointExceptionHandlingConfigurer.this.createNewAuthentication(authentication);
+            }
+        };
         AccessDeniedHandler deniedHandler = getAccessDeniedHandler(http);
         exceptionTranslationFilter.setAccessDeniedHandler(deniedHandler);
         exceptionTranslationFilter.setAuthenticationTrustResolver(getAuthenticationTrustResolver());
         exceptionTranslationFilter = postProcess(exceptionTranslationFilter);
         http.addFilterAfter(exceptionTranslationFilter, MidpointAnonymousAuthenticationFilter.class);
+    }
+
+    protected Authentication createNewAuthentication(AnonymousAuthenticationToken authentication) {
+        return null;
     }
 
     AccessDeniedHandler getAccessDeniedHandler(H http) {

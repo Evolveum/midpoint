@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
@@ -34,10 +35,19 @@ public class ContainerableProcessingRequest<C extends Containerable> extends Ite
     @Override
     public @NotNull IterationItemInformation getIterationItemInformation() {
         return new IterationItemInformation(
-                "seq#" + getSequentialNumber(), // TODO very brutal hack, reconsider
+                getName(),
                 null,
                 getType(item),
-                null);
+                getItemOid());
+    }
+
+    private String getName() {
+        ObjectType object = null;
+        if (item instanceof ObjectType) {
+            object = ((ObjectType) item);
+        }
+        return (object != null ? ("object " + object.getName() + "(" + object.getOid() + ") ") : "" ) +
+                "seq#" + getSequentialNumber();
     }
 
     @Override
@@ -57,6 +67,9 @@ public class ContainerableProcessingRequest<C extends Containerable> extends Ite
 
     @Override
     public @Nullable String getItemOid() {
+        if (item instanceof ObjectType) {
+            return ((ObjectType) item).getOid();
+        }
         return null;
     }
 

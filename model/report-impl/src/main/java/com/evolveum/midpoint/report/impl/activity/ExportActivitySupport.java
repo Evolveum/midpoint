@@ -89,4 +89,22 @@ public class ExportActivitySupport extends ReportActivitySupport {
             return Objects.requireNonNullElse(containers.getList(), Collections.emptyList());
         }
     }
+
+    /**
+     * Count container objects for iterative task.
+     * Temporary until will be implemented iterative search for audit records and containerable objects.
+     */
+    public long countRecords(Class<? extends Containerable> type,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result) throws CommonException {
+        if (AuditEventRecordType.class.equals(type)) {
+            return auditService.countObjects(query, options, result);
+        } else if (ObjectType.class.isAssignableFrom(type)) {
+            Class<? extends ObjectType> objectType = type.asSubclass(ObjectType.class);
+            return modelService.countObjects(objectType, query, options, runningTask, result);
+        } else {
+            return modelService.countContainers(type, query, options, runningTask, result);
+        }
+    }
 }

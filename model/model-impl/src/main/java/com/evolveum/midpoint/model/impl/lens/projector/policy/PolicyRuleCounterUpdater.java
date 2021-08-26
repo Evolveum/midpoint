@@ -22,6 +22,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -29,7 +31,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.POLICY_RULES;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.*;
 
 /**
  * Updates counters for policy rules, with the goal of determining if rules' thresholds have been reached.
@@ -91,8 +93,12 @@ public class PolicyRuleCounterUpdater implements ProjectorProcessor {
         Map<String, EvaluatedPolicyRule> rulesByIdentifier = rulesToIncrement.stream()
                 .collect(Collectors.toMap(EvaluatedPolicyRule::getPolicyRuleIdentifier, Function.identity()));
 
+        ExecutionSupport.CountersGroup group =
+                executionSupport.getExecutionMode() == ExecutionModeType.EXECUTE ?
+                        EXECUTION_MODE_POLICY_RULES : SIMULATION_MODE_POLICY_RULES;
+
         Map<String, Integer> currentValues =
-                executionSupport.incrementCounters(POLICY_RULES, rulesByIdentifier.keySet(), result);
+                executionSupport.incrementCounters(group, rulesByIdentifier.keySet(), result);
 
         currentValues.forEach((id, value) -> {
             rulesByIdentifier.get(id).setCount(value);

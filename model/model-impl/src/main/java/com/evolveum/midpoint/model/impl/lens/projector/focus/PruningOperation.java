@@ -116,7 +116,7 @@ public class PruningOperation<F extends AssignmentHolderType> {
             // by means of secondary delta.
 
             //noinspection unchecked
-            PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType()
+            PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignment()
                     .asPrismContainerValue().clone();
             PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
             ContainerDelta<AssignmentType> assignmentDelta = beans.prismContext.deltaFactory().container()

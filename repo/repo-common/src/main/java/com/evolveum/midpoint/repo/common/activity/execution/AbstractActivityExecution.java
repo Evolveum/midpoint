@@ -397,7 +397,7 @@ public abstract class AbstractActivityExecution<
         return activityStateForCounters.incrementCounters(counterGroup, countersIdentifiers, result);
     }
 
-    protected ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
+    protected @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return activityState;
     }

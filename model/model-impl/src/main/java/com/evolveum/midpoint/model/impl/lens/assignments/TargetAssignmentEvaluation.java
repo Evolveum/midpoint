@@ -62,7 +62,7 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
                 return;
             }
         }
-        QName nextRelation = Util.getRelation(nextAssignment, ctx.ae.relationRegistry);
+        QName nextRelation = Util.getNormalizedRelation(nextAssignment);
         EvaluationOrder nextEvaluationOrder = segment.getEvaluationOrder().advance(nextRelation);
         EvaluationOrder nextEvaluationOrderForTarget = segment.getEvaluationOrderForTarget().advance(nextRelation);
         LOGGER.trace("orig EO({}): follow assignment {} {}; new EO({})", segment.getEvaluationOrder().shortDumpLazily(),

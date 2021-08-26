@@ -50,7 +50,7 @@ public abstract class ActivityState implements DebugDumpable {
 
     private static final int MAX_TREE_DEPTH = 30;
 
-    @NotNull private final CommonTaskBeans beans;
+    @NotNull protected final CommonTaskBeans beans;
 
     /**
      * Path to the work state container value related to this execution. Can be null if the state was not
@@ -77,7 +77,7 @@ public abstract class ActivityState implements DebugDumpable {
         return getRealizationState() == ActivityRealizationStateType.COMPLETE;
     }
 
-    public OperationResultStatusType getResultStatusRaw() {
+    OperationResultStatusType getResultStatusRaw() {
         return getTask().getPropertyRealValue(getResultStatusItemPath(), OperationResultStatusType.class);
     }
 
@@ -110,7 +110,7 @@ public abstract class ActivityState implements DebugDumpable {
                 .getPropertyRealValue(stateItemPath.append(path), expectedType);
     }
 
-    public <T> T getItemRealValueClone(ItemPath path, Class<T> expectedType) {
+    <T> T getItemRealValueClone(ItemPath path, Class<T> expectedType) {
         return getTask()
                 .getItemRealValueOrClone(stateItemPath.append(path), expectedType);
     }
@@ -127,7 +127,7 @@ public abstract class ActivityState implements DebugDumpable {
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
      */
-    public void setItemRealValues(ItemPath path, Collection<?> values) throws SchemaException {
+    private void setItemRealValues(ItemPath path, Collection<?> values) throws SchemaException {
         Task task = getTask();
         LOGGER.trace("setItemRealValues: path={}, values={} in {}", path, values, task);
 
@@ -195,7 +195,7 @@ public abstract class ActivityState implements DebugDumpable {
     /**
      * @param explicitDefinition If present, we do not try to derive the definition from work state CTD.
      */
-    public void setWorkStateItemRealValues(ItemPath path, ItemDefinition<?> explicitDefinition, Collection<?> values)
+    private void setWorkStateItemRealValues(ItemPath path, ItemDefinition<?> explicitDefinition, Collection<?> values)
             throws SchemaException {
         Task task = getTask();
         LOGGER.trace("setWorkStateItemRealValues: path={}, values={} in {}", path, values, task);
@@ -273,7 +273,7 @@ public abstract class ActivityState implements DebugDumpable {
             throws SchemaException, ObjectNotFoundException {
         ActivityPath activityPath = getActivityPath();
         argCheck(!activityPath.isEmpty(), "Root activity has no parent");
-        return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, 0, beans, result);
+        return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, beans, result);
     }
 
     /**
@@ -355,7 +355,7 @@ public abstract class ActivityState implements DebugDumpable {
     //endregion
 
     //region Counters (thresholds)
-    public Map<String, Integer> incrementCounters(ExecutionSupport.@NotNull CountersGroup counterGroup,
+    public Map<String, Integer> incrementCounters(@NotNull ExecutionSupport.CountersGroup counterGroup,
             @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         ItemPath counterGroupItemPath = stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());

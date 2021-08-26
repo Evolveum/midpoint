@@ -43,6 +43,15 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     private static final Trace LOGGER = TraceManager.getTrace(LensFocusContext.class);
 
+    /**
+     * True if the focus object was deleted by our processing.
+     *
+     * (Note we do not currently provide this kind of flag on the projection contexts, because of not being
+     * sure if deleted projection cannot be somehow "resurrected" during the processing. For focal objects nothing like
+     * this should happen.)
+     */
+    protected boolean deleted;
+
     private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
 
     private boolean primaryDeltaConsolidated;
@@ -96,6 +105,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public boolean isAdd() {
         return ObjectDelta.isAdd(primaryDelta);
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted() {
+        deleted = true;
     }
 
     @Override
@@ -223,6 +240,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         if (!isFresh()) {
             sb.append(", NOT FRESH");
         }
+        if (deleted) {
+            sb.append(", DELETED");
+        }
         sb.append(", oid=");
         sb.append(getOid());
         if (getIteration() != 0) {
@@ -234,6 +254,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("old"), objectOld, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("current"), objectCurrent, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("new"), objectNew, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("deleted"), deleted, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("primary delta"), primaryDelta, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("secondary delta"), secondaryDelta, indent+1);
         DebugUtil.indentDebugDump(sb, indent + 1);
@@ -271,7 +292,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         if (object == null) {
             sb.append(getOid());
         } else {
-            sb.append(object.toString());
+            sb.append(object);
         }
         sb.append(")");
         return sb.toString();

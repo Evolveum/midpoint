@@ -95,7 +95,7 @@ public class ActivityProgress extends Initializable {
      * Writes current values to the running task: into the memory and to repository.
      * Not synchronized, as it operates on value copy.
      */
-    public void writeToTaskAsPendingModification() throws ActivityExecutionException {
+    void writeToTaskAsPendingModification() throws ActivityExecutionException {
         assertInitialized();
         // TODO We should use the dynamic modification approach in order to provide most current values to the task
         //  (in case of update conflicts). But let's wait for the new repo with this.
@@ -110,7 +110,7 @@ public class ActivityProgress extends Initializable {
         return activityState.getActivityExecution();
     }
 
-    public synchronized long getLegacyValue() {
+    synchronized long getLegacyValue() {
         return ActivityProgressUtil.getCurrentProgress(value);
     }
 

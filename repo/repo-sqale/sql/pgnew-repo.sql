@@ -26,7 +26,7 @@
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
 CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
---CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
 
 -- region custom enum types
 -- Some enums are from schema, some are only defined in repo-sqale.
@@ -1687,6 +1687,10 @@ CREATE TABLE m_ext_item (
     -- information about storage mechanism (JSON common/separate, column, table separate/common, etc.)
     -- storageType JSONB NOT NULL default '{"type": "EXT_JSON"}', -- currently only JSONB is used
 );
+
+-- This works fine for itemName+holderType search used in raw processing
+ALTER TABLE m_ext_item ADD CONSTRAINT m_ext_item_key
+    UNIQUE (itemName, holderType, valueType, cardinality);
 -- endregion
 
 /*

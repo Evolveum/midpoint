@@ -23,7 +23,7 @@
 -- just in case PUBLIC schema was dropped (fastest way to remove all midpoint objects)
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
---CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
 
 -- region custom enum types
 DO $$ BEGIN
@@ -141,9 +141,9 @@ CREATE TABLE ma_audit_delta (
     fullResult BYTEA,
     objectNameNorm TEXT,
     objectNameOrig TEXT,
+    resourceOid UUID,
     resourceNameNorm TEXT,
     resourceNameOrig TEXT,
-    resourceOid UUID,
     status OperationResultStatusType,
 
     PRIMARY KEY (recordId, timestamp, checksum)
@@ -162,10 +162,10 @@ CREATE TABLE ma_audit_ref (
     recordId BIGINT NOT NULL, -- references ma_audit_event.id
     timestamp TIMESTAMPTZ NOT NULL, -- references ma_audit_event.timestamp
     name TEXT, -- multiple refs can have the same name, conceptually it's a Map(name -> refs[])
-    oid UUID,
+    targetOid UUID,
+    targetType ObjectType,
     targetNameOrig TEXT,
     targetNameNorm TEXT,
-    targetType ObjectType,
 
     PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
@@ -222,6 +222,45 @@ ALTER TABLE ma_audit_ref_default ADD CONSTRAINT ma_audit_ref_default_fk
         ON DELETE CASCADE;
 -- endregion
 
+-- region Schema versioning and upgrading
+/*
+See notes at the end of main repo schema.
+This is necessary only when audit is separate, but is safe to run any time.
+*/
+CREATE OR REPLACE PROCEDURE apply_change(changeNumber int, change TEXT, force boolean = false)
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    lastChange int;
+BEGIN
+    SELECT value INTO lastChange FROM m_global_metadata WHERE name = 'schemaChangeNumber';
+
+    -- change is executed if the changeNumber is newer - or if forced
+    IF lastChange IS NULL OR lastChange < changeNumber OR force THEN
+        EXECUTE change;
+        RAISE NOTICE 'Change #% executed!', changeNumber;
+
+        IF lastChange IS NULL THEN
+            INSERT INTO m_global_metadata (name, value) VALUES ('schemaChangeNumber', changeNumber);
+        ELSIF changeNumber > lastChange THEN
+            -- even with force we never want to set lower change number, hence the IF above
+            UPDATE m_global_metadata SET value = changeNumber WHERE name = 'schemaChangeNumber';
+        END IF;
+        COMMIT;
+    ELSE
+        RAISE NOTICE 'Change #% skipped, last change #% is newer!', changeNumber, lastChange;
+    END IF;
+END $$;
+-- endregion
+
+---------------------------------------------------------------------------------
+-- The rest of the file can be omitted if partitioning is not required or desired
+
+-- https://www.postgresql.org/docs/current/runtime-config-query.html#GUC-ENABLE-PARTITIONWISE-JOIN
+DO $$ BEGIN
+    EXECUTE 'ALTER DATABASE ' || current_database() || ' SET enable_partitionwise_join TO on';
+END; $$;
+
 -- region partition creation procedures
 CREATE OR REPLACE PROCEDURE audit_create_monthly_partitions(futureCount int)
     LANGUAGE plpgsql
@@ -272,50 +311,31 @@ BEGIN
 END $$;
 -- endregion
 
--- region Schema versioning and upgrading
-/*
-See notes at the end of main repo schema.
-This is necessary only when audit is separate, but is safe to run any time.
-*/
-CREATE OR REPLACE PROCEDURE apply_change(changeNumber int, change TEXT, force boolean = false)
-    LANGUAGE plpgsql
-AS $$
-DECLARE
-    lastChange int;
-BEGIN
-    SELECT value INTO lastChange FROM m_global_metadata WHERE name = 'schemaChangeNumber';
-
-    -- change is executed if the changeNumber is newer - or if forced
-    IF lastChange IS NULL OR lastChange < changeNumber OR force THEN
-        EXECUTE change;
-        RAISE NOTICE 'Change #% executed!', changeNumber;
-
-        IF lastChange IS NULL THEN
-            INSERT INTO m_global_metadata (name, value) VALUES ('schemaChangeNumber', changeNumber);
-        ELSIF changeNumber > lastChange THEN
-            -- even with force we never want to set lower change number, hence the IF above
-            UPDATE m_global_metadata SET value = changeNumber WHERE name = 'schemaChangeNumber';
-        END IF;
-        COMMIT;
-    ELSE
-        RAISE NOTICE 'Change #% skipped, last change #% is newer!', changeNumber, lastChange;
-    END IF;
-END $$;
--- endregion
+-- TODO call creation here? What if we have multiple ways M/Q/Y? Probably admin should do it.
 
 -- For Quartz tables see:
 -- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
 
 -- region Experiments TODO remove when finished
 
--- Question about partitioning strategy for multiple tables: https://stackoverflow.com/q/68868322/658826
+/*
+CREATE OR REPLACE FUNCTION random_bytea(min_len integer, max_len integer)
+    RETURNS bytea
+    LANGUAGE sql
+    -- VOLATILE - default behavior, can't be optimized, other options are IMMUTABLE or STABLE
+AS $$
+    SELECT decode(string_agg(lpad(to_hex(width_bucket(random(), 0, 1, 256) - 1), 2, '0'), ''), 'hex')
+    -- width_bucket starts with 1, we counter it with series from 2; +1 is there to includes upper bound too
+    -- should be marginally more efficient than: generate_series(1, $1 + trunc(random() * ($2 - $1 + 1))::integer)
+    FROM generate_series(2, $1 + width_bucket(random(), 0, 1, $2 - $1 + 1));
+$$;
 
 do $$
 declare
     event_id bigint;
     ts timestamptz;
 begin
-    for i in 1000001..2000000 loop
+    for i in 10001..100000 loop
         select current_timestamp + interval '3s' * i into ts;
         insert into ma_audit_event (timestamp, eventIdentifier)
             -- current value of serial: https://dba.stackexchange.com/a/3284/157622
@@ -343,6 +363,8 @@ begin
     end loop;
 end $$;
 
+delete from ma_audit_event;
+
 select count(*) from ma_audit_event;
 select tableoid::regclass::text AS table_name, * from ma_audit_event order by id desc;
 
@@ -356,5 +378,5 @@ from ma_audit_event ae
 where ae.timestamp >= '2021-10-10' and ae.timestamp < '2021-10-20'
         and ad.timestamp >= '2021-10-10' and ad.timestamp < '2021-10-20'
 -- and ... other ad. condition as necessary
-
+*/
 -- endregion

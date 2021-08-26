@@ -24,10 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentCollection;
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentElement;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -48,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 /**
@@ -65,7 +63,10 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private final LensFocusContext<AH> focusContext;
 
     /**
-     * TODO explain this
+     * Looks like the source of the evaluated assignments. It is initialized to focus object new (if exists),
+     * or object current (otherwise).
+     *
+     * TODO research + explain this better
      */
     private final AssignmentHolderType source;
 
@@ -137,9 +138,13 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     @NotNull
     private Collection<AssignmentType> getVirtualAssignments() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(focusContext.getLifecycleModel(),
-                getNewObjectLifecycleState(focusContext), beans.modelObjectResolver,
-                beans.prismContext, task, result);
+        Collection<AssignmentType> forcedAssignments =
+                focusContext.isDelete() ?
+                        List.of() :
+                        LensUtil.getForcedAssignments(
+                                focusContext.getLifecycleModel(),
+                                getNewObjectLifecycleState(focusContext),
+                                beans.modelObjectResolver, beans.prismContext, task, result);
         LOGGER.trace("Forced assignments: {}", forcedAssignments);
 
         LOGGER.trace("Task for process (operation result is not updated): {}",
@@ -218,7 +223,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             // If focus (user) is being deleted that all the assignments are to be gone. Including those that
             // were not changed explicitly.
             LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, false, assignmentPlacementDesc, assignmentElement);
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
+                    createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true,
+                    assignmentPlacementDesc, assignmentElement);
             if (evaluatedAssignment == null) {
                 return;
             }
@@ -545,12 +552,30 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     /**
      * Returns delta of user assignments - for the current wave i.e. the one that transforms current to new object.
      */
-    private ContainerDelta<AssignmentType> getCurrentAssignmentDelta(LensFocusContext<AH> focusContext) {
+    private ContainerDelta<AssignmentType> getCurrentAssignmentDelta(LensFocusContext<AH> focusContext) throws SchemaException {
         ObjectDelta<AH> focusDelta = focusContext.getCurrentDelta();
+        if (ObjectDelta.isDelete(focusDelta)) {
+            return getAssignmentDeltaOnDelete(focusContext);
+        }
+
         ContainerDelta<AssignmentType> assignmentDelta = focusDelta != null ?
                 focusDelta.findContainerDelta(AssignmentHolderType.F_ASSIGNMENT) : null;
         if (assignmentDelta != null) {
             return assignmentDelta;
+        } else {
+            return createEmptyAssignmentDelta(focusContext);
+        }
+    }
+
+    private ContainerDelta<AssignmentType> getAssignmentDeltaOnDelete(LensFocusContext<AH> focusContext) throws SchemaException {
+        PrismObject<AH> currentObject = focusContext.getObjectCurrent();
+        if (currentObject != null) {
+            AH currentObjectable = currentObject.asObjectable();
+            //noinspection unchecked
+            return (ContainerDelta<AssignmentType>) PrismContext.get().deltaFor(currentObjectable.getClass())
+                    .item(AssignmentHolderType.F_ASSIGNMENT)
+                        .deleteRealValues(cloneCollectionMembers(currentObjectable.getAssignment()))
+                    .asItemDelta();
         } else {
             return createEmptyAssignmentDelta(focusContext);
         }
@@ -565,7 +590,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
-        return assignmentEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
+        return !focusContext.isDelete() && // we don't want to bother with isMemberOf when focus is being deleted
+                assignmentEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
     }
 
     public static final class Builder<AH extends AssignmentHolderType> {

@@ -89,6 +89,7 @@ public class ConfigurableProtectorFactory {
         protector.setKeyStorePassword(protectorConfig.getKeyStorePassword());
         protector.setKeyStorePath(protectorConfig.getKeyStorePath());
         protector.setEncryptionAlgorithm(protectorConfig.getXmlCipher());
+        protector.setFixedSalt(protectorConfig.getFixedSalt());
         protector.init();
         return protector;
     }
