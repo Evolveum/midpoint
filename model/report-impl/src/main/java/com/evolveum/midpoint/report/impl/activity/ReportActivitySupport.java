@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -45,7 +46,7 @@ class ReportActivitySupport {
     @NotNull protected final ReportServiceImpl reportService;
     @NotNull protected final ObjectResolver resolver;
     @NotNull protected final AbstractReportWorkDefinition workDefinition;
-    @NotNull protected final AuditService auditService;
+    @NotNull protected final ModelAuditService modelAuditService;
     @NotNull protected final ModelService modelService;
 
     /**
@@ -65,7 +66,7 @@ class ReportActivitySupport {
         this.reportService = reportService;
         this.resolver = resolver;
         this.workDefinition = workDefinition;
-        auditService = reportService.getAuditService();
+        modelAuditService = reportService.getModelAuditService();
         modelService = reportService.getModelService();
     }
 

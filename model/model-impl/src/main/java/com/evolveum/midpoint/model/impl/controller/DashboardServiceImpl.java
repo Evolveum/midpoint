@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.ModelAuditService;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +64,7 @@ public class DashboardServiceImpl implements DashboardService {
     private static final String VAR_POLICY_SITUATIONS = "policySituations";
 
     @Autowired private TaskManager taskManager;
-    @Autowired private AuditService auditService;
+    @Autowired private ModelAuditService modelAuditService;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
     @Autowired private ModelInteractionService modelInteractionService;
@@ -74,7 +76,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardWidget createWidgetData(DashboardWidgetType widget, boolean useDisplaySource, Task task, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+            throws CommonException {
 
         Validate.notNull(widget, "Widget is null");
 
@@ -172,7 +174,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private String getNumberMessage(DashboardWidgetType widget, DashboardWidget data, boolean useDisplaySource, Task task, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+            throws CommonException {
         DashboardWidgetSourceTypeType sourceType = getSourceTypeForNumberMessage(widget, useDisplaySource);
         DashboardWidgetPresentationType presentation = widget.getPresentation();
         switch (sourceType) {
@@ -225,7 +227,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private String generateNumberMessageForAuditSearch(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws CommonException {
         ObjectCollectionType collection = getObjectCollectionType(widget, task, result);
         CollectionRefSpecificationType collectionRef = getCollectionRefSpecificationType(widget, task, result);
         if (collection == null && collectionRef.getFilter() == null) {
@@ -249,8 +251,8 @@ public class DashboardServiceImpl implements DashboardService {
         return generateNumberMessage(widget, createVariables(null, statType, null, null), data);
     }
 
-    public Integer countAuditEvents(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    public Integer countAuditEvents(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection,
+            Task task, OperationResult result) throws CommonException {
 
         if (collectionRef == null ||
                 ((collectionRef.getCollectionRef() == null || collectionRef.getCollectionRef().getOid() == null)
@@ -281,7 +283,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
         @NotNull Collection<SelectorOptions<GetOperationOptions>> option = combineAuditOption(collectionRef, collection, task, result);
 
-        return auditService.countObjects(query, option, result);
+        return modelAuditService.countObjects(query, option, task, result);
     }
 
     private @NotNull Collection<SelectorOptions<GetOperationOptions>> combineAuditOption(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)

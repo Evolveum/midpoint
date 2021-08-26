@@ -13,8 +13,7 @@ import java.time.ZoneId;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
@@ -164,15 +162,16 @@ public class AuditLogViewerPanel extends BasePanel {
 
                             @Override
                             protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
-                                    Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) {
-                                return getPageBase().getAuditService().countObjects(query, currentOptions, result);
+                                    Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
+                                    throws CommonException {
+                                return getPageBase().getModelAuditService().countObjects(query, currentOptions, task, result);
                             }
 
                             @Override
                             protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
                                     Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-                                    throws SchemaException {
-                                return getPageBase().getAuditService().searchObjects(query, options, result);
+                                    throws CommonException {
+                                return getPageBase().getModelAuditService().searchObjects(query, options, task, result);
                             }
 
                             @NotNull
