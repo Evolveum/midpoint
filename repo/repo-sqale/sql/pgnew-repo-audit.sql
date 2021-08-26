@@ -180,8 +180,8 @@ CREATE INDEX ma_audit_ref_recordId_timestamp_idx ON ma_audit_ref (recordId, time
 /* TODO audit indexes
 CREATE INDEX iAuditDeltaRecordId
   ON m_audit_delta (record_id);
-CREATE INDEX iTimestampValue
-  ON m_audit_event (timestampValue);
+CREATE INDEX iTimestamp
+  ON m_audit_event (timestamp);
 CREATE INDEX iAuditEventRecordEStageTOid
   ON m_audit_event (eventStage, targetOid);
 CREATE INDEX iChangedItemPath
