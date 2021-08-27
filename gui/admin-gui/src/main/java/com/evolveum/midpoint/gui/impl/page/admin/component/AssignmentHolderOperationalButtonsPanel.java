@@ -72,12 +72,12 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         super(id, model);
     }
 
-
     @Override
     protected void addButtons(RepeatingView repeatingView) {
         createChnageArchetypeButton(repeatingView);
     }
 
+    //TODO move to focus??
     private void createChnageArchetypeButton(RepeatingView repeatingView) {
         IconType iconType = new IconType();
         iconType.setCssClass(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);

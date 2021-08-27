@@ -179,8 +179,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected void initOperationalButtons(RepeatingView repeatingView) {
-//        createSaveButton(repeatingView);
-
 
         AjaxIconButton remove = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_REMOVE), Model.of("Delete object")) {
             @Override
@@ -190,40 +188,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         };
         remove.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         repeatingView.add(remove);
-
-
-//        AjaxButton changeArchetype = new AjaxButton(repeatingView.newChildId(), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                changeArchetypeButtonClicked(target);
-//            }
-//        };
-//        changeArchetype.add(new VisibleBehaviour(() -> !getObjectWrapper().isReadOnly() && isChangeArchetypeAllowed() &&
-//                getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
-//        changeArchetype.add(AttributeAppender.append("class", "btn-default"));
-//        repeatingView.add(changeArchetype);
     }
-
-//    private void createSaveButton(RepeatingView repeatingView) {
-//        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, LayeredIconCssStyle.CENTER_STYLE);
-//        AjaxCompositedIconSubmitButton save = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(), Model.of("Save")) {
-//
-//            @Override
-//            protected void onSubmit(AjaxRequestTarget target) {
-//                savePerformed(target);
-//            }
-//
-//            @Override
-//            protected void onError(AjaxRequestTarget target) {
-//                target.add(getFeedbackPanel());
-//            }
-//        };
-////        save.add(getVisibilityForSaveButton());
-//        save.setOutputMarkupId(true);
-//        save.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-//        repeatingView.add(save);
-//
-//    }
 
     public void savePerformed(AjaxRequestTarget target) {
         progressPanel.onBeforeSave();
