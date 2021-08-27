@@ -30,10 +30,14 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.*;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -61,7 +65,6 @@ public class SqaleAuditService implements AuditService {
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
     private final SqaleRepoContext sqlRepoContext;
-    private final SchemaService schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
 
@@ -71,18 +74,18 @@ public class SqaleAuditService implements AuditService {
 
     public SqaleAuditService(
             SqaleRepoContext sqlRepoContext,
-            SchemaService schemaService,
-            JdbcRepositoryConfiguration repositoryConfiguration,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         this.sqlRepoContext = sqlRepoContext;
-        this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
         this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
 
+        SqaleRepositoryConfiguration repoConfig =
+                (SqaleRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
+
         // monitor initialization and registration
         performanceMonitor = new SqlPerformanceMonitorImpl(
-                repositoryConfiguration.getPerformanceStatisticsLevel(),
-                repositoryConfiguration.getPerformanceStatisticsFile());
+                repoConfig.getPerformanceStatisticsLevel(),
+                repoConfig.getPerformanceStatisticsFile());
         sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
@@ -241,14 +244,13 @@ public class SqaleAuditService implements AuditService {
         Set<String> changedItemPaths = new HashSet<>();
         for (MAuditDelta delta : deltas) {
             try {
-                ObjectDeltaType deltaBean =
-                        schemaService.parserFor(delta.serializedDelta)
-                                .parseRealValue(ObjectDeltaType.class);
+                RepositoryObjectParseResult<ObjectDeltaType> parseResult =
+                        sqlRepoContext.parsePrismObject(delta.serializedDelta, ObjectDeltaType.class);
+                ObjectDeltaType deltaBean = parseResult.prismValue;
                 for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
                     ItemPath path = itemDelta.getPath().getItemPath();
-                    CanonicalItemPath canonical =
-                            schemaService.createCanonicalItemPath(
-                                    path, deltaBean.getObjectType());
+                    CanonicalItemPath canonical = sqlRepoContext.prismContext()
+                            .createCanonicalItemPath(path, deltaBean.getObjectType());
                     for (int i = 0; i < canonical.size(); i++) {
                         changedItemPaths.add(canonical.allUpToIncluding(i).asString());
                     }

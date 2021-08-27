@@ -252,7 +252,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Implemented for searchable containers that do not use fullObject for their recreation.
      */
     @Override
-    public S toSchemaObject(R row) {
+    public S toSchemaObject(R row) throws SchemaException {
         throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
     }
 
