@@ -128,6 +128,12 @@ It is an identifier that specifies the type of the information (content) of the 
 This specifies type of data source for the widget content.
 This is enumeration type and posible values is  _objectCollection_ (content of widget is based on object collection), __auditSearch__ (content of the widget will be based on data from special object collection with audit trail search) and _object_ (content of the widget will be based on data from a single object)
 
+| `displaySourceType`
+| `DashboardWidgetSourceTypeType`
+| Type of the widget. It is an identifier that override sourceType.
+This element is used only for number message in widget, for redirect
+to details page is still used sourceType.
+
 
 | `collection`
 | `CollectionRefSpecificationType`
@@ -139,6 +145,10 @@ Contains variable _collectionRef,_ which is reference to object collection is di
 | `ObjectReferenceType`
 | Specification of a single object as a widget data source.
 
+| `storedData`
+| `String`
+| Specification of a string data as a widget data source. This data can be stored by report task.
+
 
 |===
 
@@ -147,7 +157,7 @@ Example of widget data source for object collection:
 [source,xml]
 ----
 <data>
-    <sourceType>objectCollection</sourceType> <!-- or 'auditSearch' -->
+    <sourceType>objectCollection</sourceType>
     <collection>
         <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/>
     </collection>
@@ -161,6 +171,20 @@ Example of widget data source for object type:
 <data>
     <sourceType>object</sourceType>
     <objectRef oid="00000000-0000-0000-0000-000000000005" type="c:TaskType"/>
+</data>
+----
+
+Example of widget data source for widget data (asynchronous widget):
+
+[source,xml]
+----
+<data>
+    <sourceType>objectCollection</sourceType>
+    <displaySourceType>widgetData</displaySourceType>
+    <collection>
+        <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/>
+    </collection>
+    <storedData>25/25 runnable</storedData>
 </data>
 ----
 
@@ -229,7 +253,7 @@ Icon and other styles are taken from the primary widget display properties.
 
 |===
 
-_Condition_ can get three variables:
+_Condition_ can get four variables:
 
 [%autowidth]
 |===
@@ -252,6 +276,12 @@ This entry contains stat value, together with domain value.
 | base on displayed object in widget
 | Processed object.
 | object
+
+
+| `storedData`
+| String
+| Stored data from widget.
+| widgetData
 
 
 |===
@@ -351,49 +381,11 @@ highWaterMark is upper bound of the threshold. Highest value for which the polic
 
 Both variables are WaterMarkType type, which contains variables count and percentage.
 
+== Asynchronous widget
 
-We have special object collection for widget, which use audit records. You have to define sql select for audit records in object collection for audit search.
+From 4.4 Midpoint support asynchronous widget. When we want configure it, then we use _displaySourceType_ in widget and set it as _widgetData_. We set _sourceType_ as _objectCollection_ because of redirect to details page and task, which generate stored data.
 
-[source,xml]
-----
-<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                  oid="16be4077-53fd-4ada-b0cc-572318e855f5">
-    <name>Error audit record</name>
-    <auditSearch>
-        <recordQuery>from RAuditEventRecord as aer where aer.outcome=3 and aer.eventStage=1</recordQuery>
-        <domainQuery>from RAuditEventRecord as aer where aer.eventStage=1</domainQuery>
-        <interval>P1D</interval>
-    </auditSearch>
-</objectCollection>
-----
-
-
-Object collection for audit records variable auditSearch and it have variables:
-
-[%autowidth]
-|===
-| Name | Type | Description
-
-| `recordQuery`
-| `String`
-| SQL query for audit records.
-Defines which audit records belong to the collection.
-
-
-| `domainQuery`
-| `String`
-| SqlQuery for audit records.
-Defines a set of object that is "all the things" for this collection.
-
-
-
-| `interval`
-| `String`
-| Defines what old records will be displayed.
-
-
-|===
-
+We need configure dashboard report task, which will be store data to widget. In dashboard report use element _storeExportedWidgetData_ for defined where will be stored generated widget data.
 
 == View
 
@@ -510,6 +502,27 @@ Example of view in report:
 </report>
 ----
 
+=== Report for asynchronous widget
+
+For asynchronous widget we need configure scheduled dashboard report task.
+We will use _storeExportedWidgetData_, which can have next value:
+
+[%autowidth]
+|===
+| Name | Description
+
+| `onlyWidget`
+| Exported widget data will be stored only in element of widget.
+
+| `onlyFile`
+| Exported widget data will be stored only in file.
+
+| `widgetAndFile`
+| Exported widget data will be stored only in element of widget and file.
+
+|===
+
+=== Report Examples
 
 wiki:Example+of+dashboard+report:+Shadow+of+resource[Shadow of resource]
 
