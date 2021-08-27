@@ -1892,14 +1892,18 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private <T extends Containerable> long registerOperationStart(
             String kind, PrismContainer<T> object) {
-        return performanceMonitor.registerOperationStart(kind, object.getCompileTimeClass());
+        return registerOperationStart(kind, object.getCompileTimeClass());
     }
 
     private <T extends Containerable> long registerOperationStart(String kind, Class<T> type) {
-        return performanceMonitor.registerOperationStart(kind, type);
+        return performanceMonitor != null
+                ? performanceMonitor.registerOperationStart(kind, type)
+                : -1;
     }
 
     private void registerOperationFinish(long opHandle, int attempt) {
-        performanceMonitor.registerOperationFinish(opHandle, attempt);
+        if (performanceMonitor != null) {
+            performanceMonitor.registerOperationFinish(opHandle, attempt);
+        }
     }
 }
