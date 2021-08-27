@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
+package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -48,25 +49,24 @@ import java.util.List;
 @PanelInstance(identifier = "personas",
         applicableFor = UserType.class,
         display = @PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60))
-public class FocusPersonasPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
+public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
     private static final long serialVersionUID = 1L;
-    private static final String DOT_CLASS = FocusPersonasPanel.class.getName() + ".";
+    private static final String DOT_CLASS = UserPersonasPanel.class.getName() + ".";
     private static final String OPERATION_SEARCH_PERSONAS_OBJECTS = DOT_CLASS + "searchPersonas";
 
     private static final String ID_PERSONAS_TABLE = "personasTable";
 
-    public FocusPersonasPanel(String id, FocusDetailsModels focusDetailsModels, ContainerPanelConfigurationType config) {
+    public UserPersonasPanel(String id, UserDetailsModel focusDetailsModels, ContainerPanelConfigurationType config) {
         super(id, focusDetailsModels, config);
     }
 
     protected void initLayout() {
-        MainObjectListPanel<F> userListPanel =
-                new MainObjectListPanel<F>(ID_PERSONAS_TABLE,
-                (Class<F>) FocusType.class, null) {
+        MainObjectListPanel<UserType> userListPanel =
+                new MainObjectListPanel<UserType>(ID_PERSONAS_TABLE, UserType.class, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected IColumn<SelectableBean<F>, String> createCheckboxColumn(){
+            protected IColumn<SelectableBean<UserType>, String> createCheckboxColumn(){
                 return null;
             }
 
@@ -83,17 +83,17 @@ public class FocusPersonasPanel<F extends FocusType> extends AbstractObjectMainP
 
                     @Override
                     public InlineMenuItemAction initAction() {
-                        return new ColumnMenuAction<SelectableBeanImpl<F>>() {
+                        return new ColumnMenuAction<SelectableBeanImpl<UserType>>() {
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                SelectableBean<F> personaRefSelectableBean = getRowModel().getObject();
-                                F personaRefObj = personaRefSelectableBean.getValue();
+                                SelectableBean<UserType> personaRefSelectableBean = getRowModel().getObject();
+                                UserType personaRefObj = personaRefSelectableBean.getValue();
                                 ObjectReferenceType ort = new ObjectReferenceType();
                                 ort.setOid(personaRefObj.getOid());
-                                ort.setType(WebComponentUtil.classToQName(FocusPersonasPanel.this.getPrismContext(), personaRefObj.getClass()));
-                                WebComponentUtil.dispatchToObjectDetailsPage(ort, FocusPersonasPanel.this, false);
+                                ort.setType(WebComponentUtil.classToQName(UserPersonasPanel.this.getPrismContext(), personaRefObj.getClass()));
+                                WebComponentUtil.dispatchToObjectDetailsPage(ort, UserPersonasPanel.this, false);
                             }
                         };
                     }
@@ -106,7 +106,7 @@ public class FocusPersonasPanel<F extends FocusType> extends AbstractObjectMainP
                 return menuItems;          }
 
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, F object) {
+            protected void objectDetailsPerformed(AjaxRequestTarget target, UserType object) {
             }
 
             @Override
@@ -115,7 +115,7 @@ public class FocusPersonasPanel<F extends FocusType> extends AbstractObjectMainP
                     }
 
                     @Override
-                    protected ISelectableDataProvider<F, SelectableBean<F>> createProvider() {
+                    protected ISelectableDataProvider<UserType, SelectableBean<UserType>> createProvider() {
                         return createSelectableBeanObjectDataProvider(() -> getFocusPersonasQuery(), null);
                     }
 
@@ -125,7 +125,7 @@ public class FocusPersonasPanel<F extends FocusType> extends AbstractObjectMainP
 //            }
 
             @Override
-            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<F>> rowModel) {
+            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<UserType>> rowModel) {
                 return false;
             }
 
