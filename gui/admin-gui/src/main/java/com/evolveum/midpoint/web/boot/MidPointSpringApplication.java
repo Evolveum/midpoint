@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.web.embedded.TomcatWebServerFactor
 import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryCustomizer;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.convert.DurationUnit;
 import org.springframework.boot.web.server.ErrorPage;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.server.Session;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 
 /**
@@ -176,7 +178,8 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
     public class ServerCustomization implements WebServerFactoryCustomizer<MidPointTomcatServletWebServerFactory> {
 
         @Value("${server.servlet.session.timeout}")
-        private int sessionTimeout;
+        @DurationUnit(ChronoUnit.MINUTES)
+        private Duration sessionTimeout;
 
         @Value("${server.servlet.context-path}")
         private String servletPath;
@@ -204,7 +207,7 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
             serverFactory.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, "/error"));
 
             Session session = new Session();
-            session.setTimeout(Duration.ofMinutes(sessionTimeout));
+            session.setTimeout(sessionTimeout);
             serverFactory.setSession(session);
 
             serverFactory.setTomcatContextCustomizers(
