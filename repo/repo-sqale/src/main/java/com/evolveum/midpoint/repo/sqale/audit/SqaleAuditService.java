@@ -8,12 +8,11 @@ package com.evolveum.midpoint.repo.sqale.audit;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 
-import com.querydsl.sql.ColumnMetadata;
+import com.google.common.base.Strings;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
@@ -94,41 +93,41 @@ public class SqaleAuditService implements AuditService {
     }
 
     @Override
-    public void audit(AuditEventRecord record, Task task, OperationResult result) {
+    public void audit(AuditEventRecord record, Task task, OperationResult parentResult) {
         Objects.requireNonNull(record, "Audit event record must not be null.");
         Objects.requireNonNull(task, "Task must not be null.");
 
-        long opHandle = registerOperationStart(OP_AUDIT);
-        while (true) {
-            try {
-                auditAttempt(record);
-                return;
-            } catch (RuntimeException ex) {
-                // TODO
-//                attempt = baseHelper.logOperationAttempt(null, OP_AUDIT, attempt, ex, result);
-//                pm.registerOperationNewAttempt(opHandle, attempt);
-            } finally {
-                registerOperationFinish(opHandle, 1);
-            }
+        OperationResult operationResult = parentResult.createSubresult(OP_NAME_PREFIX + OP_AUDIT);
+
+        try {
+            auditExecute(record);
+        } catch (RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
         }
     }
 
-    private void auditAttempt(AuditEventRecord record) {
+    private void auditExecute(AuditEventRecord record) {
+        long opHandle = registerOperationStart(OP_AUDIT);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            try {
-                long recordId = insertAuditEventRecord(jdbcSession, record);
+            long recordId = insertAuditEventRecord(jdbcSession, record);
 
-                Collection<MAuditDelta> deltas =
-                        insertAuditDeltas(jdbcSession, recordId, record.getDeltas());
-                insertChangedItemPaths(jdbcSession, recordId, deltas);
+            /* TODO
+            Collection<MAuditDelta> deltas =
+                    insertAuditDeltas(jdbcSession, recordId, record.getDeltas());
+            insertChangedItemPaths(jdbcSession, recordId, deltas);
 
-                insertProperties(jdbcSession, recordId, record.getProperties());
-                insertReferences(jdbcSession, recordId, record.getReferences());
-                insertResourceOids(jdbcSession, recordId, record.getResourceOids());
-                jdbcSession.commit();
-            } catch (RuntimeException ex) {
-                jdbcSession.handleGeneralException(ex, null);
-            }
+            insertProperties(jdbcSession, recordId, record.getProperties());
+            insertReferences(jdbcSession, recordId, record.getReferences());
+            insertResourceOids(jdbcSession, recordId, record.getResourceOids());
+            */
+            jdbcSession.commit();
+        } finally {
+            registerOperationFinish(opHandle, 1);
         }
     }
 
@@ -144,6 +143,7 @@ public class SqaleAuditService implements AuditService {
         MAuditEventRecord aerBean = aerMapping.toRowObject(record);
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(aerBean);
 
+        /* TODO or ext?
         Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
         for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
             String propertyName = property.getKey();
@@ -154,6 +154,7 @@ public class SqaleAuditService implements AuditService {
             // Like insert.set, but that one is too parameter-type-safe for our generic usage here.
             insert.columns(aer.getPath(propertyName)).values(property.getValue());
         }
+        */
 
         return insert.executeWithKey(aer.id);
     }
@@ -711,5 +712,33 @@ public class SqaleAuditService implements AuditService {
 
     private void registerOperationFinish(long opHandle, int attempt) {
         performanceMonitor.registerOperationFinish(opHandle, attempt);
+    }
+
+    // TODO copied from SqaleRepositoryService, will we create some SqaleRepoBase?
+
+    /**
+     * Handles exception outside of transaction - this does not handle transactional problems.
+     * Returns {@link SystemException}, call with `throw` keyword.
+     */
+    private SystemException handledGeneralException(
+            @NotNull Throwable ex, OperationResult operationResult) {
+        // TODO reconsider this whole mechanism including isFatalException decision
+        LOGGER.error("General checked exception occurred.", ex);
+        recordException(ex, operationResult,
+                sqlRepoContext.getJdbcRepositoryConfiguration().isFatalException(ex));
+
+        return ex instanceof SystemException
+                ? (SystemException) ex
+                : new SystemException(ex.getMessage(), ex);
+    }
+
+    private void recordException(
+            @NotNull Throwable ex, OperationResult operationResult, boolean fatal) {
+        String message = Strings.isNullOrEmpty(ex.getMessage()) ? "null" : ex.getMessage();
+
+        // non-fatal errors will NOT be put into OperationResult, not to confuse the user
+        if (operationResult != null && fatal) {
+            operationResult.recordFatalError(message, ex);
+        }
     }
 }
