@@ -25,19 +25,19 @@ public class QAuditRefValue extends FlexibleRelationalPathBase<MAuditRefValue> {
     public static final String TABLE_NAME = "ma_audit_ref_value";
 
     public static final ColumnMetadata ID =
-            ColumnMetadata.named("id").ofType(Types.BIGINT).withSize(19).notNull();
+            ColumnMetadata.named("id").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata RECORD_ID =
-            ColumnMetadata.named("record_id").ofType(Types.BIGINT).withSize(19);
+            ColumnMetadata.named("record_id").ofType(Types.BIGINT);
     public static final ColumnMetadata NAME =
-            ColumnMetadata.named("name").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("name").ofType(Types.VARCHAR);
     public static final ColumnMetadata OID =
-            ColumnMetadata.named("oid").ofType(Types.VARCHAR).withSize(36);
+            ColumnMetadata.named("oid").ofType(Types.VARCHAR);
     public static final ColumnMetadata TARGET_NAME_NORM =
-            ColumnMetadata.named("targetName_norm").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("targetName_norm").ofType(Types.VARCHAR);
     public static final ColumnMetadata TARGET_NAME_ORIG =
-            ColumnMetadata.named("targetName_orig").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("targetName_orig").ofType(Types.VARCHAR);
     public static final ColumnMetadata TYPE =
-            ColumnMetadata.named("type").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("type").ofType(Types.VARCHAR);
 
     public final NumberPath<Long> id = createLong("id", ID);
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);

@@ -91,7 +91,7 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     // TODO String[] changedItemPaths;
     // TODO UUID[] resourceOids;
     // TODO Jsonb properties;
-    // TODO Jsonb customColumnProperties;
+    // TODO Jsonb ext;
 
     // columns and relations
     public final NumberPath<Long> id = createLong("id", ID);
