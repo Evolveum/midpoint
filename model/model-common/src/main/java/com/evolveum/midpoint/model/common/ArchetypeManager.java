@@ -22,7 +22,10 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.Cache;
 
+import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.arch.Processor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -118,6 +121,38 @@ public class ArchetypeManager implements Cache {
         return archetypeRefs.get(0);
     }
 
+    public <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder) throws SchemaException {
+        if (assignmentHolder == null) {
+            return null;
+        }
+        if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
+            return null;
+        }
+
+        return determineArchetypesFromAssignments(assignmentHolder.asObjectable());
+
+//        if (CollectionUtils.isNotEmpty(archetypeAssignmentsRef)) {
+//            if (archetypeAssignmentsRef.size() > 1) {
+//                throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
+//            }
+//        }
+//
+//        List<ObjectReferenceType> archetypeRefs = assignmentHolder.asObjectable().getArchetypeRef();
+//        if (CollectionUtils.isEmpty(archetypeRefs)) {
+//            if (CollectionUtils.isEmpty(archetypeAssignmentsRef)) {
+//                return null;
+//            }
+//            return archetypeAssignmentsRef.get(0);
+//        }
+//        if (archetypeRefs.size() > 1) {
+//            throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
+//        }
+//
+//        //check also assignments
+//
+//        return archetypeRefs.get(0);
+    }
+
     private <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypesFromAssignments(O assignmentHolder) {
         List<AssignmentType> assignments = assignmentHolder.getAssignment();
         return assignments.stream()
@@ -129,67 +164,104 @@ public class ArchetypeManager implements Cache {
                 .collect(Collectors.toList());
     }
 
-    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
-        return determineArchetype(assignmentHolder, null, result);
-    }
+//    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
+//        return determineArchetype(assignmentHolder, result);
+//    }
 
-    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, String explicitArchetypeOid, OperationResult result) throws SchemaException {
-        String archetypeOid;
-        if (explicitArchetypeOid != null) {
-            archetypeOid = explicitArchetypeOid;
-        } else {
-            ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder);
-            if (archetypeRef == null) {
-                return null;
-            }
-            archetypeOid = archetypeRef.getOid();
-        }
+//    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, String explicitArchetypeOid, OperationResult result) throws SchemaException {
+//        String archetypeOid;
+//        if (explicitArchetypeOid != null) {
+//            archetypeOid = explicitArchetypeOid;
+//        } else {
+//            ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder);
+//            if (archetypeRef == null) {
+//                return null;
+//            }
+//            archetypeOid = archetypeRef.getOid();
+//        }
+//
+//        PrismObject<ArchetypeType> archetype;
+//        try {
+//            archetype = systemObjectCache.getArchetype(archetypeOid, result);
+//        } catch (ObjectNotFoundException e) {
+//            LOGGER.warn("Archetype {} for object {} cannot be found", archetypeOid, assignmentHolder);
+//            return null;
+//        }
+//        return archetype;
+//    }
 
-        PrismObject<ArchetypeType> archetype;
-        try {
-            archetype = systemObjectCache.getArchetype(archetypeOid, result);
-        } catch (ObjectNotFoundException e) {
-            LOGGER.warn("Archetype {} for object {} cannot be found", archetypeOid, assignmentHolder);
+    public <O extends AssignmentHolderType> List<PrismObject<ArchetypeType>> determineArchetypes(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
+        List<PrismObject<ArchetypeType>> archetypes = new ArrayList<>();
+        List<ObjectReferenceType> archetypeRefs = determineArchetypeRefs(assignmentHolder);
+        if (archetypeRefs == null) {
             return null;
         }
-        return archetype;
+        for (ObjectReferenceType archetypeRef : archetypeRefs) {
+            try {
+                PrismObject<ArchetypeType> archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
+                archetypes.add(archetype);
+            } catch (ObjectNotFoundException e) {
+                LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
+            }
+        }
+        return archetypes;
+    }
+
+    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineStructuralArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
+        List<PrismObject<ArchetypeType>> archetypes = determineArchetypes(assignmentHolder, result);
+        return ArchetypeTypeUtil.getStructuralArchetype(archetypes);
     }
 
     public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-        return determineArchetypePolicy(object, null, result);
-    }
-
-    public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, String explicitArchetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
         if (object == null) {
             return null;
         }
 
-        PrismObject<ArchetypeType> archetype;
-        if (object.canRepresent(AssignmentHolderType.class)) {
-            //noinspection unchecked
-            archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
-        } else {
-            archetype = null;
+//        PrismObject<ArchetypeType> archetype;
+//        if (object.canRepresent(AssignmentHolderType.class)) {
+//            //noinspection unchecked
+//            archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
+//        } else {
+//            archetype = null;
+//        }
+        List<PrismObject<ArchetypeType>> archetypes = determineArchetypes((PrismObject<? extends AssignmentHolderType>) object, result);
+
+        PrismObject<ArchetypeType> structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
+
+        List<PrismObject<ArchetypeType>> auxiliaryArchetypes = archetypes.stream().filter(a -> a.asObjectable().getArchetypeType() != null && a.asObjectable().getArchetypeType() == ArchetypeTypeType.AUXILIARY).collect(Collectors.toList());
+        if (structuralArchetype == null && !auxiliaryArchetypes.isEmpty()) {
+            throw new SchemaException("Auxiliary archetype cannot be assigned without structural archetype");
         }
 
-        if (archetype != null) {
-            ArchetypePolicyType cachedArchetypePolicy = archetypePolicyCache.get(archetype.getOid());
-            if (cachedArchetypePolicy != null) {
-                return cachedArchetypePolicy;
-            }
+        ArchetypePolicyType mergedAuxiliaryArchetypePolicy = new ArchetypePolicyType(PrismContext.get());
+        for (PrismObject<ArchetypeType> auxiliaryArchetype : auxiliaryArchetypes) {
+            ArchetypePolicyType determinedAuxiliaryArchetypePolicy = mergeArchetypePolicies(auxiliaryArchetype, result);
+            //TODO colision detection
+            mergedAuxiliaryArchetypePolicy = mergeArchetypePolicies(mergedAuxiliaryArchetypePolicy, determinedAuxiliaryArchetypePolicy);
         }
 
-        ArchetypePolicyType archetypePolicy = mergeArchetypePolicies(archetype, result);
+        ArchetypePolicyType structuralArchetypePolicy = mergeArchetypePolicies(structuralArchetype, result);
+
+        ArchetypePolicyType structuredAndAuxiliaryArchetypePolicy = mergeArchetypePolicies(mergedAuxiliaryArchetypePolicy, structuralArchetypePolicy);
+//        if (archetype != null) {
+//            ArchetypePolicyType cachedArchetypePolicy = archetypePolicyCache.get(archetype.getOid());
+//            if (cachedArchetypePolicy != null) {
+//                return cachedArchetypePolicy;
+//            }
+//        }
+
+
+//        ArchetypePolicyType archetypePolicy = mergeArchetypePolicies(archetype, result);
 
         // Try to find appropriate system configuration section for this object.
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
 
-        ArchetypePolicyType mergedPolicy = merge(archetypePolicy, objectPolicy);
-        if (archetype != null && mergedPolicy != null) {
-            // FIXME: ObjectPolicy  was determined on object type/subtype, but is cached as merged policy for whole
-            // archetype, investigate if this is correct
-            archetypePolicyCache.put(archetype.getOid(), mergedPolicy);
-        }
+        ArchetypePolicyType mergedPolicy = merge(structuredAndAuxiliaryArchetypePolicy, objectPolicy);
+//        if (archetype != null && mergedPolicy != null) {
+//            // FIXME: ObjectPolicy  was determined on object type/subtype, but is cached as merged policy for whole
+//            // archetype, investigate if this is correct
+//            archetypePolicyCache.put(archetype.getOid(), mergedPolicy);
+//        }
         return mergedPolicy;
     }
 
@@ -197,8 +269,17 @@ public class ArchetypeManager implements Cache {
         if (archetype == null) {
             return null;
         }
-
-        return mergeArchetypePolicies(archetype.asObjectable(), result);
+        ArchetypePolicyType cachedArchetypePolicy = archetypePolicyCache.get(archetype.getOid());
+        if (cachedArchetypePolicy != null) {
+            return cachedArchetypePolicy;
+        }
+        ArchetypePolicyType mergedArchetypePolicy = mergeArchetypePolicies(archetype.asObjectable(), result);
+        if (archetype != null && mergedArchetypePolicy != null) {
+            // FIXME: ObjectPolicy  was determined on object type/subtype, but is cached as merged policy for whole
+            // archetype, investigate if this is correct
+            archetypePolicyCache.put(archetype.getOid(), mergedArchetypePolicy);
+        }
+        return mergedArchetypePolicy;
     }
 
     private ArchetypePolicyType mergeArchetypePolicies(ArchetypeType archetypeType, OperationResult result) throws SchemaException {
@@ -218,6 +299,10 @@ public class ArchetypeManager implements Cache {
         ArchetypePolicyType superPolicy = mergeArchetypePolicies(superArchetype.asObjectable(), result);
         ArchetypePolicyType currentPolicy = archetypeType.getArchetypePolicy();
 
+        return mergeArchetypePolicies(superPolicy, currentPolicy);
+    }
+
+    private ArchetypePolicyType mergeArchetypePolicies(ArchetypePolicyType superPolicy, ArchetypePolicyType currentPolicy) {
         if (currentPolicy == null) {
             if (superPolicy == null) {
                 return null;

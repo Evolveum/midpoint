@@ -53,11 +53,11 @@ public class LinkManager {
 
     public <O extends ObjectType> LinkTypeDefinitionType getSourceLinkTypeDefinition(String linkTypeName,
             PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-        ArchetypeType archetype = determineArchetype(object, result);
-        if (archetype == null || archetype.getArchetypePolicy() == null || archetype.getArchetypePolicy().getLinks() == null) {
+        ArchetypePolicyType archetypePolicyType = determineArchetypePolicy(object, result);
+        if (archetypePolicyType == null || archetypePolicyType.getLinks() == null) {
             return null;
         } else {
-            return getLinkDefinition(linkTypeName, archetype.getArchetypePolicy().getLinks().getSourceLink());
+            return getLinkDefinition(linkTypeName, archetypePolicyType.getLinks().getSourceLink());
         }
     }
 
@@ -74,11 +74,11 @@ public class LinkManager {
 
     public <O extends ObjectType> LinkTypeDefinitionType getTargetLinkTypeDefinition(String linkTypeName,
             PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-        ArchetypeType archetype = determineArchetype(object, result);
-        if (archetype == null || archetype.getArchetypePolicy() == null || archetype.getArchetypePolicy().getLinks() == null) {
+        ArchetypePolicyType archetypePolicyType = determineArchetypePolicy(object, result);
+        if (archetypePolicyType == null || archetypePolicyType.getLinks() == null) {
             return null;
         } else {
-            return getLinkDefinition(linkTypeName, archetype.getArchetypePolicy().getLinks().getTargetLink());
+            return getLinkDefinition(linkTypeName, archetypePolicyType.getLinks().getTargetLink());
         }
     }
 
@@ -89,14 +89,18 @@ public class LinkManager {
         return MiscUtil.extractSingleton(matchingDefinitions, () -> new IllegalStateException("Multiple link definitions named '" + linkTypeName + "'."));
     }
 
-    private <O extends ObjectType> ArchetypeType determineArchetype(PrismObject<O> object, OperationResult result)
-            throws SchemaException, ConfigurationException {
-        if (object.canRepresent(AssignmentHolderType.class)) {
-            //noinspection unchecked
-            PrismObject<? extends AssignmentHolderType> assignmentHolder = (PrismObject<? extends AssignmentHolderType>) object;
-            return asObjectable(archetypeManager.determineArchetype(assignmentHolder, result));
-        } else {
-            return null;
-        }
+//    private <O extends ObjectType> ArchetypeType determineArchetype(PrismObject<O> object, OperationResult result)
+//            throws SchemaException, ConfigurationException {
+//        if (object.canRepresent(AssignmentHolderType.class)) {
+//            //noinspection unchecked
+//            PrismObject<? extends AssignmentHolderType> assignmentHolder = (PrismObject<? extends AssignmentHolderType>) object;
+//            return asObjectable(archetypeManager.determineArchetype(assignmentHolder, result));
+//        } else {
+//            return null;
+//        }
+//    }
+
+    private <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+        return archetypeManager.determineArchetypePolicy(object, result);
     }
 }
