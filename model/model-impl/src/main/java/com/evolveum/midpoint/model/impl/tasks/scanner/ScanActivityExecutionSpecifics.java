@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskLoggingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -50,7 +50,7 @@ public abstract class ScanActivityExecutionSpecifics<
         return super.getDefaultReportingOptions()
                 .persistentStatistics(true)
                 .defaultDetermineExpectedTotal(false) // To avoid problems like in MID-6934.
-                .defaultBucketCompletionLogging(TaskLoggingOptionType.NONE); // To avoid log noise.
+                .defaultBucketCompletionLogging(ActivityEventLoggingOptionType.NONE); // To avoid log noise.
     }
 
     @Override

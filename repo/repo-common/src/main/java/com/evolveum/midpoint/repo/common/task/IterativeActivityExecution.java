@@ -158,7 +158,7 @@ public abstract class IterativeActivityExecution<
         //noinspection unchecked
         this.executionSpecifics = specificsSupplier.supply((AE) this);
         this.reportingOptions = executionSpecifics.getDefaultReportingOptions()
-                .cloneWithConfiguration(context.getActivity().getDefinition().getSpecificReportingOptions());
+                .cloneWithConfiguration(context.getActivity().getDefinition().getReportingDefinition().getBean());
         this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(getActivity(), getRunningTask(),
                 getDefaultErrorAction(), beans);
     }
