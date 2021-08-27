@@ -340,14 +340,6 @@ public class DashboardServiceImpl implements DashboardService {
         return prismContext.getQueryConverter().parseFilter(filter, AuditEventRecordType.class);
     }
 
-    private String getQueryForCount(String query) {
-        int index = query.toLowerCase().indexOf("from");
-        query = "select count(*) " + query.substring(index);
-        query = query.split("order")[0];
-        LOGGER.debug("Query for select: " + query);
-        return query;
-    }
-
     private String generateNumberMessageForCollection(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
         CollectionRefSpecificationType collectionSpec = getCollectionRefSpecificationType(widget, task, result);
