@@ -291,6 +291,8 @@ public class JdbcSession implements AutoCloseable {
      * @throws SystemException wrapping the exception used as parameter
      * @throws RuntimeException rethrows input exception if related to transaction serialization
      */
+    // TODO: Used only by old repo audit, let it die with it
+    @Deprecated
     public void handleGeneralException(
             @NotNull Throwable ex,
             @Nullable OperationResult result) {
@@ -310,6 +312,8 @@ public class JdbcSession implements AutoCloseable {
      * @throws SystemException wrapping the exception used as parameter
      * @throws RuntimeException rethrows input exception if related to transaction serialization
      */
+    // TODO: Used only by old repo audit, let it die with it
+    @Deprecated
     public void handleGeneralRuntimeException(
             @NotNull RuntimeException ex,
             @Nullable OperationResult result) {
@@ -335,7 +339,8 @@ public class JdbcSession implements AutoCloseable {
      *
      * @throws SystemException wrapping the exception used as parameter
      */
-    public void handleGeneralCheckedException(
+    @Deprecated
+    private void handleGeneralCheckedException(
             @NotNull Throwable ex,
             @Nullable OperationResult result) {
         LOGGER.error("General checked exception occurred (session {})", sessionId, ex);
