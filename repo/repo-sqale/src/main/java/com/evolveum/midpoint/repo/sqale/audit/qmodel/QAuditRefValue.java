@@ -8,11 +8,14 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
 import java.sql.Types;
 
+import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for `MA_AUDIT_REF_VALUE` table.
@@ -27,25 +30,26 @@ public class QAuditRefValue extends FlexibleRelationalPathBase<MAuditRefValue> {
     public static final ColumnMetadata ID =
             ColumnMetadata.named("id").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata RECORD_ID =
-            ColumnMetadata.named("record_id").ofType(Types.BIGINT);
+            ColumnMetadata.named("recordId").ofType(Types.BIGINT);
     public static final ColumnMetadata NAME =
             ColumnMetadata.named("name").ofType(Types.VARCHAR);
-    public static final ColumnMetadata OID =
-            ColumnMetadata.named("oid").ofType(Types.VARCHAR);
+    public static final ColumnMetadata TARGET_OID =
+            ColumnMetadata.named("targetOid").ofType(UuidPath.UUID_TYPE);
+    public static final ColumnMetadata TARGET_TYPE =
+            ColumnMetadata.named("targetType").ofType(Types.OTHER);
     public static final ColumnMetadata TARGET_NAME_NORM =
-            ColumnMetadata.named("targetName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("targetNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata TARGET_NAME_ORIG =
-            ColumnMetadata.named("targetName_orig").ofType(Types.VARCHAR);
-    public static final ColumnMetadata TYPE =
-            ColumnMetadata.named("type").ofType(Types.VARCHAR);
+            ColumnMetadata.named("targetNameOrig").ofType(Types.VARCHAR);
 
     public final NumberPath<Long> id = createLong("id", ID);
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath name = createString("name", NAME);
-    public final StringPath oid = createString("oid", OID);
+    public final UuidPath targetOid = createUuid("targetOid", TARGET_OID);
     public final StringPath targetNameNorm = createString("targetNameNorm", TARGET_NAME_NORM);
     public final StringPath targetNameOrig = createString("targetNameOrig", TARGET_NAME_ORIG);
-    public final StringPath type = createString("type", TYPE);
+    public final EnumPath<MObjectType> targetType =
+            createEnum("targetType", MObjectType.class, TARGET_TYPE);
 
     public QAuditRefValue(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

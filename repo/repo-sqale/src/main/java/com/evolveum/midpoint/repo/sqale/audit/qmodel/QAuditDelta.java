@@ -28,7 +28,7 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     public static final String TABLE_NAME = "ma_audit_delta";
 
     public static final ColumnMetadata RECORD_ID =
-            ColumnMetadata.named("record_id").ofType(Types.BIGINT).notNull();
+            ColumnMetadata.named("recordId").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata TIMESTAMP =
             ColumnMetadata.named("timestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE).notNull();
     public static final ColumnMetadata CHECKSUM =
@@ -36,23 +36,23 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     public static final ColumnMetadata DELTA =
             ColumnMetadata.named("delta").ofType(Types.BINARY);
     public static final ColumnMetadata DELTA_OID =
-            ColumnMetadata.named("deltaOid").ofType(Types.VARCHAR);
+            ColumnMetadata.named("deltaOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata DELTA_TYPE =
-            ColumnMetadata.named("deltaType").ofType(Types.INTEGER);
+            ColumnMetadata.named("deltaType").ofType(Types.OTHER);
     public static final ColumnMetadata FULL_RESULT =
             ColumnMetadata.named("fullResult").ofType(Types.BINARY);
     public static final ColumnMetadata OBJECT_NAME_NORM =
-            ColumnMetadata.named("objectName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("objectNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata OBJECT_NAME_ORIG =
-            ColumnMetadata.named("objectName_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("objectNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata RESOURCE_NAME_NORM =
-            ColumnMetadata.named("resourceName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("resourceNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata RESOURCE_NAME_ORIG =
-            ColumnMetadata.named("resourceName_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("resourceNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata RESOURCE_OID =
-            ColumnMetadata.named("resourceOid").ofType(Types.VARCHAR);
+            ColumnMetadata.named("resourceOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata STATUS =
-            ColumnMetadata.named("status").ofType(Types.INTEGER);
+            ColumnMetadata.named("status").ofType(Types.OTHER);
 
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final DateTimePath<Instant> timestamp = createInstant("timestamp", TIMESTAMP);
