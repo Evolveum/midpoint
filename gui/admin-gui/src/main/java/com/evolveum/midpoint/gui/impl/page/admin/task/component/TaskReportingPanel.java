@@ -20,7 +20,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(name = "reporting", defaultContainerPath = "activity/reporting", defaultType = TaskReportingOptionsType.class)
+@PanelType(name = "reporting", defaultContainerPath = "activity/reporting")
 @PanelInstance(identifier = "reporting", applicableFor = TaskType.class, childOf = TaskActivityPanel.class,
         display = @PanelDisplay(label = "Reporting", order = 50))
 public class TaskReportingPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
@@ -40,7 +40,7 @@ public class TaskReportingPanel extends AbstractObjectMainPanel<TaskType, Object
     protected void initLayout() {
         SingleContainerPanel activityDefinitionPanel = new SingleContainerPanel(ID_MAIN_PANEL,
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_REPORTING)),
-                TaskReportingOptionsType.COMPLEX_TYPE);
+                ActivityReportingDefinitionType.COMPLEX_TYPE);
         add(activityDefinitionPanel);
 
     }
