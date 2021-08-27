@@ -2487,7 +2487,7 @@
             <xsd:element name="storedData" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Specification of a string data as a widget data source.
+                        Specification of a string data as a widget data source. This data can be stored by report task.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4</a:since>

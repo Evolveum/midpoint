@@ -78,7 +78,7 @@ class ShadowCheckConfiguration {
 
         checkDuplicatesOnPrimaryIdentifiersOnly = def.isCheckDuplicatesOnPrimaryIdentifiersOnly();
 
-        dryRun = executionMode != ExecutionModeType.EXECUTE;
+        dryRun = executionMode != ExecutionModeType.FULL;
     }
 
     void log(String state) {

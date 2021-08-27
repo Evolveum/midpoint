@@ -34,14 +34,13 @@ public class QTrigger<OR extends MObject> extends QContainer<MTrigger, OR> {
 
     public static final ColumnMetadata HANDLER_URI_ID =
             ColumnMetadata.named("handlerUriId").ofType(Types.INTEGER);
-    public static final ColumnMetadata TIMESTAMP_VALUE =
-            ColumnMetadata.named("timestampValue").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata TIMESTAMP =
+            ColumnMetadata.named("timestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
     // attributes
 
     public final NumberPath<Integer> handlerUriId = createInteger("handlerUriId", HANDLER_URI_ID);
-    public final DateTimePath<Instant> timestampValue =
-            createInstant("timestampValue", TIMESTAMP_VALUE);
+    public final DateTimePath<Instant> timestamp = createInstant("timestamp", TIMESTAMP);
 
     public QTrigger(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

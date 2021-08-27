@@ -25,7 +25,7 @@
                 </resourceObjects>
             </import>
         </work>
-        <executionMode>simulate</executionMode>
+        <executionMode>preview</executionMode>
         <distribution>
             <buckets>
                 <stringSegmentation>

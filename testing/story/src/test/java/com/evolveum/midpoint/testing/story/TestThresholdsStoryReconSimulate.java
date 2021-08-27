@@ -35,7 +35,7 @@ public class TestThresholdsStoryReconSimulate extends TestThresholdsStoryRecon {
     }
 
     @Override
-    protected boolean isSimulate() {
+    protected boolean isPreview() {
         return true;
     }
 

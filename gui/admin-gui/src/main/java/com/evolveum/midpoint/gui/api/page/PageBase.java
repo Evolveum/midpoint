@@ -242,8 +242,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
 
-    @SpringBean(name = "auditService")
-    private AuditService auditService;
+    @SpringBean(name = "auditController")
+    private ModelAuditService modelAuditService;
 
     @SpringBean(name = "modelController")
     private WorkflowService workflowService;
@@ -455,8 +455,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return reportManager;
     }
 
-    public AuditService getAuditService() {
-        return auditService;
+    public ModelAuditService getModelAuditService() {
+        return modelAuditService;
     }
 
     public AccessCertificationService getCertificationService() {

@@ -182,8 +182,9 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         LOGGER.trace("end::iterator() {}", result);
         return getAvailableData().iterator();
     }
-    public List<SelectableBean<C>> createDataObjectWrappers(Class<? extends C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    public List<SelectableBean<C>> createDataObjectWrappers(Class<? extends C> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws CommonException {
         List<C> list = searchObjects(type, query, options, task, result);
 
         if (LOGGER.isTraceEnabled()) {
@@ -197,7 +198,9 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         return data;
     }
 
-    protected List<C> searchObjects(Class<? extends C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    protected List<C> searchObjects(Class<? extends C> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws CommonException {
         return (List) getModel().searchContainers(type, query, options, task, result);
     }
 
@@ -255,7 +258,9 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         return count;
     }
 
-    protected Integer countObjects(Class<? extends C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    protected Integer countObjects(Class<? extends C> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
+            throws CommonException {
         return getModel().countContainers(type, getQuery(), currentOptions, task, result);
     }
 

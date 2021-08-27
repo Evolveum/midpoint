@@ -46,7 +46,7 @@ public interface ModelAuditService {
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
-    long countObjects(
+    int countObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             Task task,

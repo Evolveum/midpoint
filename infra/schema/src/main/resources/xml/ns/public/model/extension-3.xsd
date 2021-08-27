@@ -692,7 +692,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="reporting" type="c:TaskReportingOptionsType">
+    <xsd:element name="reporting" type="c:ActivityReportingDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 How should the task report its various aspects?

@@ -161,7 +161,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private ClusterwideUserSessionManager clusterwideUserSessionManager;
     @Autowired private ContextLoader contextLoader;
-    @Autowired private AuditService auditService;
+    @Autowired private ModelAuditService modelAuditService;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -1987,15 +1987,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             task.setExpectedTotal(count);
         }
         if (AuditEventRecordType.class.equals(type)) {
-            checkOrdering(query, ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(), AuditEventRecordType.F_TIMESTAMP.getLocalPart())));
-            @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+            checkOrdering(query, ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(),
+                    AuditEventRecordType.F_TIMESTAMP.getLocalPart())));
+            @NotNull SearchResultList<AuditEventRecordType> auditRecords = modelAuditService.searchObjects(
+                    query, options, task, result);
             processContainerByHandler(auditRecords, handler);
         } else if (ObjectType.class.isAssignableFrom(type)) {
             ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test((PrismContainer)value);
             checkOrdering(query, ObjectType.F_NAME);
             modelService.searchObjectsIterative((Class<ObjectType>) type, query, resultHandler, options, task, result);
         } else {
-            SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, task, result);
+            SearchResultList<? extends Containerable> containers = modelService.searchContainers(
+                    type, query, options, task, result);
             processContainerByHandler(containers, handler);
         }
     }
@@ -2080,15 +2083,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
 
         if (AuditEventRecordType.class.equals(type)) {
-            @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+            @NotNull SearchResultList<AuditEventRecordType> auditRecords = modelAuditService.searchObjects(
+                    query, options, task, result);
             return auditRecords.getList();
         } else if (ObjectType.class.isAssignableFrom(type)) {
-            SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects((Class<ObjectType>) type, query, options, task, result);
+            SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects(
+                    (Class<ObjectType>) type, query, options, task, result);
             List list = new ArrayList<Containerable>();
             results.forEach(object -> list.add(object.asObjectable()));
             return list;
         } else {
-            SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, task, result);
+            SearchResultList<? extends Containerable> containers = modelService.searchContainers(
+                    type, query, options, task, result);
             return containers.getList();
         }
     }
@@ -2116,7 +2122,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private Integer countObjectsFromCollectionByType(Class<? extends Containerable> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         if (AuditEventRecordType.class.equals(type)) {
-            return auditService.countObjects(query, options, result);
+            return modelAuditService.countObjects(query, options, task, result);
         } else if (ObjectType.class.isAssignableFrom(type)) {
             return modelService.countObjects((Class<ObjectType>) type, query, options, task, result);
         }

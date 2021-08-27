@@ -71,7 +71,7 @@ public class QOperationExecutionMapping<OR extends MObject>
                 q -> q.taskRefRelationId,
                 QTaskMapping::get);
         addItemMapping(OperationExecutionType.F_TIMESTAMP,
-                timestampMapper(q -> q.timestampValue));
+                timestampMapper(q -> q.timestamp));
     }
 
     @Override
@@ -106,7 +106,7 @@ public class QOperationExecutionMapping<OR extends MObject>
                 o -> row.taskRefTargetOid = o,
                 t -> row.taskRefTargetType = t,
                 r -> row.taskRefRelationId = r);
-        row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
+        row.timestamp = MiscUtil.asInstant(schemaObject.getTimestamp());
 
         insert(row, jdbcSession);
         return row;
