@@ -42,7 +42,7 @@ public class PageOrg extends PageFocusDetails<OrgType> {
     }
 
     @Override
-    protected Panel getSummaryPanel(String id, LoadableModel<OrgType> summaryModel) {
+    protected Panel createSummaryPanel(String id, LoadableModel<OrgType> summaryModel) {
         return new OrgSummaryPanel(id, summaryModel, this);
     }
 }

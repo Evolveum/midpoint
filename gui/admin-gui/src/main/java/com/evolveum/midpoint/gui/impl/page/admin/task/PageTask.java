@@ -89,7 +89,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
                         description = "PageUser.auth.user.description")
         })
 public class PageTask extends PageAssignmentHolderDetails<TaskType, AssignmentHolderDetailsModel<TaskType>> {
-    
+
     public PageTask(PageParameters pageParameters) {
         super(pageParameters);
     }
@@ -100,7 +100,7 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, AssignmentHo
     }
 
     @Override
-    protected Panel getSummaryPanel(String id, LoadableModel<TaskType> summaryModel) {
+    protected Panel createSummaryPanel(String id, LoadableModel<TaskType> summaryModel) {
         return new TaskSummaryPanel(id, summaryModel, this);
     }
 

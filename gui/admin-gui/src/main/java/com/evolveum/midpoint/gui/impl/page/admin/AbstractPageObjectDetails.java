@@ -131,7 +131,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private Panel initSummaryPanel() {
         LoadableModel<O> summaryModel = objectDetailsModels.getSummaryModel();
-        return getSummaryPanel(ID_SUMMARY, summaryModel);
+        return createSummaryPanel(ID_SUMMARY, summaryModel);
     }
 
     private void initButtons(MidpointForm form) {
@@ -499,7 +499,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected abstract Class<O> getType();
-    protected abstract Panel getSummaryPanel(String id, LoadableModel<O> summaryModel);
+    protected abstract Panel createSummaryPanel(String id, LoadableModel<O> summaryModel);
 
     protected Component getDetailsPanel() {
         return get(ID_DETAILS);
@@ -508,7 +508,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private MidpointForm getMainForm() {
         return (MidpointForm) get(createComponentPath(ID_DETAILS, ID_MAIN_FORM));
     }
-    private Component getSummaryPanel() {
+    protected Component getSummaryPanel() {
         return get(createComponentPath(ID_DETAILS, ID_SUMMARY));
     }
     private OperationalButtonsPanel getOperationalButtonsPanel() {
