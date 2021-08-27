@@ -18,7 +18,7 @@ There are few planned improvements for audit, see link:https://jira.evolveum.com
 
 Repository component configuration is placed in main `config.xml` file in `midpoint.home` folder.
 Basic configuration is quite simple.
-It will use embedded H2 database which will be placed in midpoint.home folder.
+It will use embedded H2 database which will be placed in `midpoint.home` folder.
 
 [source,xml]
 ----
@@ -33,7 +33,6 @@ It will use embedded H2 database which will be placed in midpoint.home folder.
 ----
 
 For more complex configurations using different DB vendors see wiki:Repository+Configuration[Repository Configuration].
-
 
 == DB tables, structures
 
@@ -61,8 +60,6 @@ To further improve hibernate performance we've introduced `EntityState` interfac
 This interface is used within most entities.
 Developer knows in most cases whether entity is transient or detached, therefore hibernate doesn't need to do any checks (we'll get rid of many unnecessary select queries).
 
-
-
 === Storing xsd:any attributes
 
 xsd:any container can be found in:
@@ -76,7 +73,8 @@ xsd:any container can be found in:
 Schema for extension containers is static for first and third case.
 ShadowType attributes use dynamic schema which depends on defined resources.
 Extension container can contain elements of different types.
-SQL repository supports `String, Long, Date, Clob, ObjectReferenceType, PolyStringType`. All elements are aggregated to this types (tables).
+SQL repository supports `String, Long, Date, Clob, ObjectReferenceType, PolyStringType`.
+All elements are aggregated to these types (tables).
 
 * Long, Integer, Short -> *Long*
 
@@ -93,12 +91,9 @@ Real types for aggregated types are saved as QName values.
 Aggregation translation for xsd:any values is provided by link:https://github.com/Evolveum/midpoint/blob/master/repo/repo-sql-impl/src/main/java/com/evolveum/midpoint/repo/sql/data/common/any/RAnyConverter.java[RAnyConverter]. Repository uses dictionary implementation to store/load different properties, see link:https://github.com/Evolveum/midpoint/blob/master/repo/repo-sql-impl/src/main/java/com/evolveum/midpoint/repo/sql/data/common/dictionary/ExtItemDictionary.java[ExtItemDictionary]. New items are added to dictionary in transaction other than current add/modify operation is in.
 In such case parent transaction is restarted.
 
-
 === Audit structures
 
 Audit tables uses `IDENTITY` columns (autoincrement).
-
-
 
 == Transactions, locking failover
 
@@ -107,27 +102,17 @@ When transaction fails because of locking (table lock timeout, record timeout), 
 As this implementation supports databases from multiple vendors, transaction and locking configuration is different for each vendor.
 Default configurations are defined in `SqlRepositoryConfiguration`.
 
-
 == Querying
 
-SQL repository contains `com.evolveum.midpoint.repo.sql.query2.QueryInterpreter2` which can interpret queries defined by link:https://github.com/Evolveum/midpoint/blob/master/infra/prism/src/main/resources/xml/ns/public/query-3.xsd[query-3] schema.
-`QueryInterpreter` uses `QueryRegistry` to translate queried value name to real hibernate entity property name.
-`QueryRegistry` loads entity and attribute definitions during initialisation.
-Currently supported query filters are:
+See the relevant section in link:/midpoint/reference/concepts/query/query-api#differences-in-filter-interpretation[Query API]
+documentation for details about what is or is not supported from our Query API in the repository.
 
-* equal
-
-* substring (with anchor start/end)
-
-* and/or/not
-
-* inOid
-
+Query processing is implemented in `QueryInterpreter` which uses `QueryDefinitionRegistry`
+to translate queried value name to the real hibernate entity property name.
 
 == Tests
 
 Most tests are located in module `repo-sql-impl-test`.
-
 
 == Overall code description
 
