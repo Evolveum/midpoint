@@ -32,7 +32,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -99,14 +99,14 @@ public class PageCases extends PageAdmin {
                 return createActions();
             }
 
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
-                LOGGER.trace("caseDetailsPerformed()");
-
-                PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
-                navigateToNext(PageCase.class, pageParameters);
-            }
+//            @Override
+//            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
+//                LOGGER.trace("caseDetailsPerformed()");
+//
+//                PageParameters pageParameters = new PageParameters();
+//                pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
+//                navigateToNext(PageCase.class, pageParameters);
+//            }
         };
         add(tablePanel);
     }
