@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -151,5 +152,13 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     public ExecuteChangeOptionsDto getExecuteChangeOptions() {
         ExecuteChangeOptionsPanel optionsPanel = (ExecuteChangeOptionsPanel) get(ID_EXECUTE_OPTIONS);
         return optionsPanel.getModelObject();
+    }
+
+    public PrismObject<O> getPrismObject() {
+        return getModelObject().getObject();
+    }
+
+    public O getObjectType() {
+        return getPrismObject().asObjectable();
     }
 }

@@ -16,6 +16,10 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,28 +50,17 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
     }
 
     @Override
-    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration, List<ObjectReferenceType> archetypes, OperationResult result) {
+    public <AH extends AssignmentHolderType> GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration, PrismObject<AH> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
         GuiObjectDetailsPageType mergedPageConfiguration = defaultPageConfiguration.cloneWithoutId();
 
-        for (ObjectReferenceType archetypeRef : archetypes) {
-            ArchetypeType archetypeType = null;
-            try {
-                archetypeType = archetypeManager.getArchetype(archetypeRef.getOid(), result).asObjectable();
-            } catch (ObjectNotFoundException | SchemaException e) {
-                //TODO only log excpetion
-            }
+        ArchetypePolicyType archetypePolicyType = archetypeManager.determineArchetypePolicy(assignmentHolder, result);
 
-            mergeObjectDetailsPageConfiguration(mergedPageConfiguration, archetypeType);
-        }
+        mergeObjectDetailsPageConfiguration(mergedPageConfiguration, archetypePolicyType);
+
         return mergedPageConfiguration;
     }
 
-    private void mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypeType archetypeType) {
-        if (archetypeType == null) {
-            return;
-        }
-
-        ArchetypePolicyType archetypePolicyType = archetypeType.getArchetypePolicy();
+    private void mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypePolicyType archetypePolicyType) {
         if (archetypePolicyType == null) {
             return;
         }

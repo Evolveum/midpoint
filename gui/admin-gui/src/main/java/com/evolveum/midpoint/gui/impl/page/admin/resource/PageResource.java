@@ -8,14 +8,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -50,9 +54,21 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Assi
     }
 
     @Override
-    protected Panel getSummaryPanel(String id, LoadableModel<ResourceType> summaryModel) {
+    protected Panel createSummaryPanel(String id, LoadableModel<ResourceType> summaryModel) {
         return new ResourceSummaryPanel(id,
                 summaryModel, this);
+    }
+
+    @Override
+    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ResourceType>> wrapperModel) {
+        return new ResourceOperationalButtonsPanel(id, wrapperModel) {
+
+            @Override
+            protected void refreshStatus(AjaxRequestTarget target) {
+                PageResource.this.refresh(target);
+//                target.add(getDetailsPanel());
+            }
+        };
     }
 
     @Override

@@ -45,7 +45,7 @@ public class PageService extends PageFocusDetails<ServiceType> {
     }
 
     @Override
-    protected Panel getSummaryPanel(String id, LoadableModel<ServiceType> summaryModel) {
+    protected Panel createSummaryPanel(String id, LoadableModel<ServiceType> summaryModel) {
         return new ServiceSummaryPanel(id, summaryModel, PageService.this);
     }
 }

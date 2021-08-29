@@ -8,22 +8,19 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.common.LinkManager;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -58,7 +55,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     private transient ArchetypePolicyType archetypePolicyType;
 
-    private transient ArchetypeType archetype;
+    private transient List<ArchetypeType> archetypes;
 
     private boolean primaryDeltaExecuted;
 
@@ -79,11 +76,22 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     public ArchetypeType getArchetype() {
-        return archetype;
+        List<PrismObject<ArchetypeType>> prismArchetypes = archetypes.stream().map(a -> a.asPrismObject()).collect(Collectors.toList());
+        try {
+            return PrismObject.asObjectable(ArchetypeTypeUtil.getStructuralArchetype(prismArchetypes));
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot get structural archetype, {}", e.getMessage(), e);
+        }
+        return null;
     }
 
-    public void setArchetype(ArchetypeType archetype) {
-        this.archetype = archetype;
+    @Override
+    public List<ArchetypeType> getArchetypes() {
+        return archetypes;
+    }
+
+    public void setArchetypes(List<ArchetypeType> archetypes) {
+        this.archetypes = archetypes;
     }
 
     public LifecycleStateModelType getLifecycleModel() {
