@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.google.common.base.Strings;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
@@ -49,6 +51,8 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Filter processor for extension items stored in JSONB.
@@ -71,6 +75,8 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
 
     private final MExtItemHolderType holderType;
     private final JsonbPath path;
+
+    private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
     public ExtensionItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
@@ -205,7 +211,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         if (extItem.cardinality == SCALAR) {
             if (operation.isEqualOperation()) {
                 return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                        String.format("{\"%d\":\"%s\"}", extItem.id, values.singleValue())));
+                        String.format("{\"%d\": %s}", extItem.id, jsonbEscapeString(values.singleValue()))));
             } else {
                 // {1s} means "as string", this is replaced before JDBC driver, just as path is,
                 // but for path types it's automagic, integer would turn to param and ?.
@@ -218,12 +224,25 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         } else { // multi-value ext item
             if (operation.isEqualOperation()) {
                 return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                        String.format("{\"%d\":[\"%s\"]}", extItem.id, values.singleValue())));
+                        String.format("{\"%d\":[%s]}", extItem.id, jsonbEscapeString(values.singleValue()))));
             } else {
                 throw new QueryException("Only equals is supported for"
                         + " multi-value extensions; used filter: " + filter);
             }
         }
+    }
+
+    private Object jsonbEscapeString(@Nullable Object singleValue) {
+        if (singleValue == null) {
+            return null;
+        }
+        String payload;
+        try {
+            payload = JSON_OBJECT_MAPPER.writeValueAsString(singleValue.toString());
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
+        return payload;
     }
 
     private Predicate processEnum(
