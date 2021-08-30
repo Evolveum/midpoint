@@ -55,7 +55,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
 
-    private static boolean uriCacheCleared = false;
+    private static boolean cacheTablesCleared = false;
 
     @BeforeClass
     public void clearDatabase() {
@@ -73,16 +73,15 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             display("Deleted " + count + " objects from DB");
             */
             jdbcSession.commit();
+            display("OBJECT tables cleared");
         }
 
         // this is "suite" scope code, but @BeforeSuite can't use injected fields
-        if (!uriCacheCleared) {
-            QUri u = QUri.DEFAULT;
+        if (!cacheTablesCleared) {
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-                jdbcSession.newDelete(u)
-                        // We could skip default relation ID with .where(u.id.gt(0)),
-                        // but it must work even when it's gone.
-                        .execute();
+                // We could skip default relation ID with .where(u.id.gt(0)), but it must work.
+                jdbcSession.newDelete(QUri.DEFAULT).execute();
+                jdbcSession.newDelete(QExtItem.DEFAULT).execute();
                 jdbcSession.commit();
             }
 
@@ -90,7 +89,18 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
             // It would work with URI cache cleared before every class, but that's not
             // how midPoint will work either.
-            uriCacheCleared = true;
+            cacheTablesCleared = true;
+            display("URI cache and Extension item catalog tables cleared");
+        }
+        // TODO m_ext_item is not deleted now, do we want it too? session scope like URI cache?
+    }
+
+    // Called on demand
+    public void clearAudit() {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            jdbcSession.executeStatement("TRUNCATE ma_audit_event CASCADE;");
+            jdbcSession.commit();
+            display("AUDIT tables cleared");
         }
     }
 

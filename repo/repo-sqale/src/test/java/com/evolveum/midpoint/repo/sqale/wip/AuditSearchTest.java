@@ -48,6 +48,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+/**
+ * This is primarily search test, but works reasonably well as audit event add test as well.
+ * What is not properly added, can't be searched by and some tests would fail.
+ */
 @SuppressWarnings("unchecked")
 public class AuditSearchTest extends SqaleRepoBaseTest {
 
@@ -67,6 +71,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
     @BeforeClass
     public void initAuditEvents() throws Exception {
+        clearAudit();
+
         OperationResult result = createOperationResult();
 
         PrismObject<UserType> initiator = createUser("initiator");
@@ -195,7 +201,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         and("operation result is success");
         OperationResult subresult = operationResult.getLastSubresult();
         assertThat(subresult).isNotNull();
-        assertThat(subresult.getOperation()).isEqualTo("SqlAuditServiceImpl.searchObjects");
+        assertThat(subresult.getOperation()).isEqualTo("SqaleAuditService.searchObjects");
         assertThat(subresult.getStatus()).isEqualTo(OperationResultStatus.SUCCESS);
     }
 
