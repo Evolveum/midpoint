@@ -134,12 +134,14 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected boolean previewRequested;
 
     public PageAdminObjectDetails() {
-        ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getCompileTimeClass());
-        Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
-        if (!applicableArchetypes.isEmpty()) {
-            PageParameters params = new PageParameters();
-            params.add("type", objectType.getRestType());
-            throw new RestartResponseException(PageCreateFromTemplate.class, params);
+        if (getObjectOidParameter() == null) {
+            ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getCompileTimeClass());
+            Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
+            if (!applicableArchetypes.isEmpty()) {
+                PageParameters params = new PageParameters();
+                params.add("type", objectType.getRestType());
+                throw new RestartResponseException(PageCreateFromTemplate.class, params);
+            }
         }
     }
 
