@@ -209,7 +209,7 @@
             </outbound>
          </attribute>
          <dependency>
-            <resourceRef oid="10000000-0000-0000-0000-0000000004ax"/>
+            <resourceRef oid="10000000-1000-0000-0000-0000000004a0"/>
             <strictness>relaxed</strictness>
             <order>10</order>
             <forceLoad>true</forceLoad>
