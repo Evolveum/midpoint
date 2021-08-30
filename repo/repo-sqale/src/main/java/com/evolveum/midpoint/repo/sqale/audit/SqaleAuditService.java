@@ -9,10 +9,8 @@ package com.evolveum.midpoint.repo.sqale.audit;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.BiFunction;
-import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 
-import com.google.common.base.Strings;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
@@ -30,6 +28,7 @@ import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqale.SqaleServiceBase;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.*;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
@@ -43,8 +42,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
@@ -55,28 +52,19 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}).
  * TODO: rethink the initialization, will we use factory class again?
  */
-public class SqaleAuditService implements AuditService {
-
-    private static final Trace LOGGER = TraceManager.getTrace(SqaleAuditService.class);
-
-    private static final String OP_NAME_PREFIX = SqaleAuditService.class.getSimpleName() + '.';
+public class SqaleAuditService extends SqaleServiceBase implements AuditService {
 
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
-    private final SqaleRepoContext sqlRepoContext;
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
-
-    private SqlPerformanceMonitorImpl performanceMonitor; // set to null in destroy
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
     public SqaleAuditService(
             SqaleRepoContext sqlRepoContext,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
-        this.sqlRepoContext = sqlRepoContext;
+        super(sqlRepoContext, sqlPerformanceMonitorsCollection);
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
 
         SqaleRepositoryConfiguration repoConfig =
                 (SqaleRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
@@ -97,7 +85,7 @@ public class SqaleAuditService implements AuditService {
         Objects.requireNonNull(record, "Audit event record must not be null.");
         Objects.requireNonNull(task, "Task must not be null.");
 
-        OperationResult operationResult = parentResult.createSubresult(OP_NAME_PREFIX + OP_AUDIT);
+        OperationResult operationResult = parentResult.createSubresult(opNamePrefix + OP_AUDIT);
 
         try {
             auditExecute(record);
@@ -261,7 +249,7 @@ public class SqaleAuditService implements AuditService {
                 if (InternalsConfig.isConsistencyChecks()) {
                     throw new SystemException("Problem during audit delta parse", e);
                 }
-                LOGGER.warn("Serialized audit delta for recordId={} cannot be parsed."
+                logger.warn("Serialized audit delta for recordId={} cannot be parsed."
                         + " No changed items were created. This may cause problem later, but is not"
                         + " critical for storing the audit record.", recordId, e);
             }
@@ -393,7 +381,7 @@ public class SqaleAuditService implements AuditService {
         try {
             while (true) {
                 try {
-                    LOGGER.info("{} audit cleanup, deleting up to {} (duration '{}'), batch size {}{}.",
+                    logger.info("{} audit cleanup, deleting up to {} (duration '{}'), batch size {}{}.",
                             first ? "Starting" : "Continuing with ",
                             minValue, duration, CLEANUP_AUDIT_BATCH_SIZE,
                             first ? "" : ", up to now deleted " + totalCountHolder.getValue() + " entries");
@@ -403,7 +391,7 @@ public class SqaleAuditService implements AuditService {
                         // the following method may restart due to concurrency
                         // (or any other) problem - in any iteration
                         long batchStart = System.currentTimeMillis();
-                        LOGGER.debug(
+                        logger.debug(
                                 "Starting audit cleanup batch, deleting up to {} (duration '{}'),"
                                         + " batch size {}, up to now deleted {} entries.",
                                 minValue, duration, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
@@ -421,7 +409,7 @@ public class SqaleAuditService implements AuditService {
             }
         } finally {
             registerOperationFinish(opHandle, attempt);
-            LOGGER.info("Audit cleanup based on age finished; deleted {} entries in {} seconds.",
+            logger.info("Audit cleanup based on age finished; deleted {} entries in {} seconds.",
                     totalCountHolder.getValue(), (System.currentTimeMillis() - start) / 1000L);
         }
     }
@@ -444,7 +432,7 @@ public class SqaleAuditService implements AuditService {
         try {
             while (true) {
                 try {
-                    LOGGER.info("{} audit cleanup, keeping at most {} records, batch size {}{}.",
+                    logger.info("{} audit cleanup, keeping at most {} records, batch size {}{}.",
                             first ? "Starting" : "Continuing with ", recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE,
                             first ? "" : ", up to now deleted " + totalCountHolder.getValue() + " entries");
                     first = false;
@@ -453,7 +441,7 @@ public class SqaleAuditService implements AuditService {
                         // the following method may restart due to concurrency
                         // (or any other) problem - in any iteration
                         long batchStart = System.currentTimeMillis();
-                        LOGGER.debug(
+                        logger.debug(
                                 "Starting audit cleanup batch, keeping at most {} records,"
                                         + " batch size {}, up to now deleted {} entries.",
                                 recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
@@ -471,7 +459,7 @@ public class SqaleAuditService implements AuditService {
             }
         } finally {
             registerOperationFinish(opHandle, attempt);
-            LOGGER.info("Audit cleanup based on record count finished; deleted {} entries in {} seconds.",
+            logger.info("Audit cleanup based on record count finished; deleted {} entries in {} seconds.",
                     totalCountHolder.getValue(), (System.currentTimeMillis() - start) / 1000L);
         }
     }
@@ -496,10 +484,10 @@ public class SqaleAuditService implements AuditService {
                 final String tempTable =
                         ttDialect.generateTemporaryTableName(QAuditEventRecord.TABLE_NAME);
                 createTemporaryTable(jdbcSession, tempTable);
-                LOGGER.trace("Created temporary table '{}'.", tempTable);
+                logger.trace("Created temporary table '{}'.", tempTable);
 
                 int count = recordsSelector.apply(jdbcSession, tempTable);
-                LOGGER.trace("Inserted {} audit record ids ready for deleting.", count);
+                logger.trace("Inserted {} audit record ids ready for deleting.", count);
 
                 // drop records from m_audit_item, m_audit_event, m_audit_delta, and others
                 jdbcSession.executeStatement(
@@ -523,7 +511,7 @@ public class SqaleAuditService implements AuditService {
 
                 // drop temporary table
                 if (ttDialect.dropTemporaryTableAfterUse()) {
-                    LOGGER.debug("Dropping temporary table.");
+                    logger.debug("Dropping temporary table.");
                     jdbcSession.executeStatement(
                             ttDialect.getDropTemporaryTableString() + ' ' + tempTable);
                 }
@@ -532,16 +520,16 @@ public class SqaleAuditService implements AuditService {
                 // commit would happen automatically, but if it fails, we don't change the numbers
                 int totalCount = totalCountHolder.getValue() + count;
                 totalCountHolder.setValue(totalCount);
-                LOGGER.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}",
+                logger.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}",
                         System.currentTimeMillis() - batchStart, totalCount);
 
                 return count;
                 */
                 return -1; // TODO
             } catch (RuntimeException ex) {
-                LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",
+                logger.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",
                         System.currentTimeMillis() - batchStart, ex.getMessage());
-                jdbcSession.handleGeneralRuntimeException(ex, result);
+                handleGeneralRuntimeException(ex, jdbcSession, result);
                 throw new AssertionError("We shouldn't get here.");
             }
         } catch (Throwable t) {
@@ -577,7 +565,7 @@ public class SqaleAuditService implements AuditService {
         // we will find the number to delete and limit it to range [0,CLEANUP_AUDIT_BATCH_SIZE]
         long recordsToDelete = Math.max(0,
                 Math.min(totalAuditRecords - recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE));
-        LOGGER.debug("Total audit records: {}, records to keep: {} => records to delete in this batch: {}",
+        logger.debug("Total audit records: {}, records to keep: {} => records to delete in this batch: {}",
                 totalAuditRecords, recordsToKeep, recordsToDelete);
         if (recordsToDelete == 0) {
             return 0;
@@ -644,7 +632,7 @@ public class SqaleAuditService implements AuditService {
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) {
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_COUNT_OBJECTS)
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_COUNT_OBJECTS)
                 .addParam("query", query)
                 .build();
 
@@ -672,7 +660,7 @@ public class SqaleAuditService implements AuditService {
             @NotNull OperationResult parentResult)
             throws SchemaException {
 
-        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_OBJECTS)
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_OBJECTS)
                 .addParam("query", query)
                 .build();
 
@@ -694,51 +682,7 @@ public class SqaleAuditService implements AuditService {
         }
     }
 
-    @PreDestroy
-    public void destroy() {
-        if (performanceMonitor != null) {
-            performanceMonitor.shutdown();
-            sqlPerformanceMonitorsCollection.deregister(performanceMonitor);
-            performanceMonitor = null;
-        }
-    }
-
-    /**
-     * Registers operation start with specified short operation type name, class is prefixed automatically.
-     */
-    private long registerOperationStart(String kind) {
-        return performanceMonitor.registerOperationStart(OP_NAME_PREFIX + kind, AuditEventRecordType.class);
-    }
-
-    private void registerOperationFinish(long opHandle, int attempt) {
-        performanceMonitor.registerOperationFinish(opHandle, attempt);
-    }
-
-    // TODO copied from SqaleRepositoryService, will we create some SqaleRepoBase?
-
-    /**
-     * Handles exception outside of transaction - this does not handle transactional problems.
-     * Returns {@link SystemException}, call with `throw` keyword.
-     */
-    private SystemException handledGeneralException(
-            @NotNull Throwable ex, OperationResult operationResult) {
-        // TODO reconsider this whole mechanism including isFatalException decision
-        LOGGER.error("General checked exception occurred.", ex);
-        recordException(ex, operationResult,
-                sqlRepoContext.getJdbcRepositoryConfiguration().isFatalException(ex));
-
-        return ex instanceof SystemException
-                ? (SystemException) ex
-                : new SystemException(ex.getMessage(), ex);
-    }
-
-    private void recordException(
-            @NotNull Throwable ex, OperationResult operationResult, boolean fatal) {
-        String message = Strings.isNullOrEmpty(ex.getMessage()) ? "null" : ex.getMessage();
-
-        // non-fatal errors will NOT be put into OperationResult, not to confuse the user
-        if (operationResult != null && fatal) {
-            operationResult.recordFatalError(message, ex);
-        }
+    protected long registerOperationStart(String kind) {
+        return registerOperationStart(kind, AuditEventRecordType.class);
     }
 }

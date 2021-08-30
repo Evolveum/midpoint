@@ -6,12 +6,18 @@
  */
 package com.evolveum.midpoint.repo.sqale.audit;
 
-import static com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration.PROPERTY_DATASOURCE;
-import static com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration.PROPERTY_JDBC_URL;
+import static com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration.*;
 
+import java.sql.Types;
+import java.util.List;
 import javax.sql.DataSource;
 
+import com.google.common.base.Strings;
+import com.querydsl.sql.ColumnMetadata;
+import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
@@ -22,12 +28,16 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryBeanConfig;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditDeltaMapping;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditRefValueMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlTableMetadata;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -71,7 +81,7 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
         try {
             SqaleRepoContext sqlRepoContext = createSqaleRepoContext(configuration);
             auditService = new SqaleAuditService(sqlRepoContext, sqlPerformanceMonitorsCollection);
-//            initCustomColumns(configuration, sqlRepoContext);
+            initCustomColumns(configuration, sqlRepoContext);
         } catch (RepositoryServiceFactoryException ex) {
             throw new AuditServiceFactoryException(ex.getMessage(), ex);
         }
@@ -119,7 +129,6 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
         return repositoryContext;
     }
 
-/*
     private void initCustomColumns(
             @NotNull Configuration configuration, SqaleRepoContext sqlRepoContext) {
         List<HierarchicalConfiguration<ImmutableNode>> subConfigColumns =
@@ -152,8 +161,7 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
             QAuditEventRecordMapping.get().addExtensionColumn(propertyName, columnMetadata);
             if (tableMetadata != null && tableMetadata.get(columnName) == null) {
                 // Fails on SQL Server with snapshot transaction, so different isolation is used.
-                try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()
-                        .startTransaction(Connection.TRANSACTION_READ_COMMITTED)) {
+                try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
                     jdbcSession.addColumn(QAuditEventRecord.TABLE_NAME,
                             ColumnMetadata.named(columnName).ofType(Types.VARCHAR).withSize(255));
                     jdbcSession.commit();
@@ -173,8 +181,8 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
         }
 
         return value;
+
     }
-*/
 
     @Override
     public SqaleAuditService createAuditService() {
