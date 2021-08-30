@@ -14,6 +14,7 @@ import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.repo.sqale.jsonb.QuerydslJsonbType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -27,6 +28,8 @@ import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -47,7 +50,10 @@ public class SqaleRepoContext extends SqlRepoContext {
         // each enum type must be registered if we want to map it as objects (to PG enum types)
         querydslConfig.register(new EnumAsObjectType<>(AccessCertificationCampaignStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(ActivationStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(AuditEventStageType.class));
+        querydslConfig.register(new EnumAsObjectType<>(AuditEventTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(AvailabilityStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(ChangeType.class));
         querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
         querydslConfig.register(new EnumAsObjectType<>(MExtItemHolderType.class));
         querydslConfig.register(new EnumAsObjectType<>(MExtItemCardinality.class));

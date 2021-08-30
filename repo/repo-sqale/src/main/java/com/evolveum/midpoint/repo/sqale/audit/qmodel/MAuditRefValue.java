@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
+import java.time.Instant;
+import java.util.UUID;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+
 /**
  * Querydsl "row bean" type related to {@link QAuditRefValue}.
  */
@@ -14,22 +19,24 @@ public class MAuditRefValue {
 
     public Long id;
     public Long recordId;
+    public Instant timestamp;
     public String name;
-    public String oid;
+    public UUID targetOid;
+    public MObjectType targetType;
     public String targetNameNorm;
     public String targetNameOrig;
-    public String type;
 
     @Override
     public String toString() {
         return "MAuditRefValue{" +
                 "id=" + id +
                 ", recordId=" + recordId +
+                ", timestamp=" + timestamp +
                 ", name='" + name + '\'' +
-                ", oid='" + oid + '\'' +
+                ", targetOid=" + targetOid +
+                ", targetType=" + targetType +
                 ", targetNameNorm='" + targetNameNorm + '\'' +
                 ", targetNameOrig='" + targetNameOrig + '\'' +
-                ", type='" + type + '\'' +
                 '}';
     }
 }

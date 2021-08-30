@@ -141,7 +141,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 insertResourceOids(jdbcSession, recordId, record.getResourceOids());
                 jdbcSession.commit();
             } catch (RuntimeException ex) {
-                jdbcSession.handleGeneralException(ex, null);
+                baseHelper.handleGeneralRuntimeException(ex, jdbcSession, null);
             }
         }
     }
@@ -560,7 +560,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             } catch (RuntimeException ex) {
                 LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",
                         System.currentTimeMillis() - batchStart, ex.getMessage());
-                jdbcSession.handleGeneralRuntimeException(ex, result);
+                baseHelper.handleGeneralRuntimeException(ex, jdbcSession, result);
                 throw new AssertionError("We shouldn't get here.");
             }
         } catch (Throwable t) {

@@ -65,7 +65,7 @@ public class QAuditDeltaMapping
             odo.setObjectName(new PolyStringType(
                     new PolyString(row.objectNameOrig, row.objectNameNorm)));
         }
-        odo.setResourceOid(row.resourceOid);
+        odo.setResourceOid(row.resourceOid != null ? row.resourceOid.toString() : null);
         if (row.resourceNameOrig != null || row.resourceNameNorm != null) {
             odo.setResourceName(new PolyStringType(
                     new PolyString(row.resourceNameOrig, row.resourceNameNorm)));

@@ -14,9 +14,7 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.core.env.Environment;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
@@ -39,7 +37,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private static final int DEFAULT_ITERATIVE_SEARCH_PAGE_SIZE = 100;
 
-    @NotNull private final Environment env; // for better Spring properties/override integration
     @NotNull private final Configuration configuration;
 
     /** Database kind - either explicitly configured or derived from other options. */
@@ -64,27 +61,24 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private int performanceStatisticsLevel;
 
     private int iterativeSearchByPagingBatchSize;
+    private boolean createMissingCustomColumns;
 
-    public SqaleRepositoryConfiguration(
-            @NotNull Environment env,
-            @NotNull Configuration configuration) {
-        this.env = env;
+    // Provided with configuration node "midpoint.repository".
+    public SqaleRepositoryConfiguration(@NotNull Configuration configuration) {
         this.configuration = configuration;
     }
 
     @PostConstruct
     public void init() throws RepositoryServiceFactoryException {
-        // TODO the rest from SqlRepoConf#validate except for Hibernate of course
-        dataSource = getString(PROPERTY_DATASOURCE);
+        dataSource = configuration.getString(PROPERTY_DATASOURCE);
 
-        jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, defaultJdbcUrl());
-        jdbcUsername = getString(PROPERTY_JDBC_USERNAME);
+        jdbcUrl = configuration.getString(PROPERTY_JDBC_URL);
+        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME);
 
-        // TODO perhaps add warnings that other values are ignored anyway?
         databaseType = DEFAULT_DATABASE;
         driverClassName = DEFAULT_DRIVER;
 
-        String jdbcPasswordFile = getString(PROPERTY_JDBC_PASSWORD_FILE);
+        String jdbcPasswordFile = configuration.getString(PROPERTY_JDBC_PASSWORD_FILE);
         if (jdbcPasswordFile != null) {
             try {
                 jdbcPassword = Files.readString(Path.of(jdbcPasswordFile));
@@ -93,8 +87,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
                         + jdbcPasswordFile + "': " + e.getMessage(), e);
             }
         } else {
-            jdbcPassword = System.getProperty(PROPERTY_JDBC_PASSWORD,
-                    getString(PROPERTY_JDBC_PASSWORD));
+            jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD);
         }
 
         minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, DEFAULT_MIN_POOL_SIZE);
@@ -102,38 +95,19 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
         useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
-        fullObjectFormat = getString(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML)
+        fullObjectFormat = configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML)
                 .toLowerCase(); // all language string constants are lower-cases
 
-        performanceStatisticsFile = getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
+        performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
         performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL,
                 SqlPerformanceMonitorImpl.LEVEL_LOCAL_STATISTICS);
 
         iterativeSearchByPagingBatchSize = configuration.getInt(
                 PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, DEFAULT_ITERATIVE_SEARCH_PAGE_SIZE);
+        createMissingCustomColumns =
+                configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
 
         validateConfiguration();
-    }
-
-    private String getString(String property) {
-        return getString(property, null);
-    }
-
-    /**
-     * Returns property value as string in this precedence:
-     *
-     * * using just property name (local, short name) against Spring environment, see
-     * https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config[this documentation]
-     * for particular order of value resolution;
-     * * using property name with repository configuration prefix (`midpoint.repository.*`) which is
-     * future proof if we want to migrate to native Spring properties configuration;
-     * * finally, {@link Configuration} object representing content of `midpoint/repository`
-     * elements is used.
-     */
-    private String getString(String property, String defaultValue) {
-        return env.getProperty(property,
-                env.getProperty(MidpointConfiguration.REPOSITORY_CONFIGURATION + '.' + property,
-                        configuration.getString(property, defaultValue)));
     }
 
     private void validateConfiguration() throws RepositoryServiceFactoryException {
@@ -143,10 +117,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
             // In case of configuration mismatch we let the JDBC driver to fail.
             notEmpty(driverClassName, "Driver class name is empty or not defined.");
         }
-    }
-
-    protected String defaultJdbcUrl() {
-        return null;
     }
 
     public @NotNull SupportedDatabase getDatabaseType() {
@@ -251,13 +221,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     }
 
     @Override
-    public boolean isFatalException(Throwable ex) {
-        // TODO implement
-        // by default, any exception is fatal, unless specified otherwise (not yet implemented)
-        return true;
-    }
-
-    @Override
     public String getPerformanceStatisticsFile() {
         return performanceStatisticsFile;
     }
@@ -275,5 +238,10 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     // exists because of testing
     public void setIterativeSearchByPagingBatchSize(int iterativeSearchByPagingBatchSize) {
         this.iterativeSearchByPagingBatchSize = iterativeSearchByPagingBatchSize;
+    }
+
+    @Override
+    public boolean isCreateMissingCustomColumns() {
+        return createMissingCustomColumns;
     }
 }

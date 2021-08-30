@@ -97,36 +97,35 @@ public class MAuditEventRecord {
 
     @Override
     public String toString() {
-        // TODO check/fix
         return "MAuditEventRecord{" +
                 "id=" + id +
-                ", eventIdentifier='" + eventIdentifier + '\'' +
                 ", timestamp=" + timestamp +
-                ", channel='" + channel + '\'' +
-                ", eventStage=" + eventStage +
+                ", eventIdentifier='" + eventIdentifier + '\'' +
                 ", eventType=" + eventType +
-                ", attorneyName='" + attorneyName + '\'' +
-                ", attorneyOid='" + attorneyOid + '\'' +
+                ", eventStage=" + eventStage +
+                ", sessionIdentifier='" + sessionIdentifier + '\'' +
+                ", requestIdentifier='" + requestIdentifier + '\'' +
+                ", taskIdentifier='" + taskIdentifier + '\'' +
+                ", taskOid=" + taskOid +
                 ", hostIdentifier='" + hostIdentifier + '\'' +
-                ", initiatorName='" + initiatorName + '\'' +
-                ", initiatorOid='" + initiatorOid + '\'' +
-                ", initiatorType=" + initiatorType +
-                ", message='" + message + '\'' +
                 ", nodeIdentifier='" + nodeIdentifier + '\'' +
+                ", remoteHostAddress='" + remoteHostAddress + '\'' +
+                ", initiatorOid=" + initiatorOid +
+                ", initiatorType=" + initiatorType +
+                ", initiatorName='" + initiatorName + '\'' +
+                ", attorneyOid=" + attorneyOid +
+                ", attorneyName='" + attorneyName + '\'' +
+                ", targetOid=" + targetOid +
+                ", targetType=" + targetType +
+                ", targetName='" + targetName + '\'' +
+                ", targetOwnerOid=" + targetOwnerOid +
+                ", targetOwnerType=" + targetOwnerType +
+                ", targetOwnerName='" + targetOwnerName + '\'' +
+                ", channel='" + channel + '\'' +
                 ", outcome=" + outcome +
                 ", parameter='" + parameter + '\'' +
-                ", remoteHostAddress='" + remoteHostAddress + '\'' +
-                ", requestIdentifier='" + requestIdentifier + '\'' +
                 ", result='" + result + '\'' +
-                ", sessionIdentifier='" + sessionIdentifier + '\'' +
-                ", targetName='" + targetName + '\'' +
-                ", targetOid='" + targetOid + '\'' +
-                ", targetOwnerName='" + targetOwnerName + '\'' +
-                ", targetOwnerOid='" + targetOwnerOid + '\'' +
-                ", targetOwnerType=" + targetOwnerType +
-                ", targetType=" + targetType +
-                ", taskIdentifier='" + taskIdentifier + '\'' +
-                ", taskOid='" + taskOid + '\'' +
+                ", message='" + message + '\'' +
                 '}';
     }
 }

@@ -20,9 +20,7 @@ import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.sql.dml.SQLUpdateClause;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,11 +47,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * If database does not support read-only transactions directly,
  * {@link #commit()} executes rollback instead.
- *
- * Object also provides convenient methods for handling exceptions and {@link OperationResult}s.
- * TODO: this is for a discussion, some of it came when audit was reworked, may not be best for sqale as well.
- *
- * All {@link SQLException}s are translated to {@link SystemException}.
  */
 public class JdbcSession implements AutoCloseable {
 
@@ -267,6 +260,10 @@ public class JdbcSession implements AutoCloseable {
         return connection;
     }
 
+    public String sessionId() {
+        return sessionId;
+    }
+
     public SupportedDatabase databaseType() {
         return jdbcRepositoryConfiguration.getDatabaseType();
     }
@@ -279,80 +276,5 @@ public class JdbcSession implements AutoCloseable {
         } catch (SQLException e) {
             throw new SystemException(e);
         }
-    }
-
-    // exception and operation result handling (mostly from BaseHelper and adapted for JDBC)
-
-    /**
-     * Rolls back the transaction and throws exception.
-     * Uses {@link #handleGeneralCheckedException} or {@link #handleGeneralRuntimeException}
-     * depending on the exception type.
-     *
-     * @throws SystemException wrapping the exception used as parameter
-     * @throws RuntimeException rethrows input exception if related to transaction serialization
-     */
-    public void handleGeneralException(
-            @NotNull Throwable ex,
-            @Nullable OperationResult result) {
-        if (ex instanceof RuntimeException) {
-            handleGeneralRuntimeException((RuntimeException) ex, result);
-        } else {
-            handleGeneralCheckedException(ex, result);
-        }
-        throw new AssertionError("Shouldn't get here");
-    }
-
-    /**
-     * Rolls back the transaction and throws exception.
-     * If the exception is related to transaction serialization problems, the operation result
-     * does not record the error (non-fatal).
-     *
-     * @throws SystemException wrapping the exception used as parameter
-     * @throws RuntimeException rethrows input exception if related to transaction serialization
-     */
-    public void handleGeneralRuntimeException(
-            @NotNull RuntimeException ex,
-            @Nullable OperationResult result) {
-        LOGGER.debug("General runtime exception occurred (session {})", sessionId, ex);
-
-        if (jdbcRepositoryConfiguration.isFatalException(ex)) {
-            rollbackTransaction(ex, result, true);
-            if (ex instanceof SystemException) {
-                throw ex;
-            } else {
-                throw new SystemException(ex.getMessage(), ex);
-            }
-        } else {
-            rollbackTransaction(ex, result, false);
-            // this exception will be caught and processed in logOperationAttempt,
-            // so it's safe to pass any RuntimeException here
-            throw ex;
-        }
-    }
-
-    /**
-     * Rolls back the transaction and throws exception.
-     *
-     * @throws SystemException wrapping the exception used as parameter
-     */
-    public void handleGeneralCheckedException(
-            @NotNull Throwable ex,
-            @Nullable OperationResult result) {
-        LOGGER.error("General checked exception occurred (session {})", sessionId, ex);
-
-        rollbackTransaction(ex, result, jdbcRepositoryConfiguration.isFatalException(ex));
-        throw new SystemException(ex.getMessage(), ex);
-    }
-
-    private void rollbackTransaction(
-            @NotNull Throwable ex,
-            @Nullable OperationResult result,
-            boolean fatal) {
-        // non-fatal errors will NOT be put into OperationResult, not to confuse the user
-        if (result != null && fatal) {
-            result.recordFatalError(ex);
-        }
-
-        rollback();
     }
 }

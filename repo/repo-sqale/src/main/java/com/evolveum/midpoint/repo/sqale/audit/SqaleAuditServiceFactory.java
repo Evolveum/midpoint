@@ -4,18 +4,14 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sqale.audit;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY_DATASOURCE;
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY_JDBC_URL;
+import static com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration.PROPERTY_DATASOURCE;
+import static com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration.PROPERTY_JDBC_URL;
 
-import java.sql.Connection;
-import java.sql.Types;
 import java.util.List;
 import javax.sql.DataSource;
 
-import com.google.common.base.Strings;
-import com.querydsl.sql.ColumnMetadata;
 import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -25,51 +21,59 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
 import com.evolveum.midpoint.audit.api.AuditServiceFactoryException;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.audit.mapping.*;
-import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sqlbase.*;
+import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryBeanConfig;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditDeltaMapping;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditRefValueMapping;
+import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**
- * {@link AuditServiceFactory} for {@link SqlAuditServiceImpl}, that is DB-based auditing.
+ * {@link AuditServiceFactory} for {@link SqaleAuditService}, that is DB-based auditing.
  * <p>
- * This works only if legacy repository is used, which is handled by ConditionalOnExpression.
- * If this class is specified in config.xml as audit factory, without old repository it fails
- * because it will not be found as a bean.
+ * This works only with new (`sqale`) repository, which is handled by condition in {@link SqaleRepositoryBeanConfig}.
+ * If this class is specified in `config.xml` as audit factory without new repository,
+ * it fails because it will not be found as a bean.
  */
-public class SqlAuditServiceFactory implements AuditServiceFactory {
+public class SqaleAuditServiceFactory implements AuditServiceFactory {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SqaleAuditServiceFactory.class);
 
     private static final String CONF_AUDIT_SERVICE_COLUMNS = "customColumn";
     private static final String CONF_AUDIT_SERVICE_COLUMN_NAME = "columnName";
     private static final String CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME = "eventRecordPropertyName";
 
-    private final BaseHelper defaultBaseHelper;
+    private final com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration sqaleRepositoryConfiguration;
     private final SchemaService schemaService;
+    private final DataSource repositoryDataSource;
+    private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
 
-    private SqlAuditServiceImpl auditService;
+    private SqaleAuditService auditService;
 
-    public SqlAuditServiceFactory(
-            BaseHelper defaultBaseHelper,
-            SchemaService schemaService) {
-        this.defaultBaseHelper = defaultBaseHelper;
+    public SqaleAuditServiceFactory(
+            com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration sqaleRepositoryConfiguration,
+            SchemaService schemaService,
+            DataSource repositoryDataSource,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
+        this.sqaleRepositoryConfiguration = sqaleRepositoryConfiguration;
         this.schemaService = schemaService;
+        this.repositoryDataSource = repositoryDataSource;
+        this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
     }
 
     @Override
     public synchronized void init(@NotNull Configuration configuration) throws AuditServiceFactoryException {
-        LOGGER.info("Initializing Sql audit service factory.");
+        LOGGER.info("Initializing SQL audit service factory.");
         try {
-            SqlRepoContext sqlRepoContext = createSqlRepoContext(configuration);
-            // base helper is only used for logging/exception handling, so the default one is OK
-            auditService = new SqlAuditServiceImpl(defaultBaseHelper, sqlRepoContext, schemaService);
+            SqaleRepoContext sqlRepoContext = createSqaleRepoContext(configuration);
+            auditService = new SqaleAuditService(sqlRepoContext, sqlPerformanceMonitorsCollection);
             initCustomColumns(configuration, sqlRepoContext);
         } catch (RepositoryServiceFactoryException ex) {
             throw new AuditServiceFactoryException(ex.getMessage(), ex);
@@ -77,7 +81,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         LOGGER.info("SQL audit service factory initialization complete.");
     }
 
-    private SqlRepoContext createSqlRepoContext(Configuration configuration)
+    private SqaleRepoContext createSqaleRepoContext(Configuration configuration)
             throws RepositoryServiceFactoryException {
         // one of these properties must be present to trigger separate audit datasource config
         if (configuration.getString(PROPERTY_JDBC_URL) == null
@@ -86,39 +90,32 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
             // NOTE: If default BaseHelper is used, it's used to configure PerformanceMonitor
             // in SqlBaseService. Perhaps the base class is useless and these factories can provide
             // PerformanceMonitor for the services.
-            return createSqlRepoContext(
-                    defaultBaseHelper.getConfiguration(),
-                    defaultBaseHelper.dataSource(),
+            return createSqaleRepoContext(
+                    sqaleRepositoryConfiguration,
+                    repositoryDataSource,
                     schemaService);
         }
 
         LOGGER.info("Configuring SQL audit service to use a different datasource");
-        // SqlRepositoryConfiguration is used as it supports everything we need, BUT...
-        // it also contains Hibernate dependencies that we DON'T want to use here.
-        // We accept this "partial reuse" problem for the benefit of not needing another class.
-        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(configuration);
-        config.validate();
+        com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration config = new com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration(configuration);
 
         DataSourceFactory dataSourceFactory = new DataSourceFactory(config);
         DataSource dataSource = dataSourceFactory.createDataSource();
-        return createSqlRepoContext(config, dataSource, schemaService);
+        return createSqaleRepoContext(config, dataSource, schemaService);
     }
 
-    private SqlRepoContext createSqlRepoContext(
+    private SqaleRepoContext createSqaleRepoContext(
             JdbcRepositoryConfiguration config,
             DataSource dataSource,
             SchemaService schemaService) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
-        SqlRepoContext repositoryContext =
-                new SqlRepoContext(config, dataSource, schemaService, mappingRegistry);
-        // Registered mapping needs repository context which needs registry - but we fill it now:
+        SqaleRepoContext repositoryContext =
+                new SqaleRepoContext(config, dataSource, schemaService, mappingRegistry);
+        // Registered mapping needs repository context which needs registry - now we have both:
         mappingRegistry
                 .register(AuditEventRecordType.COMPLEX_TYPE,
                         QAuditEventRecordMapping.init(repositoryContext))
-                .register(QAuditItemMapping.init(repositoryContext))
-                .register(QAuditPropertyValueMapping.init(repositoryContext))
                 .register(QAuditRefValueMapping.init(repositoryContext))
-                .register(QAuditResourceMapping.init(repositoryContext))
                 .register(QAuditDeltaMapping.init(repositoryContext))
                 .seal();
 
@@ -126,17 +123,18 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
     }
 
     private void initCustomColumns(
-            @NotNull Configuration configuration, SqlRepoContext sqlRepoContext) {
+            @NotNull Configuration configuration, SqaleRepoContext sqlRepoContext) {
         List<HierarchicalConfiguration<ImmutableNode>> subConfigColumns =
                 ((BaseHierarchicalConfiguration) configuration)
                         .configurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
 
         // here we use config from context, it can be main repository configuration
-        SqlRepositoryConfiguration repoConfig =
-                (SqlRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
+        com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration repoConfig =
+                (com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
+        /*
         boolean createMissing = repoConfig.isCreateMissingCustomColumns()
                 // but we'll consider the flag also on audit configuration, just in case
-                || configuration.getBoolean(JdbcRepositoryConfiguration.PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
+                || configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         SqlTableMetadata tableMetadata = null;
         if (createMissing) {
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
@@ -178,10 +176,12 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         }
 
         return value;
+
+         */
     }
 
     @Override
-    public SqlAuditServiceImpl createAuditService() {
+    public SqaleAuditService createAuditService() {
         // Just returns pre-created instance from init, it's not such a sin.
         // Still the method is named "create*" because it's a factory method on a factory bean.
         return auditService;
@@ -189,8 +189,8 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
 
     @Override
     public synchronized void destroy() {
-        LOGGER.info("Destroying Sql audit service factory.");
+        LOGGER.info("Destroying SQL audit service factory.");
         auditService.destroy();
-        LOGGER.info("Sql audit service factory destroy complete.");
+        LOGGER.info("SQL audit service factory destroy complete.");
     }
 }

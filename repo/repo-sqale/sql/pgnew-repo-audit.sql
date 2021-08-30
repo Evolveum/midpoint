@@ -115,7 +115,7 @@ CREATE TABLE ma_audit_event (
     changedItemPaths TEXT[],
     resourceOids UUID[],
     properties JSONB,
-    customColumnProperties JSONB,
+    ext JSONB, -- extension container + old custom properties?
 
     PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
@@ -158,7 +158,7 @@ CREATE INDEX ma_audit_delta_recordId_timestamp_idx ON ma_audit_delta (recordId, 
 
 -- TODO: any unique combination within single recordId? name+oid+type perhaps?
 CREATE TABLE ma_audit_ref (
-    id BIGSERIAL NOT NULL,
+    id BIGSERIAL NOT NULL, -- unique technical PK
     recordId BIGINT NOT NULL, -- references ma_audit_event.id
     timestamp TIMESTAMPTZ NOT NULL, -- references ma_audit_event.timestamp
     name TEXT, -- multiple refs can have the same name, conceptually it's a Map(name -> refs[])
@@ -167,7 +167,7 @@ CREATE TABLE ma_audit_ref (
     targetNameOrig TEXT,
     targetNameNorm TEXT,
 
-    PRIMARY KEY (id, timestamp)
+    PRIMARY KEY (id, timestamp) -- real PK must contain partition key (timestamp)
 ) PARTITION BY RANGE (timestamp);
 
 /* Similar FK is created PER PARTITION only

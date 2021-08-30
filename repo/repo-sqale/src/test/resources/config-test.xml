@@ -31,9 +31,9 @@
             <createMissingCustomColumns>true</createMissingCustomColumns>
         </repository>
         <audit>
-            <!-- TODO audit not supported yet
             <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+                <!-- TODO: this may be ignored by new repo, ext instead? -->
                 <customColumn>
                     <columnName>cus_foo</columnName>
                     <eventRecordPropertyName>foo</eventRecordPropertyName>
@@ -43,7 +43,6 @@
                     <eventRecordPropertyName>bar</eventRecordPropertyName>
                 </customColumn>
             </auditService>
-            -->
         </audit>
         <icf>
             <scanClasspath>true</scanClasspath>

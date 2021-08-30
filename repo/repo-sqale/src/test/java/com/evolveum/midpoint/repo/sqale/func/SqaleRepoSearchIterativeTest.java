@@ -259,8 +259,12 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
     }
 
     private void assertTypicalPageOperationCount(SearchResultMetadata metadata) {
+        boolean lastRowCausingPartialResult = metadata.isPartialResults()
+                && metadata.getApproxNumberOfAllResults() % getConfiguredPageSize() == 0;
+
         assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE,
-                metadata.getApproxNumberOfAllResults() / getConfiguredPageSize() + 1);
+                metadata.getApproxNumberOfAllResults() / getConfiguredPageSize()
+                        + (lastRowCausingPartialResult ? 0 : 1));
     }
 
     private int getConfiguredPageSize() {

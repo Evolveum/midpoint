@@ -26,6 +26,12 @@
     <bean id="sqaleRepositoryBeanConfig"
             class="com.evolveum.midpoint.repo.sqale.SqaleRepositoryBeanConfig"/>
 
+    <bean id="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"/>
+
+    <bean id="auditService"
+            factory-bean="auditFactory"
+            factory-method="createAuditService"/>
+
     <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory"
             class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
@@ -44,5 +50,9 @@
     <bean id="protector"
             factory-bean="keyStoreFactory"
             factory-method="getProtector"/>
+
+    <!-- Needed by AuditServiceProxy -->
+    <bean id="lightweightIdentifierGenerator"
+            class="com.evolveum.midpoint.repo.sqale.LightweightIdentifierGeneratorMock"/>
 
 </beans>
