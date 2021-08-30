@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ObjectArrays;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.Expressions;
@@ -95,7 +96,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private final SqlQueryExecutor sqlQueryExecutor;
 
-
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
@@ -103,7 +103,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
-    private @NotNull Collection<SelectorOptions<GetOperationOptions>> getForUpdateOptions;
+    private final Collection<SelectorOptions<GetOperationOptions>> getForUpdateOptions = SchemaService.get()
+            .getOperationOptionsBuilder()
+            .retrieve()
+            .build();
 
     public SqaleRepositoryService(
             SqaleRepoContext repositoryContext,
@@ -116,11 +119,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 repositoryConfiguration().getPerformanceStatisticsLevel(),
                 repositoryConfiguration().getPerformanceStatisticsFile());
         sqlPerformanceMonitorsCollection.register(performanceMonitor);
-
-        getForUpdateOptions =  SchemaService.get()
-                .getOperationOptionsBuilder()
-                .retrieve()
-                .build();
     }
 
     @Override
@@ -478,8 +476,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable ModificationPrecondition<T> precondition,
             @Nullable RepoModifyOptions options,
-            @NotNull OperationResult parentResult, RootUpdateContext<T, QObject<MObject>, MObject>  updateContext)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
+            @NotNull OperationResult parentResult, RootUpdateContext<T, QObject<MObject>, MObject> updateContext)
+            throws ObjectNotFoundException, SchemaException, PreconditionViolationException {
 
         Objects.requireNonNull(modifications, "Modifications must not be null.");
         Objects.requireNonNull(type, "Object class in delta must not be null.");
@@ -511,7 +509,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             checkModifications(modifications);
             logTraceModifications(modifications);
 
-            return executeModifyObject(transaction, type, oidUuid, modifications, precondition, null);
+            return executeModifyObject(transaction, type, oidUuid, modifications, precondition, updateContext);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -585,10 +583,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         QObject<R> entityPath = rootMapping.defaultAlias();
 
-        @NotNull
-        Path<?>[] selectExpressions = rootMapping.selectExpressions(entityPath, getOptions);
-        selectExpressions = Arrays.copyOf(selectExpressions, selectExpressions.length + 1);
-        selectExpressions[selectExpressions.length -1 ] = entityPath.containerIdSeq;
+        Path<?>[] selectExpressions = ObjectArrays.concat(
+                rootMapping.selectExpressions(entityPath, getOptions),
+                entityPath.containerIdSeq);
 
         Tuple result = jdbcSession.newQuery()
                 .select(selectExpressions)
