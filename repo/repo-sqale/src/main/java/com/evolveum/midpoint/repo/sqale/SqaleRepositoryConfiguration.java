@@ -61,6 +61,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private int performanceStatisticsLevel;
 
     private int iterativeSearchByPagingBatchSize;
+    private boolean createMissingCustomColumns;
 
     // Provided with configuration node "midpoint.repository".
     public SqaleRepositoryConfiguration(@NotNull Configuration configuration) {
@@ -103,6 +104,8 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
         iterativeSearchByPagingBatchSize = configuration.getInt(
                 PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, DEFAULT_ITERATIVE_SEARCH_PAGE_SIZE);
+        createMissingCustomColumns =
+                configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
 
         validateConfiguration();
     }
@@ -218,13 +221,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     }
 
     @Override
-    public boolean isFatalException(Throwable ex) {
-        // TODO implement
-        // by default, any exception is fatal, unless specified otherwise (not yet implemented)
-        return true;
-    }
-
-    @Override
     public String getPerformanceStatisticsFile() {
         return performanceStatisticsFile;
     }
@@ -242,5 +238,10 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     // exists because of testing
     public void setIterativeSearchByPagingBatchSize(int iterativeSearchByPagingBatchSize) {
         this.iterativeSearchByPagingBatchSize = iterativeSearchByPagingBatchSize;
+    }
+
+    @Override
+    public boolean isCreateMissingCustomColumns() {
+        return createMissingCustomColumns;
     }
 }

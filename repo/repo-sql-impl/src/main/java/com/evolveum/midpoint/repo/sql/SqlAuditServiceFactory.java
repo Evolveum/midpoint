@@ -6,7 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY_DATASOURCE;
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY_JDBC_URL;
 
 import java.sql.Connection;
 import java.sql.Types;
@@ -135,7 +136,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
                 (SqlRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
         boolean createMissing = repoConfig.isCreateMissingCustomColumns()
                 // but we'll consider the flag also on audit configuration, just in case
-                || configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
+                || configuration.getBoolean(JdbcRepositoryConfiguration.PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         SqlTableMetadata tableMetadata = null;
         if (createMissing) {
             try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
