@@ -254,6 +254,18 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 "Not implemented for " + getClass() + ". Perhaps use toSchemaObject(Tuple,...)?");
     }
 
+    /**
+     * Transforms row Tuple containing {@link R} under entity path and extension columns.
+     */
+    @Override
+    public S toSchemaObject(Tuple tuple, Q entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException {
+        S schemaObject = toSchemaObject(tuple.get(entityPath));
+        processExtensionColumns(schemaObject, tuple, entityPath);
+        return schemaObject;
+    }
+
     // TODO reconsider, if not necessary in 2023 DELETE (originally meant for ext item per column,
     //  but can this be used for adding index-only exts to schema object even from JSON?)
     @SuppressWarnings("unused")

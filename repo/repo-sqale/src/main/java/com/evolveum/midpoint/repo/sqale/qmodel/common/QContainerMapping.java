@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.common;
 
-import java.util.Collection;
-
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,8 +14,6 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -60,19 +55,6 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     public S toSchemaObject(R row) {
         throw new UnsupportedOperationException(
                 "Container search not supported for schema type " + schemaType());
-    }
-
-    /**
-     * Transforms row Tuple containing {@link R} under entity path and extension columns.
-     * This is good enough for containers not returning their owner objects as well.
-     */
-    @Override
-    public S toSchemaObject(Tuple tuple, Q entityPath,
-            Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException {
-        S schemaObject = toSchemaObject(tuple.get(entityPath));
-        processExtensionColumns(schemaObject, tuple, entityPath);
-        return schemaObject;
     }
 
     @Override
