@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<shadow oid="shadow00-0000-0000-0000-111111111111"
+<shadow oid="77777700-0000-0000-0000-111111111111"
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
     xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'

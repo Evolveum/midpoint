@@ -17,7 +17,7 @@
       version="11">
    <name>Squirrel</name>
    <assignment>
-           <targetRef oid="7384756g-2545-4123-96ed-8aabda7c3710" type="RoleType" /> <!-- meta role monkey, donkey -->
+           <targetRef oid="7384756f-2545-4123-96ed-8aabda7c3710" type="RoleType" /> <!-- meta role monkey, donkey -->
    </assignment>
    <inducement id="4">
       <construction>

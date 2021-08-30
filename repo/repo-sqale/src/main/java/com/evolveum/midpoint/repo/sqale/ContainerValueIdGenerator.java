@@ -26,7 +26,6 @@ public class ContainerValueIdGenerator {
     private static final Trace LOGGER = TraceManager.getTrace(ContainerValueIdGenerator.class);
 
     private final PrismObject<? extends ObjectType> object;
-    private final Set<Long> usedIds = new HashSet<>();
     private final Set<Long> overwrittenIds = new HashSet<>(); // ids of PCV overwritten by ADD
     private final List<PrismContainerValue<?>> pcvsWithoutId = new ArrayList<>();
 
@@ -98,7 +97,7 @@ public class ContainerValueIdGenerator {
         ItemDefinition<?> definition = modification.getDefinition();
         // we check all containers, even single-value container can contain multi-value ones
         if (definition instanceof PrismContainerDefinition<?>) {
-            Visitable<?> container = object.findContainer(modification.getPath());
+            Visitable container = object.findContainer(modification.getPath());
             if (container != null) {
                 container.accept(visitable -> {
                     if (visitable instanceof PrismContainer
@@ -125,7 +124,6 @@ public class ContainerValueIdGenerator {
                     if (oldValue != null) {
                         Long cid = oldValue.getId();
                         overwrittenIds.add(cid);
-                        usedIds.remove(cid); // technically, it's used, new PCV will take it again
                         pcv.setId(cid);
                     }
                 }
@@ -134,12 +132,6 @@ public class ContainerValueIdGenerator {
     }
 
     private void freeContainerIds(PrismContainer<?> container) {
-        for (PrismContainerValue<?> val : container.getValues()) {
-            Long cid = val.getId();
-            if (cid != null) {
-                usedIds.remove(cid);
-            }
-        }
     }
 
     private void processModificationValues(Collection<? extends PrismValue> values)
@@ -149,8 +141,9 @@ public class ContainerValueIdGenerator {
                 if (prismValue instanceof PrismContainerValue) {
                     PrismContainerValue<?> pcv = (PrismContainerValue<?>) prismValue;
                     // the top level value is not covered by checkExistingContainers()
+                    // FIXME: How to process here?
                     if (pcv.getDefinition().isMultiValue()) {
-                        processContainerValue(pcv);
+                        processContainerValue(pcv, new HashSet<>());
                     }
 
                     checkExistingContainers(pcv);
@@ -163,7 +156,7 @@ public class ContainerValueIdGenerator {
      * Checks the provided container (possibly the whole object) and finds values requiring CID.
      * This does NOT cover top-level PCV if provided as parameter.
      */
-    private void checkExistingContainers(Visitable<?> object) throws SchemaException {
+    private void checkExistingContainers(Visitable object) throws SchemaException {
         try {
             object.accept(visitable -> {
                 if (visitable instanceof PrismContainer
@@ -179,17 +172,18 @@ public class ContainerValueIdGenerator {
     }
 
     private void processContainer(PrismContainer<?> container) {
+        Set<Long> usedIds = new HashSet<>();
         for (PrismContainerValue<?> val : container.getValues()) {
-            processContainerValue(val);
+            processContainerValue(val, usedIds);
         }
     }
 
-    private void processContainerValue(PrismContainerValue<?> val) {
+    private void processContainerValue(PrismContainerValue<?> val, Set<Long> usedIds) {
         Long cid = val.getId();
         if (cid != null) {
             if (!usedIds.add(cid)) {
-                maxUsedId = cid;
-                throw DuplicateContainerIdException.INSTANCE;
+                //maxUsedId = cid;
+                //throw DuplicateContainerIdException.INSTANCE;
             }
             maxUsedId = Math.max(maxUsedId, cid);
         } else {

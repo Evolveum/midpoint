@@ -582,7 +582,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test291DuplicateCidInDifferentContainersIsCaughtByRepo() {
+    public void test291DuplicateCidInDifferentContainersIsTolerated()
+            throws SchemaException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
         long previousUserCount = count(QUser.class);
 
@@ -592,13 +593,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType(prismContext).id(1L))
                 .operationExecution(new OperationExecutionType().id(1L));
 
-        expect("adding object to repository throws exception");
-        assertThatThrownBy(() -> repositoryService.addObject(user.asPrismObject(), null, result))
-                .isInstanceOf(SchemaException.class)
-                .hasMessageStartingWith("CID 1 is used repeatedly in the object:");
+        when("adding object to repository throws exception");
+        repositoryService.addObject(user.asPrismObject(), null, result);
 
-        and("no new object is created in the database (transaction is rolled back)");
-        assertThat(count(QUser.class)).isEqualTo(previousUserCount);
+        then("operation is success");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(count(QUser.class)).isEqualTo(previousUserCount + 1);
     }
     // endregion
 
