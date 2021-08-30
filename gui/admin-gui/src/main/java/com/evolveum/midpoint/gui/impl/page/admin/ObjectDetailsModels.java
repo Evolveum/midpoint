@@ -61,6 +61,9 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
                 WrapperContext ctx = new WrapperContext(task, result);
                 ctx.setCreateIfEmpty(true);
                 ctx.setContainerPanelConfigurationType(detailsPageConfigurationModel.getObject().getPanel());
+                if (isReadonly()) {
+                    ctx.setReadOnly(isReadonly());
+                }
                 try {
                     return factory.createObjectWrapper(prismObject, isEditUser(prismObject) ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
                 } catch (SchemaException e) {
@@ -265,5 +268,9 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
 
     public O getObjectType() {
         return getPrismObject().asObjectable();
+    }
+
+    protected boolean isReadonly() {
+        return false;
     }
 }
