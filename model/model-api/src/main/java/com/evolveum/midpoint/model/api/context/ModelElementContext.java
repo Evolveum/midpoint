@@ -148,6 +148,12 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 
     /**
      * @return Determined archetype of the object. Currently not supported for projections.
+     * Since 4.4 structural archetype is returned
      */
     ArchetypeType getArchetype();
+
+    /**
+     * @return All archetypes (structural and auxiliary)
+     */
+    List<ArchetypeType> getArchetypes();
 }

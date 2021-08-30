@@ -8,10 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.web.application.SimpleCounter;
-import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -21,18 +18,19 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.web.application.AssignmentCounter;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
-
-import org.apache.wicket.model.PropertyModel;
-import org.opensaml.xmlsec.signature.P;
 
 public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List<ContainerPanelConfigurationType>> {
 
@@ -67,7 +65,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                     ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectDetialsModel.getObjectWrapperModel().getObject().getCompileTimeClass().getSimpleName());
                     ContainerPanelConfigurationType storageConfig = storage.getDefaultConfiguration();
                     ContainerPanelConfigurationType itemModelObject = item.getModelObject();
-                    if (storageConfig.getIdentifier().equals(itemModelObject.getIdentifier())) {
+                    if (storageConfig.getIdentifier() != null && storageConfig.getIdentifier().equals(itemModelObject.getIdentifier())) {
                         return "active";
                     }
                     return "";
@@ -75,9 +73,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 item.add(navigationDetails);
                 WebMarkupContainer icon = new WebMarkupContainer(ID_NAV_ITEM_ICON);
                 icon.setOutputMarkupId(true);
-                icon.add(AttributeAppender.append("class",
-                        item.getModelObject().getDisplay() != null ? item.getModelObject().getDisplay().getCssClass() :
-                                GuiStyleConstants.CLASS_CIRCLE_FULL));
+                icon.add(AttributeAppender.append("class", getMenuItemIconClass(item.getModelObject())));
                 navigationDetails.add(icon);
                 AjaxLink<Void> link = new AjaxLink<>(ID_NAV_ITEM) {
 
@@ -166,6 +162,14 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         }
 
         return config.getDisplay().getLabel().getOrig();
+    }
+
+    private String getMenuItemIconClass(ContainerPanelConfigurationType item) {
+        if (item == null || item.getDisplay() == null) {
+            return GuiStyleConstants.CLASS_CIRCLE_FULL;
+        }
+        String iconCss = WebComponentUtil.getIconCssClass(item.getDisplay());
+        return StringUtils.isNoneEmpty(iconCss) ? iconCss : GuiStyleConstants.CLASS_CIRCLE_FULL;
     }
 
 }

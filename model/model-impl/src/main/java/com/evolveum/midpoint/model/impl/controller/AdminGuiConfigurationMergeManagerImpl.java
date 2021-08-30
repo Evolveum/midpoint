@@ -16,6 +16,10 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +38,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 @Controller
 public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurationMergeManager {
 
-    @Autowired ArchetypeManager archetypeManager;
-
     @Override
     public List<ContainerPanelConfigurationType> mergeContainerPanelConfigurationType(List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> configuredPanels) {
         List<ContainerPanelConfigurationType> mergedPanels = new ArrayList<>(defaultPanels);
@@ -46,38 +48,14 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
     }
 
     @Override
-    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration,
-            List<ObjectReferenceType> archetypes, OperationResult result) {
+    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration, ArchetypePolicyType archetypePolicyType, OperationResult result) throws SchemaException, ConfigurationException {
         GuiObjectDetailsPageType mergedPageConfiguration = defaultPageConfiguration.cloneWithoutId();
+        mergeObjectDetailsPageConfiguration(mergedPageConfiguration, archetypePolicyType);
 
-        for (ObjectReferenceType archetypeRef : archetypes) {
-            mergeObjectDetailsPageConfiguration(mergedPageConfiguration, archetypeRef, result);
-        }
         return mergedPageConfiguration;
     }
 
-    private void mergeObjectDetailsPageConfiguration (GuiObjectDetailsPageType defaultPageConfiguration, ObjectReferenceType archetypeRef,
-            OperationResult result) {
-        ArchetypeType archetypeType = null;
-        try {
-            archetypeType = archetypeManager.getArchetype(archetypeRef.getOid(), result).asObjectable();
-        } catch (ObjectNotFoundException | SchemaException e) {
-            //TODO only log excpetion
-        }
-        mergeObjectDetailsPageConfiguration(defaultPageConfiguration, archetypeType, result);
-    }
-
-    private void mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypeType archetypeType,
-            OperationResult result) {
-        if (archetypeType == null) {
-            return;
-        }
-
-        if (archetypeType.getSuperArchetypeRef() != null) {
-            mergeObjectDetailsPageConfiguration(defaultPageConfiguration, archetypeType.getSuperArchetypeRef(), result);
-        }
-
-        ArchetypePolicyType archetypePolicyType = archetypeType.getArchetypePolicy();
+    private void mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypePolicyType archetypePolicyType) {
         if (archetypePolicyType == null) {
             return;
         }

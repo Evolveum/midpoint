@@ -11,6 +11,11 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -19,6 +24,7 @@ import java.util.List;
 
 public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> extends ObjectDetailsModels<AH> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderDetailsModel.class);
 
     public AssignmentHolderDetailsModel(LoadableModel<PrismObject<AH>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
@@ -28,9 +34,13 @@ public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> exten
     protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<AH> assignmentHolder) {
         GuiObjectDetailsPageType defaultPageConfig = super.loadDetailsPageConfiguration(assignmentHolder);
 
-        List<ObjectReferenceType> archetypes = assignmentHolder.asObjectable().getArchetypeRef();
-
         OperationResult result = new OperationResult("mergeArchetypeConfig");
-        return getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, archetypes, result);
+        try {
+            ArchetypePolicyType archetypePolicyType = getModelServiceLocator().getModelInteractionService().determineArchetypePolicy(assignmentHolder, result);
+            return getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, archetypePolicyType, result);
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Cannot merge details page configuration from archetype policy, {}", e.getMessage(), e);
+            return defaultPageConfig;
+        }
     }
 }

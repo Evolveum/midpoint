@@ -477,6 +477,21 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O, RA> assertArchetypeRefs(int size) {
+        assertEquals("Unexepcted number of archetypes: ", size, getArchetypeRefs().size());
+        return this;
+    }
+
+    public PrismObjectAsserter<O, RA> assertHasArchetype(String expectedArchetypeOid) {
+        for (ObjectReferenceType archetypeRef : getArchetypeRefs()) {
+            if (expectedArchetypeOid.equals(archetypeRef.getOid())) {
+                return this;
+            }
+        }
+        fail("No archetype with oid " + expectedArchetypeOid + " found");
+        return this;
+    }
+
     @NotNull
     private List<ObjectReferenceType> getArchetypeRefs() {
         O objectable = getObject().asObjectable();

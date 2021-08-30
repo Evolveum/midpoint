@@ -1712,7 +1712,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
-        return archetypeManager.determineArchetype(assignmentHolder, result);
+        return archetypeManager.determineStructuralArchetype(assignmentHolder, result);
     }
 
     @Override

@@ -1006,9 +1006,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
         }
 
-        if (shouldBeArchetypeRefs.size() > 1) {
-            throw new ConfigurationException("Only single archetype supported. Attempting to add " + shouldBeArchetypeRefs.size() + ": " + shouldBeArchetypeRefs);
-        }
+        //TODO check for structural archetypes?
+//        if (shouldBeArchetypeRefs.size() > 1) {
+//            throw new ConfigurationException("Only single archetype supported. Attempting to add " + shouldBeArchetypeRefs.size() + ": " + shouldBeArchetypeRefs);
+//        }
 
         setReferences(focusContext, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
         setReferences(focusContext, AssignmentHolderType.F_DELEGATED_REF, shouldBeDelegatedRefs);

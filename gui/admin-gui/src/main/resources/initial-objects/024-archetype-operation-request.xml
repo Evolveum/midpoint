@@ -29,6 +29,17 @@
                     </formSpecification>
                     <includeDefaultForms>true</includeDefaultForms>
                 </forms>
+                <panel>
+                    <identifier>childCases</identifier>
+                    <display>
+                        <label>Child cases</label>
+                        <icon>
+                            <cssClass>fa fa-circle-o</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>childCases</panelType>
+                    <type>c:CaseType</type>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>

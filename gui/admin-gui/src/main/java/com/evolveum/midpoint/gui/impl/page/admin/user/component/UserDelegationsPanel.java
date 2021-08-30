@@ -189,7 +189,7 @@ public class UserDelegationsPanel<F extends FocusType> extends AbstractObjectMai
                         AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
                                 ((PrismObject<UserType>)getObjectWrapper().getObject()).asObjectable(),
                                 WebComponentUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION), getPageBase(), (UserType) object);
-                        dto.setPrivilegeLimitationList(getPrrivilegesListModel().getObject());
+                        dto.setPrivilegeLimitationList(getPrivilegesListModel().getObject());
                         getDelegationModel().getObject().add(dto);
                     } catch (Exception e) {
                         error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
@@ -228,7 +228,7 @@ public class UserDelegationsPanel<F extends FocusType> extends AbstractObjectMai
         return getObjectDetailsModels().getDelegationsModel();
     }
 
-    private LoadableModel<List<AssignmentInfoDto>> getPrrivilegesListModel() {
+    private LoadableModel<List<AssignmentInfoDto>> getPrivilegesListModel() {
         return getObjectDetailsModels().getPrivilegesListModel();
     }
 

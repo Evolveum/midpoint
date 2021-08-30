@@ -38,7 +38,7 @@ import java.util.List;
  */
 @PanelType(name = "operationRequestCase")
 @PanelInstance(identifier = "operationRequestCase",
-        display = @PanelDisplay(label = "Operation request"))
+        display = @PanelDisplay(label = "Operation request", order = 1))
 public class OperationRequestCasePanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
     private static final long serialVersionUID = 1L;
 

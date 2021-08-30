@@ -320,7 +320,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private DisplayType createDisplayType(PanelDisplay display) {
         DisplayType displayType = new DisplayType();
         displayType.setLabel(WebComponentUtil.createPolyFromOrigString(display.label()));
-        displayType.setCssClass(display.icon());
+        displayType.setIcon(new IconType().cssClass(display.icon()));
         return displayType;
     }
 

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -72,12 +73,12 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         super(id, model);
     }
 
-
     @Override
     protected void addButtons(RepeatingView repeatingView) {
         createChnageArchetypeButton(repeatingView);
     }
 
+    //TODO move to focus??
     private void createChnageArchetypeButton(RepeatingView repeatingView) {
         IconType iconType = new IconType();
         iconType.setCssClass(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
@@ -240,5 +241,12 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         return oidsList;
     }
 
+    protected String getMainPopupBodyId() {
+        return getPageBase().getMainPopupBodyId();
+    }
+
+    protected void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
+        getPageBase().showMainPopup(popupable, target);
+    }
 
 }

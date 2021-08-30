@@ -12874,6 +12874,19 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="archetypeType" type="tns:ArchetypeTypeType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Definition of archetype policies, such as object template, lifecycle, type display properties and so on.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ArchetypeType.archetypePolicy</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                 </xsd:sequence>
             </xsd:extension>
@@ -13061,6 +13074,43 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="ArchetypeTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Overall assignmentRelation approach for archetypes objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="structural">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Open assignmentRelation approach. Assignments with any target and relation (generic assignments)
+                        are allowed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STRUCTURAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="auxiliary">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Closed assignmentRelation approach. Assignments with any target and relation (generic assignments)
+                        are not allowed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUXILIARY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: abstract-->
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="LinkTypeDefinitionsType">
         <xsd:annotation>
