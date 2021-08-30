@@ -161,10 +161,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     //TODO make abstract
     protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<O>> wrapperModel) {
         return new OperationalButtonsPanel(id, wrapperModel) {
-            @Override
-            protected void addButtons(RepeatingView repeatingView) {
-                initOperationalButtons(repeatingView);
-            }
 
             @Override
             protected void addStateButtons(RepeatingView stateButtonsView) {
@@ -176,18 +172,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 AbstractPageObjectDetails.this.savePerformed(target);
             }
         };
-    }
-
-    protected void initOperationalButtons(RepeatingView repeatingView) {
-
-        AjaxIconButton remove = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_REMOVE), Model.of("Delete object")) {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
-            }
-        };
-        remove.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        repeatingView.add(remove);
     }
 
     public void savePerformed(AjaxRequestTarget target) {

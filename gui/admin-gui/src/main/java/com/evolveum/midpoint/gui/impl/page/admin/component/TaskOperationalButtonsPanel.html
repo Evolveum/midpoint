@@ -8,23 +8,15 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="box">
-        <div class="box-body">
-            <div class="main-button-bar">
-                <span class="button-group btn-toolbar">
-                     <span class="btn btn-margin-left " wicket:id="buttons"/>
-                </span>
-                <span class="button-group btn-toolbar">
-                    <span wicket:id="taskButtons"/>
-                </span>
-                <span class="button-group btn-toolbar">
-                    <span wicket:id="refreshingButtons"/>
-                </span>
-                <span class="pull-right button-group">
-                     <span class="btn btn-margin-left " wicket:id="stateButtons"/>
-                </span>
-            </div>
-        </div>
-    </div>
+    <wicket:extend>
+        <fieldset class="objectButtons col-lg-2">
+            <legend>Task related operations</legend>
+            <span class="btn btn-sm" wicket:id="taskButtons"/>
+        </fieldset>
+        <fieldset class="objectButtons col-lg-2">
+            <legend>refreshing buttons</legend>
+            <span class="btn btn-default btn-sm" wicket:id="refreshingButtons"/>
+        </fieldset>
+    </wicket:extend>
 </wicket:panel>
 </html>

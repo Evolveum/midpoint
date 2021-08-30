@@ -55,12 +55,6 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return new AssignmentHolderOperationalButtonsPanel<>(id, wrapperModel) {
 
             @Override
-            protected void addButtons(RepeatingView repeatingView) {
-                super.addButtons(repeatingView);
-                initOperationalButtons(repeatingView);
-            }
-
-            @Override
             protected void addArchetypePerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
                 OperationResult result = new OperationResult(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
                 if (newAssignmentsList.size() > 1) {

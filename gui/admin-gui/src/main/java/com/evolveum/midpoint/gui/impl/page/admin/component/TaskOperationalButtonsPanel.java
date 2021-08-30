@@ -121,7 +121,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             }
         };
         suspend.add(new VisibleBehaviour(() -> WebComponentUtil.canSuspendTask(getObjectType(), getPageBase())));
-        suspend.add(AttributeAppender.append("class", "btn-danger btn-sm"));
+        suspend.add(AttributeAppender.append("class", "btn-danger"));
         repeatingView.add(suspend);
     }
 
@@ -157,7 +157,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 resumePerformed(target, getPrismObject());
             }
         };
-        resume.add(AttributeAppender.append("class", "btn-primary btn-sm"));
+        resume.add(AttributeAppender.append("class", "btn-primary"));
         resume.add(new VisibleBehaviour(() -> WebComponentUtil.canResumeTask(getObjectType(), getPageBase())));
         repeatingView.add(resume);
     }
@@ -169,7 +169,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 runNowPerformed(target, getPrismObject());
             }
         };
-        runNow.add(AttributeAppender.append("class", "btn-success btn-sm"));
+        runNow.add(AttributeAppender.append("class", "btn-success"));
         runNow.add(new VisibleBehaviour(() -> WebComponentUtil.canRunNowTask(getObjectType(), getPageBase())));
         repeatingView.add(runNow);
     }
@@ -208,7 +208,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 return isNotRunning();
             }
         });
-        manageLivesyncToken.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        manageLivesyncToken.add(AttributeAppender.append("class", "btn-default"));
         manageLivesyncToken.setOutputMarkupId(true);
         repeatingView.add(manageLivesyncToken);
     }
@@ -245,7 +245,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             }
         };
         download.add(new VisibleBehaviour(this::isDownloadReportVisible));
-        download.add(AttributeAppender.append("class", "btn-primary btn-sm"));
+        download.add(AttributeAppender.append("class", "btn-primary"));
         repeatingView.add(download);
     }
 
@@ -296,7 +296,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 refresh(target);
             }
         };
-        refreshNow.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        refreshNow.add(AttributeAppender.append("class", ""));
         repeatingView.add(refreshNow);
     }
 
@@ -309,7 +309,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 refresh(target);
             }
         };
-        resumePauseRefreshing.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        resumePauseRefreshing.add(AttributeAppender.append("class", "btn-margin-left"));
         repeatingView.add(resumePauseRefreshing);
     }
 
@@ -368,7 +368,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                 getPageBase().showMainPopup(dialog, target);
             }
         };
-        cleanupPerformance.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        cleanupPerformance.add(AttributeAppender.append("class", "btn-default btn-margin-left"));
         cleanupPerformance.add(new VisibleBehaviour(this::isNotRunning));
         repeatingView.add(cleanupPerformance);
     }
@@ -426,7 +426,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             }
         };
         cleanupResults.add(new VisibleBehaviour(this::isNotRunning));
-        cleanupResults.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        cleanupResults.add(AttributeAppender.append("class", "btn-default btn-margin-left"));
         repeatingView.add(cleanupResults);
     }
 

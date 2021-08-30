@@ -69,6 +69,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
     private static final String OPERATION_IMPORT_REPORT = DOT_CLASS + "importReport";
+    private static final String ID_REPORT_BUTTONS = "reportButtons";
 
     private IModel<Boolean> isShowingPreview = Model.of(Boolean.FALSE);
 
@@ -80,7 +81,18 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
     protected void addButtons(RepeatingView repeatingView) {
         initSaveAndRunButton(repeatingView);
         super.addButtons(repeatingView);
-        initOperationalButtons(repeatingView);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initReportButtons();
+    }
+
+    private void initReportButtons() {
+        RepeatingView reportButtons = new RepeatingView(ID_REPORT_BUTTONS);
+        initOperationalButtons(reportButtons);
+        add(reportButtons);
     }
 
     private void initSaveAndRunButton(RepeatingView repeatingView) {

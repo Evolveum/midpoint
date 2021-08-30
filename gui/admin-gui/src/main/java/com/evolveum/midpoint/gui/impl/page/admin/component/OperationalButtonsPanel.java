@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -59,6 +60,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         RepeatingView repeatingView = new RepeatingView(ID_BUTTONS);
         add(repeatingView);
         createSaveButton(repeatingView);
+        createDeleteButton(repeatingView);
 
         addButtons(repeatingView);
 
@@ -89,6 +91,17 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 //
 //        });
 //        add(optionsPanel);
+    }
+
+    private void createDeleteButton(RepeatingView repeatingView) {
+        AjaxIconButton remove = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_REMOVE), Model.of("Delete object")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        remove.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(remove);
     }
 
     protected void addButtons(RepeatingView repeatingView) {
