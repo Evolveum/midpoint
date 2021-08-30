@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -35,7 +36,8 @@ public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> exten
 
         OperationResult result = new OperationResult("mergeArchetypeConfig");
         try {
-            return getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, assignmentHolder, result);
+            ArchetypePolicyType archetypePolicyType = getModelServiceLocator().getModelInteractionService().determineArchetypePolicy(assignmentHolder, result);
+            return getAdminGuiConfigurationMergeManager().mergeObjectDetailsPageConfiguration(defaultPageConfig, archetypePolicyType, result);
         } catch (SchemaException | ConfigurationException e) {
             LOGGER.error("Cannot merge details page configuration from archetype policy, {}", e.getMessage(), e);
             return defaultPageConfig;

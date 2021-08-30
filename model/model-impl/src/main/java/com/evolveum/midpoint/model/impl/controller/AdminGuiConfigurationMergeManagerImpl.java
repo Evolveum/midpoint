@@ -38,8 +38,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 @Controller
 public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurationMergeManager {
 
-    @Autowired ArchetypeManager archetypeManager;
-
     @Override
     public List<ContainerPanelConfigurationType> mergeContainerPanelConfigurationType(List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> configuredPanels) {
         List<ContainerPanelConfigurationType> mergedPanels = new ArrayList<>(defaultPanels);
@@ -50,11 +48,8 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
     }
 
     @Override
-    public <AH extends AssignmentHolderType> GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration, PrismObject<AH> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration, ArchetypePolicyType archetypePolicyType, OperationResult result) throws SchemaException, ConfigurationException {
         GuiObjectDetailsPageType mergedPageConfiguration = defaultPageConfiguration.cloneWithoutId();
-
-        ArchetypePolicyType archetypePolicyType = archetypeManager.determineArchetypePolicy(assignmentHolder, result);
-
         mergeObjectDetailsPageConfiguration(mergedPageConfiguration, archetypePolicyType);
 
         return mergedPageConfiguration;
