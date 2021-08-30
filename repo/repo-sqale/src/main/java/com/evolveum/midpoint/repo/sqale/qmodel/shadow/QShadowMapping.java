@@ -17,7 +17,6 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,16 +150,29 @@ public class QShadowMapping
 
         addIndexOnlyAttributes(shadowType, row, entityPath, retrieveOptions);
 
-
         return shadowType;
     }
 
     private void addIndexOnlyAttributes(ShadowType shadowType, Tuple row,
             QShadow entityPath, List<SelectorOptions<GetOperationOptions>> retrieveOptions) throws SchemaException {
-        PrismContainerValue<ShadowAttributesType> container = shadowType.getAttributes().asPrismContainerValue();
+        Jsonb rowAttributes = row.get(entityPath.attributes);
+        if (rowAttributes == null) {
+            return;
+        }
+        Map<String, Object> attributes = Jsonb.toMap(rowAttributes);
+        if (attributes.isEmpty()) {
+            return;
+        }
+
+        ShadowAttributesType attributeContainer = shadowType.getAttributes();
+        if (attributeContainer == null) {
+            attributeContainer = new ShadowAttributesType(prismContext());
+            shadowType.attributes(attributeContainer);
+        }
+        //noinspection unchecked
+        PrismContainerValue<ShadowAttributesType> container = attributeContainer.asPrismContainerValue();
         // Now we retrieve indexOnly options
-        Map<String, Object> attributes = Jsonb.toMap(row.get(entityPath.attributes));
-        for(Entry<String, Object> attribute : attributes.entrySet()) {
+        for (Entry<String, Object> attribute : attributes.entrySet()) {
             @Nullable
             MExtItem mapping = repositoryContext().getExtensionItem(Integer.valueOf(attribute.getKey()));
             QName itemName = QNameUtil.uriToQName(mapping.itemName);
@@ -168,15 +180,15 @@ public class QShadowMapping
             if (definition instanceof PrismPropertyDefinition) {
                 var item = container.findOrCreateProperty((PrismPropertyDefinition) definition);
                 switch (mapping.cardinality) {
-                case SCALAR:
-                    item.setRealValue(attribute.getValue());
-                    break;
-                case ARRAY:
-                    List<?> value = (List<?>) attribute.getValue();
-                    item.setRealValues(value.toArray());
-                    break;
-                default:
-                    throw new IllegalStateException("");
+                    case SCALAR:
+                        item.setRealValue(attribute.getValue());
+                        break;
+                    case ARRAY:
+                        List<?> value = (List<?>) attribute.getValue();
+                        item.setRealValues(value.toArray());
+                        break;
+                    default:
+                        throw new IllegalStateException("");
                 }
                 item.setIncomplete(false);
             }
