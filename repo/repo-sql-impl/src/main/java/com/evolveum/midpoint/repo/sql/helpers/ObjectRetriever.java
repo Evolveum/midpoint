@@ -73,7 +73,7 @@ public class ObjectRetriever {
     public static final String NULL_OID_MARKER = "###null-oid###";     // brutal hack (TODO)
 
     @Autowired private LookupTableHelper lookupTableHelper;
-    @Autowired private CertificationCaseHelper caseHelper;
+    @Autowired private CertificationCaseHelper certificationCaseHelper;
     @Autowired private CaseManagementHelper caseManagementHelper;
     @Autowired private BaseHelper baseHelper;
     @Autowired private NameResolutionHelper nameResolutionHelper;
@@ -402,9 +402,9 @@ public class ObjectRetriever {
 
         boolean assignments = AssignmentType.class.equals(type);
         boolean cases = AccessCertificationCaseType.class.equals(type);
-        boolean workItems = AccessCertificationWorkItemType.class.equals(type);
+        boolean accCertWorkItems = AccessCertificationWorkItemType.class.equals(type);
         boolean caseWorkItems = CaseWorkItemType.class.equals(type);
-        if (!cases && !workItems && !caseWorkItems && !assignments) {
+        if (!cases && !accCertWorkItems && !caseWorkItems && !assignments) {
             throw new UnsupportedOperationException(
                     "Only AccessCertificationCaseType or AccessCertificationWorkItemType"
                             + " or CaseWorkItemType or Assignments is supported here now.");
@@ -428,10 +428,10 @@ public class ObjectRetriever {
                 Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
                 for (GetContainerableResult item : items) {
                     @SuppressWarnings({ "raw", "unchecked" })
-                    C value = (C) caseHelper.updateLoadedCertificationCase(item, campaignsCache, options, session, result);
+                    C value = (C) certificationCaseHelper.updateLoadedCertificationCase(item, campaignsCache, options, session, result);
                     list.add(value);
                 }
-            } else if (workItems) {
+            } else if (accCertWorkItems) {
                 @SuppressWarnings({ "unchecked", "raw" })
                 List<GetCertificationWorkItemResult> items = rQuery.list();
                 LOGGER.trace("Found {} work items, translating to JAXB.", items.size());
@@ -439,7 +439,7 @@ public class ObjectRetriever {
                 Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
                 for (GetCertificationWorkItemResult item : items) {
                     @SuppressWarnings({ "raw", "unchecked" })
-                    C value = (C) caseHelper.updateLoadedCertificationWorkItem(item, casesCache, campaignsCache, options, engine, session, result);
+                    C value = (C) certificationCaseHelper.updateLoadedCertificationWorkItem(item, casesCache, campaignsCache, options, engine, session, result);
                     list.add(value);
                 }
             } else {
@@ -545,7 +545,7 @@ public class ObjectRetriever {
         } else if (LookupTableType.class.equals(prismObject.getCompileTimeClass())) {
             lookupTableHelper.updateLoadedLookupTable(prismObject, options, session);
         } else if (AccessCertificationCampaignType.class.equals(prismObject.getCompileTimeClass())) {
-            caseHelper.updateLoadedCampaign(prismObject, options, session);
+            certificationCaseHelper.updateLoadedCampaign(prismObject, options, session);
         } else if (TaskType.class.equals(prismObject.getCompileTimeClass())) {
             if (SelectorOptions.hasToLoadPath(TaskType.F_RESULT, options)) {
                 Query query = session.getNamedQuery("get.taskResult");

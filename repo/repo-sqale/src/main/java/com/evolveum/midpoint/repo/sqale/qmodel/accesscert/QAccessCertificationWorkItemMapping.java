@@ -82,6 +82,7 @@ public class QAccessCertificationWorkItemMapping
     @Override
     public AccessCertificationWorkItemType toSchemaObject(MAccessCertificationWorkItem row) {
         AccessCertificationWorkItemType acwi = new AccessCertificationWorkItemType(prismContext())
+                .id(row.cid)
                 .closeTimestamp(asXMLGregorianCalendar(row.closeTimestamp))
                 .iteration(row.campaignIteration)
                 .outputChangeTimestamp(asXMLGregorianCalendar(row.outputChangeTimestamp))

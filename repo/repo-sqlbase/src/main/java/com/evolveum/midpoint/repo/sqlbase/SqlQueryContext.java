@@ -254,8 +254,12 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     }
 
     /**
-     * Returns page of results with each row represented by a Tuple containing {@link R} and then
-     * individual paths for extension columns, see {@code extensionColumns} in {@link QueryTableMapping}.
+     * Returns page of results with each row represented by a {@link Tuple}.
+     * Tuple contains expressions specified by {@link QueryTableMapping#selectExpressions}.
+     * This may for example be {@link R} (representing the whole entity) and then individual paths
+     * for extension columns, see {@code extensionColumns} in {@link QueryTableMapping}.
+     * If any "fetchers" for detail tables are specified they are executed, in which case
+     * {@link R} in the Tuple is necessary.
      */
     public PageOf<Tuple> executeQuery(JdbcSession jdbcSession) throws QueryException {
         SQLQuery<?> query = sqlQuery.clone(jdbcSession.connection());
@@ -430,11 +434,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     /**
      * Transforms result page with (bean + extension columns) tuple to schema type.
+     * JDBC session is provided as it may be needed for additional fetches.
      */
-    public PageOf<S> transformToSchemaType(PageOf<Tuple> result)
+    public PageOf<S> transformToSchemaType(PageOf<Tuple> result, JdbcSession jdbcSession)
             throws SchemaException, QueryException {
         try {
-            return result.map(row -> entityPathMapping.toSchemaObjectSafe(row, root(), options));
+            ResultListRowTransformer<S, Q, R> rowTransformer =
+                    entityPathMapping.createRowTransformer(this, jdbcSession);
+            return result.map(row -> rowTransformer.transform(row, root(), options));
         } catch (RepositoryMappingException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SchemaException) {
