@@ -67,7 +67,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                     ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectDetialsModel.getObjectWrapperModel().getObject().getCompileTimeClass().getSimpleName());
                     ContainerPanelConfigurationType storageConfig = storage.getDefaultConfiguration();
                     ContainerPanelConfigurationType itemModelObject = item.getModelObject();
-                    if (storageConfig.getIdentifier().equals(itemModelObject.getIdentifier())) {
+                    if (storageConfig.getIdentifier() != null && storageConfig.getIdentifier().equals(itemModelObject.getIdentifier())) {
                         return "active";
                     }
                     return "";
