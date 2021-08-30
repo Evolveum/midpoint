@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 import org.apache.commons.lang3.Validate;
@@ -103,6 +104,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
+    private final Collection<SelectorOptions<GetOperationOptions>> getForUpdateOptions;
     private final SqaleRepoContext repositoryContext;
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
@@ -128,6 +130,11 @@ public class SqaleRepositoryService implements RepositoryService {
                 repositoryConfiguration().getPerformanceStatisticsLevel(),
                 repositoryConfiguration().getPerformanceStatisticsFile());
         sqlPerformanceMonitorsCollection.register(performanceMonitor);
+
+        getForUpdateOptions =  SchemaService.get()
+                .getOperationOptionsBuilder()
+                .retrieve()
+                .build();
     }
 
     @Override
@@ -541,7 +548,7 @@ public class SqaleRepositoryService implements RepositoryService {
         long opHandle = registerOperationStart(OP_MODIFY_OBJECT, type);
         try {
             if (updateContext == null) {
-                updateContext = prepareUpdateContext(jdbcSession, type, oidUuid, Collections.emptyList());
+                updateContext = prepareUpdateContext(jdbcSession, type, oidUuid, getForUpdateOptions);
             }
 
             PrismObject<T> prismObject = updateContext.getPrismObject();
@@ -573,7 +580,7 @@ public class SqaleRepositoryService implements RepositoryService {
             @NotNull Class<S> schemaType,
             @NotNull UUID oid)
             throws SchemaException, ObjectNotFoundException {
-        return prepareUpdateContext(jdbcSession, schemaType, oid, Collections.emptyList());
+        return prepareUpdateContext(jdbcSession, schemaType, oid, getForUpdateOptions);
     }
 
     /** Read object for update and returns update context that contains it. */
@@ -589,8 +596,13 @@ public class SqaleRepositoryService implements RepositoryService {
                 repositoryContext.getMappingBySchemaType(schemaType);
         QObject<R> entityPath = rootMapping.defaultAlias();
 
+        @NotNull
+        Path<?>[] selectExpressions = rootMapping.selectExpressions(entityPath, getOptions);
+        selectExpressions = Arrays.copyOf(selectExpressions, selectExpressions.length + 1);
+        selectExpressions[selectExpressions.length -1 ] = entityPath.containerIdSeq;
+
         Tuple result = jdbcSession.newQuery()
-                .select(entityPath.oid, entityPath.fullObject, entityPath.containerIdSeq)
+                .select(selectExpressions)
                 .from(entityPath)
                 .where(entityPath.oid.eq(oid))
                 .forUpdate()

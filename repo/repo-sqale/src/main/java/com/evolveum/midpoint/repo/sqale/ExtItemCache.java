@@ -121,4 +121,26 @@ public class ExtItemCache {
         }
         return extItem;
     }
+
+    public @Nullable MExtItem getExtensionItem(Integer id) {
+        if (jdbcSessionSupplier == null) {
+            throw new IllegalStateException("Ext item cache was not initialized yet!");
+        }
+        MExtItem extItem =  idToExtItem.get(id);
+        if (extItem != null) {
+            return extItem;
+        }
+
+        extItem = jdbcSessionSupplier.get()
+                .newQuery()
+                .from(QExtItem.DEFAULT)
+                .select(QExtItem.DEFAULT)
+                .where(QExtItem.DEFAULT.id.eq(id))
+                .fetchOne();
+
+        if (extItem != null) {
+            updateMaps(extItem);
+        }
+        return extItem;
+    }
 }
