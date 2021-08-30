@@ -174,7 +174,19 @@ public class ArchetypeManager implements Cache {
         if (object == null) {
             return null;
         }
+
+        ArchetypePolicyType archetypePolicyType = computeArchetypePolicy(object, result);
+        // Try to find appropriate system configuration section for this object.
+        ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
+
+        return merge(archetypePolicyType, objectPolicy);
+    }
+
+    private <O extends ObjectType> ArchetypePolicyType computeArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException {
         @SuppressWarnings("unchecked") List<PrismObject<ArchetypeType>> archetypes = determineArchetypes((PrismObject<? extends AssignmentHolderType>) object, result);
+        if (archetypes == null) {
+            return null;
+        }
 
         PrismObject<ArchetypeType> structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
 
@@ -192,12 +204,7 @@ public class ArchetypeManager implements Cache {
 
         ArchetypePolicyType structuralArchetypePolicy = mergeArchetypePolicies(structuralArchetype, result);
 
-        ArchetypePolicyType structuredAndAuxiliaryArchetypePolicy = mergeArchetypePolicies(mergedAuxiliaryArchetypePolicy, structuralArchetypePolicy);
-
-        // Try to find appropriate system configuration section for this object.
-        ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
-
-        return merge(structuredAndAuxiliaryArchetypePolicy, objectPolicy);
+        return mergeArchetypePolicies(mergedAuxiliaryArchetypePolicy, structuralArchetypePolicy);
     }
 
     public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException {
