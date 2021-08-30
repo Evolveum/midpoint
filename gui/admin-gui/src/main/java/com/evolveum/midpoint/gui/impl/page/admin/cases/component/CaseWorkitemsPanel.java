@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
  * Created by honchar
  */
 @PanelType(name = "caseWorkItems")
-@PanelInstance(identifier = "caseWorkItems", applicableFor = CaseType.class,
+@PanelInstance(identifier = "caseWorkItems",
         display = @PanelDisplay(label = "Work items"))
 public class CaseWorkitemsPanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
     private static final long serialVersionUID = 1L;

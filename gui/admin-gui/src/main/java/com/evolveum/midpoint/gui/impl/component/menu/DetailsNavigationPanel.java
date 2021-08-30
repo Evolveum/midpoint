@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
@@ -76,7 +77,8 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 WebMarkupContainer icon = new WebMarkupContainer(ID_NAV_ITEM_ICON);
                 icon.setOutputMarkupId(true);
                 icon.add(AttributeAppender.append("class",
-                        item.getModelObject().getDisplay() != null ? item.getModelObject().getDisplay().getCssClass() :
+                        WebComponentUtil.getIconCssClass(item.getModelObject().getDisplay()) != null ?
+                                WebComponentUtil.getIconCssClass(item.getModelObject().getDisplay()) :
                                 GuiStyleConstants.CLASS_CIRCLE_FULL));
                 navigationDetails.add(icon);
                 AjaxLink<Void> link = new AjaxLink<>(ID_NAV_ITEM) {

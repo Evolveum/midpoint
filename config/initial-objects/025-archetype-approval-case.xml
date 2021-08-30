@@ -29,6 +29,28 @@
                     </formSpecification>
                     <includeDefaultForms>true</includeDefaultForms>
                 </forms>
+                <panel>
+                    <identifier>caseWorkItems</identifier>
+                    <display>
+                        <label>Workitems</label>
+                        <icon>
+                            <cssClass>fa fa-circle-o</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>caseWorkItems</panelType>
+                    <type>c:CaseType</type>
+                </panel>
+                <panel>
+                    <identifier>approvalCase</identifier>
+                    <display>
+                        <label>Approvals</label>
+                        <icon>
+                            <cssClass>fa fa-circle-o</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>approvalCase</panelType>
+                    <type>c:CaseType</type>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
