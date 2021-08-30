@@ -207,7 +207,7 @@
         <reflections.version>0.9.12</reflections.version>
         <guava.version>30.1.1-jre</guava.version>
         <jcommander.version>1.81</jcommander.version>
-        <failsafe.version>3.0.0-M5</failsafe.version>
+        <failsafe.version>3.0.0-M4</failsafe.version>
         <qpid-broker.version>8.0.4</qpid-broker.version>
         <apache-artemis.version>2.17.0</apache-artemis.version> <!-- matching Spring Boot Artemis dependency -->
         <asm.version>9.1</asm.version>
