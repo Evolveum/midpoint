@@ -268,6 +268,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected void assertOperationRecordedCount(String opKind, int count) {
+        // TODO see comment in SqaleServiceBase.registerOperationStart
+        opKind = "SqaleRepositoryService." + opKind;
         Map<String, OperationPerformanceInformation> pmAllData =
                 repositoryService.getPerformanceMonitor()
                         .getGlobalPerformanceInformation().getAllData();

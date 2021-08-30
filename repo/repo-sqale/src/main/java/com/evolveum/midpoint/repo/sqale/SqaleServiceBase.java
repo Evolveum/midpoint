@@ -125,7 +125,7 @@ public class SqaleServiceBase {
     // region perf monitoring
 
     /**
-     * Registers operation start with specified short operation type name, class is prefixed automatically.
+     * Registers operation start with specified short operation type name.
      */
     protected <T extends Containerable> long registerOperationStart(
             String kind, PrismContainer<T> object) {
@@ -133,6 +133,8 @@ public class SqaleServiceBase {
     }
 
     protected <T extends Containerable> long registerOperationStart(String kind, Class<T> type) {
+        // TODO what about class prefix? If not used some audit/repo ops would mingle.
+        //  a) we will use prefix (this version); b) we will name ops distinctively
         return performanceMonitor != null
                 ? performanceMonitor.registerOperationStart(opNamePrefix + kind, type)
                 : -1;
