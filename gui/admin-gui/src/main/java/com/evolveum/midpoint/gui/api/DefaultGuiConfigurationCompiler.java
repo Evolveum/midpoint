@@ -56,7 +56,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement",
             "com.evolveum.midpoint.gui.impl.page.admin.org.component",
             "com.evolveum.midpoint.gui.impl.page.admin.cases.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.user.component"
+            "com.evolveum.midpoint.gui.impl.page.admin.user.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.report.component"
     };
 
     private Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
@@ -319,7 +320,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private DisplayType createDisplayType(PanelDisplay display) {
         DisplayType displayType = new DisplayType();
         displayType.setLabel(WebComponentUtil.createPolyFromOrigString(display.label()));
-        displayType.setCssClass(display.icon());
+        displayType.setIcon(new IconType().cssClass(display.icon()));
         return displayType;
     }
 

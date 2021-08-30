@@ -33,6 +33,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -54,6 +55,12 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return new AssignmentHolderOperationalButtonsPanel<>(id, wrapperModel) {
 
             @Override
+            protected void addButtons(RepeatingView repeatingView) {
+                super.addButtons(repeatingView);
+                initOperationalButtons(repeatingView);
+            }
+
+            @Override
             protected void addArchetypePerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
                 OperationResult result = new OperationResult(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
                 if (newAssignmentsList.size() > 1) {
@@ -71,6 +78,11 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 }
 
                 changeArchetype(oldArchetypAssignment, newAssignmentsList, result, target);
+            }
+
+            @Override
+            protected void savePerformed(AjaxRequestTarget target) {
+                PageAssignmentHolderDetails.this.savePerformed(target);
             }
         };
     }
@@ -176,7 +188,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         }
     }
 
-    private boolean isKeepDisplayingResults() {
+    protected boolean isKeepDisplayingResults() {
         return getExecuteChangesOptionsDto().isKeepDisplayingResults();
     }
 

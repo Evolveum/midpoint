@@ -372,7 +372,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     public void refresh(AjaxRequestTarget target, boolean soft) {
 
-        if (isEditUser()) {
+        if (isEditObject()) {
             objectDetailsModels.reset();
         }
         target.add(getSummaryPanel());
@@ -437,7 +437,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         OperationResult result = task.getResult();
         PrismObject<O> prismObject;
         try {
-            if (!isEditUser()) {
+            if (!isEditObject()) {
                 prismObject = getPrismContext().createObject(getType());
             } else {
                 String focusOid = getObjectOidParameter();
@@ -459,7 +459,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return null;
     }
 
-    public boolean isEditUser() {
+    public boolean isEditObject() {
         return getObjectOidParameter() != null;
     }
 
@@ -511,7 +511,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected Component getSummaryPanel() {
         return get(createComponentPath(ID_DETAILS, ID_SUMMARY));
     }
-    private OperationalButtonsPanel getOperationalButtonsPanel() {
+    protected OperationalButtonsPanel getOperationalButtonsPanel() {
         return (OperationalButtonsPanel) get(createComponentPath(ID_DETAILS, ID_MAIN_FORM, ID_BUTTONS));
     }
 

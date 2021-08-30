@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -39,6 +40,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -52,7 +54,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportObjectsListPanel.class);
 
-    private IModel<ReportType> report;
+    private final IModel<ReportType> report;
     private CompiledObjectCollectionView view;
     private Map<String, Object> variables = new HashMap<>();
     private ObjectListStorage pageStorage;
@@ -243,12 +245,13 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
         }
         VariablesMap variables = getSearchModel().getObject().getFilterVariables(null, getPageBase());
         variables.put(ExpressionConstants.VAR_OBJECT, model.getObject().getValue(), model.getObject().getValue().getClass());
-        if (report.getObject() != null && report.getObject().getObjectCollection() != null
-                && report.getObject().getObjectCollection().getSubreport() != null
-                && !report.getObject().getObjectCollection().getSubreport().isEmpty()) {
+        if (getReport().getObjectCollection() != null
+                && getReport().getObjectCollection().getSubreport() != null
+                && !getReport().getObjectCollection().getSubreport().isEmpty()) {
             Task task = getPageBase().createSimpleTask("evaluate subreports");
             processReferenceVariables(variables);
-            VariablesMap subreportsVariables = getPageBase().getReportManager().evaluateSubreportParameters(report.getObject().asPrismObject(), variables, task, task.getResult());
+            VariablesMap subreportsVariables = getPageBase().getReportManager().evaluateSubreportParameters(
+                    getReport().asPrismObject(), variables, task, task.getResult());
             variables.putAll(subreportsVariables);
         }
         this.variables.clear();
