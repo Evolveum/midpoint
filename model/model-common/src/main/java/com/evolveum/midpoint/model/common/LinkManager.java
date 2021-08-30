@@ -89,17 +89,6 @@ public class LinkManager {
         return MiscUtil.extractSingleton(matchingDefinitions, () -> new IllegalStateException("Multiple link definitions named '" + linkTypeName + "'."));
     }
 
-//    private <O extends ObjectType> ArchetypeType determineArchetype(PrismObject<O> object, OperationResult result)
-//            throws SchemaException, ConfigurationException {
-//        if (object.canRepresent(AssignmentHolderType.class)) {
-//            //noinspection unchecked
-//            PrismObject<? extends AssignmentHolderType> assignmentHolder = (PrismObject<? extends AssignmentHolderType>) object;
-//            return asObjectable(archetypeManager.determineArchetype(assignmentHolder, result));
-//        } else {
-//            return null;
-//        }
-//    }
-
     private <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
         return archetypeManager.determineArchetypePolicy(object, result);
     }
