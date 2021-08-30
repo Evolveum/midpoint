@@ -29,24 +29,27 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
-                <container>
-                    <identifier>resourceOptions</identifier>
-                    <display>
-                        <label>ReconciliationTask.resourceObjects</label>
-                    </display>
-                    <item>
-                        <c:path>extension/mext:objectQuery</c:path>
-                    </item>
-                </container>
-                <container>
-                    <identifier>resourceOperationOptions</identifier>
-                    <display>
-                        <label>ReconciliationTask.reconciliationOptions</label>
-                    </display>
-                    <item>
-                        <c:path>extension/mext:finishOperationsOnly</c:path>
-                    </item>
-                </container>
+                <panel>
+                    <identifier>basic</identifier>
+                    <container>
+                        <identifier>resourceOptions</identifier>
+                        <display>
+                            <label>ReconciliationTask.resourceObjects</label>
+                        </display>
+                        <item>
+                            <c:path>extension/mext:objectQuery</c:path>
+                        </item>
+                    </container>
+                    <container>
+                        <identifier>resourceOperationOptions</identifier>
+                        <display>
+                            <label>ReconciliationTask.reconciliationOptions</label>
+                        </display>
+                        <item>
+                            <c:path>extension/mext:finishOperationsOnly</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>

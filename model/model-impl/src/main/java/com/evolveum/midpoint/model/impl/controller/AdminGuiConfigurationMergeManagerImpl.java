@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.prism.PrismObject;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -34,6 +36,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import javax.swing.text.html.Option;
 
 @Controller
 public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurationMergeManager {
@@ -78,7 +82,18 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         if (compiledPageType == null) {
             return;
         }
+
         List<ContainerPanelConfigurationType> mergedPanels = mergeContainerPanelConfigurationType(defaultPageConfiguration.getPanel(), compiledPageType.getPanel());
+
+        //backward compatibility
+        Optional<ContainerPanelConfigurationType> optionalPropertiesPanelConfiguration = mergedPanels.stream().filter(p -> pathsMatch(p.getPath(), new ItemPathType(ItemPath.EMPTY_PATH))).findFirst();
+        if (optionalPropertiesPanelConfiguration.isPresent()) {
+            ContainerPanelConfigurationType propertiesPanelConfiguration = optionalPropertiesPanelConfiguration.get();
+            List<VirtualContainersSpecificationType> virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), compiledPageType.getContainer());
+            propertiesPanelConfiguration.getContainer().clear();
+            propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
+        }
+
         defaultPageConfiguration.getPanel().clear();
         defaultPageConfiguration.getPanel().addAll(CloneUtil.cloneCollectionMembersWithoutIds(mergedPanels));
     }

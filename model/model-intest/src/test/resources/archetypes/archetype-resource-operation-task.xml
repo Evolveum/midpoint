@@ -43,36 +43,39 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
-                <container>
-                    <identifier>resourceOptions</identifier>
-                    <display>
-                        <label>resourceObjects</label>
-                    </display>
-                    <item>
-                        <c:path>objectRef</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:objectclass</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:kind</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:intent</c:path>
-                    </item>
-                </container>
-                <container>
-                    <identifier>resourceOperationOptions</identifier>
-                    <display>
-                        <label>operationOptions</label>
-                    </display>
-                    <item>
-                        <c:path>extension/mext:workerThreads</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:dryRun</c:path>
-                    </item>
-                </container>
+                <panel>
+                    <identifier>basic</identifier>
+                    <container>
+                        <identifier>resourceOptions</identifier>
+                        <display>
+                            <label>resourceObjects</label>
+                        </display>
+                        <item>
+                            <c:path>objectRef</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:objectclass</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:kind</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:intent</c:path>
+                        </item>
+                    </container>
+                    <container>
+                        <identifier>resourceOperationOptions</identifier>
+                        <display>
+                            <label>operationOptions</label>
+                        </display>
+                        <item>
+                            <c:path>extension/mext:workerThreads</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:dryRun</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>

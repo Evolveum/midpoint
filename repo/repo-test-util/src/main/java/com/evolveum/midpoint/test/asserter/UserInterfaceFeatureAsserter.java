@@ -13,30 +13,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeature
 
 import org.assertj.core.api.Assertions;
 
-public class UserInterfaceFeatureAsserter<RA> extends AbstractAsserter<RA> {
+public class UserInterfaceFeatureAsserter<RA, F extends UserInterfaceFeatureType> extends AbstractAsserter<RA> {
 
-    private final UserInterfaceFeatureType feature;
+    private final F feature;
 
-    public UserInterfaceFeatureAsserter(UserInterfaceFeatureType feature, RA returnAsserter, String details) {
+    public UserInterfaceFeatureAsserter(F feature, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.feature = feature;
     }
 
-    public UserInterfaceFeatureAsserter<RA> identifier(String identifier) {
+    public UserInterfaceFeatureAsserter<RA, F> identifier(String identifier) {
         Assertions.assertThat(feature.getIdentifier()).isEqualTo(identifier);
         return this;
     }
 
-    public UserInterfaceFeatureAsserter<RA> visibility(UserInterfaceElementVisibilityType visibility) {
+    public UserInterfaceFeatureAsserter<RA, F> visibility(UserInterfaceElementVisibilityType visibility) {
         Assertions.assertThat(feature.getVisibility()).isEqualTo(visibility);
         return this;
     }
 
-    public DisplayTypeAsserter<UserInterfaceFeatureAsserter<RA>> displayType() {
+    public DisplayTypeAsserter<UserInterfaceFeatureAsserter<RA, F>> displayType() {
         return new DisplayTypeAsserter<>(feature.getDisplay(), this, "from virtual container " + feature);
     }
 
-    public UserInterfaceFeatureAsserter<RA> assertDisplayOrder(int order) {
+    public UserInterfaceFeatureAsserter<RA, F> assertDisplayOrder(int order) {
         Assertions.assertThat(feature.getDisplayOrder()).isEqualTo(order);
         return this;
     }
@@ -44,5 +44,9 @@ public class UserInterfaceFeatureAsserter<RA> extends AbstractAsserter<RA> {
     @Override
     protected String desc() {
         return "virtual containers";
+    }
+
+    public F getFeature() {
+        return feature;
     }
 }

@@ -12,7 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpe
 
 import org.assertj.core.api.Assertions;
 
-public class ContainerPanelConfigurationAsserter<RA> extends UserInterfaceFeatureAsserter<RA> {
+public class ContainerPanelConfigurationAsserter<RA> extends UserInterfaceFeatureAsserter<RA, ContainerPanelConfigurationType> {
 
     public ContainerPanelConfigurationAsserter(ContainerPanelConfigurationType panelConfiguration, RA returnAsserter, String details) {
         super(panelConfiguration, returnAsserter, details);
@@ -33,8 +33,13 @@ public class ContainerPanelConfigurationAsserter<RA> extends UserInterfaceFeatur
         return this;
     }
 
+    public VirtualContainersSpecificationAsserter<ContainerPanelConfigurationAsserter<RA>> container() {
+        return new VirtualContainersSpecificationAsserter<>(getFeature().getContainer(), this, "from container panel configuration " + getFeature());
+    }
+
     @Override
     protected String desc() {
         return "virtual containers";
     }
+
 }
