@@ -292,7 +292,7 @@ public class ReportServiceImpl implements ReportService {
         try {
             object = getModelService().getObject(type, ref.getOid(), null, task, result.createSubresult("get ref object"));
         } catch (Exception e) {
-            LOGGER.error("Couldn't get object from objectRef " + ref, e);
+            LOGGER.debug("Couldn't get object from objectRef " + ref, e);
         }
         return object;
     }

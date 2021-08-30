@@ -46,25 +46,35 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
     }
 
     @Override
-    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration, List<ObjectReferenceType> archetypes, OperationResult result) {
+    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration,
+            List<ObjectReferenceType> archetypes, OperationResult result) {
         GuiObjectDetailsPageType mergedPageConfiguration = defaultPageConfiguration.cloneWithoutId();
 
         for (ObjectReferenceType archetypeRef : archetypes) {
-            ArchetypeType archetypeType = null;
-            try {
-                archetypeType = archetypeManager.getArchetype(archetypeRef.getOid(), result).asObjectable();
-            } catch (ObjectNotFoundException | SchemaException e) {
-                //TODO only log excpetion
-            }
-
-            mergeObjectDetailsPageConfiguration(mergedPageConfiguration, archetypeType);
+            mergeObjectDetailsPageConfiguration(mergedPageConfiguration, archetypeRef, result);
         }
         return mergedPageConfiguration;
     }
 
-    private void mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypeType archetypeType) {
+    private void mergeObjectDetailsPageConfiguration (GuiObjectDetailsPageType defaultPageConfiguration, ObjectReferenceType archetypeRef,
+            OperationResult result) {
+        ArchetypeType archetypeType = null;
+        try {
+            archetypeType = archetypeManager.getArchetype(archetypeRef.getOid(), result).asObjectable();
+        } catch (ObjectNotFoundException | SchemaException e) {
+            //TODO only log excpetion
+        }
+        mergeObjectDetailsPageConfiguration(defaultPageConfiguration, archetypeType, result);
+    }
+
+    private void mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypeType archetypeType,
+            OperationResult result) {
         if (archetypeType == null) {
             return;
+        }
+
+        if (archetypeType.getSuperArchetypeRef() != null) {
+            mergeObjectDetailsPageConfiguration(defaultPageConfiguration, archetypeType.getSuperArchetypeRef(), result);
         }
 
         ArchetypePolicyType archetypePolicyType = archetypeType.getArchetypePolicy();

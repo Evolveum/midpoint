@@ -91,7 +91,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
             }
         };
         changeArchetype.add(new VisibleBehaviour(() -> !getModelObject().isReadOnly() && getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
-        changeArchetype.add(AttributeAppender.append("class", "btn-default"));
+        changeArchetype.add(AttributeAppender.append("class", "btn-default btn-sm"));
         repeatingView.add(changeArchetype);
     }
 
