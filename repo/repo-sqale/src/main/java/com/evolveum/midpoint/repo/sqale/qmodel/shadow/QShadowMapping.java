@@ -9,17 +9,24 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Path;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.ExtUtils;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.CountItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
@@ -30,8 +37,10 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -135,7 +144,50 @@ public class QShadowMapping
             applyShadowAttributesDefinitions(shadowType);
         }
 
+        List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
+        if (retrieveOptions.isEmpty()) {
+            return shadowType;
+        }
+
+        addIndexOnlyAttributes(shadowType, row, entityPath, retrieveOptions);
+
+
         return shadowType;
+    }
+
+    private void addIndexOnlyAttributes(ShadowType shadowType, Tuple row,
+            QShadow entityPath, List<SelectorOptions<GetOperationOptions>> retrieveOptions) throws SchemaException {
+        PrismContainerValue<ShadowAttributesType> container = shadowType.getAttributes().asPrismContainerValue();
+        // Now we retrieve indexOnly options
+        Map<String, Object> attributes = Jsonb.toMap(row.get(entityPath.attributes));
+        for(Entry<String, Object> attribute : attributes.entrySet()) {
+            @Nullable
+            MExtItem mapping = repositoryContext().getExtensionItem(Integer.valueOf(attribute.getKey()));
+            QName itemName = QNameUtil.uriToQName(mapping.itemName);
+            ItemDefinition<?> definition = definitionFrom(itemName, mapping);
+            if (definition instanceof PrismPropertyDefinition) {
+                var item = container.findOrCreateProperty((PrismPropertyDefinition) definition);
+                switch (mapping.cardinality) {
+                case SCALAR:
+                    item.setRealValue(attribute.getValue());
+                    break;
+                case ARRAY:
+                    List<?> value = (List<?>) attribute.getValue();
+                    item.setRealValues(value.toArray());
+                    break;
+                default:
+                    throw new IllegalStateException("");
+                }
+                item.setIncomplete(false);
+            }
+        }
+    }
+
+    @Override
+    public @NotNull Path<?>[] selectExpressions(QShadow entity,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        // TODO: Switch on RETRIEVE
+        return new Path[] { entity.oid, entity.fullObject, entity.attributes };
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
