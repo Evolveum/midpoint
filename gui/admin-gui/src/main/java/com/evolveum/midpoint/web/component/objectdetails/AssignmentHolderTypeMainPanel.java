@@ -43,19 +43,6 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
         List<ITab> tabs = new ArrayList<>();
 
         tabs.add(
-                new PanelTab(parentPage.createStringResource("pageAdminFocus.custom"),
-                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_BASIC_URL, true, parentPage)){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentHolderTypeDetailsTabPanel<>(panelId, getObjectModel());
-                    }
-                });
-
-
-        tabs.add(
                 new PanelTab(parentPage.createStringResource("pageAdminFocus.basic"),
                         getTabVisibility(ComponentConstants.UI_FOCUS_TAB_BASIC_URL, true, parentPage)){
 
