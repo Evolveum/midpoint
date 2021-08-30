@@ -44,7 +44,7 @@ import java.util.List;
  * Created by honchar
  */
 @PanelType(name = "childCases")
-@PanelInstance(identifier = "childCases",
+@PanelInstance(identifier = "childCases", applicableFor = CaseType.class,
         display = @PanelDisplay(label = "Child cases"))
 public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
     private static final long serialVersionUID = 1L;
