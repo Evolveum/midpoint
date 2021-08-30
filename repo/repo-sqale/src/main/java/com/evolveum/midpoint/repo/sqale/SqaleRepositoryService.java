@@ -1110,9 +1110,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 return new SearchResultList<>();
             }
 
-            SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
-                    SqaleQueryContext.from(type, sqlRepoContext);
-            return sqlQueryExecutor.list(queryContext, query, options);
+            return executeSearchContainers(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -1120,6 +1118,20 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends Containerable> SearchResultList<T> executeSearchContainers(Class<T> type,
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException, SchemaException {
+
+        long opHandle = registerOperationStart(OP_SEARCH_CONTAINERS, type);
+        try {
+            SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
+                    SqaleQueryContext.from(type, sqlRepoContext, this::readByOid);
+            return sqlQueryExecutor.list(queryContext, query, options);
+        } finally {
+            registerOperationFinish(opHandle, 1);
         }
     }
 

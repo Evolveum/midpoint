@@ -6,12 +6,15 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.util.Collection;
+import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ExistsFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
@@ -24,15 +27,29 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
     private boolean containsOrgFilter = false;
+    private final SqaleObjectLoader objectLoader;
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
             Class<S> schemaType,
             SqaleRepoContext sqlRepoContext) {
+        return from(schemaType, sqlRepoContext, null);
+    }
+
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
+            Class<S> schemaType,
+            SqaleRepoContext sqlRepoContext,
+            SqaleObjectLoader objectLoader) {
 
         SqaleTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Q rootPath = rootMapping.defaultAlias();
@@ -42,15 +59,17 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         query.getMetadata().setValidate(true);
 
         return new SqaleQueryContext<>(
-                rootPath, rootMapping, sqlRepoContext, query);
+                rootPath, rootMapping, sqlRepoContext, query, objectLoader);
     }
 
     private SqaleQueryContext(
             Q entityPath,
             SqaleTableMapping<S, Q, R> mapping,
             SqaleRepoContext sqlRepoContext,
-            SQLQuery<?> query) {
+            SQLQuery<?> query,
+            SqaleObjectLoader objectLoader) {
         super(entityPath, mapping, sqlRepoContext, query);
+        this.objectLoader = objectLoader;
     }
 
     private SqaleQueryContext(
@@ -59,6 +78,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             SqaleQueryContext<?, ?, ?> parentContext,
             SQLQuery<?> sqlQuery) {
         super(entityPath, mapping, parentContext, sqlQuery);
+        this.objectLoader = parentContext.objectLoader;
     }
 
     @Override
@@ -117,6 +137,18 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
                 (SqaleTableMapping<TS, TQ, TR>) newMapping,
                 this,
                 query);
+    }
+
+    public <T extends ObjectType> PrismObject<T> loadObject(
+            JdbcSession jdbcSession, Class<T> objectType, UUID oid,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        try {
+            //noinspection unchecked
+            return (PrismObject<T>) objectLoader.readByOid(jdbcSession, objectType, oid, options)
+                    .asPrismObject();
+        } catch (SchemaException | ObjectNotFoundException e) {
+            throw new SystemException(e);
+        }
     }
 
     @Override

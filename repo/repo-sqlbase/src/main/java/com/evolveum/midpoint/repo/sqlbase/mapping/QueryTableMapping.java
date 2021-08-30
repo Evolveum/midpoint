@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
@@ -323,17 +324,21 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * This allows loading also dynamically defined columns (like extensions).
      * This is what is used by default in {@link SqlQueryContext}.
      */
-    public abstract S toSchemaObject(Tuple row, Q entityPath,
+    public S toSchemaObject(Tuple row, Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException;
+            throws SchemaException {
+        throw new UnsupportedOperationException("Not implemented for " + getClass());
+    }
 
-    public S toSchemaObjectSafe(Tuple tuple, Q entityPath,
-            Collection<SelectorOptions<GetOperationOptions>> options) {
-        try {
-            return toSchemaObject(tuple, entityPath, options);
-        } catch (SchemaException e) {
-            throw new RepositoryMappingException(e);
-        }
+    public ResultListRowTransformer<S, Q, R> createRowTransformer(
+            SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
+        return (tuple, entityPath, options) -> {
+            try {
+                return toSchemaObject(tuple, entityPath, options);
+            } catch (SchemaException e) {
+                throw new RepositoryMappingException(e);
+            }
+        };
     }
 
     public Object itemDefinition() {

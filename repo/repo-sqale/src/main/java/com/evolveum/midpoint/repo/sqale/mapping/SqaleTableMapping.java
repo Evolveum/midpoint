@@ -248,24 +248,10 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         ctx.repositoryContext()::processCacheableUri));
     }
 
-    /**
-     * Implemented for searchable containers that do not use fullObject for their recreation.
-     */
     @Override
     public S toSchemaObject(R row) throws SchemaException {
-        throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
-    }
-
-    /**
-     * Transforms row Tuple containing {@link R} under entity path and extension columns.
-     */
-    @Override
-    public S toSchemaObject(Tuple tuple, Q entityPath,
-            Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException {
-        S schemaObject = toSchemaObject(tuple.get(entityPath));
-        processExtensionColumns(schemaObject, tuple, entityPath);
-        return schemaObject;
+        throw new UnsupportedOperationException(
+                "Not implemented for " + getClass() + ". Perhaps use toSchemaObject(Tuple,...)?");
     }
 
     // TODO reconsider, if not necessary in 2023 DELETE (originally meant for ext item per column,
