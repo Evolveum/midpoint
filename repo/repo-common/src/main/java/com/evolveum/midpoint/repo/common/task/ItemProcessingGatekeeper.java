@@ -183,7 +183,12 @@ class ItemProcessingGatekeeper<I> {
         try {
             result = initializeOperationResultIncludingTracing(parentResult);
 
-            canContinue = activityExecution.processItem(request, workerTask, result);
+            if (!activityExecution.isNoExecution()) {
+                canContinue = activityExecution.processItem(request, workerTask, result);
+            } else {
+                result.recordNotApplicable("'No processing' execution mode is selected");
+                canContinue = true;
+            }
 
             computeStatusIfNeeded(result);
 

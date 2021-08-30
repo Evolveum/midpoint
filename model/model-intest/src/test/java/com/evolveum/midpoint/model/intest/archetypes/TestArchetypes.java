@@ -12,7 +12,14 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.test.asserter.GuiObjectDetailsPageAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,11 +36,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -92,7 +94,12 @@ public class TestArchetypes extends AbstractArchetypesTest {
     protected static final File USER_TEMPLATE_CONTRACTOR_FILE = new File(TEST_DIR, "user-template-contractor.xml");
     protected static final String USER_TEMPLATE_CONTRACTOR_OID = "f72193e4-78a6-11e9-a0b6-6f5ad4cfbb37";
 
+    public static final File ARCHETYPE_AUXILIARY_MANAGER_FILE = new File(TEST_DIR, "archetype-auxiliary-manager.xml");
+    protected static final String ARCHETYPE_AUXILIARY_MANAGER_OID = "ab061953-44e0-496b-aca4-23c6caf0eb60";
+
     private static final String CONTRACTOR_EMPLOYEE_NUMBER = "CONTRACTOR";
+
+    @Autowired private AdminGuiConfigurationMergeManager mergeManager;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -105,6 +112,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         repoAddObjectFromFile(COLLECTION_ACTIVE_EMPLOYEES_FILE, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_ARCHETYPES_GLOBAL_FILE, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_CONTRACTOR_FILE, initResult);
+        repoAddObjectFromFile(ARCHETYPE_AUXILIARY_MANAGER_FILE, initResult);
 
         addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
 
@@ -397,7 +405,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .end()
             .getObject();
 
-        assertArchetypePolicy(userAfter)
+        assertArchetypePolicy(userAfter).display()
             .displayType()
                 .assertLabel(ARCHETYPE_EMPLOYEE_DISPLAY_LABEL)
                 .assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
@@ -497,6 +505,49 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .end();
     }
 
+    /**
+     * should fail becasue we try to assign two structural archetypes which is not supported
+     * @throws Exception
+     */
+    @Test
+    public void test121AssignJackArchetypeEmpoloyee() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // WHEN
+        when();
+
+        try {
+            assignArchetype(USER_JACK_OID, ARCHETYPE_EMPLOYEE_OID, task, result);
+            fail("Unexpected behavior, two structural archetypes assigned without failure");
+        } catch (SchemaException e) {
+            //This is expected
+        }
+
+        // THEN
+        then();
+        assertFailure(result);
+
+        assertUserAfter(USER_JACK_OID)
+                .assignments()
+                    .assertAssignments(1)
+                    .assertArchetype(ARCHETYPE_TEST_OID)
+                    .end()
+                .assertArchetypeRef(ARCHETYPE_TEST_OID)
+                .roleMembershipRefs()
+                    .assertRoleMemberhipRefs(1)
+                    .assertArchetype(ARCHETYPE_TEST_OID)
+                    .end()
+                .singleLink()
+                    .target()
+                        .assertResource(RESOURCE_DUMMY_OID)
+                        .assertKind(ShadowKindType.ACCOUNT)
+                        .assertIntent(INTENT_TEST)
+                        .end()
+                    .end();
+    }
+
+
     @Test
     public void test129UnassignJackArchetypeTest() throws Exception {
         Task task = getTestTask();
@@ -581,6 +632,71 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
                 .end()
             .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+    }
+
+    @Test
+    public void test133AssignJackAuxiliaryManagerArchetype() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // WHEN
+        when();
+
+        assignArchetype(USER_JACK_OID, ARCHETYPE_AUXILIARY_MANAGER_OID, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        UserAsserter<Void> jackAsserter = assertUserAfter(USER_JACK_OID);
+
+        jackAsserter
+                .assignments()
+                .assertAssignments(2)
+                    .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+                    .assertArchetype(ARCHETYPE_AUXILIARY_MANAGER_OID)
+                .end()
+                .assertArchetypeRefs(2)
+                    .assertHasArchetype(ARCHETYPE_CONTRACTOR_OID)
+                    .assertHasArchetype(ARCHETYPE_AUXILIARY_MANAGER_OID)
+                .roleMembershipRefs()
+                    .assertRoleMemberhipRefs(2)
+                .end()
+                .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER)
+                .assertCostCenter("1234");
+
+        PrismObject<UserType> userJackAfter = jackAsserter.getObject();
+        assertArchetypePolicy(userJackAfter).display()
+                .displayType()
+                    .assertLabel("Contractor")
+                .end()
+                .adminGuiConfig()
+                .objectDetails()
+                    .assertType(UserType.COMPLEX_TYPE)
+                    .panel()
+                        .byIdentifier("main")
+                        .visibility(UserInterfaceElementVisibilityType.HIDDEN)
+                    .end();
+    }
+
+    @Test
+    public void test134UnassignJackArchetypeAuxiliaryManager() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        unassignArchetype(USER_JACK_OID, ARCHETYPE_AUXILIARY_MANAGER_OID, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+                .assignments()
+                .assertAssignments(1)
+                .end()
+                .assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
+                .assertRoleMemberhipRefs(1)
+                .end();
     }
 
     /**

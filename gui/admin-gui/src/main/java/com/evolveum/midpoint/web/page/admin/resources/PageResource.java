@@ -16,16 +16,22 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceAccountsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceEntitlementsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceGenericsPanel;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -53,7 +59,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
 
 /**
@@ -348,7 +353,7 @@ public class PageResource extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ResourceDetailsTabPanel(panelId, resourceModel, PageResource.this);
+                return new ResourceDetailsTabPanel(panelId, resourceModel);
             }
         });
 
@@ -366,8 +371,7 @@ public class PageResource extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ResourceContentTabPanel(panelId, ShadowKindType.ACCOUNT, resourceModel,
-                        PageResource.this);
+                return new ResourceContentTabPanel(panelId, ShadowKindType.ACCOUNT, resourceModel);
             }
         });
 
@@ -376,8 +380,7 @@ public class PageResource extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ResourceContentTabPanel(panelId, ShadowKindType.ENTITLEMENT, resourceModel,
-                        PageResource.this);
+                return new ResourceContentTabPanel(panelId, ShadowKindType.ENTITLEMENT, resourceModel);
             }
         });
 
@@ -386,8 +389,7 @@ public class PageResource extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ResourceContentTabPanel(panelId, ShadowKindType.GENERIC, resourceModel,
-                        PageResource.this);
+                return new ResourceContentTabPanel(panelId, ShadowKindType.GENERIC, resourceModel);
             }
         });
 
@@ -396,7 +398,7 @@ public class PageResource extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ResourceContentTabPanel(panelId, null, resourceModel, PageResource.this);
+                return new ResourceContentTabPanel(panelId, null, resourceModel);
             }
         });
 
@@ -405,7 +407,7 @@ public class PageResource extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ResourceConnectorPanel(panelId, null, resourceModel, PageResource.this);
+                return new ResourceConnectorPanel(panelId, loadWrapperModel(resourceModel));
             }
         });
 
@@ -441,6 +443,29 @@ public class PageResource extends PageAdmin {
         };
         resourceTabs.setOutputMarkupId(true);
         return resourceTabs;
+    }
+
+    private LoadableModel<PrismObjectWrapper<ResourceType>> loadWrapperModel(IModel<PrismObject<ResourceType>> resourceModel) {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected PrismObjectWrapper<ResourceType> load() {
+                PrismObject<ResourceType> resource = resourceModel.getObject();
+
+                PrismObjectWrapperFactory<ResourceType> factory = findObjectWrapperFactory(resource.getDefinition());
+                Task task = createSimpleTask("createWrapper");
+                OperationResult result = task.getResult();
+                WrapperContext ctx = new WrapperContext(task, result);
+                ctx.setCreateIfEmpty(true);
+
+                try {
+                    return factory.createObjectWrapper(resource, ItemStatus.NOT_CHANGED, ctx);
+                } catch (SchemaException e) {
+                    //TODO:
+                    return null;
+                }
+            }
+        };
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {

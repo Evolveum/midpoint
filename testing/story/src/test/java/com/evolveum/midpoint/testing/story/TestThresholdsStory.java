@@ -136,7 +136,7 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
     protected abstract void assertAfterSecondImport(TaskType taskAfter);
     protected abstract void assertAfterDisablingAccounts(TaskType taskAfter);
 
-    protected boolean isSimulate() {
+    protected boolean isPreview() {
         return false;
     }
 
@@ -225,7 +225,7 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
         then();
         TaskType taskAfter = assertTaskAfter();
 
-        int expectedUsersImported = isSimulate() ? 0 : RULE_CREATE_WATERMARK-1;
+        int expectedUsersImported = isPreview() ? 0 : RULE_CREATE_WATERMARK-1;
         assertUsers(getNumberOfInitialUsers() + expectedUsersImported);
 
         assertAfterFirstImport(taskAfter);
@@ -242,7 +242,7 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
 
         openDJController.addEntriesFromLdifFile(LDIF_USERS_SECOND_IMPORT_FILE);
 
-        int expectedUsersImported = isSimulate() ? 0 : RULE_CREATE_WATERMARK-1;
+        int expectedUsersImported = isPreview() ? 0 : RULE_CREATE_WATERMARK-1;
         assertUsers(getNumberOfInitialUsers() + expectedUsersImported);
 
         taskManager.deleteTaskTree(getTaskOid(), result);

@@ -24,8 +24,8 @@ public class ValuePolicyBasicPanel extends AbstractObjectTabPanel<ValuePolicyTyp
     private static final String ID_VALUE_POLICY_BASIC_DETAIL = "valuePolicyBasic";
     private static final String ID_MAIN_FORM_BASIC = "mainFormBasic";
 
-    public ValuePolicyBasicPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<ValuePolicyType>> objectWrapperModel) {
-        super(id, mainForm, objectWrapperModel);
+    public ValuePolicyBasicPanel(String id, LoadableModel<PrismObjectWrapper<ValuePolicyType>> objectWrapperModel) {
+        super(id, objectWrapperModel);
 
     }
 

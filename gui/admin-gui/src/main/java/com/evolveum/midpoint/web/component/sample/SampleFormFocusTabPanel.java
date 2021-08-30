@@ -48,10 +48,9 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
 
     private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
 
-    public SampleFormFocusTabPanel(String id, MidpointForm<PrismObjectWrapper<F>> mainForm,
-            LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
+    public SampleFormFocusTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
             LoadableModel<List<ShadowWrapper>> projectionModel) {
-        super(id, mainForm, focusWrapperModel, projectionModel);
+        super(id, focusWrapperModel, projectionModel);
 
     }
 

@@ -35,7 +35,7 @@ public class TestThresholdsStoryLiveSyncSimulate extends TestThresholdsStoryLive
     }
 
     @Override
-    protected boolean isSimulate() {
+    protected boolean isPreview() {
         return true;
     }
 

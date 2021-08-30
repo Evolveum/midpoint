@@ -582,7 +582,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test291DuplicateCidInDifferentContainersIsCaughtByRepo() {
+    public void test291DuplicateCidInDifferentContainersIsTolerated()
+            throws SchemaException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
         long previousUserCount = count(QUser.class);
 
@@ -592,13 +593,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType(prismContext).id(1L))
                 .operationExecution(new OperationExecutionType().id(1L));
 
-        expect("adding object to repository throws exception");
-        assertThatThrownBy(() -> repositoryService.addObject(user.asPrismObject(), null, result))
-                .isInstanceOf(SchemaException.class)
-                .hasMessageStartingWith("CID 1 is used repeatedly in the object:");
+        when("adding object to repository throws exception");
+        repositoryService.addObject(user.asPrismObject(), null, result);
 
-        and("no new object is created in the database (transaction is rolled back)");
-        assertThat(count(QUser.class)).isEqualTo(previousUserCount);
+        then("operation is success");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(count(QUser.class)).isEqualTo(previousUserCount + 1);
     }
     // endregion
 
@@ -1022,12 +1022,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         MTrigger containerRow = containers.get(0);
         assertThat(containerRow.cid).isEqualTo(3); // assigned in advance
         assertCachedUri(containerRow.handlerUriId, "trigger-1-handler-uri");
-        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(containerRow.timestamp).isEqualTo(Instant.ofEpochMilli(1));
 
         containerRow = containers.get(1);
         assertThat(containerRow.cid).isEqualTo(4); // next CID assigned by repo
         assertCachedUri(containerRow.handlerUriId, "trigger-2-handler-uri");
-        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
+        assertThat(containerRow.timestamp).isEqualTo(Instant.ofEpochMilli(2));
 
         MObject objectRow = selectObjectByOid(
                 QSystemConfiguration.class, systemConfiguration.getOid());
@@ -1079,12 +1079,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(containerRow.taskRefTargetOid).isEqualTo(taskRefOid);
         assertThat(containerRow.taskRefTargetType).isEqualTo(MObjectType.TASK);
         assertCachedUri(containerRow.taskRefRelationId, taskRelation);
-        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(containerRow.timestamp).isEqualTo(Instant.ofEpochMilli(1));
 
         containerRow = containers.get(1);
         assertThat(containerRow.cid).isEqualTo(2);
         assertThat(containerRow.status).isEqualTo(OperationResultStatusType.UNKNOWN);
-        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
+        assertThat(containerRow.timestamp).isEqualTo(Instant.ofEpochMilli(2));
 
         // this time we didn't test assigned CID or CID SEQ value on owner (see test801)
     }

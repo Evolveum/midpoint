@@ -34,26 +34,29 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <container>
-                    <identifier>resourceOperationOptions</identifier>
-                    <display>
-                        <label>LiveSynchronizationTask.synchronizationOptions</label>
-                    </display>
-                    <item>
-                        <c:path>extension/mext:retryLiveSyncErrors</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:updateLiveSyncTokenInDryRun</c:path>
-                    </item>
-                </container>
-                <container>
-                    <display>
-                        <label>LiveSynchronizationTask.synchronizationState</label>
-                    </display>
-                    <item>
-                        <c:path>extension/livesync:token</c:path>
-                    </item>
-                </container>
+                <panel>
+                    <identifier>basic</identifier>
+                    <container>
+                        <identifier>resourceOperationOptions</identifier>
+                        <display>
+                            <label>LiveSynchronizationTask.synchronizationOptions</label>
+                        </display>
+                        <item>
+                            <c:path>extension/mext:retryLiveSyncErrors</c:path>
+                        </item>
+                        <item>
+                            <c:path>extension/mext:updateLiveSyncTokenInDryRun</c:path>
+                        </item>
+                    </container>
+                    <container>
+                        <display>
+                            <label>LiveSynchronizationTask.synchronizationState</label>
+                        </display>
+                        <item>
+                            <c:path>extension/livesync:token</c:path>
+                        </item>
+                    </container>
+                </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>

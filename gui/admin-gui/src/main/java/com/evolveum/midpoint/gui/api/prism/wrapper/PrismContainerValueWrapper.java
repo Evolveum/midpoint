@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 
 /**
@@ -38,6 +39,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     void setStatus(ValueStatus status);
 
     List<PrismContainerWrapper<? extends Containerable>> getContainers();
+    List<PrismContainerWrapper<? extends Containerable>> getContainers(ContainerPanelConfigurationType config);
 
     List<ItemWrapper<?, ?>> getNonContainers();
 
@@ -45,6 +47,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     List<? extends ItemWrapper<?, ?>> getItems();
 
     <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
+    <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier);
     <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;
     <R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path) throws SchemaException;
     <IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException;

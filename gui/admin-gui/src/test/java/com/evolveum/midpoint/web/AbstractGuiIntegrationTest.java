@@ -16,7 +16,10 @@ import java.io.File;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
@@ -240,6 +243,16 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
                 return factory.createValueWrapper(parentWrapper, newValue, status, context);
             }
+
+            @Override
+            public MidpointFormValidatorRegistry getFormValidatorRegistry() {
+                return null;
+            }
+
+            @Override
+            public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
+                return null;
+            }
         };
     }
 
@@ -297,6 +310,20 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     protected void clickOnTab(int order, Class<? extends Page> expectedPage) {
         tester.assertRenderedPage(expectedPage);
         String tabPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:" + order + ":link";
+        tester.clickLink(tabPath);
+    }
+
+    protected void clickOnDetailsAssignmentMenu(int order, Class<? extends Page> expectedPage) {
+        tester.assertRenderedPage(expectedPage);
+        tester.debugComponentTrees("navigation");
+        String tabPath = "details:navigation:menu:2:navLinkStyle:subNavigation:menu:" + order + ":navLinkStyle:navItem";
+        tester.clickLink(tabPath);
+    }
+
+    protected void clickOnDetailsMenu(int order, Class<? extends Page> expectedPage) {
+        tester.assertRenderedPage(expectedPage);
+        tester.debugComponentTrees("navigation");
+        String tabPath = "details:navigation:menu:" + order + ":navLinkStyle:navItem";
         tester.clickLink(tabPath);
     }
 }

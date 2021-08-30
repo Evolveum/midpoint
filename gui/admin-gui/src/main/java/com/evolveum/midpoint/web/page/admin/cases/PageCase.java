@@ -95,7 +95,7 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
 
                                 @Override
                                 public WebMarkupContainer createPanel(String panelId) {
-                                    return new ApprovalCaseTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                    return new ApprovalCaseTabPanel(panelId, getObjectModel());
                                 }
                             });
                 } else if (WebComponentUtil.hasArchetypeAssignment(getCase(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())) {
@@ -107,7 +107,7 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
 
                                 @Override
                                 public WebMarkupContainer createPanel(String panelId) {
-                                    return new OperationRequestCaseTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                    return new OperationRequestCaseTabPanel(panelId, getObjectModel(), parentPage);
                                 }
 
                             });
@@ -120,7 +120,7 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
 
                                 @Override
                                 public WebMarkupContainer createPanel(String panelId) {
-                                    return new ManualCaseTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                    return new ManualCaseTabPanel(panelId, getObjectModel(), parentPage);
                                 }
 
                             });
@@ -135,7 +135,7 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
 
                                 @Override
                                 public WebMarkupContainer createPanel(String panelId) {
-                                    return new CaseWorkitemsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                    return new CaseWorkitemsTabPanel(panelId, getObjectModel(), parentPage);
                                 }
 
                                 @Override
@@ -153,7 +153,7 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
 
                                 @Override
                                 public WebMarkupContainer createPanel(String panelId) {
-                                    return new ChildCasesTabPanel(panelId, getMainForm(), getObjectModel());
+                                    return new ChildCasesTabPanel(panelId, getObjectModel());
                                 }
 
                                 @Override
@@ -202,7 +202,7 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
 
     @Override
     protected ObjectSummaryPanel<CaseType> createSummaryPanel(IModel<CaseType> summaryModel) {
-        return new CaseSummaryPanel(ID_SUMMARY_PANEL, CaseType.class, summaryModel, this);
+        return new CaseSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
     }
 
     protected void initOperationalButtons(RepeatingView repeatingView) {

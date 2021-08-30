@@ -143,7 +143,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusApplicablePoliciesTabPanel<>(panelId, getMainForm(), getObjectModel());
+                        return new FocusApplicablePoliciesTabPanel<>(panelId, getObjectModel());
                     }
                 });
 
@@ -155,7 +155,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), AbstractRoleType.F_INDUCEMENT)) {
+                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), AbstractRoleType.F_INDUCEMENT), new ContainerPanelConfigurationType( )) {
                     private static final long serialVersionUID = 1L;
 
                     @Override

@@ -12,6 +12,9 @@ import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
 
 import java.io.File;
 
+import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
+import com.evolveum.midpoint.web.component.objectdetails.*;
+
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,8 +31,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
-import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeDetailsTabPanel;
-import com.evolveum.midpoint.web.component.objectdetails.ObjectHistoryTabPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -161,27 +162,36 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test014renderPersonasTab() {
         renderPage();
 
-        clickOnTab(5);
+        clickOnTab(6);
         String panel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
+        tester.assertComponent(panel, FocusPersonasTabPanel.class);
     }
 
     @Test
     public void test015renderDelegationsTab() {
         renderPage();
 
-        clickOnTab(6);
+        clickOnTab(7);
         String panel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
+        tester.assertComponent(panel, UserDelegationsTabPanel.class);
     }
 
     @Test
     public void test016renderDelegatedToMeTab() {
         renderPage();
 
-        clickOnTab(7);
+        clickOnTab(8);
         String panel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
+        tester.assertComponent(panel, AssignmentTablePanel.class);
+    }
+
+    @Test
+    public void test017renderTriggersTab() {
+        renderPage();
+
+        clickOnTab(5);
+        String panel = "mainPanel:mainForm:tabPanel:panel";
+        tester.assertComponent(panel, FocusTriggersTabPanel.class);
     }
 
     private void clickOnTab(int order) {

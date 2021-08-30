@@ -76,7 +76,7 @@ public class AuditController implements ModelAuditService {
     }
 
     @Override
-    public long countObjects(
+    public int countObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             Task task,

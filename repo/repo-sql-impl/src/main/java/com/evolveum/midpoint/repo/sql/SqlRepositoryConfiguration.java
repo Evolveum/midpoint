@@ -26,7 +26,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
-import com.evolveum.midpoint.repo.sql.helpers.TransactionSerializationProblemDetector;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
@@ -189,7 +188,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     public static final String PROPERTY_EMBEDDED = "embedded";
     public static final String PROPERTY_HIBERNATE_HBM2DDL = "hibernateHbm2ddl";
     public static final String PROPERTY_HIBERNATE_DIALECT = "hibernateDialect";
-    public static final String PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS = "createMissingCustomColumns";
 
     public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
     public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
@@ -384,10 +382,10 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
         useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
-        createMissingCustomColumns = configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
+        createMissingCustomColumns = configuration.getBoolean(JdbcRepositoryConfiguration.PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         fullObjectFormat = configuration.getString(
-                PROPERTY_FULL_OBJECT_FORMAT,
-                System.getProperty(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML))
+                        PROPERTY_FULL_OBJECT_FORMAT,
+                        System.getProperty(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML))
                 .toLowerCase();
 
         // requires asServer, baseDir, fileName, port
@@ -519,15 +517,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
             jdbcUrl.append(databaseFile.getAbsolutePath());
         }
         return jdbcUrl.toString();
-    }
-
-    /**
-     * If exception is related to serialization it is not considered "fatal" and can be retried.
-     */
-    @Override
-    public boolean isFatalException(Throwable ex) {
-        return !new TransactionSerializationProblemDetector(this, LOGGER)
-                .isExceptionRelatedToSerialization(ex);
     }
 
     // The methods below are static to highlight their data dependencies and to avoid using properties
@@ -873,6 +862,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return stopOnOrgClosureStartupFailure;
     }
 
+    @Override
     public boolean isCreateMissingCustomColumns() {
         return createMissingCustomColumns;
     }

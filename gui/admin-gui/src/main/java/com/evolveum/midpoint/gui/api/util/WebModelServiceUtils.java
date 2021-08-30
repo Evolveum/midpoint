@@ -483,8 +483,7 @@ public class WebModelServiceUtils {
             Task task = page.createSimpleTask(subResult.getOperation());
             List<C> list;
             if (AuditEventRecordType.class.equals(type)) {
-                // TODO: This goes around any authorization, is it what we want? If yes, delete this TODO, please. :-)
-                list = (List<C>) page.getAuditService().searchObjects(query, options, subResult);
+                list = (List<C>) page.getModelAuditService().searchObjects(query, options, task, subResult);
             } else {
                 list = page.getModelService().searchContainers(type, query, options, task, subResult);
             }
@@ -515,8 +514,7 @@ public class WebModelServiceUtils {
         int count = 0;
         try {
             if (AuditEventRecordType.class.equals(type)) {
-                // TODO: This goes around any authorization, is it what we want? If yes, delete this TODO, please. :-)
-                count = page.getAuditService().countObjects(query, options, parentResult);
+                count = page.getModelAuditService().countObjects(query, options, task, parentResult);
             } else {
                 count = page.getModelService().countContainers(type, query, options, task, parentResult);
             }

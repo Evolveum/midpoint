@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -43,6 +45,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
     private static final String ID_DETAILS = "details";
 
     private boolean isAddDefaultPanel = true;
+    private ContainerPanelConfigurationType config;
 
     public MultivalueContainerDetailsPanel(String id, IModel<PrismContainerValueWrapper<C>> model) {
         super(id, model);
@@ -51,6 +54,12 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
     public MultivalueContainerDetailsPanel(String id, IModel<PrismContainerValueWrapper<C>> model, boolean addDefaultPanel) {
         super(id, model);
         this.isAddDefaultPanel = addDefaultPanel;
+    }
+
+    public MultivalueContainerDetailsPanel(String id, IModel<PrismContainerValueWrapper<C>> model, boolean addDefaultPanel, ContainerPanelConfigurationType config) {
+        super(id, model);
+        this.isAddDefaultPanel = addDefaultPanel;
+        this.config = config;
     }
 
     @Override
@@ -106,6 +115,9 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
 
         if (getMandatoryHandler() != null) {
             builder.mandatoryHandler(getMandatoryHandler());
+        }
+        if (config != null) {
+            builder.panelConfiguration(config);
         }
 
         ItemPanelSettings settings = builder.build();

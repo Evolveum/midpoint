@@ -91,6 +91,9 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
     }
 
     private List<CompositedIconButtonDto> newButtonDescription() {
+        if (getModelObject() == null) {
+            return null;
+        }
         List<AssignmentObjectRelation> relations = getModelObject().getAssignmentObjectRelation();
         if (relations == null) {
             return null;
@@ -183,7 +186,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                     }
                 };
         form.add(newObjectIcon);
-        newObjectIcon.add(new VisibleBehaviour(() -> getModelObject().isSelectionVisible()));
+        newObjectIcon.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isSelectionVisible()));
 
         addOrReplaceTabPanels(form, null);
 

@@ -36,7 +36,7 @@
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
-                <!--<monitoring>-->
+                <!--<reporting>-->
                 <!--    <tracing>-->
                 <!--        <interval>1</interval>-->
                 <!--        <tracingProfile>-->
@@ -54,7 +54,7 @@
                 <!--            </tracingTypeProfile>-->
                 <!--        </tracingProfile>-->
                 <!--    </tracing>-->
-                <!--</monitoring>-->
+                <!--</reporting>-->
             </change>
             <change>
                 <reference>resourceObjects</reference>

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 
 import org.springframework.stereotype.Component;
@@ -43,7 +44,6 @@ public class NoEmptyValueContainerWrapperFactoryImpl<C extends Containerable> ex
     protected PrismContainerValue<C> createNewValue(PrismContainer<C> item) {
         throw new UnsupportedOperationException("New value for multi-value container should not be created while creating wrappers.");
     }
-
 
     @Override
     protected boolean shouldCreateEmptyValue(PrismContainer<C> item, WrapperContext context) {

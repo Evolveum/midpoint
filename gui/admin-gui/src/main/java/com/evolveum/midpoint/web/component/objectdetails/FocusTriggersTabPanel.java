@@ -12,12 +12,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -42,8 +38,8 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
 
     private static final String ID_TRIGGERS_PANEL = "triggersPanel";
 
-    public FocusTriggersTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel){
-        super(id, mainForm, focusModel);
+    public FocusTriggersTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel){
+        super(id, focusModel);
     }
 
     @Override

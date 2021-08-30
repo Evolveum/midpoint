@@ -76,7 +76,7 @@ public class ExportActivitySupport extends ReportActivitySupport {
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result) throws CommonException {
         if (AuditEventRecordType.class.equals(type)) {
-            @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+            @NotNull SearchResultList<AuditEventRecordType> auditRecords = modelAuditService.searchObjects(query, options, runningTask, result);
             return Objects.requireNonNullElse(auditRecords.getList(), Collections.emptyList());
         } else if (ObjectType.class.isAssignableFrom(type)) {
             Class<? extends ObjectType> objectType = type.asSubclass(ObjectType.class);
@@ -99,7 +99,7 @@ public class ExportActivitySupport extends ReportActivitySupport {
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result) throws CommonException {
         if (AuditEventRecordType.class.equals(type)) {
-            return auditService.countObjects(query, options, result);
+            return modelAuditService.countObjects(query, options, runningTask, result);
         } else if (ObjectType.class.isAssignableFrom(type)) {
             Class<? extends ObjectType> objectType = type.asSubclass(ObjectType.class);
             return modelService.countObjects(objectType, query, options, runningTask, result);

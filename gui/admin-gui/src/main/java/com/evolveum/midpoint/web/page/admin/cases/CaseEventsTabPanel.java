@@ -31,7 +31,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
@@ -47,8 +46,8 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
     private static final String ID_EVENTS_PANEL = "caseEventsPanel";
 
-    public CaseEventsTabPanel(String id, MidpointForm<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
-        super(id, mainForm, objectWrapperModel);
+    public CaseEventsTabPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
+        super(id, objectWrapperModel);
     }
 
     @Override

@@ -23,16 +23,13 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.*;
-
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-
-import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.apache.wicket.*;
@@ -54,6 +51,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -111,18 +109,21 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskResolver;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -138,7 +139,6 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -150,11 +150,13 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
+import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
@@ -165,7 +167,6 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
@@ -783,8 +784,7 @@ public final class WebComponentUtil {
             return archetypeRef;
         }
         for (AssignmentType assignment : assignmentHolder.getAssignment()) {
-            if (StringUtils.isNotEmpty(assignment.getTargetRef().getOid())
-                    && assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+            if (isArchetypeAssignment(assignment)) {
                 archetypeRef = assignment.getTargetRef();
             }
         }
@@ -797,13 +797,6 @@ public final class WebComponentUtil {
             return archetypeRef.getOid();
         }
         return null;
-    }
-
-    public static void iterativeExecuteBulkAction(PageBase pageBase, ExecuteScriptType script, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-
-        pageBase.getScriptingService().evaluateIterativeExpressionInBackground(script, task, result);
     }
 
     public static boolean isAuthorized(String... action) {
@@ -1575,6 +1568,49 @@ public final class WebComponentUtil {
         }
     }
 
+    public static void encryptCredentials(ObjectDelta delta, boolean encrypt, ModelServiceLocator serviceLocator) {
+        if (delta == null || delta.isEmpty()) {
+            return;
+        }
+
+        PropertyDelta propertyDelta = delta.findPropertyDelta(SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE);
+        if (propertyDelta == null) {
+            return;
+        }
+
+        Collection<PrismPropertyValue<ProtectedStringType>> values = propertyDelta
+                .getValues(ProtectedStringType.class);
+        for (PrismPropertyValue<ProtectedStringType> value : values) {
+            ProtectedStringType string = value.getValue();
+            encryptProtectedString(string, encrypt, serviceLocator);
+        }
+    }
+
+    public static void encryptProtectedString(ProtectedStringType string, boolean encrypt,
+            ModelServiceLocator serviceLocator) {
+        if (string == null) {
+            return;
+        }
+        Protector protector = serviceLocator.getPrismContext().getDefaultProtector();
+        try {
+            if (encrypt) {
+                if (StringUtils.isEmpty(string.getClearValue())) {
+                    return;
+                }
+                protector.encrypt(string);
+            } else {
+                if (string.getEncryptedDataType() == null) {
+                    return;
+                }
+                protector.decrypt(string);
+            }
+        } catch (EncryptionException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't encrypt protected string", ex);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't encrypt/decrypt protected string", e);
+        }
+    }
+
     public static void encryptCredentials(PrismObject object, boolean encrypt, MidPointApplication app) {
         PrismContainer password = object.findContainer(SchemaConstants.PATH_CREDENTIALS_PASSWORD);
         if (password == null) {
@@ -1590,6 +1626,23 @@ public final class WebComponentUtil {
                 .getRealValue(ProtectedStringType.class);
 
         encryptProtectedString(string, encrypt, app);
+    }
+
+    public static void encryptCredentials(PrismObject object, boolean encrypt, ModelServiceLocator serviceLocator) {
+        PrismContainer password = object.findContainer(SchemaConstants.PATH_CREDENTIALS_PASSWORD);
+        if (password == null) {
+            return;
+        }
+        PrismProperty protectedStringProperty = password.findProperty(PasswordType.F_VALUE);
+        if (protectedStringProperty == null
+                || protectedStringProperty.getRealValue(ProtectedStringType.class) == null) {
+            return;
+        }
+
+        ProtectedStringType string = (ProtectedStringType) protectedStringProperty
+                .getRealValue(ProtectedStringType.class);
+
+        encryptProtectedString(string, encrypt, serviceLocator);
     }
 
     public static void encryptProtectedString(ProtectedStringType string, boolean encrypt,
@@ -4870,6 +4923,10 @@ public final class WebComponentUtil {
     }
 
     public static String countLinkFroNonDeadShadows(Collection<ObjectReferenceType> refs) {
+        return Integer.toString(countLinkForNonDeadShadows(refs));
+    }
+
+    public static int countLinkForNonDeadShadows(Collection<ObjectReferenceType> refs) {
         int count = 0;
         for (ObjectReferenceType ref : refs) {
             if (QNameUtil.match(ref.getRelation(), SchemaConstants.ORG_RELATED)) {
@@ -4877,7 +4934,7 @@ public final class WebComponentUtil {
             }
             count++;
         }
-        return Integer.toString(count);
+        return count;
     }
 
     public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
@@ -5017,5 +5074,33 @@ public final class WebComponentUtil {
 
             return target + "(" + strength + ")";
         });
+    }
+
+    //TODO
+    public static <T extends ObjectType> Panel createPanel(Class<? extends Panel> panelClass, String markupId, ObjectDetailsModels<T> objectDetailsModels, ContainerPanelConfigurationType panelConfig) {
+        if (panelClass == null) {
+            return null;
+        }
+
+        if (AbstractAssignmentTypePanel.class.isAssignableFrom(panelClass)) {
+            try {
+                Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
+                panel.setOutputMarkupId(true);
+                return panel;
+            } catch (Throwable e) {
+                e.printStackTrace();
+                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
+            }
+        }
+
+        try {
+            Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels, panelConfig);
+            panel.setOutputMarkupId(true);
+            return panel;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
+        }
+        return null;
     }
 }

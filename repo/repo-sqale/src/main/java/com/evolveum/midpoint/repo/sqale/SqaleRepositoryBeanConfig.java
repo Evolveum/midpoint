@@ -13,12 +13,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
+import com.evolveum.midpoint.audit.api.AuditServiceFactory;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaignMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinitionMapping;
@@ -89,10 +90,8 @@ public class SqaleRepositoryBeanConfig {
 
     @Bean
     public SqaleRepositoryConfiguration sqaleRepositoryConfiguration(
-            Environment env,
             MidpointConfiguration midpointConfiguration) {
-
-        return new SqaleRepositoryConfiguration(env,
+        return new SqaleRepositoryConfiguration(
                 midpointConfiguration.getConfiguration(
                         MidpointConfiguration.REPOSITORY_CONFIGURATION));
     }
@@ -202,6 +201,19 @@ public class SqaleRepositoryBeanConfig {
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         return new SqaleRepositoryService(
                 sqlRepoContext,
+                sqlPerformanceMonitorsCollection);
+    }
+
+    @Bean
+    public AuditServiceFactory sqlAuditServiceFactory(
+            SqaleRepositoryConfiguration sqaleRepositoryConfiguration,
+            SchemaService schemaService,
+            DataSource dataSource,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
+        return new SqaleAuditServiceFactory(
+                sqaleRepositoryConfiguration,
+                schemaService,
+                dataSource,
                 sqlPerformanceMonitorsCollection);
     }
 

@@ -22,66 +22,39 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class VirtualContainersSpecificationFinder<RA> {
+public class VirtualContainersSpecificationFinder<RA> extends UserInterfaceFeatureFinder<VirtualContainerSpecificationAsserter<VirtualContainersSpecificationAsserter<RA>>, VirtualContainersSpecificationType> {
 
     private VirtualContainersSpecificationAsserter<RA> virtualContainersAsserter;
-    private String identifier;
-    private String displayName;
 
     public VirtualContainersSpecificationFinder(VirtualContainersSpecificationAsserter<RA> virtualContainersAsserter) {
         this.virtualContainersAsserter = virtualContainersAsserter;
     }
 
+    @Override
     public VirtualContainersSpecificationFinder<RA> identifier(String identifier) {
-        this.identifier = identifier;
+        super.identifier(identifier);
         return this;
     }
 
+    @Override
     public VirtualContainersSpecificationFinder<RA> displayName(String displayName) {
-        this.displayName = displayName;
+        super.displayName(displayName);
         return this;
     }
 
+    @Override
     public VirtualContainerSpecificationAsserter<VirtualContainersSpecificationAsserter<RA>> find() {
-        Predicate<VirtualContainersSpecificationType> filter = vc -> {
-            if (identifier != null) {
-                if (!identifier.equals(vc.getIdentifier())) {
-                    return false;
-                }
-            }
-
-            if (displayName != null) {
-                if (!PrismTestUtil.createPolyString(displayName).equalsOriginalValue(getLabel(vc))) {
-                    return false;
-                }
-            }
-            return true;
-        };
-        return find(filter);
-
+        return super.find();
     }
 
-    private VirtualContainerSpecificationAsserter<VirtualContainersSpecificationAsserter<RA>> find(Predicate<VirtualContainersSpecificationType> filter) {
+    @Override
+    protected VirtualContainerSpecificationAsserter<VirtualContainersSpecificationAsserter<RA>> find(Predicate<VirtualContainersSpecificationType> filter) {
         List<VirtualContainersSpecificationType> foundVirtualContainers = virtualContainersAsserter.getVirtualContainers()
                 .stream()
                 .filter(filter)
                 .collect(Collectors.toList());
         Assertions.assertThat(foundVirtualContainers).hasSize(1);
         return new VirtualContainerSpecificationAsserter<>(foundVirtualContainers.iterator().next(), virtualContainersAsserter, "from list of virtual containers " + virtualContainersAsserter.getVirtualContainers());
-    }
-
-    private PolyString getLabel(VirtualContainersSpecificationType container) {
-        DisplayType display = container.getDisplay();
-        if (display == null) {
-            return null;
-        }
-
-        PolyStringType label = display.getLabel();
-        if (label == null) {
-            return null;
-        }
-
-        return label.toPolyString();
     }
 
 }

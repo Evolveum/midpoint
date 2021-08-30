@@ -1195,12 +1195,16 @@ public interface MidpointFunctions {
     /**
      * Assumes single archetype. May throw error if used on object that has more than one archetype.
      */
+    @Deprecated
     <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException;
+    <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException;
 
     /**
      * Assumes single archetype. May throw error if used on object that has more than one archetype.
      */
+    @Deprecated
     <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException;
+    <O extends ObjectType> List<String> getArchetypeOids(O object) throws SchemaException, ConfigurationException;
 
     default <O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {

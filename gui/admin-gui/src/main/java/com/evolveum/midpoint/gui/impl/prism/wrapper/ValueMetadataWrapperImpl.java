@@ -420,6 +420,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier) {
+        return null;
+    }
+
+    @Override
     public <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException {
         return metadataValueWrapper.findProperty(propertyPath);
     }
@@ -442,6 +447,16 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public PrismContainerWrapper<? extends Containerable> getSelectedChild() {
         return metadataValueWrapper.getSelectedChild();
+    }
+
+    @Override
+    public void setIdentifier(String identifier) {
+
+    }
+
+    @Override
+    public String getIdentifier() {
+        return null;
     }
 
     @Override

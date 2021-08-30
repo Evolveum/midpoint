@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.web.component.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -195,6 +197,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         AssignmentHolderTypeMainPanel mainPanel = findParent(AssignmentHolderTypeMainPanel.class);
         if (mainPanel != null) {
             return mainPanel.getObjectWrapper().getObject();
+        }
+        PageBase pageBase = getPageBase();
+        if (pageBase != null && pageBase instanceof PageUser) {
+            PageUser pageUser = (PageUser) pageBase;
+            return (PrismObject<AH>) pageUser.getPrismObject();
         }
         return null;
     }

@@ -103,4 +103,7 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
         return pageBase.createItemWrapper(i, ItemStatus.NOT_CHANGED, new WrapperContext(task, task.getResult()));
     }
 
+    public IModel<?> getParent() {
+        return parent;
+    }
 }

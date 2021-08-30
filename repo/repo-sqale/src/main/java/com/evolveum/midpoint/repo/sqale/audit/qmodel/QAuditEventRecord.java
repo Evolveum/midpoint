@@ -35,7 +35,7 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public static final ColumnMetadata ID =
             ColumnMetadata.named("id").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata TIMESTAMP =
-            ColumnMetadata.named("timestampValue").ofType(Types.TIMESTAMP_WITH_TIMEZONE).notNull();
+            ColumnMetadata.named("timestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE).notNull();
     public static final ColumnMetadata EVENT_IDENTIFIER =
             ColumnMetadata.named("eventIdentifier").ofType(Types.VARCHAR);
     public static final ColumnMetadata EVENT_TYPE =
@@ -91,7 +91,7 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     // TODO String[] changedItemPaths;
     // TODO UUID[] resourceOids;
     // TODO Jsonb properties;
-    // TODO Jsonb customColumnProperties;
+    // TODO Jsonb ext;
 
     // columns and relations
     public final NumberPath<Long> id = createLong("id", ID);

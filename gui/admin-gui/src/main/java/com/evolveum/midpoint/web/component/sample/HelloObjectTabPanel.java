@@ -27,8 +27,8 @@ public class HelloObjectTabPanel<F extends FocusType> extends AbstractObjectTabP
 
     private static final String ID_HELLO_LABEL = "helloLabel";
 
-    public HelloObjectTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
-        super(id, mainForm, focusModel);
+    public HelloObjectTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+        super(id, focusModel);
 
     }
 

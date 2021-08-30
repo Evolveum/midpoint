@@ -13,7 +13,7 @@
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="7384756g-2545-4123-96ed-8aabda7c3710"
+      oid="7384756f-2545-4123-96ed-8aabda7c3710"
       version="11">
    <name>Metarole Monkey,Donkey</name>
    <inducement id="4">

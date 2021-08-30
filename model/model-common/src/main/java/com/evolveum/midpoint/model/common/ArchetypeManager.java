@@ -8,27 +8,28 @@ package com.evolveum.midpoint.model.common;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cache;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.Cache;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -64,6 +65,7 @@ public class ArchetypeManager implements Cache {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private PrismContext prismContext;
     @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
     private final Map<String, ArchetypePolicyType> archetypePolicyCache = new ConcurrentHashMap<>();
 
@@ -114,6 +116,27 @@ public class ArchetypeManager implements Cache {
         return archetypeRefs.get(0);
     }
 
+    public <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder) throws SchemaException {
+        if (assignmentHolder == null) {
+            return null;
+        }
+        if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
+            return null;
+        }
+
+        List<ObjectReferenceType> archetypeAssignmentsRefs = determineArchetypesFromAssignments(assignmentHolder.asObjectable());
+
+        List<ObjectReferenceType> archetypeRefs = new ArrayList<>(assignmentHolder.asObjectable().getArchetypeRef());
+
+        for (ObjectReferenceType archetypeAssignmentRef : archetypeAssignmentsRefs) {
+            if (archetypeRefs.contains(archetypeAssignmentRef)) {
+                continue;
+            }
+            archetypeRefs.add(archetypeAssignmentRef);
+        }
+        return archetypeRefs;
+    }
+
     private <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypesFromAssignments(O assignmentHolder) {
         List<AssignmentType> assignments = assignmentHolder.getAssignment();
         return assignments.stream()
@@ -125,76 +148,78 @@ public class ArchetypeManager implements Cache {
                 .collect(Collectors.toList());
     }
 
-    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
-        return determineArchetype(assignmentHolder, null, result);
-    }
-
-    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, String explicitArchetypeOid, OperationResult result) throws SchemaException {
-        String archetypeOid;
-        if (explicitArchetypeOid != null) {
-            archetypeOid = explicitArchetypeOid;
-        } else {
-            ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder);
-            if (archetypeRef == null) {
-                return null;
-            }
-            archetypeOid = archetypeRef.getOid();
-        }
-
-        PrismObject<ArchetypeType> archetype;
-        try {
-            archetype = systemObjectCache.getArchetype(archetypeOid, result);
-        } catch (ObjectNotFoundException e) {
-            LOGGER.warn("Archetype {} for object {} cannot be found", archetypeOid, assignmentHolder);
+    public <O extends AssignmentHolderType> List<PrismObject<ArchetypeType>> determineArchetypes(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
+        List<PrismObject<ArchetypeType>> archetypes = new ArrayList<>();
+        List<ObjectReferenceType> archetypeRefs = determineArchetypeRefs(assignmentHolder);
+        if (archetypeRefs == null) {
             return null;
         }
-        return archetype;
+        for (ObjectReferenceType archetypeRef : archetypeRefs) {
+            try {
+                PrismObject<ArchetypeType> archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
+                archetypes.add(archetype);
+            } catch (ObjectNotFoundException e) {
+                LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
+            }
+        }
+        return archetypes;
+    }
+
+    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineStructuralArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
+        List<PrismObject<ArchetypeType>> archetypes = determineArchetypes(assignmentHolder, result);
+        return ArchetypeTypeUtil.getStructuralArchetype(archetypes);
     }
 
     public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-        return determineArchetypePolicy(object, null, result);
-    }
-
-    public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, String explicitArchetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
         if (object == null) {
             return null;
         }
 
-        PrismObject<ArchetypeType> archetype;
-        if (object.canRepresent(AssignmentHolderType.class)) {
-            //noinspection unchecked
-            archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
-        } else {
-            archetype = null;
-        }
-
-        if (archetype != null) {
-            ArchetypePolicyType cachedArchetypePolicy = archetypePolicyCache.get(archetype.getOid());
-            if (cachedArchetypePolicy != null) {
-                return cachedArchetypePolicy;
-            }
-        }
-
-        ArchetypePolicyType archetypePolicy = mergeArchetypePolicies(archetype, result);
-
+        ArchetypePolicyType archetypePolicyType = computeArchetypePolicy(object, result);
         // Try to find appropriate system configuration section for this object.
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
 
-        ArchetypePolicyType mergedPolicy = merge(archetypePolicy, objectPolicy);
-        if (archetype != null && mergedPolicy != null) {
-            // FIXME: ObjectPolicy  was determined on object type/subtype, but is cached as merged policy for whole
-            // archetype, investigate if this is correct
-            archetypePolicyCache.put(archetype.getOid(), mergedPolicy);
+        return merge(archetypePolicyType, objectPolicy);
+    }
+
+    private <O extends ObjectType> ArchetypePolicyType computeArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException {
+        @SuppressWarnings("unchecked") List<PrismObject<ArchetypeType>> archetypes = determineArchetypes((PrismObject<? extends AssignmentHolderType>) object, result);
+        if (archetypes == null) {
+            return null;
         }
-        return mergedPolicy;
+
+        PrismObject<ArchetypeType> structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
+
+        List<PrismObject<ArchetypeType>> auxiliaryArchetypes = archetypes.stream().filter(a -> a.asObjectable().getArchetypeType() != null && a.asObjectable().getArchetypeType() == ArchetypeTypeType.AUXILIARY).collect(Collectors.toList());
+        if (structuralArchetype == null && !auxiliaryArchetypes.isEmpty()) {
+            throw new SchemaException("Auxiliary archetype cannot be assigned without structural archetype");
+        }
+
+        ArchetypePolicyType mergedAuxiliaryArchetypePolicy = new ArchetypePolicyType(PrismContext.get());
+        for (PrismObject<ArchetypeType> auxiliaryArchetype : auxiliaryArchetypes) {
+            ArchetypePolicyType determinedAuxiliaryArchetypePolicy = mergeArchetypePolicies(auxiliaryArchetype, result);
+            //TODO colision detection
+            mergedAuxiliaryArchetypePolicy = mergeArchetypePolicies(mergedAuxiliaryArchetypePolicy, determinedAuxiliaryArchetypePolicy);
+        }
+
+        ArchetypePolicyType structuralArchetypePolicy = mergeArchetypePolicies(structuralArchetype, result);
+
+        return mergeArchetypePolicies(mergedAuxiliaryArchetypePolicy, structuralArchetypePolicy);
     }
 
     public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException {
         if (archetype == null) {
             return null;
         }
-
-        return mergeArchetypePolicies(archetype.asObjectable(), result);
+        ArchetypePolicyType cachedArchetypePolicy = archetypePolicyCache.get(archetype.getOid());
+        if (cachedArchetypePolicy != null) {
+            return cachedArchetypePolicy;
+        }
+        ArchetypePolicyType mergedArchetypePolicy = mergeArchetypePolicies(archetype.asObjectable(), result);
+        if (mergedArchetypePolicy != null) {
+            archetypePolicyCache.put(archetype.getOid(), mergedArchetypePolicy);
+        }
+        return mergedArchetypePolicy;
     }
 
     private ArchetypePolicyType mergeArchetypePolicies(ArchetypeType archetypeType, OperationResult result) throws SchemaException {
@@ -214,6 +239,10 @@ public class ArchetypeManager implements Cache {
         ArchetypePolicyType superPolicy = mergeArchetypePolicies(superArchetype.asObjectable(), result);
         ArchetypePolicyType currentPolicy = archetypeType.getArchetypePolicy();
 
+        return mergeArchetypePolicies(superPolicy, currentPolicy);
+    }
+
+    private ArchetypePolicyType mergeArchetypePolicies(ArchetypePolicyType superPolicy, ArchetypePolicyType currentPolicy) {
         if (currentPolicy == null) {
             if (superPolicy == null) {
                 return null;
@@ -241,7 +270,7 @@ public class ArchetypeManager implements Cache {
         ConflictResolutionType mergedConflictResolutionType = mergeConflictResolution(currentPolicy, superPolicy);
         mergedPolicy.setConflictResolution(mergedConflictResolutionType);
 
-        DisplayType mergedDisplayType = mergeDisplayType(currentPolicy.getDisplay(), superPolicy.getDisplay());
+        DisplayType mergedDisplayType = adminGuiConfigurationMergeManager.mergeDisplayType(currentPolicy.getDisplay(), superPolicy.getDisplay());
         mergedPolicy.setDisplay(mergedDisplayType);
 
 
@@ -306,112 +335,11 @@ public class ArchetypeManager implements Cache {
             return currentObjectDetails.clone();
         }
 
-        GuiObjectDetailsPageType mergedObjectDetails = currentObjectDetails.clone();
-        List<VirtualContainersSpecificationType> mergedVirtualContainers = mergeVirtualContainers(currentObjectDetails, superObjectDetails);
-        mergedObjectDetails.getContainer().clear();
-        mergedObjectDetails.getContainer().addAll(mergedVirtualContainers);
+        GuiObjectDetailsPageType mergedObjectDetails = superObjectDetails.clone();
+        adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(mergedObjectDetails, currentObjectDetails);
         //TODO save method, objectForm, relations
 
         return mergedObjectDetails;
-    }
-
-    private <C extends Containerable> List<C> mergeContainers(List<C> currentContainers, List<C> superContainers, Function<C, Predicate<C>> predicate, BiFunction<C, C, C> mergeFunction) {
-        if (currentContainers.isEmpty()) {
-            if (superContainers.isEmpty()) {
-                return Collections.emptyList();
-            }
-            return superContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
-        }
-
-        if (superContainers.isEmpty()) {
-            return currentContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
-        }
-
-        List<C> mergedContainers = new ArrayList<>();
-        for (C superContainer : superContainers) {
-            C matchedContainer = find(predicate.apply(superContainer), currentContainers);
-            if (matchedContainer != null) {
-                C mergedContainer = mergeFunction.apply(matchedContainer, superContainer);
-                mergedContainers.add(mergedContainer);
-            } else {
-                mergedContainers.add(cloneComplex(superContainer));
-            }
-        }
-
-        for (C currentContainer : currentContainers) {
-            if (!findAny(predicate.apply(currentContainer), mergedContainers)) {
-                mergedContainers.add(cloneComplex(currentContainer));
-            }
-        }
-
-        return mergedContainers;
-    }
-
-    private List<VirtualContainersSpecificationType> mergeVirtualContainers(GuiObjectDetailsPageType currentObjectDetails, GuiObjectDetailsPageType superObjectDetails) {
-        return mergeContainers(currentObjectDetails.getContainer(), superObjectDetails.getContainer(),
-                this::createVirtualContainersPredicate, this::mergeVirtualContainer);
-    }
-
-
-    private Predicate<VirtualContainersSpecificationType> createVirtualContainersPredicate(VirtualContainersSpecificationType superContainer) {
-        return c -> identifiersMatch(c.getIdentifier(), superContainer.getIdentifier());
-    }
-
-    private <C extends Containerable> C find(Predicate<C> predicate, List<C> currentContainers) {
-        List<C> matchedContainers = currentContainers.stream()
-                .filter(predicate)
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isEmpty(matchedContainers)) {
-            return null;
-        }
-
-        if (matchedContainers.size() > 1) {
-            throw new IllegalStateException("Cannot merge virtual containers. More containers with same identifier specified.");
-        }
-
-        return matchedContainers.iterator().next();
-    }
-
-    private <C extends Containerable> boolean findAny(Predicate<C> predicate, List<C> mergedContainers) {
-        return mergedContainers.stream().anyMatch(predicate);
-    }
-
-
-    private boolean identifiersMatch(String id1, String id2) {
-        return id1 != null && id1.equals(id2);
-    }
-
-    private VirtualContainersSpecificationType mergeVirtualContainer(VirtualContainersSpecificationType currentContainer, VirtualContainersSpecificationType superContainer) {
-        VirtualContainersSpecificationType mergedContainer = currentContainer.clone();
-        if (currentContainer.getDescription() == null) {
-            mergedContainer.setDescription(superContainer.getDescription());
-        }
-
-        DisplayType mergedDisplayType = mergeDisplayType(currentContainer.getDisplay(), superContainer.getDisplay());
-        mergedContainer.setDisplay(mergedDisplayType);
-
-        if (currentContainer.getDisplayOrder() == null) {
-            mergedContainer.setDisplayOrder(superContainer.getDisplayOrder());
-        }
-
-        if (currentContainer.getVisibility() == null) {
-            mergedContainer.setVisibility(superContainer.getVisibility());
-        }
-
-        for (VirtualContainerItemSpecificationType virtualItem : superContainer.getItem()) {
-            if (currentContainer.getItem().stream().noneMatch(i -> pathsMatch(i.getPath(), virtualItem.getPath()))) {
-                mergedContainer.getItem().add(cloneComplex(virtualItem));
-            }
-        }
-
-        return mergedContainer;
-    }
-
-    private <C extends Containerable> C cloneComplex(C containerable) {
-        //noinspection unchecked
-        PrismContainerValue<C> pcv = containerable.asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
-        return pcv.asContainerable();
     }
 
     private ApplicablePoliciesType mergeApplicablePolicies(ArchetypePolicyType currentPolicy, ArchetypePolicyType superPolicy) {
@@ -470,87 +398,8 @@ public class ArchetypeManager implements Cache {
         return mergedConflictResolution;
     }
 
-    private DisplayType mergeDisplayType(DisplayType currentDisplayType, DisplayType superDisplayType) {
-        if (currentDisplayType == null) {
-            if (superDisplayType == null) {
-                return null;
-            }
-            return superDisplayType.clone();
-        }
-
-        if (superDisplayType == null) {
-            return currentDisplayType.clone();
-        }
-
-        DisplayType mergedDisplayType = currentDisplayType.clone();
-        if (currentDisplayType.getLabel() == null) {
-            mergedDisplayType.setLabel(superDisplayType.getLabel());
-        }
-
-        if (currentDisplayType.getColor() == null) {
-            mergedDisplayType.setColor(superDisplayType.getColor());
-        }
-
-        if (currentDisplayType.getCssClass() == null) {
-            mergedDisplayType.setCssClass(superDisplayType.getCssClass());
-        }
-
-        if (currentDisplayType.getCssStyle() == null) {
-            mergedDisplayType.setCssStyle(superDisplayType.getCssStyle());
-        }
-
-        if (currentDisplayType.getHelp() == null) {
-            mergedDisplayType.setHelp(superDisplayType.getHelp());
-        }
-
-        IconType mergedIcon = mergeIcon(currentDisplayType.getIcon(), superDisplayType.getIcon());
-        mergedDisplayType.setIcon(mergedIcon);
-
-        if (currentDisplayType.getPluralLabel() == null) {
-            mergedDisplayType.setPluralLabel(superDisplayType.getPluralLabel());
-        }
-
-        if (currentDisplayType.getSingularLabel() == null) {
-            mergedDisplayType.setSingularLabel(superDisplayType.getSingularLabel());
-        }
-
-        if (currentDisplayType.getTooltip() == null) {
-            mergedDisplayType.setTooltip(superDisplayType.getTooltip());
-        }
-
-        return mergedDisplayType;
-    }
-
-    private IconType mergeIcon(IconType currentIcon, IconType superIcon) {
-        if (currentIcon == null) {
-            if (superIcon == null) {
-                return null;
-            }
-            return superIcon.clone();
-        }
-
-        if (superIcon == null) {
-            return currentIcon.clone();
-        }
-
-        IconType mergedIcon = currentIcon.clone();
-        if (currentIcon.getCssClass() == null) {
-            mergedIcon.setCssClass(superIcon.getCssClass());
-        }
-
-        if (currentIcon.getColor() == null) {
-            mergedIcon.setColor(superIcon.getColor());
-        }
-
-        if (currentIcon.getImageUrl() == null) {
-            mergedIcon.setImageUrl(superIcon.getImageUrl());
-        }
-
-        return mergedIcon;
-    }
-
     private List<ItemConstraintType> mergeItemConstraints(List<ItemConstraintType> currentConstraints, List<ItemConstraintType> superConstraints) {
-        return mergeContainers(currentConstraints, superConstraints,
+        return adminGuiConfigurationMergeManager.mergeContainers(currentConstraints, superConstraints,
                 this::createItemConstraintPredicate,
                 this::mergeItemConstraint);
     }
@@ -592,7 +441,7 @@ public class ArchetypeManager implements Cache {
     }
 
     private List<LifecycleStateType> mergeLifecycleState(List<LifecycleStateType> currentState, List<LifecycleStateType> superLifecycleStates) {
-        return mergeContainers(currentState, superLifecycleStates,
+        return adminGuiConfigurationMergeManager.mergeContainers(currentState, superLifecycleStates,
                 this::createLifecycleStatePredicate,
                 this::mergeLifecycleState);
     }
@@ -666,7 +515,7 @@ public class ArchetypeManager implements Cache {
     }
 
     private List<LifecycleStateActionType> mergeEntryAction(List<LifecycleStateActionType> currentActions, List<LifecycleStateActionType> superActions) {
-        return mergeContainers(currentActions, superActions,
+        return adminGuiConfigurationMergeManager.mergeContainers(currentActions, superActions,
                 this::createLifecycleStateActionPredicate,
                 this::mergeAction);
     }
@@ -853,5 +702,9 @@ public class ArchetypeManager implements Cache {
         if (LOGGER_CONTENT.isInfoEnabled()) {
             archetypePolicyCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached archetype policy: {}: {}", k, v));
         }
+    }
+
+    private <C extends Containerable> C cloneComplex(C containerable) {
+        return containerable.cloneWithoutId();
     }
 }

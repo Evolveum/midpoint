@@ -1637,13 +1637,13 @@ CREATE TABLE m_trigger (
     containerType ContainerType GENERATED ALWAYS AS ('TRIGGER') STORED
         CHECK (containerType = 'TRIGGER'),
     handlerUriId INTEGER REFERENCES m_uri(id),
-    timestampValue TIMESTAMPTZ,
+    timestamp TIMESTAMPTZ,
 
     PRIMARY KEY (ownerOid, cid)
 )
     INHERITS(m_container);
 
-CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
+CREATE INDEX m_trigger_timestamp_idx ON m_trigger (timestamp);
 
 -- stores ObjectType/operationExecution (OperationExecutionType)
 CREATE TABLE m_operation_execution (
@@ -1658,7 +1658,7 @@ CREATE TABLE m_operation_execution (
     taskRefTargetOid UUID,
     taskRefTargetType ObjectType,
     taskRefRelationId INTEGER REFERENCES m_uri(id),
-    timestampValue TIMESTAMPTZ,
+    timestamp TIMESTAMPTZ,
 
     PRIMARY KEY (ownerOid, cid)
 )
@@ -1668,7 +1668,7 @@ CREATE INDEX m_operation_execution_initiatorRefTargetOid_idx
     ON m_operation_execution (initiatorRefTargetOid);
 CREATE INDEX m_operation_execution_taskRefTargetOid_idx
     ON m_operation_execution (taskRefTargetOid);
-CREATE INDEX m_operation_execution_timestampValue_idx ON m_operation_execution (timestampValue);
+CREATE INDEX m_operation_execution_timestamp_idx ON m_operation_execution (timestamp);
 -- index for ownerOid is part of PK
 -- TODO: index for status is questionable, don't we want WHERE status = ... to another index instead?
 -- endregion

@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.repo.common.activity.state.ActivityItemProce
 import java.util.Locale;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -21,7 +22,6 @@ import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskLoggingOptionType;
 
 /**
  * Logs reasonable information on item and bucket completion, with a level of detail driven by logging option set.
@@ -102,12 +102,12 @@ class StatisticsLogger {
         log(ActivityReportingOptions::getItemCompletionLogging, mainMessage, mainMessageAddition, fullStats);
     }
 
-    private void log(Function<ActivityReportingOptions, TaskLoggingOptionType> loggingExtractor, String mainMessage,
-            String mainMessageAddition, String fullStats) {
-        TaskLoggingOptionType logging = loggingExtractor.apply(activityExecution.getReportingOptions());
-        if (logging == TaskLoggingOptionType.FULL) {
+    private void log(Function<ActivityReportingOptions, ActivityEventLoggingOptionType> loggingExtractor, String mainMessage,
+                     String mainMessageAddition, String fullStats) {
+        ActivityEventLoggingOptionType logging = loggingExtractor.apply(activityExecution.getReportingOptions());
+        if (logging == ActivityEventLoggingOptionType.FULL) {
             LOGGER.info("{}\n\n{}", mainMessage, fullStats);
-        } else if (logging == TaskLoggingOptionType.BRIEF) {
+        } else if (logging == ActivityEventLoggingOptionType.BRIEF) {
             LOGGER.info("{}{}", mainMessage, mainMessageAddition);
             LOGGER.debug("{}", fullStats);
         } else {

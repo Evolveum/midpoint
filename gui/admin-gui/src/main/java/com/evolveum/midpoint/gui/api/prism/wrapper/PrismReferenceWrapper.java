@@ -31,4 +31,6 @@ public interface PrismReferenceWrapper<R extends Referencable> extends ItemWrapp
 
     Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions();
     void setSpecialSearchItemFunctions(Set<Function<Search, SearchItem>> specialItems);
+
+    boolean isOnlyForDeltaComputation();
 }

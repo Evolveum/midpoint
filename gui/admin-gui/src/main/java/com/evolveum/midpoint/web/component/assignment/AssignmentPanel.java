@@ -13,12 +13,16 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.search.Search;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -88,7 +92,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentType>> {
+//@PanelType(name = "allAssignments")
+//@PanelInstance(identifier = "allAssignments",
+//        applicableFor = AssignmentHolderType.class,
+//        childOf = AssignmentHolderAssignmentPanel.class)
+//@PanelDisplay(label = "All", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 10)
+public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<PrismContainerWrapper<AssignmentType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -103,8 +112,20 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
     protected int assignmentsRequestsLimit = -1;
 
+    private ContainerPanelConfigurationType config;
+
     public AssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
         super(id, assignmentContainerWrapperModel);
+    }
+
+    public AssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, assignmentContainerWrapperModel);
+        this.config = config;
+    }
+
+    public AssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AssignmentHolderType.F_ASSIGNMENT));
+        this.config = config;
     }
 
     @Override
@@ -218,6 +239,34 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
                         super.refreshTable(ajaxRequestTarget);
                         AssignmentPanel.this.refreshTable(ajaxRequestTarget);
+                    }
+
+                    @Override
+                    protected boolean isCollectionViewPanel() {
+                        return config != null && config.getListView() !=null;
+                    }
+
+                    @Override
+                    protected CompiledObjectCollectionView getObjectCollectionView() {
+                        if (config == null) {
+                            return super.getObjectCollectionView();
+                        }
+                        GuiObjectListViewType listView = config.getListView();
+                        if (listView == null) {
+                            return null;
+                        }
+                        CollectionRefSpecificationType collectionRefSpecificationType = listView.getCollection();
+                        if (collectionRefSpecificationType == null) {
+                            return null;
+                        }
+                        Task task = getPageBase().createSimpleTask("Compile collection");
+                        OperationResult result = task.getResult();
+                        try {
+                            return getPageBase().getModelInteractionService().compileObjectCollectionView(collectionRefSpecificationType, AssignmentType.class, task, result);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+                        return null;
                     }
                 };
         multivalueContainerListPanel.add(new VisibleBehaviour(() -> getModel() != null && getModelObject() != null));
@@ -652,7 +701,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         } else if (item.getModelObject().isReadOnly()) {
             item.getModelObject().setReadOnly(false, true);
         }
-        return new AssignmentsDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), isEntitlementAssignment());
+        return new AssignmentsDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), isEntitlementAssignment(), config);
     }
 
     private <AH extends FocusType> List<InlineMenuItem> getAssignmentMenuActions() {

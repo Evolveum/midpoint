@@ -55,11 +55,11 @@ public class TestScience  extends AbstractStoryTest {
     private static final String RESOURCE_OPENDJ_AD_SIMULATION_OID = "10000000-0000-0000-0000-0000000001ad";
 
     private static final File RESOURCE_DUMMY_STATS_FILE = new File(TEST_DIR, "resource-dummy-stats.xml");
-    private static final String RESOURCE_DUMMY_STATS_OID = "10000000-0000-0000-0000-0000000005sa";
+    private static final String RESOURCE_DUMMY_STATS_OID = "10000000-2000-0000-0000-0000000005aa";
     protected static final String RESOURCE_DUMMY_STATS_ID = "stats";
 
     private static final File RESOURCE_DUMMY_UNIX_FILE = new File(TEST_DIR, "resource-dummy-unix.xml");
-    private static final String RESOURCE_DUMMY_UNIX_OID = "10000000-0000-0000-0000-0000000004ax";
+    private static final String RESOURCE_DUMMY_UNIX_OID = "10000000-1000-0000-0000-0000000004a0";
     protected static final String RESOURCE_DUMMY_UNIX_ID = "unix";
 
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_UNIX_SHELL_NAME = "Shell";

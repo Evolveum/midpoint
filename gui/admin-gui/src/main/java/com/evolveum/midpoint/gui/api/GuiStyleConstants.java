@@ -238,4 +238,8 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ICON_SEARCH = "fa fa-search flip-icon";
 
+    public static final String CLASS_ICON_SAVE = "fa fa-save";
+    public static final String CLASS_ICON_PREVIEW = "fa fa-eye";
+    public static final String CLASS_ICON_REMOVE = "fa fa-remove";
+
 }

@@ -190,7 +190,7 @@ public class PageValuePolicy extends PageAdmin {
         tabs.add(new AbstractTab(createStringResource("PageValuePolicy.basic")) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new ValuePolicyBasicPanel(panelId,mainForm,valuePolicyModel);
+                return new ValuePolicyBasicPanel(panelId, valuePolicyModel);
             }
         });
 

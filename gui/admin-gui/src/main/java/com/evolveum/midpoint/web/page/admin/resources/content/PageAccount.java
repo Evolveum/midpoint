@@ -188,7 +188,7 @@ public class PageAccount extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ShadowDetailsTabPanel(panelId, form, (LoadableModel) accountModel);
+                return new ShadowDetailsTabPanel(panelId, (LoadableModel) accountModel);
             }
         });
 

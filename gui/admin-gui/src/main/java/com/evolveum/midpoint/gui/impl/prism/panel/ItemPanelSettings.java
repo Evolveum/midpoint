@@ -11,6 +11,7 @@ import java.io.Serializable;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 public class ItemPanelSettings implements Serializable {
 
@@ -18,6 +19,7 @@ public class ItemPanelSettings implements Serializable {
     private ItemEditabilityHandler editabilityHandler = wrapper -> true;
     private boolean headerVisible = true;
     private ItemMandatoryHandler mandatoryHandler;
+    private ContainerPanelConfigurationType config;
 
     ItemPanelSettings() {
 
@@ -53,6 +55,14 @@ public class ItemPanelSettings implements Serializable {
 
     public void setMandatoryHandler(ItemMandatoryHandler mandatoryHandler) {
         this.mandatoryHandler = mandatoryHandler;
+    }
+
+    public ContainerPanelConfigurationType getConfig() {
+        return config;
+    }
+
+    public void setConfig(ContainerPanelConfigurationType config) {
+        this.config = config;
     }
 
     public ItemPanelSettings copy() {

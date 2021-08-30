@@ -71,7 +71,7 @@ public class ImportActivityExecutionSpecifics
                 objectsFilter,
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_IMPORT,
-                activityExecution.isSimulate(),
+                activityExecution.isPreview(),
                 true);
     }
 

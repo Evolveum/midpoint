@@ -34,12 +34,12 @@
    </inducement>
    <inducement id="2">
       <construction>
-         <resourceRef oid="10000000-0000-0000-0000-0000000004ax" type="ResourceType"><!-- Resource Dummy Unix --></resourceRef>
+         <resourceRef oid="10000000-1000-0000-0000-0000000004a0" type="ResourceType"><!-- Resource Dummy Unix --></resourceRef>
       </construction>
    </inducement>
    <inducement id="3">
       <construction>
-         <resourceRef oid="10000000-0000-0000-0000-0000000005sa" type="ResourceType"><!-- Resource Dummy Stats --></resourceRef>
+         <resourceRef oid="10000000-2000-0000-0000-0000000005aa" type="ResourceType"><!-- Resource Dummy Stats --></resourceRef>
       </construction>
    </inducement>
 </role>

@@ -43,12 +43,10 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
     private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
 
     private final LoadableModel<PrismObjectWrapper<O>> objectWrapperModel;
-    private final MidpointForm<PrismObjectWrapper<O>> mainForm;
 
-    public AbstractObjectTabPanel(String id, MidpointForm<PrismObjectWrapper<O>> mainForm, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel) {
+    public AbstractObjectTabPanel(String id, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel) {
         super(id);
         this.objectWrapperModel = objectWrapperModel;
-        this.mainForm = mainForm;
     }
 
     public LoadableModel<PrismObjectWrapper<O>> getObjectWrapperModel() {
@@ -69,10 +67,6 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 
     public PageBase getPageBase() {
         return (PageBase) getPage();
-    }
-
-    public MidpointForm<PrismObjectWrapper<O>> getMainForm() {
-        return mainForm;
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {

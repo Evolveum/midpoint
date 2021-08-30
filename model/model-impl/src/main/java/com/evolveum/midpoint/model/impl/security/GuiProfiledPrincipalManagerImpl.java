@@ -14,6 +14,8 @@ import java.util.List;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

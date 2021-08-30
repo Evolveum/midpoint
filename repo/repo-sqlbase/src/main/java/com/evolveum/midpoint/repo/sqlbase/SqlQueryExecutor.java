@@ -66,9 +66,9 @@ public class SqlQueryExecutor {
         PageOf<Tuple> result;
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             result = context.executeQuery(jdbcSession);
+            PageOf<S> transformedResult = context.transformToSchemaType(result, jdbcSession);
+            return createSearchResultList(transformedResult);
         }
-
-        return createSearchResultList(context.transformToSchemaType(result));
     }
 
     @NotNull

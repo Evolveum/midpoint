@@ -10,10 +10,11 @@ package com.evolveum.midpoint.repo.common.task;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskLoggingOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskReportingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityReportingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -21,15 +22,15 @@ import org.jetbrains.annotations.NotNull;
  * Options that drive state, progress, and error reporting of a search-iterative task.
  * Factored out to provide better separation of concerns.
  *
- *
+ * TODO reconcile name with {@link ActivityReportingDefinition}
  * TODO finish
  */
 @Experimental
 public class ActivityReportingOptions implements Cloneable, Serializable {
 
     private boolean defaultDetermineExpectedTotal = true;
-    private TaskLoggingOptionType defaultBucketCompletionLogging = TaskLoggingOptionType.BRIEF;
-    private TaskLoggingOptionType defaultItemCompletionLogging = TaskLoggingOptionType.NONE;
+    private ActivityEventLoggingOptionType defaultBucketCompletionLogging = ActivityEventLoggingOptionType.BRIEF;
+    private ActivityEventLoggingOptionType defaultItemCompletionLogging = ActivityEventLoggingOptionType.NONE;
 
     private boolean persistentStatistics;
     private boolean enableSynchronizationStatistics;
@@ -52,7 +53,7 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
      * Actually when it is modified, only a single thread is executing. So maybe the use of {@link AtomicReference}
      * is a bit overkill.
      */
-    private final AtomicReference<TaskReportingOptionsType> instanceReportingOptions = new AtomicReference<>();
+    private final AtomicReference<ActivityReportingDefinitionType> instanceReportingOptions = new AtomicReference<>();
 
     public void setDefaultDetermineExpectedTotal(boolean value) {
         this.defaultDetermineExpectedTotal = value;
@@ -63,16 +64,16 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
         return this;
     }
 
-    public void setDefaultBucketCompletionLogging(TaskLoggingOptionType value) {
+    public void setDefaultBucketCompletionLogging(ActivityEventLoggingOptionType value) {
         this.defaultBucketCompletionLogging = value;
     }
 
-    public ActivityReportingOptions defaultBucketCompletionLogging(TaskLoggingOptionType value) {
+    public ActivityReportingOptions defaultBucketCompletionLogging(ActivityEventLoggingOptionType value) {
         setDefaultBucketCompletionLogging(value);
         return this;
     }
 
-    public void setDefaultItemCompletionLogging(TaskLoggingOptionType value) {
+    public void setDefaultItemCompletionLogging(ActivityEventLoggingOptionType value) {
         this.defaultItemCompletionLogging = value;
     }
 
@@ -141,12 +142,6 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
         return this;
     }
 
-    StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        // Note: All of these "new" tasks use structured progress.
-        return new StatisticsCollectionStrategy(!isPersistentStatistics(),
-                isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics(), true);
-    }
-
     public ActivityReportingOptions clone() {
         try {
             return (ActivityReportingOptions) super.clone();
@@ -155,15 +150,17 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
         }
     }
 
-    ActivityReportingOptions cloneWithConfiguration(TaskReportingOptionsType configuration) {
+    // TODO method name
+    ActivityReportingOptions cloneWithConfiguration(ActivityReportingDefinitionType configuration) {
         ActivityReportingOptions clone = clone();
         clone.applyConfiguration(configuration);
         return clone;
     }
 
-    private void applyConfiguration(TaskReportingOptionsType instanceOptions) {
+    // TODO method name
+    private void applyConfiguration(ActivityReportingDefinitionType instanceOptions) {
         if (instanceOptions != null) {
-            TaskReportingOptionsType instanceOptionsClone = instanceOptions.clone();
+            ActivityReportingDefinitionType instanceOptionsClone = instanceOptions.clone();
             instanceOptionsClone.asPrismContainerValue().freeze();
             instanceReportingOptions.set(instanceOptionsClone);
         } else {
@@ -180,8 +177,8 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
     }
 
     @NotNull
-    public TaskLoggingOptionType getBucketCompletionLogging() {
-        TaskReportingOptionsType options = instanceReportingOptions.get();
+    public ActivityEventLoggingOptionType getBucketCompletionLogging() {
+        ActivityReportingDefinitionType options = instanceReportingOptions.get();
         if (options != null && options.getLogging() != null && options.getLogging().getBucketCompletion() != null) {
             return options.getLogging().getBucketCompletion();
         } else {
@@ -190,8 +187,8 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
     }
 
     @NotNull
-    public TaskLoggingOptionType getItemCompletionLogging() {
-        TaskReportingOptionsType options = instanceReportingOptions.get();
+    public ActivityEventLoggingOptionType getItemCompletionLogging() {
+        ActivityReportingDefinitionType options = instanceReportingOptions.get();
         if (options != null && options.getLogging() != null && options.getLogging().getItemCompletion() != null) {
             return options.getLogging().getItemCompletion();
         } else {
@@ -200,7 +197,7 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
     }
 
     public boolean isDetermineExpectedTotal() {
-        TaskReportingOptionsType options = instanceReportingOptions.get();
+        ActivityReportingDefinitionType options = instanceReportingOptions.get();
         if (options != null && options.isDetermineExpectedTotal() != null) {
             return options.isDetermineExpectedTotal();
         } else {

@@ -14,7 +14,10 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
+
+import com.evolveum.midpoint.web.application.SimpleCounter;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -239,8 +242,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
 
-    @SpringBean(name = "auditService")
-    private AuditService auditService;
+    @SpringBean(name = "auditController")
+    private ModelAuditService modelAuditService;
 
     @SpringBean(name = "modelController")
     private WorkflowService workflowService;
@@ -285,10 +288,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private MidpointFunctions midpointFunctions;
 
     @SpringBean private GuiComponentRegistry registry;
+    @SpringBean private DefaultGuiConfigurationCompiler guiConfigurationRegistry;
 
     @SpringBean private CounterManager counterManager;
 
     @SpringBean private ClusterExecutionHelper clusterExecutionHelper;
+
+    @SpringBean private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -449,8 +455,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return reportManager;
     }
 
-    public AuditService getAuditService() {
-        return auditService;
+    public ModelAuditService getModelAuditService() {
+        return modelAuditService;
     }
 
     public AccessCertificationService getCertificationService() {
@@ -505,6 +511,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public CacheDispatcher getCacheDispatcher() {
         return cacheDispatcher;
+    }
+
+    public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
+        return adminGuiConfigurationMergeManager;
     }
 
     @NotNull
@@ -1861,5 +1871,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public ModelExecuteOptions executeOptions() {
         return ModelExecuteOptions.create(getPrismContext());
+    }
+
+    public Class<? extends Panel> findObjectPanel(String identifier) {
+        return guiConfigurationRegistry.findPanel(identifier);
+    }
+
+    public SimpleCounter getCounterProvider(String identifier) {
+        return guiConfigurationRegistry.findCounter(identifier);
     }
 }

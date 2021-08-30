@@ -14,8 +14,8 @@ import java.util.Objects;
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -25,13 +25,13 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordRefer
  * Mapping between {@link QAuditRefValue} and {@link AuditEventRecordReferenceType}.
  */
 public class QAuditRefValueMapping
-        extends QueryTableMapping<AuditEventRecordReferenceType, QAuditRefValue, MAuditRefValue> {
+        extends SqaleTableMapping<AuditEventRecordReferenceType, QAuditRefValue, MAuditRefValue> {
 
     public static final String DEFAULT_ALIAS_NAME = "aref";
 
     private static QAuditRefValueMapping instance;
 
-    public static QAuditRefValueMapping init(@NotNull SqlRepoContext repositoryContext) {
+    public static QAuditRefValueMapping init(@NotNull SqaleRepoContext repositoryContext) {
         instance = new QAuditRefValueMapping(repositoryContext);
         return instance;
     }
@@ -40,7 +40,7 @@ public class QAuditRefValueMapping
         return Objects.requireNonNull(instance);
     }
 
-    private QAuditRefValueMapping(@NotNull SqlRepoContext repositoryContext) {
+    private QAuditRefValueMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AuditEventRecordReferenceType.class, QAuditRefValue.class, repositoryContext);
     }
@@ -51,7 +51,7 @@ public class QAuditRefValueMapping
     }
 
     @Override
-    public AuditEventRecordReferenceType toSchemaObject(MAuditRefValue row) throws SchemaException {
+    public AuditEventRecordReferenceType toSchemaObject(MAuditRefValue row) {
         throw new UnsupportedOperationException(); // TODO
     }
 

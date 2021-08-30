@@ -22,8 +22,8 @@ public class FocusConsentTabPanel<F extends FocusType> extends AbstractObjectTab
 
 //    private LoadableModel<List<AssignmentType>> consentsModel;
 
-    public FocusConsentTabPanel(String id, MidpointForm<PrismObjectWrapper<F>> mainForm, LoadableModel<PrismObjectWrapper<F>> objectWrapperModel) {
-        super(id, mainForm, objectWrapperModel);
+    public FocusConsentTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> objectWrapperModel) {
+        super(id, objectWrapperModel);
 
         initLayout();
     }

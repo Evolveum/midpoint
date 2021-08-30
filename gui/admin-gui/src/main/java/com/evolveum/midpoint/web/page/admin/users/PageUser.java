@@ -10,6 +10,11 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
+
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -155,103 +160,20 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
-        return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this) {
+        return new FocusMainPanel<>(id, getObjectModel(), getProjectionModel(), this) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
-                tabs.add(
-                        new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.personas"),
-                                getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, parentPage)) {
-
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel());
-                            }
-
-                            @Override
-                            public String getCount() {
-                                if (getObjectWrapper() == null || getObjectWrapper().getObject() == null) {
-                                    return Integer.toString(0);
-                                }
-                                List<ObjectReferenceType> personasRefList = getObjectWrapper().getObject().asObjectable().getPersonaRef();
-                                int count = 0;
-                                for (ObjectReferenceType object : personasRefList) {
-                                    if (object != null && !object.asReferenceValue().isEmpty()) {
-                                        count++;
-                                    }
-                                }
-                                return Integer.toString(count);
-                            }
-
-                        });
-
-                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"),
-                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, parentPage)) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        userDelegationsTabPanel = new UserDelegationsTabPanel<>(panelId, getMainForm(), getObjectModel(),
-                                delegationsModel, privilegesListModel);
-                        return userDelegationsTabPanel;
-                    }
-
-                    @Override
-                    public String getCount() {
-                        return Integer.toString(delegationsModel.getObject() == null ? 0 : delegationsModel.getObject().size());
-                    }
-                });
-
-                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"),
-                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, parentPage)){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentTablePanel<UserType>(panelId,
-                                getDelegatedToMeModel()) {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
-                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
-                                        privilegesListModel, PageUser.this);
-                                item.add(editor);
-                            }
-
-                            @Override
-                            public String getExcludeOid() {
-                                return getObject().getOid();
-                            }
-
-                            @Override
-                            public IModel<String> getLabel() {
-                                return parentPage.createStringResource("FocusType.delegatedToMe");
-                            }
-
-                            @Override
-                            protected List<InlineMenuItem> createAssignmentMenu() {
-                                return new ArrayList<>();
-                            }
-
-                        };
-                    }
-
-                    @Override
-                    public String getCount() {
-                        return Integer.toString(getDelegatedToMeModel().getObject() == null ?
-                                0 : getDelegatedToMeModel().getObject().size());
-                    }
-                });
+                addPersonasTabs(tabs, getMainForm(), getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, parentPage), parentPage);
+                addDelegationsTab(tabs, getMainForm(), getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, parentPage), parentPage);
+                addDelegatedToMeTab(tabs, getObject(),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, parentPage), parentPage);
             }
 
             @Override
             protected boolean getOptionsPanelVisibility() {
-                if (isSelfProfile()){
+                if (isSelfProfile()) {
                     return false;
                 } else {
                     return super.getOptionsPanelVisibility();
@@ -259,7 +181,7 @@ public class PageUser extends PageAdminFocus<UserType> {
             }
 
             @Override
-            protected boolean areSavePreviewButtonsEnabled(){
+            protected boolean areSavePreviewButtonsEnabled() {
                 if (super.areSavePreviewButtonsEnabled()) {
                     return true;
                 }
@@ -267,15 +189,109 @@ public class PageUser extends PageAdminFocus<UserType> {
             }
 
             @Override
-            protected boolean isFocusHistoryPage(){
+            protected boolean isFocusHistoryPage() {
                 return PageUser.this.isFocusHistoryPage();
             }
 
             @Override
-            protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<UserType> object, String date){
+            protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<UserType> object, String date) {
                 PageUser.this.navigateToNext(new PageUserHistory(object, date));
             }
         };
+    }
+
+    private void addPersonasTabs(List<ITab> tabs, MidpointForm<PrismObjectWrapper<UserType>> mainForm,
+            ObjectTabVisibleBehavior<UserType> tabVisibility, PageAdminObjectDetails<UserType> parentPage) {
+        tabs.add(
+                new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.personas"), tabVisibility) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new FocusPersonasTabPanel<>(panelId, getObjectModel());
+                    }
+
+                    @Override
+                    public String getCount() {
+                        if (getObjectWrapper() == null || getObjectWrapper().getObject() == null) {
+                            return Integer.toString(0);
+                        }
+                        List<ObjectReferenceType> personasRefList = getObjectWrapper().getObject().asObjectable().getPersonaRef();
+                        int count = 0;
+                        for (ObjectReferenceType object : personasRefList) {
+                            if (object != null && !object.asReferenceValue().isEmpty()) {
+                                count++;
+                            }
+                        }
+                        return Integer.toString(count);
+                    }
+
+                });
+    }
+
+    private void addDelegationsTab(List<ITab> tabs, MidpointForm<PrismObjectWrapper<UserType>> mainForm, ObjectTabVisibleBehavior<UserType> tabVisibility, PageAdminObjectDetails<UserType> parentPage) {
+        tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"),
+                tabVisibility) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                userDelegationsTabPanel = new UserDelegationsTabPanel<>(panelId, getObjectModel(),
+                        delegationsModel, privilegesListModel);
+                return userDelegationsTabPanel;
+            }
+
+            @Override
+            public String getCount() {
+                return Integer.toString(delegationsModel.getObject() == null ? 0 : delegationsModel.getObject().size());
+            }
+        });
+    }
+
+    private void addDelegatedToMeTab(List<ITab> tabs, PrismObject<UserType> object, ObjectTabVisibleBehavior<UserType> tabVisibility, PageAdminObjectDetails<UserType> parentPage) {
+        tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"),
+                tabVisibility){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new AssignmentTablePanel<UserType>(panelId,
+                        getDelegatedToMeModel()) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
+                        DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
+                                privilegesListModel, PageUser.this);
+                        item.add(editor);
+                    }
+
+                    @Override
+                    public String getExcludeOid() {
+                        return object.getOid();
+                    }
+
+                    @Override
+                    public IModel<String> getLabel() {
+                        return parentPage.createStringResource("FocusType.delegatedToMe");
+                    }
+
+                    @Override
+                    protected List<InlineMenuItem> createAssignmentMenu() {
+                        return new ArrayList<>();
+                    }
+
+                };
+            }
+
+            @Override
+            public String getCount() {
+                return Integer.toString(getDelegatedToMeModel().getObject() == null ?
+                        0 : getDelegatedToMeModel().getObject().size());
+            }
+        });
     }
 
     private List<AssignmentEditorDto> loadDelegatedByMeAssignments() {

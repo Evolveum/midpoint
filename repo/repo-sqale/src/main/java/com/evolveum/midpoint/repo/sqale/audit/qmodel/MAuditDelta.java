@@ -8,7 +8,12 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
 import static com.evolveum.midpoint.util.MiscUtil.binaryToHexPreview;
 
+import java.time.Instant;
+import java.util.UUID;
+
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
  * Querydsl "row bean" type related to {@link QAuditDelta}.
@@ -17,17 +22,18 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 public class MAuditDelta {
 
     public Long recordId;
+    public Instant timestamp;
     public String checksum;
     public byte[] delta;
-    public String deltaOid;
-    public Integer deltaType;
+    public UUID deltaOid;
+    public ChangeType deltaType;
     public byte[] fullResult;
     public String objectNameNorm;
     public String objectNameOrig;
+    public UUID resourceOid;
     public String resourceNameNorm;
     public String resourceNameOrig;
-    public String resourceOid;
-    public Integer status;
+    public OperationResultStatusType status;
 
     // "transient" fields not used by Querydsl
     public String serializedDelta;
@@ -44,16 +50,17 @@ public class MAuditDelta {
     public String toString() {
         return "MAuditDelta{" +
                 "recordId=" + recordId +
+                ", timestamp=" + timestamp +
                 ", checksum='" + checksum + '\'' +
                 ", delta=" + binaryToHexPreview(delta) +
-                ", deltaOid='" + deltaOid + '\'' +
+                ", deltaOid=" + deltaOid +
                 ", deltaType=" + deltaType +
                 ", fullResult=" + binaryToHexPreview(fullResult) +
                 ", objectNameNorm='" + objectNameNorm + '\'' +
                 ", objectNameOrig='" + objectNameOrig + '\'' +
+                ", resourceOid=" + resourceOid +
                 ", resourceNameNorm='" + resourceNameNorm + '\'' +
                 ", resourceNameOrig='" + resourceNameOrig + '\'' +
-                ", resourceOid='" + resourceOid + '\'' +
                 ", status=" + status +
                 '}';
     }

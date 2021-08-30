@@ -248,12 +248,10 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         ctx.repositoryContext()::processCacheableUri));
     }
 
-    /**
-     * Implemented for searchable containers that do not use fullObject for their recreation.
-     */
     @Override
-    public S toSchemaObject(R row) {
-        throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
+    public S toSchemaObject(R row) throws SchemaException {
+        throw new UnsupportedOperationException(
+                "Not implemented for " + getClass() + ". Perhaps use toSchemaObject(Tuple,...)?");
     }
 
     /**

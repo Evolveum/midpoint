@@ -28,7 +28,7 @@
                         </resourceObjects>
                     </import>
                 </work>
-                <executionMode>simulate</executionMode>
+                <executionMode>preview</executionMode>
             </activity>
             <activity>
                 <order>2</order>
@@ -42,7 +42,7 @@
                         </resourceObjects>
                     </import>
                 </work>
-                <executionMode>execute</executionMode>
+                <executionMode>full</executionMode>
             </activity>
         </composition>
     </activity>

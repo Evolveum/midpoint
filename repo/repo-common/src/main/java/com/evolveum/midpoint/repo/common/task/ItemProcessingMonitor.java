@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.task;
 
 import ch.qos.logback.classic.Level;
 
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityMonitoringDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,7 +48,7 @@ class ItemProcessingMonitor<I> {
     /**
      * Definition of the monitoring (e.g. intervals, profile, points, etc).
      */
-    @NotNull private final ActivityMonitoringDefinition monitoringDefinition;
+    @NotNull private final ActivityReportingDefinition reportingDefinition;
 
     /**
      * Used to turn on dynamic profiling: keeps the original logging level of the corresponding logger.
@@ -58,7 +58,7 @@ class ItemProcessingMonitor<I> {
     ItemProcessingMonitor(ItemProcessingGatekeeper<I> itemProcessingGatekeeper) {
         this.workerTask = itemProcessingGatekeeper.getWorkerTask();
         this.activityExecution = itemProcessingGatekeeper.getActivityExecution();
-        this.monitoringDefinition = activityExecution.getActivity().getDefinition().getMonitoringDefinition();
+        this.reportingDefinition = activityExecution.getActivity().getDefinition().getReportingDefinition();
     }
 
     void startProfilingAndTracingIfNeeded() {
@@ -77,7 +77,7 @@ class ItemProcessingMonitor<I> {
     }
 
     private void startProfilingIfNeeded(int itemsProcessed) {
-        int interval = monitoringDefinition.getDynamicProfilingInterval();
+        int interval = reportingDefinition.getDynamicProfilingInterval();
         if (!intervalMatches(interval, itemsProcessed)) {
             return;
         }
@@ -96,15 +96,15 @@ class ItemProcessingMonitor<I> {
     }
 
     private void startTracingIfNeeded(int itemsProcessed) {
-        int interval = monitoringDefinition.getTracingInterval();
-        if (!intervalMatches(monitoringDefinition.getTracingInterval(), itemsProcessed)) {
+        int interval = reportingDefinition.getTracingInterval();
+        if (!intervalMatches(reportingDefinition.getTracingInterval(), itemsProcessed)) {
             return;
         }
 
         LOGGER.info("Starting tracing for object number {} (interval is {})", itemsProcessed, interval);
 
-        TracingProfileType configuredProfile = monitoringDefinition.getTracing().getTracingProfile();
-        List<TracingRootType> configuredPoints = monitoringDefinition.getTracing().getTracingPoint();
+        TracingProfileType configuredProfile = reportingDefinition.getTracingProfile();
+        List<TracingRootType> configuredPoints = reportingDefinition.getTracingPoint();
 
         TracingProfileType profile = configuredProfile != null ?
                 configuredProfile : activityExecution.getBeans().tracer.getDefaultProfile();

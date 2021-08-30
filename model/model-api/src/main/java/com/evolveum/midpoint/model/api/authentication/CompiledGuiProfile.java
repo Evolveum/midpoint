@@ -249,12 +249,24 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return findObjectConfiguration(objectDetails.getObjectDetailsPage(), compileTimeClass);
     }
 
+    public <O extends ObjectType> GuiObjectDetailsPageType findObjectDetailsConfiguration(QName typeQName) {
+        if (objectDetails == null) {
+            return null;
+        }
+        return findObjectConfiguration(objectDetails.getObjectDetailsPage(), typeQName);
+    }
+
     private <T extends AbstractObjectTypeConfigurationType, O extends ObjectType> T findObjectConfiguration(
             List<T> list, Class<O> type) {
+        QName typeQName = ObjectTypes.getObjectType(type).getTypeQName();
+        return findObjectConfiguration(list, typeQName);
+    }
+
+    private <T extends AbstractObjectTypeConfigurationType> T findObjectConfiguration(
+            List<T> list, QName typeQName) {
         if (list == null) {
             return null;
         }
-        QName typeQName = ObjectTypes.getObjectType(type).getTypeQName();
         for (T item: list) {
             if (QNameUtil.match(item.getType(), typeQName)) {
                 return item;
