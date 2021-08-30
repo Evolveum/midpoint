@@ -219,7 +219,6 @@ public class SqaleRepositoryService implements RepositoryService {
         SqaleTableMapping<S, QObject<MObject>, MObject> rootMapping =
                 repositoryContext.getMappingBySchemaType(schemaType);
         QObject<MObject> root = rootMapping.defaultAlias();
-
         Tuple result = jdbcSession.newQuery()
                 .from(root)
                 .select(rootMapping.selectExpressions(root, options))
@@ -472,6 +471,20 @@ public class SqaleRepositoryService implements RepositoryService {
             @Nullable RepoModifyOptions options,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
+        try (JdbcSession transaction = repositoryContext.newJdbcSession().startTransaction()) {
+            return modifyObjectInternal(transaction, type, oid, modifications, precondition, options, parentResult, null);
+        }
+    }
+
+    private <T extends ObjectType> ModifyObjectResult<T> modifyObjectInternal(
+            JdbcSession transaction,
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable ModificationPrecondition<T> precondition,
+            @Nullable RepoModifyOptions options,
+            @NotNull OperationResult parentResult, RootUpdateContext<T, QObject<MObject>, MObject>  updateContext)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 
         Objects.requireNonNull(modifications, "Modifications must not be null.");
         Objects.requireNonNull(type, "Object class in delta must not be null.");
@@ -503,7 +516,7 @@ public class SqaleRepositoryService implements RepositoryService {
             checkModifications(modifications);
             logTraceModifications(modifications);
 
-            return executeModifyObject(type, oidUuid, modifications, precondition);
+            return executeModifyObject(transaction, type, oidUuid, modifications, precondition,updateContext);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -517,16 +530,20 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @NotNull
     private <T extends ObjectType> ModifyObjectResult<T> executeModifyObject(
+            JdbcSession jdbcSession,
             @NotNull Class<T> type,
             @NotNull UUID oidUuid,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @Nullable ModificationPrecondition<T> precondition)
+            @Nullable ModificationPrecondition<T> precondition,
+            RootUpdateContext<T, QObject<MObject>, MObject> updateContext)
             throws SchemaException, ObjectNotFoundException, PreconditionViolationException, RepositoryException {
 
         long opHandle = registerOperationStart(OP_MODIFY_OBJECT, type);
-        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
-            RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
-                    prepareUpdateContext(jdbcSession, type, oidUuid);
+        try {
+            if (updateContext == null) {
+                updateContext = prepareUpdateContext(jdbcSession, type, oidUuid, Collections.emptyList());
+            }
+
             PrismObject<T> prismObject = updateContext.getPrismObject();
             if (precondition != null && !precondition.holds(prismObject)) {
                 jdbcSession.rollback();
@@ -550,12 +567,22 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    /** Read object for update and returns update context that contains it. */
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
     RootUpdateContext<S, Q, R> prepareUpdateContext(
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid)
+            throws SchemaException, ObjectNotFoundException {
+        return prepareUpdateContext(jdbcSession, schemaType, oid, Collections.emptyList());
+    }
+
+    /** Read object for update and returns update context that contains it. */
+    private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
+    RootUpdateContext<S, Q, R> prepareUpdateContext(
+            @NotNull JdbcSession jdbcSession,
+            @NotNull Class<S> schemaType,
+            @NotNull UUID oid,
+            Collection<SelectorOptions<GetOperationOptions>> getOptions)
             throws SchemaException, ObjectNotFoundException {
 
         SqaleTableMapping<S, QObject<R>, R> rootMapping =
@@ -574,7 +601,7 @@ public class SqaleRepositoryService implements RepositoryService {
         }
 
         S object = rootMapping.toSchemaObject(
-                result, entityPath, Collections.emptyList(), jdbcSession, true);
+                result, entityPath, getOptions, jdbcSession, true);
 
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;
@@ -595,11 +622,18 @@ public class SqaleRepositoryService implements RepositoryService {
             @Nullable RepoModifyOptions modifyOptions,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        // TODO write proper implementation
-        PrismObject<T> object = executeGetObject(type, UUID.fromString(oid), getOptions);
-        Collection<? extends ItemDelta<?, ?>> modifications =
-                modificationsSupplier.get(object.asObjectable());
-        return modifyObject(type, oid, modifications, modifyOptions, parentResult);
+        // TODO: Write retry logic
+        try (JdbcSession transaction = repositoryContext.newJdbcSession().startTransaction()) {
+            RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
+                    prepareUpdateContext(transaction, type, UUID.fromString(oid), getOptions);
+
+            PrismObject<T> object = updateContext.getPrismObject();
+            Collection<? extends ItemDelta<?, ?>> modifications =
+                    modificationsSupplier.get(object.asObjectable());
+            return modifyObjectInternal(transaction, type, oid, modifications, null, modifyOptions, parentResult, updateContext);
+        } catch (PreconditionViolationException e) {
+            throw new AssertionError(e);
+        }
     }
 
     private void checkModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
