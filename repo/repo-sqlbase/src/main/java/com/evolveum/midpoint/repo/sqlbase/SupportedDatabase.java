@@ -16,8 +16,4 @@ public enum SupportedDatabase {
     SQLSERVER,
     MYSQL,
     MARIADB;
-
-    public boolean supportsLimitOffset() {
-        return this == H2 || this == POSTGRESQL || this == MYSQL || this == MARIADB;
-    }
 }

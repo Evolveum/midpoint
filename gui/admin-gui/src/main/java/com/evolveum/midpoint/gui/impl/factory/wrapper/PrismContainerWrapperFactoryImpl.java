@@ -70,7 +70,10 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
         List<ItemWrapper<?, ?>> children = createChildren(parent, value, containerValueWrapper, context);
 
-        VirtualContainersSpecificationType virtualContainerSpec = context.findVirtualContainerConfiguration(parent.getPath());
+        VirtualContainersSpecificationType virtualContainerSpec = null;
+        if (parent != null) {
+            virtualContainerSpec = context.findVirtualContainerConfiguration(parent.getPath());
+        }
         if (virtualContainerSpec != null) {
             for (ItemWrapper<?, ?> child : children) {
                  if (childNotDefined(virtualContainerSpec, child)) {

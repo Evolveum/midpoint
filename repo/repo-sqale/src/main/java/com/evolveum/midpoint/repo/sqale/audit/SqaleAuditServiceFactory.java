@@ -156,14 +156,11 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
                     subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
             // No type definition for now, it's all String or String implicit conversion.
 
-            ColumnMetadata columnMetadata =
-                    ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata columnMetadata = ColumnMetadata.named(columnName).ofType(Types.VARCHAR);
             QAuditEventRecordMapping.get().addExtensionColumn(propertyName, columnMetadata);
             if (tableMetadata != null && tableMetadata.get(columnName) == null) {
-                // Fails on SQL Server with snapshot transaction, so different isolation is used.
                 try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-                    jdbcSession.addColumn(QAuditEventRecord.TABLE_NAME,
-                            ColumnMetadata.named(columnName).ofType(Types.VARCHAR).withSize(255));
+                    jdbcSession.addColumn(QAuditEventRecord.TABLE_NAME, columnMetadata);
                     jdbcSession.commit();
                 }
             }
@@ -181,7 +178,6 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
         }
 
         return value;
-
     }
 
     @Override

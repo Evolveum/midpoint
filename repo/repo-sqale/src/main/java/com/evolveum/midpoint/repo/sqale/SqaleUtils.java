@@ -7,11 +7,13 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Field;
+import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.jetbrains.annotations.Nullable;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 
@@ -50,6 +52,14 @@ public class SqaleUtils {
             return Integer.parseInt(version);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Version must be a number: " + version);
+        }
+    }
+
+    public static @Nullable UUID oidToUUid(@Nullable String oid) {
+        try {
+            return oid != null ? UUID.fromString(oid) : null;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Cannot convert oid '" + oid + "' to UUID", e);
         }
     }
 

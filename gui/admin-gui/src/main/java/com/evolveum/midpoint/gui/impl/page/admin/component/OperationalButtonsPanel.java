@@ -176,7 +176,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     public ExecuteChangeOptionsDto getExecuteChangeOptions() {
         ExecuteChangeOptionsPanel optionsPanel = (ExecuteChangeOptionsPanel) get(ID_EXECUTE_OPTIONS);
-        return optionsPanel.getModelObject();
+        return optionsPanel != null ? optionsPanel.getModelObject() : new ExecuteChangeOptionsDto();
     }
 
     public PrismObject<O> getPrismObject() {
