@@ -493,7 +493,7 @@ public class PrismMarshaller {
             return createPrimitiveXNode(realValue, null);
         } else {
             LOGGER.error("Serialization error: neither real nor raw value present in {}", value);
-            dumpValuePath(value, 10);
+            dumpValuePath(value, 5);
             throw new IllegalStateException("Neither real nor raw value present in " + value);
         }
     }
@@ -503,7 +503,7 @@ public class PrismMarshaller {
             return;
         }
 
-        LOGGER.error(" - #{}: {}: {}", levelsToDumpFully, value.getPath(), value);
+        LOGGER.error(" - #{}: {}", levelsToDumpFully, value);
         Itemable parent = value.getParent();
         if (!(parent instanceof PrismContainer<?>)) {
             LOGGER.error(" --> parent is {}", parent);
