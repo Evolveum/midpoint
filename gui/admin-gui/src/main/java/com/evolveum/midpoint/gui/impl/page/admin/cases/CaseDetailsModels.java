@@ -12,8 +12,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 public class CaseDetailsModels extends AssignmentHolderDetailsModel<CaseType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsModels.class);
-    private static final String DOT_CLASS = FocusDetailsModels.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(CaseDetailsModels.class);
+    private static final String DOT_CLASS = CaseDetailsModels.class.getName() + ".";
 
     public CaseDetailsModels(LoadableModel<PrismObject<CaseType>> prismObjectModel, PageBase serviceLocator) {
         super(prismObjectModel, serviceLocator);
