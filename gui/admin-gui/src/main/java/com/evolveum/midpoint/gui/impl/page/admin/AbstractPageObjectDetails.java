@@ -12,6 +12,12 @@ import java.util.*;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -39,7 +45,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -171,8 +176,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             protected void savePerformed(AjaxRequestTarget target) {
                 AbstractPageObjectDetails.this.savePerformed(target);
             }
+
         };
     }
+
 
     public void savePerformed(AjaxRequestTarget target) {
         progressPanel.onBeforeSave();
