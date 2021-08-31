@@ -37,6 +37,7 @@ public abstract class PageFocusDetails<F extends FocusType> extends PageAssignme
             protected void previewPerformed(AjaxRequestTarget target) {
                 PageFocusDetails.this.previewPerformed(target);
             }
+
         };
     }
 
