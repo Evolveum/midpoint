@@ -111,7 +111,6 @@ public class QCaseWorkItemMapping
         if (row.outcome != null) {
             cwi.output(new AbstractWorkItemOutputType(prismContext()).outcome(row.outcome));
         }
-
         return cwi;
     }
 
@@ -130,15 +129,15 @@ public class QCaseWorkItemMapping
                 casesCache.put(caseOid, aCase);
             }
 
-            PrismContainer<Containerable> workItemContainer = aCase.findContainer(CaseType.F_WORK_ITEM);
+            PrismContainer<CaseWorkItemType> workItemContainer = aCase.findContainer(CaseType.F_WORK_ITEM);
             if (workItemContainer == null) {
                 throw new SystemException("Case " + aCase + " has no work items even if it should have " + tuple);
             }
-            PrismContainerValue<?> workItemPcv = workItemContainer.findValue(row.cid);
+            PrismContainerValue<CaseWorkItemType> workItemPcv = workItemContainer.findValue(row.cid);
             if (workItemPcv == null) {
                 throw new SystemException("Case " + aCase + " has no work item with ID " + row.cid);
             }
-            return (CaseWorkItemType) workItemPcv.asContainerable();
+            return workItemPcv.asContainerable();
         };
     }
 
