@@ -18,12 +18,16 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Mapping between {@link QAuditEventRecord} and {@link AuditEventRecordType}.
@@ -68,12 +72,10 @@ public class QAuditEventRecordMapping
         addItemMapping(F_RESULT, stringMapper(q -> q.result));
         addItemMapping(F_MESSAGE, stringMapper(q -> q.message));
 
-        /* TODO the rest
-        addItemMapping(F_CHANGED_ITEM, DetailTableItemFilterProcessor.mapper(
-                QAuditItem.class,
-                joinOn((r, i) -> r.id.eq(i.recordId)),
-                CanonicalItemPathItemFilterProcessor.mapper(ai -> ai.changedItemPath)));
+        addItemMapping(F_CHANGED_ITEM, multiValueMapper(q -> q.changedItemPaths, String.class,
+                (ItemPathType i) -> prismContext().createCanonicalItemPath(i.getItemPath()).asString()));
 
+        /* TODO
         Function<QAuditResource, StringPath> rootToQueryItem = ai -> ai.resourceOid;
         addItemMapping(F_RESOURCE_OID, DetailTableItemFilterProcessor.mapper(
                 QAuditResource.class,
@@ -138,30 +140,30 @@ public class QAuditEventRecordMapping
         // prismContext in constructor ensures complex type definition
         AuditEventRecordType record = new AuditEventRecordType(prismContext())
                 .repoId(row.id)
-                .channel(row.channel)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
                 .eventIdentifier(row.eventIdentifier)
-                .eventStage(row.eventStage)
                 .eventType(row.eventType)
-                .hostIdentifier(row.hostIdentifier)
-                .message(row.message)
-                .nodeIdentifier(row.nodeIdentifier)
-                .outcome(row.outcome)
-                .parameter(row.parameter)
-                .remoteHostAddress(row.remoteHostAddress)
-                .requestIdentifier(row.requestIdentifier)
-                .result(row.result)
+                .eventStage(row.eventStage)
                 .sessionIdentifier(row.sessionIdentifier)
+                .requestIdentifier(row.requestIdentifier)
                 .taskIdentifier(row.taskIdentifier)
                 .taskOID(row.taskOid != null ? row.taskOid.toString() : null)
-                .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
+                .hostIdentifier(row.hostIdentifier)
+                .nodeIdentifier(row.nodeIdentifier)
+                .remoteHostAddress(row.remoteHostAddress)
                 .initiatorRef(objectReference(row.initiatorOid, row.initiatorType, row.initiatorName))
                 .attorneyRef(objectReference(row.attorneyOid, MObjectType.FOCUS, row.attorneyName))
                 .targetRef(objectReference(row.targetOid, row.targetType, row.targetName))
-                .targetOwnerRef(objectReference(row.targetOwnerOid, row.targetOwnerType, row.targetOwnerName));
+                .targetOwnerRef(objectReference(row.targetOwnerOid, row.targetOwnerType, row.targetOwnerName))
+                .channel(row.channel)
+                .outcome(row.outcome)
+                .parameter(row.parameter)
+                .result(row.result)
+                .message(row.message);
 
         // TODO
 //        mapDeltas(record, row.deltas);
-//        mapChangedItems(record, row.changedItemPaths);
+        mapChangedItems(record, row.changedItemPaths);
 //        mapRefValues(record, row.refValues);
 //        mapProperties(record, row.properties);
 //        mapResourceOids(record, row.resourceOids);
@@ -178,8 +180,9 @@ public class QAuditEventRecordMapping
             record.delta(QAuditDeltaMapping.get().toSchemaObject(delta));
         }
     }
+    */
 
-    private void mapChangedItems(AuditEventRecordType record, List<String> changedItemPaths) {
+    private void mapChangedItems(AuditEventRecordType record, String[] changedItemPaths) {
         if (changedItemPaths == null) {
             return;
         }
@@ -190,6 +193,7 @@ public class QAuditEventRecordMapping
         }
     }
 
+    /*
     private void mapRefValues(
             AuditEventRecordType record, Map<String, List<MAuditRefValue>> refValues) {
         if (refValues == null) {
@@ -242,7 +246,9 @@ public class QAuditEventRecordMapping
         MAuditEventRecord bean = new MAuditEventRecord();
         bean.id = record.getRepoId(); // this better be null if we want to insert
         bean.eventIdentifier = record.getEventIdentifier();
-        bean.timestamp = MiscUtil.asInstant(record.getTimestamp());
+        // Timestamp should be set, but this is last resort, as partitioning key it MUST be set.
+        bean.timestamp = MiscUtil.asInstant(
+                Objects.requireNonNullElse(record.getTimestamp(), System.currentTimeMillis()));
         bean.channel = record.getChannel();
         bean.eventStage = AuditEventStage.toSchemaValue(record.getEventStage());
         bean.eventType = AuditEventType.toSchemaValue(record.getEventType());
@@ -250,13 +256,13 @@ public class QAuditEventRecordMapping
 
         PrismReferenceValue attorney = record.getAttorneyRef();
         if (attorney != null) {
-            bean.attorneyOid = oidToUUid(attorney.getOid());
+            bean.attorneyOid = SqaleUtils.oidToUUid(attorney.getOid());
             bean.attorneyName = attorney.getDescription();
         }
 
         PrismReferenceValue initiator = record.getInitiatorRef();
         if (initiator != null) {
-            bean.initiatorOid = oidToUUid(initiator.getOid());
+            bean.initiatorOid = SqaleUtils.oidToUUid(initiator.getOid());
             bean.initiatorType = Objects.requireNonNullElse(
                     MObjectType.fromTypeQName(initiator.getTargetType()),
                     MObjectType.FOCUS);
@@ -274,18 +280,18 @@ public class QAuditEventRecordMapping
 
         PrismReferenceValue target = record.getTargetRef();
         if (target != null) {
-            bean.targetOid = oidToUUid(target.getOid());
+            bean.targetOid = SqaleUtils.oidToUUid(target.getOid());
             bean.targetType = MObjectType.fromTypeQName(target.getTargetType());
             bean.targetName = target.getDescription();
         }
         PrismReferenceValue targetOwner = record.getTargetOwnerRef();
         if (targetOwner != null) {
-            bean.targetOwnerOid = oidToUUid(targetOwner.getOid());
+            bean.targetOwnerOid = SqaleUtils.oidToUUid(targetOwner.getOid());
             bean.targetOwnerType = MObjectType.fromTypeQName(targetOwner.getTargetType());
             bean.targetOwnerName = targetOwner.getDescription();
         }
         bean.taskIdentifier = record.getTaskIdentifier();
-        bean.taskOid = oidToUUid(record.getTaskOid());
+        bean.taskOid = SqaleUtils.oidToUUid(record.getTaskOid());
         return bean;
     }
 

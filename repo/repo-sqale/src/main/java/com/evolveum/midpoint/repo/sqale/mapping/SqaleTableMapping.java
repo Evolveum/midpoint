@@ -248,6 +248,23 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         ctx.repositoryContext()::processCacheableUri));
     }
 
+    /**
+     * Returns the mapper creating general array-stored multi-value filter/delta processors.
+     *
+     * @param <VT> real-value type from schema
+     * @param <ST> stored type (e.g. String for TEXT[])
+     */
+    protected <VT, ST> ItemSqlMapper<Q, R> multiValueMapper(
+            Function<Q, ArrayPath<ST[], ST>> rootToQueryItem,
+            Class<ST> storeType,
+            Function<VT, ST> conversionFunction) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new ArrayPathItemFilterProcessor<>(
+                        ctx, rootToQueryItem, "TEXT", storeType, conversionFunction),
+                ctx -> new ArrayItemDeltaProcessor<>(
+                        ctx, rootToQueryItem, storeType, conversionFunction));
+    }
+
     @Override
     public S toSchemaObject(R row) throws SchemaException {
         throw new UnsupportedOperationException(
@@ -361,14 +378,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return repositoryContext().resolveUriIdToQName(uriId);
     }
 
-    protected @Nullable UUID oidToUUid(@Nullable String oid) {
-        try {
-            return oid != null ? UUID.fromString(oid) : null;
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Cannot convert oid '" + oid + "' to UUID", e);
-        }
-    }
-
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
         return schemaType == null ? null :
                 MObjectType.fromSchemaType(repositoryContext().qNameToSchemaClass(schemaType));
@@ -389,7 +398,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             if (ref.getType() == null) {
                 ref = SqaleUtils.referenceWithTypeFixed(ref);
             }
-            targetOidConsumer.accept(oidToUUid(ref.getOid()));
+            targetOidConsumer.accept(SqaleUtils.oidToUUid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
             relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
         }

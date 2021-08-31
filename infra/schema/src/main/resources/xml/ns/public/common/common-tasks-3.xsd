@@ -1931,6 +1931,9 @@
                             Exports report of any containerable (either from audit or from the repository).
                             Supports multithreading but not bucketing (multi-node mode).
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>WorkDefinitionsType.reportExport</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="reportImport" type="tns:ClassicReportImportWorkDefinitionType" minOccurs="0">
@@ -1938,6 +1941,9 @@
                         <xsd:documentation>
                             Imports a report. Supports multithreading.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>WorkDefinitionsType.reportImport</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="distributedReportExport" type="tns:DistributedReportExportWorkDefinitionType" minOccurs="0">
@@ -1945,6 +1951,9 @@
                         <xsd:documentation>
                             Exports report of repository objects. Supports bucketing (multi-node mode) and multithreading.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>WorkDefinitionsType.distributedReportExport</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="iterativeScripting" type="tns:IterativeScriptingWorkDefinitionType" minOccurs="0">
@@ -6491,6 +6500,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:ReportType</a:objectReferenceTargetType>
+                                <a:displayName>AbstractReportWorkDefinitionType.reportRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -6567,6 +6577,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:ReportDataType</a:objectReferenceTargetType>
+                                <a:displayName>AbstractReportWorkDefinitionType.reportDataRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

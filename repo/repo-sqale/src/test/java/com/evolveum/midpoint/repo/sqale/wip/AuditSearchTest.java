@@ -1004,7 +1004,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         and("operation result is fatal error");
         OperationResult subresult = operationResult.getLastSubresult();
         assertThat(subresult).isNotNull();
-        assertThat(subresult.getOperation()).isEqualTo("SqlAuditServiceImpl.searchObjects");
+        assertThat(subresult.getOperation()).isEqualTo("SqaleAuditService.searchObjects");
         assertThat(subresult.getStatus()).isEqualTo(OperationResultStatus.FATAL_ERROR);
     }
 
@@ -1328,7 +1328,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         and("operation result is success");
         OperationResult subresult = operationResult.getLastSubresult();
         assertThat(subresult).isNotNull();
-        assertThat(subresult.getOperation()).isEqualTo("SqlAuditServiceImpl.countObjects");
+        assertThat(subresult.getOperation()).isEqualTo("SqaleAuditService.countObjects");
         assertThat(subresult.getStatus()).isEqualTo(OperationResultStatus.SUCCESS);
     }
 
@@ -1409,7 +1409,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         and("operation result is fatal error");
         OperationResult subresult = operationResult.getLastSubresult();
         assertThat(subresult).isNotNull();
-        assertThat(subresult.getOperation()).isEqualTo("SqlAuditServiceImpl.countObjects");
+        assertThat(subresult.getOperation()).isEqualTo("SqaleAuditService.countObjects");
         assertThat(subresult.getStatus()).isEqualTo(OperationResultStatus.FATAL_ERROR);
     }
 

@@ -80,7 +80,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     }
 
     @Override
-    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ReportType>> wrapperModel) {
+    protected OperationalButtonsPanel<ReportType> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ReportType>> wrapperModel) {
         return new ReportOperationalButtonsPanel(id, wrapperModel) {
             @Override
             protected Boolean isEditObject() {
@@ -98,7 +98,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
             }
 
             @Override
-            protected ReportObjectsListPanel getReportTable() {
+            protected ReportObjectsListPanel<?> getReportTable() {
                 return PageReport.this.getReportTable();
             }
 
@@ -126,7 +126,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         tableContainer.setOutputMarkupId(true);
         add(tableContainer);
 
-        ReportObjectsListPanel reportTable = new ReportObjectsListPanel(ID_REPORT_TABLE, Model.of(getModelObjectType()));
+        ReportObjectsListPanel<?> reportTable = new ReportObjectsListPanel<>(ID_REPORT_TABLE, Model.of(getModelObjectType()));
         reportTable.setOutputMarkupId(true);
 
         WebMarkupContainer tableBox = new WebMarkupContainer(ID_TABLE_BOX);
@@ -195,8 +195,8 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         savePerformed(target);
     }
 
-    private ReportObjectsListPanel getReportTable() {
-        return (ReportObjectsListPanel) get(createComponentPath(ID_TABLE_CONTAINER, ID_TABLE_BOX, ID_REPORT_TABLE));
+    private ReportObjectsListPanel<?> getReportTable() {
+        return (ReportObjectsListPanel<?>) get(createComponentPath(ID_TABLE_CONTAINER, ID_TABLE_BOX, ID_REPORT_TABLE));
     }
 
     private Component getTableBox() {
