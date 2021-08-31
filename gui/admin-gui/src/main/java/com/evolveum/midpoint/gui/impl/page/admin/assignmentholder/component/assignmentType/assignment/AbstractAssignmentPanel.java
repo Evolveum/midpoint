@@ -74,7 +74,7 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
     }
 
     private List<AssignmentObjectRelation> getAssignmentObjectRelationList() {
-        if (AbstractAssignmentPanel.this.getModelObject() == null) {
+        if (AbstractAssignmentPanel.this.getContainerModel().getObject() == null) {
             return null;
         }
 
