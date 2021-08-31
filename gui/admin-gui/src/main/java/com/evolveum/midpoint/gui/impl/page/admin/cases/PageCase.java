@@ -47,4 +47,10 @@ public class PageCase extends PageAssignmentHolderDetails<CaseType, AssignmentHo
     protected Panel createSummaryPanel(String id, LoadableModel<CaseType> summaryModel) {
         return new CaseSummaryPanel(id, summaryModel, this);
     }
+
+    @Override
+    protected AssignmentHolderDetailsModel<CaseType> createObjectDetailsModels() {
+        return new CaseDetailsModels(createPrismObejctModel(), this);
+    }
+
 }

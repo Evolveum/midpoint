@@ -46,7 +46,6 @@ public class PageUserSelfProfile extends PageUser {
 
     }
 
-    //TODO is this even used??
     public PageUserSelfProfile(PageParameters parameters) {
         super(parameters);
     }
