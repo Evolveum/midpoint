@@ -132,6 +132,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 rootToQueryItem);
     }
 
+    protected ItemSqlMapper<Q, R> binaryMapper(
+            Function<Q, ArrayPath<byte[], Byte>> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
+    }
+
     /**
      * Returns the mapper creating the integer filter/delta processors from context.
      */
