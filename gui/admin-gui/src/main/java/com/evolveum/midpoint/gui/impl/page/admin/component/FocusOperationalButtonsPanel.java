@@ -94,7 +94,7 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
 
     public ExecuteChangeOptionsDto getExecuteChangeOptions() {
         ExecuteChangeOptionsPanel optionsPanel = (ExecuteChangeOptionsPanel) get(ID_EXECUTE_OPTIONS);
-        return optionsPanel.getModelObject();
+        return optionsPanel != null ? optionsPanel.getModelObject() : new ExecuteChangeOptionsDto();
     }
 
     //TODO make abstract
