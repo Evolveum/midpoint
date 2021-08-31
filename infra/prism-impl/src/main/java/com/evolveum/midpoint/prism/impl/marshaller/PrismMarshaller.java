@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -491,7 +492,29 @@ public class PrismMarshaller {
         if (realValue != null) {
             return createPrimitiveXNode(realValue, null);
         } else {
+            LOGGER.error("Serialization error: neither real nor raw value present in {}", value);
+            dumpValuePath(value, 10);
             throw new IllegalStateException("Neither real nor raw value present in " + value);
+        }
+    }
+
+    private <T> void dumpValuePath(PrismValue value, int levelsToDumpFully) {
+        if (levelsToDumpFully < 0) {
+            return;
+        }
+
+        LOGGER.error(" - #{}: {}: {}", levelsToDumpFully, value.getPath(), value);
+        Itemable parent = value.getParent();
+        if (!(parent instanceof PrismContainer<?>)) {
+            LOGGER.error(" --> parent is {}", parent);
+            return;
+        }
+
+        PrismContainerValue<?> grandparent = ((PrismContainer<?>) parent).getParent();
+        if (grandparent != null) {
+            dumpValuePath(grandparent, levelsToDumpFully - 1);
+        } else {
+            LOGGER.error(" --> grandparent is null");
         }
     }
 
