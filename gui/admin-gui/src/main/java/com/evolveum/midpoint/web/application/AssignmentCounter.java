@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.application;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -30,7 +31,8 @@ public class AssignmentCounter<AH extends AssignmentHolderType> extends SimpleCo
         super();
     }
 
-    public int count(AssignmentHolderDetailsModel<AH> objectDetailsModels) {
+    @Override
+    public int count(AssignmentHolderDetailsModel<AH> objectDetailsModels, PageBase pageBase) {
         PrismObjectWrapper<AH> assignmentHolderWrapper = objectDetailsModels.getObjectWrapperModel().getObject();
         AH object = assignmentHolderWrapper.getObject().asObjectable();
 

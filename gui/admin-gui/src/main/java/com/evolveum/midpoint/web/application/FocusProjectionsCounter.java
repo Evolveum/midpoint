@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.application;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -24,7 +25,8 @@ public class FocusProjectionsCounter<F extends FocusType> extends SimpleCounter<
         super();
     }
 
-    public int count(FocusDetailsModels<F> objectDetailsModels) {
+    @Override
+    public int count(FocusDetailsModels<F> objectDetailsModels, PageBase pageBase) {
         if (objectDetailsModels.getProjectionModel().isLoaded()) {
             return objectDetailsModels.getProjectionModel().getObject().size();
         }

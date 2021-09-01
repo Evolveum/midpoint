@@ -123,7 +123,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 return null;
             }
 
-            int count = counter.count(objectDetialsModel);
+            int count = counter.count(objectDetialsModel, getPageBase());
 //            if (count == 0) {
 //                return null;
 //            }
