@@ -87,7 +87,8 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
             ColumnMetadata.named("message").ofType(Types.VARCHAR);
     public static final ColumnMetadata CHANGED_ITEM_PATHS =
             ColumnMetadata.named("changedItemPaths").ofType(Types.ARRAY);
-    // TODO UUID[] resourceOids;
+    public static final ColumnMetadata RESOURCE_OIDS =
+            ColumnMetadata.named("resourceOids").ofType(Types.ARRAY);
     // TODO Jsonb properties;
     // TODO Jsonb ext;
 
@@ -131,6 +132,8 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final StringPath message = createString("message", MESSAGE);
     public final ArrayPath<String[], String> changedItemPaths =
             createArray("changedItemPaths", String[].class, CHANGED_ITEM_PATHS);
+    public final ArrayPath<String[], String> resourceOids =
+            createArray("resourceOids", String[].class, RESOURCE_OIDS);
     // TODO columns above
 
     public QAuditEventRecord(String variable) {
