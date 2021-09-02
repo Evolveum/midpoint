@@ -14,6 +14,8 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -35,28 +37,35 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
 
     // only oidPath is strictly not-null, but then the filter better not ask for type or relation
     private final UuidPath oidPath;
-    private final EnumPath<MObjectType> typePath;
-    private final NumberPath<Integer> relationIdPath;
+    @Nullable private final EnumPath<MObjectType> typePath;
+    @Nullable private final NumberPath<Integer> relationIdPath;
+    @Nullable private final StringPath targetNamePath;
 
     public <Q extends FlexibleRelationalPathBase<R>, R> RefItemFilterProcessor(
             SqlQueryContext<?, Q, R> context,
             Function<Q, UuidPath> rootToOidPath,
-            Function<Q, EnumPath<MObjectType>> rootToTypePath,
-            Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
+            @Nullable Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            @Nullable Function<Q, NumberPath<Integer>> rootToRelationIdPath,
+            @Nullable Function<Q, StringPath> rootToTargetNamePath) {
         this(context,
                 rootToOidPath.apply(context.path()),
                 rootToTypePath != null ? rootToTypePath.apply(context.path()) : null,
-                rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.path()) : null);
+                rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.path()) : null,
+                rootToTargetNamePath != null ? rootToTargetNamePath.apply(context.path()) : null);
     }
 
     // exposed mainly for RefTableItemFilterProcessor
     <Q extends FlexibleRelationalPathBase<R>, R> RefItemFilterProcessor(
             SqlQueryContext<?, Q, R> context,
-            UuidPath oidPath, EnumPath<MObjectType> typePath, NumberPath<Integer> relationIdPath) {
+            UuidPath oidPath,
+            @Nullable EnumPath<MObjectType> typePath,
+            @Nullable NumberPath<Integer> relationIdPath,
+            @Nullable StringPath targetNamePath) {
         super(context);
         this.oidPath = oidPath;
         this.typePath = typePath;
         this.relationIdPath = relationIdPath;
+        this.targetNamePath = targetNamePath;
     }
 
     @Override
@@ -85,21 +94,33 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
             predicate = oidPath.isNull();
         }
 
-        if (ref.getTargetType() != null) {
-            MObjectType objectType = MObjectType.fromTypeQName(ref.getTargetType());
-            predicate = ExpressionUtils.and(predicate,
-                    predicateWithNotTreated(typePath, typePath.eq(objectType)));
-        } else if (!filter.isTargetTypeNullAsAny()) {
-            predicate = ExpressionUtils.and(predicate, typePath.isNull());
+        // Audit sometimes does not use target type path
+        if (typePath != null) {
+            if (ref.getTargetType() != null) {
+                MObjectType objectType = MObjectType.fromTypeQName(ref.getTargetType());
+                predicate = ExpressionUtils.and(predicate,
+                        predicateWithNotTreated(typePath, typePath.eq(objectType)));
+            } else if (!filter.isTargetTypeNullAsAny()) {
+                predicate = ExpressionUtils.and(predicate, typePath.isNull());
+            }
         }
 
-        if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
-            Integer relationId = ((SqaleQueryContext<?, ?, ?>) context)
-                    .searchCachedRelationId(ref.getRelation());
+        // Audit tables do not use relation paths
+        if (relationIdPath != null) {
+            if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
+                Integer relationId = ((SqaleQueryContext<?, ?, ?>) context)
+                        .searchCachedRelationId(ref.getRelation());
+                predicate = ExpressionUtils.and(predicate,
+                        predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
+            } else {
+                // relation == Q_ANY, no additional predicate needed
+            }
+        }
+
+        if (targetNamePath != null && ref.getTargetName() != null) {
             predicate = ExpressionUtils.and(predicate,
-                    predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
-        } else {
-            // relation == Q_ANY, no additional predicate needed
+                    predicateWithNotTreated(targetNamePath,
+                            targetNamePath.eq(ref.getTargetName().getOrig())));
         }
 
         return predicate;

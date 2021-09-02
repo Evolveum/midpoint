@@ -23,7 +23,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
@@ -32,6 +34,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Mapping between {@link QAuditEventRecord} and {@link AuditEventRecordType}.
+ * This often uses mapping supporting both query and update, but update is not intended.
  */
 public class QAuditEventRecordMapping
         extends SqaleTableMapping<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
@@ -91,16 +94,21 @@ public class QAuditEventRecordMapping
                         rootToQueryItem)));
         */
 
-        /* ref mapping
-        addItemMapping(F_INITIATOR_REF, AuditRefItemFilterProcessor.mapper(
-                q -> q.initiatorOid, q -> q.initiatorName, q -> q.initiatorType));
-        addItemMapping(F_ATTORNEY_REF, AuditRefItemFilterProcessor.mapper(q -> q.attorneyOid,
-                q -> q.attorneyName, null));
-        addItemMapping(F_TARGET_REF, AuditRefItemFilterProcessor.mapper(
-                q -> q.targetOid, q -> q.targetName, q -> q.targetType));
-        addItemMapping(F_TARGET_OWNER_REF, AuditRefItemFilterProcessor.mapper(
-                q -> q.targetOwnerOid, q -> q.targetOwnerName, q -> q.targetOwnerType));
+        // TODO what are real target types of these refs? (for mapping)
+        addAuditRefMapping(F_INITIATOR_REF,
+                q -> q.initiatorOid, q -> q.initiatorType, q -> q.initiatorName,
+                QFocusMapping::getFocusMapping);
+        addAuditRefMapping(F_ATTORNEY_REF,
+                q -> q.attorneyOid, null, q -> q.attorneyName,
+                QFocusMapping::getFocusMapping);
+        addAuditRefMapping(F_TARGET_REF,
+                q -> q.targetOid, q -> q.targetType, q -> q.targetName,
+                QObjectMapping::getObjectMapping);
+        addAuditRefMapping(F_TARGET_OWNER_REF,
+                q -> q.targetOwnerOid, q -> q.targetOwnerType, q -> q.targetOwnerName,
+                QObjectMapping::getObjectMapping);
 
+        /*
         addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
 
         // lambdas use lowercase names matching the type parameters from SqlDetailFetchMapper
@@ -110,12 +118,6 @@ public class QAuditEventRecordMapping
                 dq -> dq.recordId,
                 dr -> dr.recordId,
                 (r, dr) -> r.addProperty(dr)));
-        addDetailFetchMapper(F_CHANGED_ITEM, new SqlDetailFetchMapper<>(
-                r -> r.id,
-                QAuditItem.class,
-                dq -> dq.recordId,
-                dr -> dr.recordId,
-                (r, dr) -> r.addChangedItem(dr)));
         addDetailFetchMapper(F_DELTA, new SqlDetailFetchMapper<>(
                 r -> r.id,
                 QAuditDelta.class,
@@ -128,12 +130,6 @@ public class QAuditEventRecordMapping
                 dq -> dq.recordId,
                 dr -> dr.recordId,
                 (r, dr) -> r.addRefValue(dr)));
-        addDetailFetchMapper(F_RESOURCE_OID, new SqlDetailFetchMapper<>(
-                r -> r.id,
-                QAuditResource.class,
-                dq -> dq.recordId,
-                dr -> dr.recordId,
-                (r, dr) -> r.addResourceOid(dr)));
         */
     }
 

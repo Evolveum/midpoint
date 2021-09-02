@@ -9,7 +9,9 @@ import javax.xml.namespace.QName;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -87,7 +89,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         return this;
     }
 
-    /** Defines single-value reference mapping for both query and modifications. */
+    /** Defines single-value reference mapping for both query and modifications, columns embedded in the table. */
     default <TS, TQ extends QObject<TR>, TR extends MObject> SqaleMappingMixin<S, Q, R> addRefMapping(
             @NotNull QName itemName,
             @NotNull Function<Q, UuidPath> rootToOidPath,
@@ -96,9 +98,28 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
         ItemSqlMapper<Q, R> referenceMapping = new SqaleItemSqlMapper<>(
                 ctx -> new RefItemFilterProcessor(ctx,
-                        rootToOidPath, rootToTypePath, rootToRelationIdPath),
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath, null),
                 ctx -> new RefItemDeltaProcessor(ctx,
                         rootToOidPath, rootToTypePath, rootToRelationIdPath));
+        addItemMapping(itemName, referenceMapping);
+
+        // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @
+        // and inside EmbeddedReferenceResolver is the magic resolving the @ part.
+        addRelationResolver(itemName, new EmbeddedReferenceResolver<>(
+                queryType(), rootToOidPath, targetMappingSupplier));
+        return this;
+    }
+
+    /** Defines single-value reference mapping for query, columns embedded in the table. */
+    default <TS, TQ extends QObject<TR>, TR extends MObject> SqaleMappingMixin<S, Q, R> addAuditRefMapping(
+            @NotNull QName itemName,
+            @NotNull Function<Q, UuidPath> rootToOidPath,
+            @Nullable Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            @NotNull Function<Q, StringPath> rootToTargetNamePath,
+            @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
+        ItemSqlMapper<Q, R> referenceMapping = new DefaultItemSqlMapper<>(
+                ctx -> new RefItemFilterProcessor(ctx,
+                        rootToOidPath, rootToTypePath, null, rootToTargetNamePath));
         addItemMapping(itemName, referenceMapping);
 
         // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @
