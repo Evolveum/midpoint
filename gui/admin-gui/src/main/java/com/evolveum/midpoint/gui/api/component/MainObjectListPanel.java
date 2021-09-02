@@ -111,10 +111,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
         if (collectionView == null) {
             collectionView = getObjectCollectionView();
-        }
+         }
         try {
             WebComponentUtil.initNewObjectWithReference(getPageBase(),
-                    WebComponentUtil.classToQName(getPrismContext(), getType()),
+                    relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
+                            relation.getObjectTypes().get(0) : WebComponentUtil.classToQName(getPrismContext(), getType()),
                     getNewObjectReferencesList(collectionView, relation));
         } catch (SchemaException ex) {
             getPageBase().getFeedbackMessages().error(MainObjectListPanel.this, ex.getUserFriendlyMessage());
