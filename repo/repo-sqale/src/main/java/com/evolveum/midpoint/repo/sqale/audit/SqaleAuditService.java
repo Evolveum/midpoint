@@ -689,20 +689,28 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(
-                    AuditEventRecordType.class, sqlRepoContext);
-            SearchResultList<AuditEventRecordType> result =
-                    sqlQueryExecutor.list(queryContext, query, options);
-            return result;
+            return executeSearchObjects(query, options);
         } catch (RepositoryException | RuntimeException e) {
-            // TODO
-//            baseHelper.handleGeneralException(e, operationResult);
-            throw new SystemException(e);
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private SearchResultList<AuditEventRecordType> executeSearchObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException, SchemaException {
+        long opHandle = registerOperationStart(OP_SEARCH_OBJECTS);
+        try {
+            return sqlQueryExecutor.list(
+                    SqaleQueryContext.from(AuditEventRecordType.class, sqlRepoContext),
+                    query, options);
+        } finally {
+            registerOperationFinish(opHandle, 1);
         }
     }
 

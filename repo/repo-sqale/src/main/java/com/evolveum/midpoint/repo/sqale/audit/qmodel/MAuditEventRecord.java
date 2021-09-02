@@ -48,7 +48,7 @@ public class MAuditEventRecord {
     public String result;
     public String message;
 
-    // values normalized with PrismContext.createCanonicalItemPath
+    // changedItemPaths are normalized with PrismContext.createCanonicalItemPath()
     public String[] changedItemPaths;
     public String[] resourceOids;
     public Jsonb properties;

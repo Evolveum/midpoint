@@ -56,7 +56,7 @@ public class Jsonb {
     }
 
     /** Returns JSONB object from map or null if map is null or empty. */
-    public static Jsonb fromMap(Map<String, Object> map) {
+    public static Jsonb fromMap(Map<String, ?> map) {
         if (map == null || map.isEmpty()) {
             return null;
         }
