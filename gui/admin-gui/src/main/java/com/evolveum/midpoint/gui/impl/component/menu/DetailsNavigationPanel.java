@@ -36,6 +36,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private static final String ID_NAV = "menu";
     private static final String ID_NAV_ITEM = "navItem";
+    private static final String ID_NAV_ITEM_LINK = "navItemLink";
     private static final String ID_NAV_ITEM_ICON = "navItemIcon";
     private static final String ID_SUB_NAVIGATION = "subNavigation";
     private static final String ID_COUNT = "count";
@@ -71,11 +72,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                     return "";
                 })));
                 item.add(navigationDetails);
-                WebMarkupContainer icon = new WebMarkupContainer(ID_NAV_ITEM_ICON);
-                icon.setOutputMarkupId(true);
-                icon.add(AttributeAppender.append("class", getMenuItemIconClass(item.getModelObject())));
-                navigationDetails.add(icon);
-                AjaxLink<Void> link = new AjaxLink<>(ID_NAV_ITEM) {
+                AjaxLink<Void> link = new AjaxLink<>(ID_NAV_ITEM_LINK) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -83,13 +80,18 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                         onClickPerformed(item.getModelObject(), target);
                     }
                 };
-                link.setBody(Model.of(createButtonLabel(item.getModelObject())));
                 navigationDetails.add(link);
+                WebMarkupContainer icon = new WebMarkupContainer(ID_NAV_ITEM_ICON);
+                icon.setOutputMarkupId(true);
+                icon.add(AttributeAppender.append("class", getMenuItemIconClass(item.getModelObject())));
+                link.add(icon);
+                Label buttonLabel = new Label(ID_NAV_ITEM, Model.of(createButtonLabel(item.getModelObject())));
+                link.add(buttonLabel);
 
                 IModel<String> countModel = createCountModel(item.getModel());
                 Label label = new Label(ID_COUNT, countModel);
                 label.add(new VisibleBehaviour(() -> countModel.getObject() != null));
-                navigationDetails.add(label);
+                link.add(label);
 
                 DetailsNavigationPanel subPanel = new DetailsNavigationPanel(ID_SUB_NAVIGATION, objectDetialsModel, new PropertyModel<>(item.getModel(), ContainerPanelConfigurationType.F_PANEL.getLocalPart())) {
 
