@@ -38,6 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * knowing that it uses {@link SqaleRepositoryService#searchObjects} internally.
  * We're not only interested in the fact that it iterates over all the objects matching criteria,
  * but we also want to assure that the internal paging is strictly sequential.
+ * Each test can take a bit longer (~500ms) because the handler updates the objects
+ * to mark them for later assertions, so there's actually a lot of repository calls.
  */
 public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 

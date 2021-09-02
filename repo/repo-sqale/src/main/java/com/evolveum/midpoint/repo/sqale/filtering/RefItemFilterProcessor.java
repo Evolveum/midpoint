@@ -112,9 +112,7 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
                         .searchCachedRelationId(ref.getRelation());
                 predicate = ExpressionUtils.and(predicate,
                         predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
-            } else {
-                // relation == Q_ANY, no additional predicate needed
-            }
+            } // else relation == Q_ANY, no additional predicate needed
         }
 
         if (targetNamePath != null && ref.getTargetName() != null) {
