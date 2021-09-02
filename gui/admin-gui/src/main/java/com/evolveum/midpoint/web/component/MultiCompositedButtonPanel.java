@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
@@ -106,7 +107,8 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
     }
 
     protected boolean isCancelButtonVisible() {
-        return !(MultiCompositedButtonPanel.this.findParent(BasePanel.class) instanceof Popupable);
+        return !(MultiCompositedButtonPanel.this.findParent(BasePanel.class) instanceof Popupable) &&
+                !(getParent() instanceof PageBase);
     }
 
     @Override
