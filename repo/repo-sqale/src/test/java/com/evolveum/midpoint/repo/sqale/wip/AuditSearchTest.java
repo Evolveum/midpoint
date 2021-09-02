@@ -68,6 +68,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     private String record1EventIdentifier;
     private Long record1RepoId;
     private final String taskOid = UUID.randomUUID().toString();
+    private final String resourceOid = UUID.randomUUID().toString();
 
     @BeforeClass
     public void initAuditEvents() throws Exception {
@@ -109,7 +110,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.USER).asReferenceValue());
         record1.addReferenceValue("ref2",
                 ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.USER).asReferenceValue());
-        record1.addResourceOid(UUID.randomUUID().toString());
+        record1.addResourceOid(resourceOid);
         record1.addResourceOid(UUID.randomUUID().toString());
         record1.addResourceOid(UUID.randomUUID().toString());
         record1.getCustomColumnProperty().put("foo", "foo-val");
@@ -725,20 +726,6 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         assertThat(result).allMatch(r -> r.getTaskOID().equals(taskOid));
     }
 
-    @Test
-    public void test196SearchByTaskOidLikeWithUnderscore() throws SchemaException {
-        when("searching audit filtered by task OID LIKE with underscore");
-        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
-                .queryFor(AuditEventRecordType.class)
-                // we double down here with ignore-casing matcher
-                .item(AuditEventRecordType.F_TASK_OID).startsWith("TASK_").matchingCaseIgnore()
-                .build());
-
-        then("only audit events with matching task OID are returned (underscore is escaped)");
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getParameter()).isEqualTo("2");
-    }
-
     /*
      * Our NOT means "complement" and must include NULL values for NOT(EQ...).
      * This is difference from SQL logic, where NOT x='value' does NOT return rows where x IS NULL.
@@ -938,6 +925,19 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test280SearchByResourceOid() throws SchemaException {
+        when("searching audit by resource OID");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_RESOURCE_OID).eq(resourceOid)
+                .build());
+
+        then("audit events with the specified resource OID are returned");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1");
+    }
+
+    @Test
     public void test300SearchReturnsMappedToManyAttributes() throws SchemaException {
         when("searching audit with query without any conditions and paging");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
@@ -963,10 +963,6 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         assertThat(record1.getResourceOid()).hasSize(3);
         // we also want to be sure that returned objects have prism definitions
         assertThat(record1.asPrismContainerValue().getComplexTypeDefinition()).isNotNull();
-        // This one is parent container's definition and it is a bit questionable,
-        // whether it's a responsibility of the repository service.
-        // TODO: definitions are (temporarily?) disabled for performance reasons
-//        assertThat(record1.asPrismContainerValue().getDefinition()).isNotNull();
 
         and("record 2 has expected delta count");
         AuditEventRecordType record2 = result.get(1);

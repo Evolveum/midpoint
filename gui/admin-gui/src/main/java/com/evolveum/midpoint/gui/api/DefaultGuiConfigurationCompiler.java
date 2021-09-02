@@ -240,12 +240,12 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return config;
     }
 
-    private void setupCountersForPanelInstance(String panenInstanceIdentifier, Class<?> clazz) {
+    private void setupCountersForPanelInstance(String panelInstanceIdentifier, Class<?> clazz) {
         Counter counterDefinition = clazz.getAnnotation(Counter.class);
         if (counterDefinition != null) {
             Class<? extends SimpleCounter> counterProvider = counterDefinition.provider();
             try {
-                countersMap.put(panenInstanceIdentifier, counterProvider.getDeclaredConstructor().newInstance());
+                countersMap.put(panelInstanceIdentifier, counterProvider.getDeclaredConstructor().newInstance());
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 //TODO log at least
             }

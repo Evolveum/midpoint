@@ -253,16 +253,19 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      *
      * @param <VT> real-value type from schema
      * @param <ST> stored type (e.g. String for TEXT[])
+     * @param dbType name of the type for element in DB (without []) for the cast part of the condition
+     * @param elementType class necessary for array creation; must be a class convertable to {@code dbType} by PG JDBC driver
      */
     protected <VT, ST> ItemSqlMapper<Q, R> multiValueMapper(
             Function<Q, ArrayPath<ST[], ST>> rootToQueryItem,
-            Class<ST> storeType,
+            Class<ST> elementType,
+            String dbType,
             Function<VT, ST> conversionFunction) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new ArrayPathItemFilterProcessor<>(
-                        ctx, rootToQueryItem, "TEXT", storeType, conversionFunction),
+                        ctx, rootToQueryItem, dbType, elementType, conversionFunction),
                 ctx -> new ArrayItemDeltaProcessor<>(
-                        ctx, rootToQueryItem, storeType, conversionFunction));
+                        ctx, rootToQueryItem, elementType, conversionFunction));
     }
 
     @Override
@@ -412,7 +415,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected String[] stringsToArray(List<String> strings) {
+    protected String[] stringsToArray(Collection<String> strings) {
         if (strings == null || strings.isEmpty()) {
             return null;
         }

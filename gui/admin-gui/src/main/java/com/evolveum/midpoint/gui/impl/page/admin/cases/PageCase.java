@@ -8,8 +8,14 @@
 package com.evolveum.midpoint.gui.impl.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.component.CaseOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.TaskOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -18,6 +24,9 @@ import com.evolveum.midpoint.web.page.admin.cases.CaseSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -51,6 +60,11 @@ public class PageCase extends PageAssignmentHolderDetails<CaseType, AssignmentHo
     @Override
     protected AssignmentHolderDetailsModel<CaseType> createObjectDetailsModels() {
         return new CaseDetailsModels(createPrismObejctModel(), this);
+    }
+
+    @Override
+    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> wrapperModel) {
+        return new CaseOperationalButtonsPanel(id, wrapperModel);
     }
 
 }
