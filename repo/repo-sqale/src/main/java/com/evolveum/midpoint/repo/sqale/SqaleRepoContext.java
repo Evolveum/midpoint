@@ -6,15 +6,18 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.lang.reflect.Array;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
+import com.querydsl.sql.types.ArrayType;
 import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.QuerydslJsonbType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -78,6 +81,8 @@ public class SqaleRepoContext extends SqlRepoContext {
 
         // JSONB type support
         querydslConfig.register(new QuerydslJsonbType());
+        querydslConfig.register(new ArrayType<>(
+                Array.newInstance(Jsonb.class, 0).getClass(), "jsonb"));
 
         uriCache = new UriCache();
         extItemCache = new ExtItemCache();
