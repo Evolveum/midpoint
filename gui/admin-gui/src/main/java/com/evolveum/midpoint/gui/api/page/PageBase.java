@@ -1041,17 +1041,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
-//        getMainPopup().setTitle(popupable.getTitle());
-//        getMainPopup().setInitialHeight(popupable.getHeight());
-//        getMainPopup().setInitialWidth(popupable.getWidth());
-//        getMainPopup().setHeightUnit(popupable.getHeightUnit());
         MainPopupDialog dialog = getMainPopup();
-        dialog.getDialogComponent().add(AttributeModifier.replace("style", dialog.generateWidthHeightParameter("" + popupable.getWidth(),
-                popupable.getWidthUnit(), "" + popupable.getHeight(), popupable.getHeightUnit())));
+        dialog.getDialogComponent().add(AttributeModifier.replace("style",
+                dialog.generateWidthHeightParameter("" + (popupable.getWidth() > 0 ? popupable.getWidth() : ""),
+                        popupable.getWidthUnit(),
+                        "" + (popupable.getHeight() > 0 ? popupable.getHeight() : ""), popupable.getHeightUnit())));
         dialog.setContent(popupable.getComponent());
-//        getMainPopup().setUseInitialHeight(true);
-//        getMainPopup().setResizable(false);
-//        getMainPopup().setMaskType(ModalWindow.MaskType.TRANSPARENT);
         dialog.open(target);
     }
 
