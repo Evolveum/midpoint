@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -35,6 +36,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.Iterator;
 
@@ -62,6 +65,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         add(repeatingView);
         createSaveButton(repeatingView);
         createDeleteButton(repeatingView);
+        createEditRawButton(repeatingView);
 
         addButtons(repeatingView);
 
@@ -72,8 +76,21 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         addStateButtons(stateButtonsView);
     }
 
+    private void createEditRawButton(RepeatingView repeatingView) {
+        AjaxIconButton edit = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_EDIT_MENU_ITEM),
+                getPageBase().createStringResource("AbstractObjectMainPanel.editXmlButton")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                editRawPerformed(ajaxRequestTarget);
+            }
+        };
+        edit.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(edit);
+    }
+
     private void createDeleteButton(RepeatingView repeatingView) {
-        AjaxIconButton remove = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_REMOVE), Model.of("Delete object")) {
+        AjaxIconButton remove = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_REMOVE),
+                getPageBase().createStringResource("OperationalButtonsPanel.delete")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 deletePerformed(ajaxRequestTarget);
@@ -89,7 +106,8 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     private void createSaveButton(RepeatingView repeatingView) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton save = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(), Model.of("Save")) {
+        AjaxCompositedIconSubmitButton save = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
+                getPageBase().createStringResource("PageBase.button.save")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -110,6 +128,29 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     protected void savePerformed(AjaxRequestTarget target) {
 
+    }
+
+    private void editRawPerformed(AjaxRequestTarget ajaxRequestTarget) {
+        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                getPageBase().createStringResource("AbstractObjectMainPanel.confirmEditXmlRedirect")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                PageParameters parameters = new PageParameters();
+                PrismObject<O> object = getPrismObject();
+                parameters.add(PageDebugView.PARAM_OBJECT_ID, object.getOid());
+                parameters.add(PageDebugView.PARAM_OBJECT_TYPE, object.getCompileTimeClass().getSimpleName());
+                getPageBase().navigateToNext(PageDebugView.class, parameters);
+            }
+
+            @Override
+            public StringResourceModel getTitle() {
+                return new StringResourceModel("pageUsers.message.confirmActionPopupTitle");
+            }
+        };
+
+        getPageBase().showMainPopup(confirmationPanel, ajaxRequestTarget);
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
