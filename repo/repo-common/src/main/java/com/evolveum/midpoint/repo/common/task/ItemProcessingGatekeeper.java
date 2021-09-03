@@ -86,12 +86,6 @@ class ItemProcessingGatekeeper<I> {
     private Operation operation;
 
     /**
-     * Final operation result after item is processed. Should not be used for operation recording!
-     * (Only for analysis.)
-     */
-    private OperationResult itemProcessingResult;
-
-    /**
      * Tuple "name, display name, type, OID" that is to be written to the iterative task information.
      */
     @NotNull private final IterationItemInformation iterationItemInformation;
@@ -159,7 +153,7 @@ class ItemProcessingGatekeeper<I> {
 
             try {
                 startLocalConnIdListeningIfNeeded(result);
-                itemProcessingResult = doProcessItem(result);
+                processingResult = doProcessItem(result);
             } finally {
                 stopLocalConnIdOperationListening();
             }
@@ -233,7 +227,7 @@ class ItemProcessingGatekeeper<I> {
         if (internalOperationReportRequested &&
                 afterConditionForInternalOpReportPasses(result)) {
             activityExecution.getActivityState().getInternalOperationsReport()
-                    .add(request, activityExecution.bucket, itemProcessingResult, workerTask, result);
+                    .add(request, activityExecution.bucket, processingResult.operationResult, workerTask, result);
         }
         activityExecution.getConnIdOperationsReport().flush(workerTask, result);
         reportItemProcessed(result);
@@ -282,7 +276,7 @@ class ItemProcessingGatekeeper<I> {
     /**
      * Fills-in resultException and processingResult.
      */
-    private @NotNull OperationResult doProcessItem(OperationResult parentResult) {
+    private @NotNull ProcessingResult doProcessItem(OperationResult parentResult) {
 
         OperationResult itemOpResult = new OperationResult("dummy");
 
@@ -302,7 +296,7 @@ class ItemProcessingGatekeeper<I> {
 
             computeStatusIfNeeded(itemOpResult);
 
-            processingResult = ProcessingResult.fromOperationResult(itemOpResult, getPrismContext());
+            return ProcessingResult.fromOperationResult(itemOpResult);
 
         } catch (Throwable t) {
 
@@ -310,14 +304,12 @@ class ItemProcessingGatekeeper<I> {
 
             // This is an error with top-level exception.
             // Note that we intentionally do not rethrow the exception.
-            processingResult = ProcessingResult.fromException(t, getPrismContext());
+            return ProcessingResult.fromException(itemOpResult, t);
 
         } finally {
             RepositoryCache.exitLocalCaches();
             itemOpResult.close();
         }
-
-        return itemOpResult;
     }
 
     private @Nullable ExpressionType getItemProcessingCondition() {
@@ -351,6 +343,7 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private void cleanupAndSummarizeResults(OperationResult parentResult) {
+        OperationResult itemProcessingResult = processingResult.operationResult;
         if (itemProcessingResult.isSuccess() && itemProcessingResult.canBeCleanedUp()) {
             // FIXME: hack. Hardcoded ugly summarization of successes. something like
             //   AbstractSummarizingResultHandler [lazyman]
@@ -366,7 +359,7 @@ class ItemProcessingGatekeeper<I> {
     private void logOperationEnd() {
 
         new StatisticsLogger(activityExecution)
-                .logItemCompletion(operation, itemProcessingResult.getStatus());
+                .logItemCompletion(operation, processingResult.operationResult.getStatus());
 
         if (isError() && getReportingOptions().isLogErrors()) {
             LOGGER.error("{} of object {}{} failed: {}", activityExecution.getShortName(), iterationItemInformation,
@@ -379,7 +372,7 @@ class ItemProcessingGatekeeper<I> {
      * TODO implement better
      */
     private boolean handleError(OperationResult result) {
-        OperationResultStatus status = itemProcessingResult.getStatus();
+        OperationResultStatus status = processingResult.operationResult.getStatus();
         Throwable exception = processingResult.getExceptionRequired();
         LOGGER.debug("Starting handling error with status={}, exception={}", status, exception.getMessage(), exception);
 
@@ -433,7 +426,7 @@ class ItemProcessingGatekeeper<I> {
     private void storeTraceIfRequested(OperationResult parentResult) {
         if (tracingRequested) {
             itemProcessingMonitor.storeTrace(getTracer(), afterItemProcessingVariableProvider(), workerTask,
-                    itemProcessingResult, parentResult);
+                    processingResult.operationResult, parentResult);
             TracingAppender.removeSink(); // todo reconsider
             LevelOverrideTurboFilter.cancelLoggingOverride(); // todo reconsider
         }
@@ -442,7 +435,7 @@ class ItemProcessingGatekeeper<I> {
     private AdditionalVariableProvider afterItemProcessingVariableProvider() {
         return variables -> {
             variables.put(ExpressionConstants.VAR_OPERATION, operation, Operation.class);
-            variables.put(ExpressionConstants.VAR_OPERATION_RESULT, itemProcessingResult, OperationResult.class);
+            variables.put(ExpressionConstants.VAR_OPERATION_RESULT, processingResult.operationResult, OperationResult.class);
         };
     }
 
@@ -473,7 +466,7 @@ class ItemProcessingGatekeeper<I> {
         OperationExecutionRecorderForTasks.Target target = request.getOperationExecutionRecordingTarget();
         if (target != null) {
             getOperationExecutionRecorder().recordOperationExecution(target, coordinatorTask,
-                    activityExecution.getActivityPath(), result);
+                    activityExecution.getActivityPath(), processingResult.operationResult, result);
         } else {
             LOGGER.trace("No target to write operation execution record to.");
         }
@@ -561,10 +554,6 @@ class ItemProcessingGatekeeper<I> {
         };
     }
 
-    private PrismContext getPrismContext() {
-        return getBeans().prismContext;
-    }
-
     @NotNull
     private CommonTaskBeans getBeans() {
         return activityExecution.getBeans();
@@ -598,29 +587,36 @@ class ItemProcessingGatekeeper<I> {
          */
         @Nullable private final Throwable exception;
 
+        /**
+         * The operation result for item processing. Should be closed.
+         * Must not be used for further recording. (Only for analysis.)
+         */
+        @NotNull private final OperationResult operationResult;
+
         private ProcessingResult(@NotNull ItemProcessingOutcomeType outcome, @Nullable Throwable exception,
-                PrismContext prismContext) {
-            this.outcome = new QualifiedItemProcessingOutcomeType(prismContext)
+                @NotNull OperationResult operationResult) {
+            this.operationResult = operationResult;
+            this.outcome = new QualifiedItemProcessingOutcomeType(PrismContext.get())
                     .outcome(outcome);
             this.exception = exception;
             argCheck(outcome != ItemProcessingOutcomeType.FAILURE || exception != null,
                     "Error without exception");
         }
 
-        static ProcessingResult fromOperationResult(OperationResult result, PrismContext prismContext) {
+        static ProcessingResult fromOperationResult(OperationResult result) {
             if (result.isError()) {
                 // This is an error without visible top-level exception, so we have to find one.
                 Throwable exception = RepoCommonUtils.getResultException(result);
-                return new ProcessingResult(ItemProcessingOutcomeType.FAILURE, exception, prismContext);
+                return new ProcessingResult(ItemProcessingOutcomeType.FAILURE, exception, result);
             } else if (result.isNotApplicable()) {
-                return new ProcessingResult(ItemProcessingOutcomeType.SKIP, null, prismContext);
+                return new ProcessingResult(ItemProcessingOutcomeType.SKIP, null, result);
             } else {
-                return new ProcessingResult(ItemProcessingOutcomeType.SUCCESS, null, prismContext);
+                return new ProcessingResult(ItemProcessingOutcomeType.SUCCESS, null, result);
             }
         }
 
-        public static ProcessingResult fromException(Throwable e, PrismContext prismContext) {
-            return new ProcessingResult(ItemProcessingOutcomeType.FAILURE, e, prismContext);
+        public static ProcessingResult fromException(OperationResult result, Throwable e) {
+            return new ProcessingResult(ItemProcessingOutcomeType.FAILURE, e, result);
         }
 
         public boolean isError() {
