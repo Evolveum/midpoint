@@ -33,10 +33,9 @@
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
-            <!-- TODO audit not supported for new repo yet
             <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
-                &lt;!&ndash; Needed for model-intest where these properties are used. &ndash;&gt;
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+                <!-- Needed for model-intest where these properties are used. -->
                 <customColumn>
                     <columnName>foo</columnName>
                     <eventRecordPropertyName>foo</eventRecordPropertyName>
@@ -45,8 +44,8 @@
                     <columnName>ship</columnName>
                     <eventRecordPropertyName>ship</eventRecordPropertyName>
                 </customColumn>
+                <createMissingCustomColumns>true</createMissingCustomColumns>
             </auditService>
-            -->
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.test.DummyAuditServiceFactory</auditServiceFactoryClass>
             </auditService>

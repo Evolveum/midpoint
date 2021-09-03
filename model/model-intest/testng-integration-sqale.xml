@@ -71,9 +71,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.TestConsistencySimple"/>
             <class name="com.evolveum.midpoint.model.intest.TestConnectorMultiInstance"/>
             <class name="com.evolveum.midpoint.model.intest.TestMerge"/>
-            <!-- TODO needs working audit impl.
             <class name="com.evolveum.midpoint.model.intest.TestAudit"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.TestDeputy"/>
 
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
@@ -180,7 +178,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
         </classes>
     </test>
-    <!--  
+    <!--
     Tests from testng-db-specific.xml
     -->
     <test name="Synchronization DB" preserve-order="true" parallel="false" verbose="10">
@@ -188,7 +186,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationPartitioned"/>
             <!-- Invalid UUIDs in tests
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationMultiNode"/>
-             --> 
+             -->
         </classes>
     </test>
 </suite>
