@@ -44,6 +44,7 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     private final int sequentialNumber;
 
     @NotNull protected final I item;
+
     @NotNull private final IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution;
 
     /**

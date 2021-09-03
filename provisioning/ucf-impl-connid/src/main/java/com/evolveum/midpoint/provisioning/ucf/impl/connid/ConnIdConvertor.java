@@ -137,14 +137,15 @@ class ConnIdConvertor {
                 + co.getName() + ", class=" + co.getObjectClass() + ": " + t.getMessage();
     }
 
-    Set<Attribute> convertFromResourceObjectToConnIdAttributes(ResourceAttributeContainer attributesPrism,
+    @NotNull Set<Attribute> convertFromResourceObjectToConnIdAttributes(@NotNull ResourceAttributeContainer attributesPrism,
             ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
         Collection<ResourceAttribute<?>> resourceAttributes = attributesPrism.getAttributes();
         return convertFromResourceObjectToConnIdAttributes(resourceAttributes, ocDef);
     }
 
-    private Set<Attribute> convertFromResourceObjectToConnIdAttributes(Collection<ResourceAttribute<?>> mpResourceAttributes,
-            ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
+    private @NotNull Set<Attribute> convertFromResourceObjectToConnIdAttributes(
+            Collection<ResourceAttribute<?>> mpResourceAttributes, ObjectClassComplexTypeDefinition ocDef)
+            throws SchemaException {
         Set<Attribute> attributes = new HashSet<>();
         for (ResourceAttribute<?> attribute : emptyIfNull(mpResourceAttributes)) {
             attributes.add(convertToConnIdAttribute(attribute, ocDef));

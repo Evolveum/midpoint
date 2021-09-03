@@ -70,6 +70,7 @@ public class ProvisioningContext extends StateReporter {
     private Collection<ResourceObjectPattern> protectedAccountPatterns;
 
     public ProvisioningContext(@NotNull ResourceManager resourceManager, OperationResult parentResult) {
+        super(resourceManager.getLightweightIdentifierGenerator());
         this.resourceManager = resourceManager;
         this.parentResult = parentResult;
     }

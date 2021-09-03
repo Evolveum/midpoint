@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.DelegatingActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.DistributingActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
@@ -110,6 +111,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     public @NotNull ActivityDistributionDefinition getDistributionDefinition() {
         return definition.getDistributionDefinition();
+    }
+
+    public @NotNull ActivityReportingDefinition getReportingDefinition() {
+        return definition.getReportingDefinition();
     }
 
     @NotNull

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.*;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -102,6 +103,7 @@ public class ResourceObjectConverter {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ResourceObjectsLocalBeans localBeans;
     @Autowired private CommonBeans commonBeans;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -1369,7 +1371,7 @@ public class ResourceObjectConverter {
                                     objResult.computeStatusIfUnknown();
                                     // FIXME: hack. Hardcoded ugly summarization of successes. something like
                                     //  AbstractSummarizingResultHandler [lazyman]
-                                    if (objResult.isSuccess() && !objResult.isTraced()) {
+                                    if (objResult.isSuccess() && objResult.canBeCleanedUp()) {
                                         objResult.getSubresults().clear();
                                     }
                                     // TODO Reconsider this. It is quite dubious to touch the global result from the inside.
@@ -1697,7 +1699,7 @@ public class ResourceObjectConverter {
         }
         ConnectorInstance connector = ctx.getConnector(ScriptCapabilityType.class, result);
         for (ExecuteProvisioningScriptOperation operation : operations) {
-            StateReporter reporter = new StateReporter(ctx.getResource().getOid(), ctx.getTask());
+            StateReporter reporter = new StateReporter(lightweightIdentifierGenerator, ctx.getResource().getOid(), ctx.getTask());
 
             try {
                 if (LOGGER.isDebugEnabled()) {

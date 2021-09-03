@@ -7,8 +7,9 @@
   -->
 
 <task oid="10000000-0000-0000-5656-565600000004"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <name>Reconciliation: Dummy</name>
 
@@ -25,5 +26,78 @@
                 </resourceObjects>
             </reconciliation>
         </work>
+        <reporting>
+            <executionReports>
+
+                <!-- This will produce (full) report on buckets processing. One bucket = one row. -->
+                <buckets/>
+
+                <!-- This will produce (full) report on items processing. One item (account, shadow) = one row. -->
+                <items/>
+
+                <!-- This will produce report on ConnId operations executed. -->
+                <connIdOperations>
+
+                    <!-- But NOT on ICF_SCRIPT operations. Here you can filter also on e.g. resourceRef, object class, etc. -->
+                    <recordFilter>
+                        <q:not>
+                            <q:equal>
+                                <q:path>operation</q:path>
+                                <q:value>ICF_SCRIPT</q:value>
+                            </q:equal>
+                        </q:not>
+                    </recordFilter>
+
+                    <!-- It is possible to write also custom groovy filters. We can be interested e.g. in operations
+                         taking long time, or operations tha fail, etc. -->
+                    <recordFilteringExpression>
+                        <script>
+                            <code>
+                                !record.objectClass.localPart.startsWith('G')
+                            </code>
+                        </script>
+                    </recordFilteringExpression>
+                </connIdOperations>
+
+                <!-- This will produce report on specified midPoint internal operation (taken from OperationResult tree) -->
+                <internalOperations>
+
+                    <!-- To spare CPU cycles, we can filter on operation names and qualifiers. -->
+                    <fastFilter>
+                        <operationInclude>com.evolveum.midpoint.repo.*</operationInclude>
+                        <operationExclude>com.evolveum.midpoint.repo.common.*</operationExclude>
+                    </fastFilter>
+                    <fastFilter>
+                        <operationInclude>~/.*focus(Activation|Credentials).*/</operationInclude>
+                        <individualQualifier>INITIAL.*</individualQualifier>
+                    </fastFilter>
+
+                    <!-- We can select whole items (objects) that should be processable like this. -->
+                    <!-- This is evaluated before the item processing. In this case we are not interested in records
+                         related to guybrush account. -->
+                    <beforeItemCondition>
+                        <expression>
+                            <script>
+                                <code>
+                                    item.name.orig != 'guybrush'
+                                </code>
+                            </script>
+                        </expression>
+                    </beforeItemCondition>
+
+                    <!-- This is evaluated after the processing. We may be interested e.g. in processing of items
+                         that took too long or ended with a failure. -->
+                    <afterItemCondition>
+                        <expression>
+                            <script>
+                                <code>
+                                    operation.iterationItemInformation?.objectName != 'daviejones'
+                                </code>
+                            </script>
+                        </expression>
+                    </afterItemCondition>
+                </internalOperations>
+            </executionReports>
+        </reporting>
     </activity>
 </task>

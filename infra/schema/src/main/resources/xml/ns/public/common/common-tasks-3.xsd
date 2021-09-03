@@ -62,6 +62,11 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:workState</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2344,6 +2349,14 @@
                         Precondition: an expression that governs whether the current activity should be executed or skipped,
                         or whether the task should stop altogether. Should return a single value
                         of ActivityPreconditionOutputType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemProcessingCondition" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Condition for processing specific items. Currently supported for iterative activities.
+                        (If present and if returns false, the item processing is skipped.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4707,6 +4720,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Plain operation name, e.g. get, search, etc. Intentionally a free-form string, not an enum.
+                        This may change in the future.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5627,12 +5641,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="tracing" type="tns:ProcessTracingConfigurationType" minOccurs="0">
+            <xsd:element name="tracing" type="tns:ProcessTracingConfigurationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Specifies when and how should be the activity execution traced. Contains tracing interval
-                        (i.e. how often a trace should be recorded), tracing profile to be used and tracing points
-                        (roots) where the tracing should be done.
+                        Specifies when and how should be the activity execution traced.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4</a:since>
@@ -5673,6 +5685,126 @@
     </xsd:complexType>
     <xsd:element name="activityReportingDefinition" type="tns:ActivityReportingDefinitionType" />
 
+    <xsd:complexType name="ProcessTracingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for tracing execution of an iterative activity.
+                TODO rename this type
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0.1</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order in which this configuration is to be considered. Nulls go last.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Order</a:displayName>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="interval" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Traces processing of each N-th item.
+                        DEPRECATED. Use beforeItemCondition instead.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Tracing interval</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.4</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="beforeItemCondition" type="tns:BeforeItemConditionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Conditions that must be fulfilled (any of them) before this configuration is applied.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>"Before item" condition</a:displayName>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="afterItemCondition" type="tns:AfterItemConditionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Conditions that must be fulfilled (any of them) for the result of this tracing be written to the file.
+
+                        BEWARE! This condition is checked only for traces with the root of iterativeTaskObjectProcessing,
+                        i.e. those that were started right on the level of the iterative activity.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>"After item" condition</a:displayName>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tracingProfile" type="c:TracingProfileType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Tracing profile to be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Tracing profile</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tracingPoint" type="c:TracingRootType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Point(s) to be traced.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Tracing root</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="processTracingConfiguration" type="tns:ProcessTracingConfigurationType"/>
+
+    <xsd:complexType name="ProcessProfilingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="interval" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Profiles processing of each N-th item.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Profiling interval</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="beforeItemCondition" type="tns:BeforeItemConditionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Conditions that must be fulfilled (any of them) before this configuration is applied.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>"Before item" condition</a:displayName>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="processProfilingConfiguration" type="tns:ProcessProfilingConfigurationType"/>
+
     <xsd:complexType name="ActivityExecutionReportsConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -5688,16 +5820,28 @@
             <xsd:element name="buckets" type="tns:BucketsExecutionReportConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Controls logging aspects of an activity execution.
+                        Configuration for "buckets" report.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="items" type="tns:ItemsExecutionReportConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Specifies when and how should be the activity execution traced. Contains tracing interval
-                        (i.e. how often a trace should be recorded), tracing profile to be used and tracing points
-                        (roots) where the tracing should be done.
+                        Configuration for "items" report.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="connIdOperations" type="tns:ConnIdOperationsReportConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration for ConnId operations report.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="internalOperations" type="tns:InternalOperationsReportConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration for midPoint internal operations report.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5705,6 +5849,43 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="activityExecutionReportsConfiguration" type="tns:ActivityExecutionReportsConfigurationType" />
+
+    <xsd:complexType name="AbstractExecutionReportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common configuration for activity execution reports.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If false, the report is (temporarily) disabled.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recordFilter" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If specified, only records matching this filter will be reported.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recordFilteringExpression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If specified and if returns false, the specified record will not be included in the report.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
     <xsd:complexType name="BucketsExecutionReportConfigurationType">
         <xsd:annotation>
@@ -5717,9 +5898,10 @@
                 <a:since>4.4</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractExecutionReportConfigurationType">
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="bucketsExecutionReportConfiguration" type="tns:BucketsExecutionReportConfigurationType" />
 
@@ -5734,11 +5916,223 @@
                 <a:since>4.4</a:since>
             </xsd:appinfo>
         </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractExecutionReportConfigurationType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="itemsExecutionReportConfiguration" type="tns:ItemsExecutionReportConfigurationType" />
+
+    <xsd:complexType name="ConnIdOperationsReportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines report on ConnId operations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractExecutionReportConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="beforeItemCondition" type="tns:BeforeItemConditionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Conditions that must be fulfilled (any of them) before ConnId reporting for this activity is enabled.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>"Before item" condition</a:displayName>
+                                <a:since>4.4</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- currently no "after item condition" because of the implementation limitations -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="connIdOperationsReportConfiguration" type="tns:ConnIdOperationsReportConfigurationType" />
+
+    <xsd:complexType name="InternalOperationsReportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines report on internal operations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractExecutionReportConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="fastFilter" type="tns:InternalOperationRecordFastFilterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                "Fast filter" that can reject a raw operation result, even before transforming into report record.
+                                The record is accepted if any of the filters accepts. (If there are any filters specified.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="beforeItemCondition" type="tns:BeforeItemConditionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Conditions that must be fulfilled (any of them) before internal operation reporting
+                                for this activity is enabled.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>"Before item" condition</a:displayName>
+                                <a:since>4.4</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="afterItemCondition" type="tns:AfterItemConditionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Conditions that must be fulfilled (any of them) for the result
+                                of this reporting be written to the file.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>"After item" condition</a:displayName>
+                                <a:since>4.4</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="internalOperationsReportConfiguration" type="tns:InternalOperationsReportConfigurationType" />
+
+    <xsd:complexType name="InternalOperationRecordFastFilterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                "Fast filter" that can reject a raw operation result.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="operationInclude" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If specified, only operations matching the listed ones are reported.
+                        An asterisk can be used as a wildcard. If the string is in the form of ~/.../,
+                        the content is interpreted as a regular expression.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationExclude" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If specified, operations matching the listed ones are NOT reported.
+                        An asterisk can be used as a wildcard. If the string is in the form of ~/.../,
+                        the content is interpreted as a regular expression.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="individualQualifier" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Values to be matched for individual qualifiers.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="concatenatedQualifiers" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Values to be matched for concatenated qualifiers.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="itemsExecutionReportConfiguration" type="tns:ItemsExecutionReportConfigurationType" />
+
+    <xsd:complexType name="ItemReportingConditionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Condition controlling item report creation or collection that is evaluated before or after item is processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimentaL>true</a:experimentaL>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="interval" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If specified, only each N-th item is reported. Should be used only in "before item" conditions
+                        to spare processing resources.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="firstWorker" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If true, only the first worker on each node (so called scavenger) runs the report.
+                        Should be used only in "before item" conditions to spare processing resources.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that is evaluated. If returns false, the report is not being created or collected.
+                        Variables available: "request", "item". After execution, also "operation" (containing e.g. duration
+                        or status) and "operationResult" are available.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="BeforeItemConditionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Condition controlling item report creation that is evaluated before the item is processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ItemReportingConditionType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AfterItemConditionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Condition controlling item report collection that is evaluated after the item is processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ItemReportingConditionType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
     <xsd:complexType name="ActivityLoggingOptionsType">
         <xsd:annotation>
@@ -7506,20 +7900,54 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="buckets" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="buckets" type="tns:ActivityReportCollectionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Report on the level of buckets.
+                        Report(s) on the level of buckets.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:ReportDataType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="items" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="items" type="tns:ActivityReportCollectionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Report on the level of items.
+                        Report(s) on the level of items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="connIdOperations" type="tns:ActivityReportCollectionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Report(s) on the level of ConnId operations.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="internalOperations" type="tns:ActivityReportCollectionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Report(s) on the level of midPoint internal operations (based on OperationResult trees).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityReportCollectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A collection of related report data objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="rawDataRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Raw" (or streamed) report data objects collection.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ReportDataType</a:objectReferenceTargetType>
@@ -7528,5 +7956,413 @@
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="BucketProcessingRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about bucket completion or analysis to be recorded in buckets report.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="sequentialNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Bucket sequential number.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="content" type="tns:AbstractWorkBucketContentType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Bucket content in full details.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="size" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Size of the bucket, as determined in bucket analysis mode by counting the objects,
+                        or as determined by counting items processed in other modes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemsSuccessfullyProcessed" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of items successfully processed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemsFailed" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of items failed to be processed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemsSkipped" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of items that have been skipped.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the bucket processing started. (Excludes the bucket acquisition.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the bucket processing finished. (Excludes the bucket completion marking.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="duration" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many milliseconds did the bucket processing take.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemProcessingRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about item processing to be recorded in items report.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="sequentialNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item sequential number.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item name (e.g. object name).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item display name (e.g. object display name), if applicable.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item type (e.g. object type), if applicable.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="oid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item OID (e.g. object OID), if applicable.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bucketSequentialNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Bucket sequential number.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outcome" type="tns:QualifiedItemProcessingOutcomeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outcome of the processing.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the bucket processing started. (Excludes the bucket acquisition.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the bucket processing finished. (Excludes the bucket completion marking.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="duration" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many milliseconds did the bucket processing take.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemRelatedRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Columns common to all specific item-related reports (like ConnId operations, internal operations, etc).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="itemSequentialNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item sequential number.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item name (e.g. object name).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemOid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item OID (e.g. object OID), if applicable.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bucketSequentialNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Bucket sequential number.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnIdOperationRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about a ConnId operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ItemRelatedRecordType">
+                <xsd:sequence>
+                    <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Lightweight identifier of the ConnId operation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the resource. It should have name filled-in.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" />
+                    <xsd:element name="operation" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Plain operation name, e.g. get, search, etc. It is a free-form string (not an enum)
+                                to be compatible with provisioning statistics. This may change in the future.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What was the result status of the operation?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resulting message (typically an exception message).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="size" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                "Size" of the operation. E.g. for search operations here is the number of objects returned.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When did the operation started?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When did the operation finished?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="duration" type="xsd:double" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How many milliseconds did the operation take.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="InternalOperationRecordType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about a midPoint internal operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ItemRelatedRecordType">
+                <xsd:sequence>
+                    <xsd:element name="operation" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the operation
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="qualifiers" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Qualifiers joined into a single field. (Will be replaced with something smarter in the future.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="operationKind" type="tns:OperationKindType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Kind of operation (e.g. clockwork execution, mapping evaluation, repository access). To be used
+                                for easy navigation, result filtering, and so on.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0"/>
+                    <xsd:element name="importance" type="tns:OperationResultImportanceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Importance of the operation result (major, normal, minor). The default is "normal".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="asynchronousOperationReference" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifier (reference) of asynchronous operation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="start" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the operation started.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="end" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the operation finished.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="microseconds" type="xsd:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How long the operation took (if known).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="cpuMicroseconds" type="xsd:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How much CPU time the operation took (if known).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="invocationId" type="xsd:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                ID of the operation invocation (if known).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="params" type="tns:ParamsType" minOccurs="0"/> <!-- TODO -->
+                    <xsd:element name="context" type="tns:ParamsType" minOccurs="0"/> <!-- TODO -->
+                    <xsd:element name="returns" type="tns:ParamsType" minOccurs="0"/> <!-- TODO -->
+                    <xsd:element name="token" type="xsd:long" minOccurs="0"/>
+                    <xsd:element name="messageCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Error or warning message.
+                                This is optional, as some types does not need a message (e.g. success).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="parent" type="xsd:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Token of the parent operation result.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 </xsd:schema>

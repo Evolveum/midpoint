@@ -14,7 +14,7 @@ package com.evolveum.midpoint.schema.statistics;
  * Currently this functionality is bound to Task interface. However, this may change in the future.
  */
 public interface StatisticsCollector
-        extends ProvisioningStatisticsCollector, NotificationStatisticsCollector, MappingStatisticsCollector,
+        extends NotificationStatisticsCollector, MappingStatisticsCollector,
         TaskActionsExecutedCollector, TaskSynchronizationStatisticsCollector,
         IterativeOperationCollector {
 

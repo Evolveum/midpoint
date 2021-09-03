@@ -56,7 +56,7 @@ public class PlainIterativeActivityExecution<
     }
 
     @Override
-    protected @Nullable Long determineExpectedTotal(OperationResult opResult) throws CommonException {
+    protected @Nullable Integer determineExpectedTotal(OperationResult opResult) throws CommonException {
         return executionSpecifics.determineExpectedTotal(opResult);
     }
 

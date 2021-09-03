@@ -40,7 +40,8 @@ public class ExpressionConstants {
     public static final String VAR_IMMEDIATE_ROLE = "immediateRole";
     public static final String VAR_CONTAINING_OBJECT = "containingObject";
     public static final String VAR_THIS_OBJECT = "thisObject";
-    public static final String VAR_OPERATION = "operation";
+    public static final String VAR_OPERATION = "operation"; // beware: used for more unrelated things
+    public static final String VAR_OPERATION_RESULT = "operationResult";
     public static final String VAR_RESOURCE = "resource";
     public static final String VAR_DELTA = "delta";
     public static final String VAR_MODEL_CONTEXT = "modelContext";
@@ -157,6 +158,7 @@ public class ExpressionConstants {
     public static final String VAR_TEXT_FORMATTER = "textFormatter";
     public static final String VAR_NOTIFICATION_FUNCTIONS = "notificationFunctions";
 
+    public static final String VAR_RECORD = "record";
     public static final String VAR_AUDIT_RECORD = "auditRecord";
 
     // This one is used in approvals.
@@ -167,4 +169,7 @@ public class ExpressionConstants {
     // For metadata computation
     public static final String VAR_METADATA_COMPUTATION_INPUT = "metadataComputationInput";
     public static final String VAR_METADATA = "metadata";
+
+    public static final String VAR_REQUEST = "request";
+    public static final String VAR_ITEM = "item";
 }

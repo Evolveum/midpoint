@@ -763,7 +763,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public String getNodeId() {
+    public @NotNull String getNodeId() {
         return configuration.getNodeId();
     }
 

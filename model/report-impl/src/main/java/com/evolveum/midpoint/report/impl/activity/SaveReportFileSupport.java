@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.DashboardReportDataWriter;
@@ -170,14 +170,9 @@ class SaveReportFileSupport {
         }
     }
 
-    public String getDestinationFileName(ReportType reportType,
+    private String getDestinationFileName(ReportType reportType,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter) {
-        File exportDir = getExportDir();
-        if (!exportDir.exists() || !exportDir.isDirectory()) {
-            if (!exportDir.mkdir()) {
-                LOGGER.error("Couldn't create export dir {}", exportDir);
-            }
-        }
+        File exportDir = ReportSupportUtil.getOrCreateExportDir();
 
         String fileNamePrefix = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
         String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
@@ -193,14 +188,6 @@ class SaveReportFileSupport {
         Date createDate = new Date(System.currentTimeMillis());
         SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss.SSS");
         return formatDate.format(createDate);
-    }
-
-    private File getExportDir() {
-        return new File(getMidPointHomeDirName(), "export");
-    }
-
-    private String getMidPointHomeDirName() {
-        return System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
     }
 
     private void writeToReportFile(String contextOfFile, String aggregatedFilePath) {

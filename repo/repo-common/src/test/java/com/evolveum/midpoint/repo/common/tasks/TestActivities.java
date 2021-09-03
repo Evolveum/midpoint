@@ -19,6 +19,9 @@ import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.handlers.NoOpActivityHandler;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.task.reports.ActivityExecutionReportUtil;
+import com.evolveum.midpoint.repo.common.task.reports.SimpleReportReader;
 import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
 import com.evolveum.midpoint.schema.util.task.*;
@@ -92,6 +95,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_160_MOCK_SEARCH_ITERATIVE = new TestResource<>(TEST_DIR, "task-160-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
     private static final TestResource<TaskType> TASK_170_MOCK_BUCKETED = new TestResource<>(TEST_DIR, "task-170-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
     private static final TestResource<TaskType> TASK_180_BUCKETED_TREE = new TestResource<>(TEST_DIR, "task-180-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
+    private static final TestResource<TaskType> TASK_185_BUCKETED_TREE_ANALYSIS = new TestResource<>(TEST_DIR, "task-185-bucketed-tree-analysis.xml", "12f07ab1-41c3-4dba-bf47-3d2a032fa555");
     private static final TestResource<TaskType> TASK_190_SUSPENDING_COMPOSITE = new TestResource<>(TEST_DIR, "task-190-suspending-composite.xml", "1e7cf975-7253-4991-a707-661d3c52f203");
     private static final TestResource<TaskType> TASK_200_SUBTASK = new TestResource<>(TEST_DIR, "task-200-subtask.xml", "ee60863e-ff77-4edc-9e4e-2e1ea7853478");
     private static final TestResource<TaskType> TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-210-suspending-composite-with-subtasks.xml", "cd36ca66-cd49-44cf-9eb2-36928acbe1fd");
@@ -99,6 +103,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_300_WORKERS_SIMPLE = new TestResource<>(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
 
     @Autowired private MockRecorder recorder;
+    @Autowired private CommonTaskBeans beans;
 
     private static final int ROLES = 100;
     private static final String ROLE_NAME_PATTERN = "r%02d";
@@ -1193,6 +1198,89 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertHasThroughput()
                 .end();
         // @formatter:on
+    }
+
+    /**
+     * Runs a tree of bucketed activities in the "bucket analysis" mode.
+     */
+    @Test
+    public void test185RunBucketedTreeAnalysis() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task task1 = taskAdd(TASK_185_BUCKETED_TREE_ANALYSIS, result);
+
+        when();
+
+        waitForTaskCloseOrSuspend(task1.getOid(), 40000, 2000);
+
+        then();
+
+        task1.refresh(result);
+        // @formatter:off
+        assertTask(task1, "after")
+                .display()
+                .assertSuccess()
+                .assertClosed()
+                .activityState()
+                    .assertTreeRealizationComplete();
+        // @formatter:on
+
+        OperationStatsType stats = task1.getStoredOperationStatsOrClone();
+        displayValue("statistics", TaskOperationStatsUtil.format(stats));
+
+        displayDumpable("recorder", recorder);
+        assertThat(recorder.getExecutions()).as("recorder").isEmpty();
+
+        task1.setResult(null);
+        displayValue("task after (XML)", prismContext.xmlSerializer().serialize(task1.getRawTaskObjectClone()));
+
+        // @formatter:off
+        assertProgress( task1.getOid(),"after")
+                .display()
+                .assertComplete()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(3)
+                .child("first") // 0 configs
+                    .assertComplete()
+                    .assertBuckets(1, 1)
+                    .assertItems(0, null)
+                    .assertNoChildren()
+                .end()
+                .child("second")
+                    .assertComplete()
+                    .assertBuckets(11, 11)
+                    .assertItems(0, null)
+                .end()
+                .child("third")
+                    .assertComplete()
+                    .assertBuckets(101, 101)
+                    .assertItems(0, null)
+                .end();
+
+        assertPerformance( task1.getOid(),"after")
+                .display();
+        // @formatter:on
+
+        // TODO improve this code
+        String secondOid = ActivityExecutionReportUtil.getReportDataOid(task1.getWorkState(), ActivityPath.fromId("second"),
+                ActivityReportsType.F_BUCKETS, taskManager.getNodeId());
+        assertThat(secondOid).as("second buckets report OID").isNotNull();
+        try (var reader = SimpleReportReader.createForLocalReportData(
+                secondOid, List.of("content-from", "content-to", "size"), beans, result)) {
+            List<List<String>> rows = reader.getRows();
+            displayValue("rows of bucket analysis report", rows);
+            assertThat(rows).as("rows").hasSize(11);
+            assertThat(rows.get(0)).as("row 0").containsExactly("", "r10", "0");
+            assertThat(rows.get(1)).as("row 1").containsExactly("r10", "r11", "1");
+            assertThat(rows.get(2)).as("row 2").containsExactly("r11", "r12", "1");
+            assertThat(rows.get(10)).as("row 10").containsExactly("r19", "", "1");
+        }
     }
 
     /**

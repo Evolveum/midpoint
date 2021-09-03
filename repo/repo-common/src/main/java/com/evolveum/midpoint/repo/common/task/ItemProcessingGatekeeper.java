@@ -8,18 +8,25 @@
 package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics.Operation;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityStatistics;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingConditionEvaluator.AdditionalVariableProvider;
+import com.evolveum.midpoint.repo.common.task.reports.ActivityExecutionReportUtil;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -38,7 +45,9 @@ import static java.util.Objects.requireNonNull;
  * Responsible for the necessary general procedures before and after processing of a single item,
  * offloading {@link IterativeActivityExecution} (or {@link ItemProcessingRequest}) from these duties.
  *
- * In particular that means - see {@link #process(OperationResult)}:
+ * This class is instantiated for each {@link #request} being processed.
+ *
+ * The processing consists of - see {@link #process(OperationResult)}:
  *
  * 1. Progress reporting: recording an "iterative operation" within the activity
  * 2. Operation result management (completion, cleanup)
@@ -58,6 +67,7 @@ class ItemProcessingGatekeeper<I> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemProcessingGatekeeper.class);
 
+    private static final String OP_PROCESS = ItemProcessingGatekeeper.class.getName() + ".process";
     private static final String OP_HANDLE = ItemProcessingGatekeeper.class.getName() + ".handle";
 
     /** Request to be processed */
@@ -76,15 +86,29 @@ class ItemProcessingGatekeeper<I> {
     private Operation operation;
 
     /**
+     * Final operation result after item is processed. Should not be used for operation recording!
+     * (Only for analysis.)
+     */
+    private OperationResult itemProcessingResult;
+
+    /**
      * Tuple "name, display name, type, OID" that is to be written to the iterative task information.
      */
     @NotNull private final IterationItemInformation iterationItemInformation;
 
     /**
-     * Did we have requested tracing for this item? We need to know it to decide if we should write the trace.
-     * Relying on {@link OperationResult#isTraced()} is not enough.
+     * Did we have requested tracing for this item? (Either because of tracing configuration in the task,
+     * or because of global tracing override.)
+     *
+     * We need to know it to decide if we should write the trace. Relying on {@link OperationResult#isTraced()} is not enough.
      */
     private boolean tracingRequested;
+
+    /** Whether internal operations report was requested. */
+    private boolean internalOperationReportRequested;
+
+    /** Helper for evaluation conditions related to item processing. */
+    @NotNull final ItemProcessingConditionEvaluator conditionEvaluator;
 
     /**
      * Helper for tracing and dynamic profiling functionality.
@@ -102,6 +126,12 @@ class ItemProcessingGatekeeper<I> {
      */
     private boolean canContinue = true;
 
+    /**
+     * Item-specific ConnID operations listener. Null if no listening takes place (either not requested,
+     * or blocked by before-item condition).
+     */
+    @Nullable private ConnIdOperationsListener connIdOperationsListener;
+
     ItemProcessingGatekeeper(@NotNull ItemProcessingRequest<I> request,
             @NotNull IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution,
             @NotNull RunningTask workerTask) {
@@ -110,10 +140,14 @@ class ItemProcessingGatekeeper<I> {
         this.coordinatorTask = activityExecution.getRunningTask();
         this.workerTask = workerTask;
         this.iterationItemInformation = request.getIterationItemInformation();
+        this.conditionEvaluator = new ItemProcessingConditionEvaluator(this);
         this.itemProcessingMonitor = new ItemProcessingMonitor<>(this);
     }
 
     boolean process(OperationResult parentResult) {
+
+        OperationResult result = parentResult.subresult(OP_PROCESS)
+                .build();
 
         try {
             workerTask.setExecutionSupport(activityExecution);
@@ -121,37 +155,36 @@ class ItemProcessingGatekeeper<I> {
             logOperationStart();
             operation = updateStatisticsOnStart();
 
-            itemProcessingMonitor.startProfilingAndTracingIfNeeded();
-            OperationResult result = doProcessItem(parentResult);
+            itemProcessingMonitor.startProfilingAndTracingIfNeeded(result);
 
             try {
-
-                itemProcessingMonitor.stopProfilingAndTracing();
-                writeOperationExecutionRecord(result);
-
-                if (isError()) {
-                    canContinue = handleError(result) && canContinue;
-                }
-
-                acknowledgeItemProcessed(result);
-
-                updateStatisticsOnEnd(result);
-                logOperationEnd(result);
-
-                cleanupAndSummarizeResults(result, parentResult);
-
-                return canContinue;
-
-            } catch (RuntimeException e) {
-
-                // This is just to record the exception to the appropriate result.
-                // The exception will be also recorded to the task result when handling
-                // the errorState.permanentErrorException later.
-                result.recordFatalError(e);
-                throw e;
+                startLocalConnIdListeningIfNeeded(result);
+                itemProcessingResult = doProcessItem(result);
+            } finally {
+                stopLocalConnIdOperationListening();
             }
 
+            updateStatisticsOnEnd(result);
+
+            storeTraceIfRequested(result);
+            updateExecutionReports(result);
+
+            itemProcessingMonitor.stopProfilingAndTracing();
+            writeOperationExecutionRecord(result);
+
+            if (isError()) {
+                canContinue = handleError(result) && canContinue;
+            }
+
+            acknowledgeItemProcessed(result);
+
+            logOperationEnd();
+
+            return canContinue;
+
         } catch (RuntimeException e) {
+
+            result.recordFatalError(e);
 
             // This is unexpected exception. We should perhaps stop the whole processing.
             // Just throwing the exception would simply kill one worker thread. This is something
@@ -168,37 +201,112 @@ class ItemProcessingGatekeeper<I> {
             return false;
 
         } finally {
+
+            result.close();
+            cleanupAndSummarizeResults(parentResult);
+
             workerTask.setExecutionSupport(null);
+        }
+    }
+
+    private void startLocalConnIdListeningIfNeeded(OperationResult result) {
+        activityExecution.disableGlobalConnIdOperationsListener();
+
+        if (!activityExecution.shouldReportConnIdOperations() ||
+                !beforeConditionForConnIdReportPasses(result)) {
+            return;
+        }
+
+        connIdOperationsListener = new ItemRelatedConnIdOperationListener();
+        workerTask.registerConnIdOperationsListener(connIdOperationsListener);
+    }
+
+    private void stopLocalConnIdOperationListening() {
+        activityExecution.enableGlobalConnIdOperationsListener();
+
+        if (connIdOperationsListener != null) {
+            workerTask.unregisterConnIdOperationsListener(connIdOperationsListener);
+        }
+    }
+
+    private void updateExecutionReports(OperationResult result) {
+        if (internalOperationReportRequested &&
+                afterConditionForInternalOpReportPasses(result)) {
+            activityExecution.getActivityState().getInternalOperationsReport()
+                    .add(request, activityExecution.bucket, itemProcessingResult, workerTask, result);
+        }
+        activityExecution.getConnIdOperationsReport().flush(workerTask, result);
+        reportItemProcessed(result);
+    }
+
+    private boolean beforeConditionForConnIdReportPasses(OperationResult result) {
+        ConnIdOperationsReportConfigurationType def =
+                activityExecution.getActivity().getReportingDefinition().getConnIdOperationsReportDefinition();
+        assert def != null;
+        return conditionEvaluator.anyItemReportingConditionApplies(def.getBeforeItemCondition(), result);
+    }
+
+    private boolean beforeConditionForInternalOpReportPasses(OperationResult result) {
+        InternalOperationsReportConfigurationType def =
+                activityExecution.getActivity().getReportingDefinition().getInternalOperationsReportDefinition();
+        assert def != null;
+        return conditionEvaluator.anyItemReportingConditionApplies(def.getBeforeItemCondition(), result);
+    }
+
+    private boolean afterConditionForInternalOpReportPasses(OperationResult result) {
+        InternalOperationsReportConfigurationType def =
+                activityExecution.getActivity().getReportingDefinition().getInternalOperationsReportDefinition();
+        assert def != null;
+        return conditionEvaluator.anyItemReportingConditionApplies(def.getAfterItemCondition(),
+                afterItemProcessingVariableProvider(), result);
+    }
+
+    private void reportItemProcessed(OperationResult result) {
+        if (activityExecution.shouldReportItems()) {
+            IterativeOperationStartInfo startInfo = operation.getStartInfo();
+            ItemProcessingRecordType record = new ItemProcessingRecordType(PrismContext.get())
+                    .sequentialNumber(request.getSequentialNumber())
+                    .name(startInfo.getItem().getObjectName())
+                    .displayName(startInfo.getItem().getObjectDisplayName())
+                    .type(startInfo.getItem().getObjectType())
+                    .oid(startInfo.getItem().getObjectOid())
+                    .bucketSequentialNumber(activityExecution.getBucket().getSequentialNumber())
+                    .outcome(processingResult.outcome)
+                    .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(startInfo.getStartTimeMillis()))
+                    .endTimestamp(XmlTypeConverter.createXMLGregorianCalendar(operation.getEndTimeMillis()))
+                    .duration(operation.getDurationRounded());
+            activityExecution.getItemsReport().recordItemProcessed(record, workerTask, result);
         }
     }
 
     /**
      * Fills-in resultException and processingResult.
      */
-    private OperationResult doProcessItem(OperationResult parentResult) {
+    private @NotNull OperationResult doProcessItem(OperationResult parentResult) {
 
-        OperationResult result = new OperationResult("dummy");
+        OperationResult itemOpResult = new OperationResult("dummy");
 
         enterLocalCaches();
         try {
-            result = initializeOperationResultIncludingTracing(parentResult);
+            itemOpResult = initializeOperationResultIncludingTracingOrReporting(parentResult);
 
-            if (!activityExecution.isNoExecution()) {
-                canContinue = activityExecution.processItem(request, workerTask, result);
-            } else {
-                result.recordNotApplicable("'No processing' execution mode is selected");
+            if (activityExecution.isNoExecution()) {
+                itemOpResult.recordNotApplicable("'No processing' execution mode is selected");
                 canContinue = true;
+            } else if (!conditionEvaluator.evaluateConditionDefaultTrue(getItemProcessingCondition(), null, itemOpResult)) {
+                itemOpResult.recordNotApplicable("Processing skipped because the item processing condition is false");
+                canContinue = true;
+            } else {
+                canContinue = activityExecution.processItem(request, workerTask, itemOpResult);
             }
 
-            computeStatusIfNeeded(result);
+            computeStatusIfNeeded(itemOpResult);
 
-            processingResult = ProcessingResult.fromOperationResult(result, getPrismContext());
-
-            storeTraceIfRequested(result, parentResult);
+            processingResult = ProcessingResult.fromOperationResult(itemOpResult, getPrismContext());
 
         } catch (Throwable t) {
 
-            result.recordFatalError(t);
+            itemOpResult.recordFatalError(t);
 
             // This is an error with top-level exception.
             // Note that we intentionally do not rethrow the exception.
@@ -206,9 +314,14 @@ class ItemProcessingGatekeeper<I> {
 
         } finally {
             RepositoryCache.exitLocalCaches();
+            itemOpResult.close();
         }
 
-        return result;
+        return itemOpResult;
+    }
+
+    private @Nullable ExpressionType getItemProcessingCondition() {
+        return getActivityDefinition().getControlFlowDefinition().getItemProcessingCondition();
     }
 
     /** This is just to ensure we will not wait indefinitely for the item to complete. */
@@ -237,11 +350,11 @@ class ItemProcessingGatekeeper<I> {
         return processingResult.isSuccess();
     }
 
-    private void cleanupAndSummarizeResults(OperationResult result, OperationResult parentResult) {
-        if (result.isSuccess() && tracingRequested && !result.isTraced()) {
+    private void cleanupAndSummarizeResults(OperationResult parentResult) {
+        if (itemProcessingResult.isSuccess() && itemProcessingResult.canBeCleanedUp()) {
             // FIXME: hack. Hardcoded ugly summarization of successes. something like
             //   AbstractSummarizingResultHandler [lazyman]
-            result.getSubresults().clear();
+            itemProcessingResult.getSubresults().clear();
         }
 
         // parentResult is worker-thread-specific result (because of concurrency issues)
@@ -250,10 +363,10 @@ class ItemProcessingGatekeeper<I> {
     }
 
     /** Must come after item and task statistics are updated. */
-    private void logOperationEnd(OperationResult result) {
+    private void logOperationEnd() {
 
         new StatisticsLogger(activityExecution)
-                .logItemCompletion(operation, result.getStatus());
+                .logItemCompletion(operation, itemProcessingResult.getStatus());
 
         if (isError() && getReportingOptions().isLogErrors()) {
             LOGGER.error("{} of object {}{} failed: {}", activityExecution.getShortName(), iterationItemInformation,
@@ -266,7 +379,7 @@ class ItemProcessingGatekeeper<I> {
      * TODO implement better
      */
     private boolean handleError(OperationResult result) {
-        OperationResultStatus status = result.getStatus();
+        OperationResultStatus status = itemProcessingResult.getStatus();
         Throwable exception = processingResult.getExceptionRequired();
         LOGGER.debug("Starting handling error with status={}, exception={}", status, exception.getMessage(), exception);
 
@@ -303,22 +416,34 @@ class ItemProcessingGatekeeper<I> {
         }
     }
 
-    private OperationResult initializeOperationResultIncludingTracing(OperationResult parentResult) throws SchemaException {
+    private OperationResult initializeOperationResultIncludingTracingOrReporting(OperationResult parentResult) throws SchemaException {
         OperationResultBuilder builder = parentResult.subresult(OP_HANDLE)
                 .addParam("object", iterationItemInformation.toString());
         if (workerTask.getTracingRequestedFor().contains(TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING)) {
             tracingRequested = true;
             builder.tracingProfile(getTracer().compileProfile(workerTask.getTracingProfile(), parentResult));
+        } else if (activityExecution.shouldReportInternalOperations() &&
+                beforeConditionForInternalOpReportPasses(parentResult)) {
+            internalOperationReportRequested = true;
+            builder.preserve();
         }
         return builder.build();
     }
 
-    private void storeTraceIfRequested(OperationResult result, OperationResult parentResult) {
+    private void storeTraceIfRequested(OperationResult parentResult) {
         if (tracingRequested) {
-            getTracer().storeTrace(workerTask, result, parentResult);
+            itemProcessingMonitor.storeTrace(getTracer(), afterItemProcessingVariableProvider(), workerTask,
+                    itemProcessingResult, parentResult);
             TracingAppender.removeSink(); // todo reconsider
             LevelOverrideTurboFilter.cancelLoggingOverride(); // todo reconsider
         }
+    }
+
+    private AdditionalVariableProvider afterItemProcessingVariableProvider() {
+        return variables -> {
+            variables.put(ExpressionConstants.VAR_OPERATION, operation, Operation.class);
+            variables.put(ExpressionConstants.VAR_OPERATION_RESULT, itemProcessingResult, OperationResult.class);
+        };
     }
 
     private void logOperationStart() {
@@ -449,8 +574,16 @@ class ItemProcessingGatekeeper<I> {
         return activityExecution;
     }
 
+    public @NotNull ActivityDefinition<?> getActivityDefinition() {
+        return getActivityExecution().getActivity().getDefinition();
+    }
+
     public @NotNull RunningTask getWorkerTask() {
         return workerTask;
+    }
+
+    @NotNull ItemProcessingRequest<I> getRequest() {
+        return request;
     }
 
     @Experimental
@@ -516,6 +649,21 @@ class ItemProcessingGatekeeper<I> {
                     "outcome=" + outcome +
                     ", exception=" + exception +
                     '}';
+        }
+    }
+
+    /**
+     * This listener forwards ConnId operations to the report,
+     * enriched with the information about current item being processed.
+     */
+    private class ItemRelatedConnIdOperationListener implements ConnIdOperationsListener {
+
+        @Override
+        public void onConnIdOperationEnd(@NotNull ConnIdOperation operation) {
+            ConnIdOperationRecordType record = operation.toOperationRecordBean();
+            ActivityExecutionReportUtil.addItemInformation(record, request, activityExecution.getBucket());
+
+            activityExecution.getConnIdOperationsReport().addRecord(record);
         }
     }
 }

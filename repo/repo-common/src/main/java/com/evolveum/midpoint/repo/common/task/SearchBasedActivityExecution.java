@@ -335,21 +335,18 @@ public class SearchBasedActivityExecution<
     }
 
     @Override
-    protected @Nullable Long determineExpectedTotal(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
+    protected @Nullable Integer determineExpectedTotal(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (!getReportingOptions().isDetermineExpectedTotal()) {
+        if (isBucketsAnalysis()) {
+            return countObjects(opResult);
+        } else if (!getReportingOptions().isDetermineExpectedTotal()) {
             return null;
         } else if (BucketingUtil.hasLimitations(bucket)) {
             // We avoid computing expected total if we are processing a bucket: actually we could do it,
             // but we should not display the result as 'task expected total'.
             return null;
         } else {
-            Integer expectedTotal = countObjects(opResult);
-            if (expectedTotal != null) {
-                return (long) expectedTotal;
-            } else {
-                return null;
-            }
+            return countObjects(opResult);
         }
     }
 
@@ -491,18 +488,6 @@ public class SearchBasedActivityExecution<
                     new ObjectProcessingRequest<>(sequentialNumberCounter.getAndIncrement(), object, this);
             return coordinator.submit(request, parentResult);
         };
-    }
-
-    @Override
-    public boolean isExcludedFromProfilingAndTracing() {
-        // In the case of distributed execution we want to limit profiling and tracing to a single task on a given node.
-        // Therefore we exclude all non-scavenging workers.
-        // FIXME This should be replaced by a more serious approach.
-        return isNonScavengingWorker();
-    }
-
-    private boolean isNonScavengingWorker() {
-        return activityState.isWorker() && !activityState.isScavenger();
     }
 
     private boolean checkAndRegisterOid(String oid) {

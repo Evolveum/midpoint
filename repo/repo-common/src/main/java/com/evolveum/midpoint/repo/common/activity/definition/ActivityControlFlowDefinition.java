@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
 
@@ -66,5 +67,9 @@ public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
 
     public boolean isSkip() {
         return bean.getProcessingOption() == PartialProcessingTypeType.SKIP;
+    }
+
+    public @Nullable ExpressionType getItemProcessingCondition() {
+        return bean.getItemProcessingCondition();
     }
 }
