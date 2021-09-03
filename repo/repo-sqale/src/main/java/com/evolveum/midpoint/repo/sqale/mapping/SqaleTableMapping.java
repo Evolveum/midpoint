@@ -282,6 +282,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     // TODO reconsider, if not necessary in 2023 DELETE (originally meant for ext item per column,
     //  but can this be used for adding index-only exts to schema object even from JSON?)
+
     @SuppressWarnings("unused")
     protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
         // empty by default, can be overridden
@@ -306,7 +307,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid.toString())
-                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(objectTypeToQName(repoObjectType))
                 .relation(resolveUriIdToQName(relationId));
     }
 
@@ -326,9 +327,16 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid.toString())
-                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(objectTypeToQName(repoObjectType))
                 .description(targetName)
                 .targetName(targetName);
+    }
+
+    @Nullable
+    protected QName objectTypeToQName(MObjectType objectType) {
+        return objectType != null
+                ? repositoryContext().schemaClassToQName(objectType.getSchemaType())
+                : null;
     }
 
     /**

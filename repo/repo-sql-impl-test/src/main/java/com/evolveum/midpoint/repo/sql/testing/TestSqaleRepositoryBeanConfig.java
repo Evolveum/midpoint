@@ -50,6 +50,7 @@ public class TestSqaleRepositoryBeanConfig {
     public DataSource proxiedTestDataSource(
             DataSource dataSource,
             TestQueryListener testQueryListener) {
+        //noinspection DuplicatedCode
         ChainListener chainListener = new ChainListener();
         chainListener.addListener(testQueryListener);
 
@@ -82,18 +83,14 @@ public class TestSqaleRepositoryBeanConfig {
     public void clearDatabase(SqaleRepoContext sqlRepoContext) {
         LOGGER.info("Postprocessing session factory - removing everything from database if necessary.");
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            // object delete cascades to sub-rows of the "object aggregate"
-
+            // Truncate cascades to sub-rows of the "object aggregate" - if FK points to m_object table hierarchy.
             jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
-            // truncate does not run ON DELETE trigger, many refs/container tables are not cleaned
-            jdbcSession.executeStatement("TRUNCATE m_object_oid CASCADE;");
-            // but after truncating m_object_oid it cleans all the tables
 
-            /*
-            Truncates are much faster than this delete probably because it works row by row:
-            long count = jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
-            display("Deleted " + count + " objects from DB");
-            */
+            // But truncate does not run ON DELETE trigger, many refs/container tables are not cleaned,
+            // because their FK references OID pool table. After truncating m_object_oid it cleans all the tables.
+            jdbcSession.executeStatement("TRUNCATE m_object_oid CASCADE;");
+
+            jdbcSession.executeStatement("TRUNCATE ma_audit_event CASCADE;");
             jdbcSession.commit();
         }
     }

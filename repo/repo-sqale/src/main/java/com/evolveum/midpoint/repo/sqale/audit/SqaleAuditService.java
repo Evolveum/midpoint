@@ -20,6 +20,7 @@ import javax.xml.datatype.Duration;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.SQLQuery;
+import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
@@ -32,15 +33,17 @@ import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqale.*;
-import com.evolveum.midpoint.repo.sqale.audit.qmodel.MAuditDelta;
-import com.evolveum.midpoint.repo.sqale.audit.qmodel.MAuditEventRecord;
-import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord;
-import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
-import com.evolveum.midpoint.repo.sqlbase.*;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -85,10 +88,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
-    public SqlRepoContext getSqlRepoContext() {
-        return sqlRepoContext;
-    }
-
     @Override
     public void audit(AuditEventRecord record, Task task, OperationResult parentResult) {
         Objects.requireNonNull(record, "Audit event record must not be null.");
@@ -111,17 +110,11 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     private void executeAudit(AuditEventRecord record) {
         long opHandle = registerOperationStart(OP_AUDIT);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            // We want to process deltas to prepare changed items array for main insert:
-            long recordId = insertAuditEventRecord(jdbcSession, record);
+            MAuditEventRecord auditRow = insertAuditEventRecord(jdbcSession, record);
 
-//            Collection<MAuditDelta> deltas =
-//                    insertAuditDeltas(jdbcSession, recordId, record.getDeltas());
+            insertAuditDeltas(jdbcSession, auditRow);
+            insertReferences(jdbcSession, auditRow, record.getReferences());
 
-            /* TODO
-            insertProperties(jdbcSession, recordId, record.getProperties());
-            insertReferences(jdbcSession, recordId, record.getReferences());
-            insertResourceOids(jdbcSession, recordId, record.getResourceOids());
-            */
             jdbcSession.commit();
         } finally {
             registerOperationFinish(opHandle, 1);
@@ -133,12 +126,14 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
      *
      * @return inserted row with transient deltas prepared for insertion
      */
-    private Long insertAuditEventRecord(JdbcSession jdbcSession, AuditEventRecord record) {
+    private MAuditEventRecord insertAuditEventRecord(JdbcSession jdbcSession, AuditEventRecord record) {
         QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.get();
         QAuditEventRecord aer = aerMapping.defaultAlias();
         MAuditEventRecord row = aerMapping.toRowObject(record);
 
         Collection<MAuditDelta> deltaRows = prepareDeltas(record.getDeltas());
+        row.deltas = deltaRows;
+
         Set<String> changedItemPaths = collectChangedItemPaths(deltaRows);
         row.changedItemPaths = changedItemPaths.isEmpty() ? null : changedItemPaths.toArray(String[]::new);
 
@@ -154,7 +149,8 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             insert.columns(aer.getPath(propertyName)).values(property.getValue());
         }
 
-        return insert.executeWithKey(aer.id);
+        row.id = insert.executeWithKey(aer.id);
+        return row;
     }
 
     private Collection<MAuditDelta> prepareDeltas(Collection<ObjectDeltaOperation<?>> deltas) {
@@ -167,24 +163,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
             MAuditDelta mAuditDelta = convertDelta(deltaOperation);
             deltasByChecksum.put(mAuditDelta.checksum, mAuditDelta);
-        }
-        return deltasByChecksum.values();
-    }
-
-    /*
-    private Collection<MAuditDelta> insertAuditDeltas(
-            JdbcSession jdbcSession, long recordId, Collection<ObjectDeltaOperation<?>> deltas) {
-
-        if (!deltasByChecksum.isEmpty()) {
-            // TODO add event PK (id+timestamp)
-            SQLInsertClause insertBatch = jdbcSession.newInsert(
-                    QAuditDeltaMapping.get().defaultAlias());
-            for (MAuditDelta value : deltasByChecksum.values()) {
-                // NULLs are important to keep the value count consistent during the batch
-                insertBatch.populate(value, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
-            }
-            insertBatch.setBatchToBulk(true);
-            insertBatch.execute();
         }
         return deltasByChecksum.values();
     }
@@ -285,52 +263,44 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         return changedItemPaths;
     }
 
-    private void insertProperties(
-            JdbcSession jdbcSession, long recordId, Map<String, Set<String>> properties) {
-        if (properties.isEmpty()) {
-            return;
-        }
+    private void insertAuditDeltas(
+            JdbcSession jdbcSession, MAuditEventRecord auditRow) {
 
-        /*
-        QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.get().defaultAlias();
-        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditPropertyValue);
-        for (String propertyName : properties.keySet()) {
-            for (String propertyValue : properties.get(propertyName)) {
-                // id will be generated, but we're not interested in those here
-                insertBatch.set(qAuditPropertyValue.recordId, recordId)
-                        .set(qAuditPropertyValue.name, propertyName)
-                        .set(qAuditPropertyValue.value, propertyValue)
-                        .addBatch();
+        if (!auditRow.deltas.isEmpty()) {
+            SQLInsertClause insertBatch = jdbcSession.newInsert(
+                    QAuditDeltaMapping.get().defaultAlias());
+            for (MAuditDelta deltaRow : auditRow.deltas) {
+                deltaRow.recordId = auditRow.id;
+                deltaRow.timestamp = auditRow.timestamp;
+
+                // NULLs are important to keep the value count consistent during the batch
+                insertBatch.populate(deltaRow, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
             }
+            insertBatch.setBatchToBulk(true);
+            insertBatch.execute();
         }
-        if (insertBatch.getBatchCount() == 0) {
-            return; // strange, no values anywhere?
-        }
-
-        insertBatch.setBatchToBulk(true);
-        insertBatch.execute();
-        */
     }
 
     private void insertReferences(JdbcSession jdbcSession,
-            long recordId, Map<String, Set<AuditReferenceValue>> references) {
+            MAuditEventRecord auditRow, Map<String, Set<AuditReferenceValue>> references) {
         if (references.isEmpty()) {
             return;
         }
 
-        /*
-        QAuditRefValue qAuditRefValue = QAuditRefValueMapping.get().defaultAlias();
-        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditRefValue);
+        QAuditRefValue qr = QAuditRefValueMapping.get().defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.newInsert(qr);
         for (String refName : references.keySet()) {
             for (AuditReferenceValue refValue : references.get(refName)) {
                 // id will be generated, but we're not interested in those here
                 PolyString targetName = refValue.getTargetName();
-                insertBatch.set(qAuditRefValue.recordId, recordId)
-                        .set(qAuditRefValue.name, refName)
-                        .set(qAuditRefValue.oid, refValue.getOid())
-                        .set(qAuditRefValue.type, RUtil.qnameToString(refValue.getType()))
-                        .set(qAuditRefValue.targetNameOrig, PolyString.getOrig(targetName))
-                        .set(qAuditRefValue.targetNameNorm, PolyString.getNorm(targetName))
+                insertBatch.set(qr.recordId, auditRow.id)
+                        .set(qr.timestamp, auditRow.timestamp)
+                        .set(qr.name, refName)
+                        .set(qr.targetOid, SqaleUtils.oidToUUid(refValue.getOid()))
+                        .set(qr.targetType, refValue.getType() != null
+                                ? MObjectType.fromTypeQName(refValue.getType()) : null)
+                        .set(qr.targetNameOrig, PolyString.getOrig(targetName))
+                        .set(qr.targetNameNorm, PolyString.getNorm(targetName))
                         .addBatch();
             }
         }
@@ -340,27 +310,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
         insertBatch.setBatchToBulk(true);
         insertBatch.execute();
-        */
-    }
-
-    private void insertResourceOids(
-            JdbcSession jdbcSession, long recordId, Set<String> resourceOids) {
-        if (resourceOids.isEmpty()) {
-            return;
-        }
-
-        /*
-        QAuditResource qAuditResource = QAuditResourceMapping.get().defaultAlias();
-        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditResource);
-        for (String resourceOid : resourceOids) {
-            insertBatch.set(qAuditResource.recordId, recordId)
-                    .set(qAuditResource.resourceOid, resourceOid)
-                    .addBatch();
-        }
-
-        insertBatch.setBatchToBulk(true);
-        insertBatch.execute();
-        */
     }
 
     @Override

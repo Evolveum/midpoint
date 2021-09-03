@@ -609,8 +609,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                                 iteration + ":" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1_000_000));
                         ObjectDelta<? extends ObjectType> delta = prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Hi" + iteration))
-                                .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
-                                .asObjectDelta("oid" + index);
+                                .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)
+                                .replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
+                                // OID in ascii: "audi-to-id-: -000...index"
+                                .asObjectDelta(String.format("61756469-746f-6964-3a20-%012d", index));
                         record.addDelta(new ObjectDeltaOperation<>(delta));
                         modelAuditService.audit(record, threadTask, threadResult);
                         if (failed.get()) {

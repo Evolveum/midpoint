@@ -341,6 +341,16 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         };
     }
 
+    /**
+     * Override for additional processing of result, e.g. fetching detail entities, etc.
+     * This is called inside read-only transaction.
+     */
+    @SuppressWarnings("unused")
+    public void processResult(List<Tuple> data, Q entityPath, JdbcSession jdbcSession,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        // nothing by default
+    }
+
     public Object itemDefinition() {
         return itemDefinition;
     }

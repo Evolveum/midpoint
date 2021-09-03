@@ -9,10 +9,8 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 import static com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord.TABLE_NAME;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Function;
 
 import com.querydsl.core.Tuple;
@@ -24,22 +22,26 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.audit.filtering.AuditCustomColumnItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.audit.filtering.AuditPropertiesItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Mapping between {@link QAuditEventRecord} and {@link AuditEventRecordType}.
@@ -77,33 +79,6 @@ public class QAuditEventRecordMapping
         addItemMapping(F_HOST_IDENTIFIER, stringMapper(q -> q.hostIdentifier));
         addItemMapping(F_NODE_IDENTIFIER, stringMapper(q -> q.nodeIdentifier));
         addItemMapping(F_REMOTE_HOST_ADDRESS, stringMapper(q -> q.remoteHostAddress));
-
-        addItemMapping(F_OUTCOME, enumMapper(q -> q.outcome));
-
-        addItemMapping(F_CHANNEL, stringMapper(q -> q.channel));
-        addItemMapping(F_PARAMETER, stringMapper(q -> q.parameter));
-        addItemMapping(F_RESULT, stringMapper(q -> q.result));
-        addItemMapping(F_MESSAGE, stringMapper(q -> q.message));
-
-        Function<QAuditEventRecord, ArrayPath<String[], String>> rootToQueryItem = q -> q.changedItemPaths;
-        addItemMapping(F_CHANGED_ITEM, new DefaultItemSqlMapper<>(ctx ->
-                new ArrayPathItemFilterProcessor<>(ctx, rootToQueryItem, "TEXT", String.class,
-                        (ItemPathType i) -> prismContext().createCanonicalItemPath(i.getItemPath()).asString())));
-        // Mapped as TEXT[], because UUID[] is harder to work with. PG driver doesn't convert Java Uuid[] directly,
-        // so we would have to send String[] anyway. So we just keep it simple with String+TEXT here.
-        addItemMapping(F_RESOURCE_OID, multiStringMapper(q -> q.resourceOids));
-
-        /* TODO
-        Function<QAuditResource, StringPath> rootToQueryItem = ai -> ai.resourceOid;
-        addItemMapping(F_RESOURCE_OID, DetailTableItemFilterProcessor.mapper(
-                QAuditResource.class,
-                joinOn((r, i) -> r.id.eq(i.recordId)),
-                new DefaultItemSqlMapper<>(
-                        ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                        rootToQueryItem)));
-        */
-
-        // TODO what are real target types of these refs? (for mapping)
         addAuditRefMapping(F_INITIATOR_REF,
                 q -> q.initiatorOid, q -> q.initiatorType, q -> q.initiatorName,
                 QFocusMapping::getFocusMapping);
@@ -116,30 +91,23 @@ public class QAuditEventRecordMapping
         addAuditRefMapping(F_TARGET_OWNER_REF,
                 q -> q.targetOwnerOid, q -> q.targetOwnerType, q -> q.targetOwnerName,
                 QObjectMapping::getObjectMapping);
+        addItemMapping(F_CHANNEL, stringMapper(q -> q.channel));
+        addItemMapping(F_OUTCOME, enumMapper(q -> q.outcome));
+        addItemMapping(F_PARAMETER, stringMapper(q -> q.parameter));
+        addItemMapping(F_RESULT, stringMapper(q -> q.result));
+        addItemMapping(F_MESSAGE, stringMapper(q -> q.message));
+
+        Function<QAuditEventRecord, ArrayPath<String[], String>> rootToQueryItem = q -> q.changedItemPaths;
+        addItemMapping(F_CHANGED_ITEM, new DefaultItemSqlMapper<>(
+                ctx -> new ArrayPathItemFilterProcessor<>(ctx, rootToQueryItem, "TEXT", String.class,
+                        (ItemPathType i) -> prismContext().createCanonicalItemPath(i.getItemPath()).asString())));
+        // Mapped as TEXT[], because UUID[] is harder to work with. PG driver doesn't convert Java Uuid[] directly,
+        // so we would have to send String[] anyway. So we just keep it simple with String+TEXT here.
+        addItemMapping(F_RESOURCE_OID, multiStringMapper(q -> q.resourceOids));
+        addItemMapping(F_PROPERTY, new DefaultItemSqlMapper<>(
+                ctx -> new AuditPropertiesItemFilterProcessor(ctx, q -> q.properties)));
 
         addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
-
-        /*
-        // lambdas use lowercase names matching the type parameters from SqlDetailFetchMapper
-        addDetailFetchMapper(F_PROPERTY, new SqlDetailFetchMapper<>(
-                r -> r.id,
-                QAuditPropertyValue.class,
-                dq -> dq.recordId,
-                dr -> dr.recordId,
-                (r, dr) -> r.addProperty(dr)));
-        addDetailFetchMapper(F_DELTA, new SqlDetailFetchMapper<>(
-                r -> r.id,
-                QAuditDelta.class,
-                dq -> dq.recordId,
-                dr -> dr.recordId,
-                (r, dr) -> r.addDelta(dr)));
-        addDetailFetchMapper(F_REFERENCE, new SqlDetailFetchMapper<>(
-                r -> r.id,
-                QAuditRefValue.class,
-                dq -> dq.recordId,
-                dr -> dr.recordId,
-                (r, dr) -> r.addRefValue(dr)));
-        */
     }
 
     @Override
@@ -172,17 +140,15 @@ public class QAuditEventRecordMapping
                 .result(row.result)
                 .message(row.message);
 
-        // TODO
-//        mapDeltas(record, row.deltas);
+        mapDeltas(record, row.deltas);
         mapChangedItems(record, row.changedItemPaths);
-//        mapRefValues(record, row.refValues);
-//        mapProperties(record, row.properties);
+        mapRefValues(record, row.refValues);
+        mapProperties(record, row.properties);
         mapResourceOids(record, row.resourceOids);
         return record;
     }
 
-    /*
-    private void mapDeltas(AuditEventRecordType record, List<MAuditDelta> deltas) {
+    private void mapDeltas(AuditEventRecordType record, Collection<MAuditDelta> deltas) {
         if (deltas == null) {
             return;
         }
@@ -191,7 +157,6 @@ public class QAuditEventRecordMapping
             record.delta(QAuditDeltaMapping.get().toSchemaObject(delta));
         }
     }
-    */
 
     private void mapChangedItems(AuditEventRecordType record, String[] changedItemPaths) {
         if (changedItemPaths == null) {
@@ -204,7 +169,6 @@ public class QAuditEventRecordMapping
         }
     }
 
-    /*
     private void mapRefValues(
             AuditEventRecordType record, Map<String, List<MAuditRefValue>> refValues) {
         if (refValues == null) {
@@ -216,8 +180,8 @@ public class QAuditEventRecordMapping
                     new AuditEventRecordReferenceType().name(entry.getKey());
             for (MAuditRefValue refValue : entry.getValue()) {
                 AuditEventRecordReferenceValueType value = new AuditEventRecordReferenceValueType()
-                        .oid(refValue.oid)
-                        .type(QName.valueOf(refValue.type));
+                        .oid(refValue.targetOid.toString())
+                        .type(objectTypeToQName(refValue.targetType));
                 if (refValue.targetNameOrig != null) {
                     value.targetName(new PolyStringType(
                             new PolyString(refValue.targetNameOrig, refValue.targetNameNorm)));
@@ -228,19 +192,19 @@ public class QAuditEventRecordMapping
         }
     }
 
-    private void mapProperties(AuditEventRecordType record, Map<String, List<String>> properties) {
+    private void mapProperties(AuditEventRecordType record, Jsonb properties) {
         if (properties == null) {
             return;
         }
 
-        for (Map.Entry<String, List<String>> entry : properties.entrySet()) {
+        for (Map.Entry<String, Object> entry : Jsonb.toMap(properties).entrySet()) {
             AuditEventRecordPropertyType propType =
                     new AuditEventRecordPropertyType().name(entry.getKey());
-            propType.getValue().addAll(entry.getValue());
+            //noinspection unchecked
+            propType.getValue().addAll((Collection<String>) entry.getValue());
             record.property(propType);
         }
     }
-    */
 
     private void mapResourceOids(AuditEventRecordType record, String[] resourceOids) {
         if (resourceOids == null) {
@@ -305,9 +269,12 @@ public class QAuditEventRecordMapping
         row.taskOid = SqaleUtils.oidToUUid(record.getTaskOid());
 
         row.resourceOids = stringsToArray(record.getResourceOids());
+        Map<String, ?> properties = record.getProperties();
+        if (properties != null) {
+            row.properties = Jsonb.fromMap(properties);
+        }
         // changedItemPaths are later extracted from deltas
 
-        // TODO properties and custom properties (and/or extensions)
         return row;
     }
 
@@ -320,5 +287,48 @@ public class QAuditEventRecordMapping
                     new AuditEventRecordCustomColumnPropertyType()
                             .name(propertyName).value((String) customColumnValue));
         }
+    }
+
+    @Override
+    public void processResult(
+            List<Tuple> data, QAuditEventRecord entityPath, JdbcSession jdbcSession,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (data.isEmpty()) {
+            return;
+        }
+
+        Instant minTimestamp = Instant.MAX;
+        Instant maxTimestamp = Instant.MIN;
+        Map<Long, MAuditEventRecord> rowMap = new HashMap<>();
+        for (Tuple rowTuple : data) {
+            MAuditEventRecord row = Objects.requireNonNull(rowTuple.get(entityPath));
+            rowMap.put(row.id, row);
+            if (row.timestamp.isBefore(minTimestamp)) {
+                minTimestamp = row.timestamp;
+            }
+            if (row.timestamp.isAfter(maxTimestamp)) {
+                maxTimestamp = row.timestamp;
+            }
+        }
+
+        QAuditDelta qd = QAuditDeltaMapping.get().defaultAlias();
+        jdbcSession.newQuery()
+                .select(qd)
+                .from(qd)
+                .where(qd.recordId.in(rowMap.keySet())
+                        // here between is OK, it's inclusive on both sides
+                        .and(qd.timestamp.between(minTimestamp, maxTimestamp)))
+                .fetch()
+                .forEach(d -> rowMap.get(d.recordId).addDelta(d));
+
+        QAuditRefValue qr = QAuditRefValueMapping.get().defaultAlias();
+        jdbcSession.newQuery()
+                .select(qr)
+                .from(qr)
+                .where(qr.recordId.in(rowMap.keySet())
+                        // here between is OK, it's inclusive on both sides
+                        .and(qr.timestamp.between(minTimestamp, maxTimestamp)))
+                .fetch()
+                .forEach(r -> rowMap.get(r.recordId).addRefValue(r));
     }
 }
