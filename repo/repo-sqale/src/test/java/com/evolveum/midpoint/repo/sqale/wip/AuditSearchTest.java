@@ -938,6 +938,20 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test281SearchByResourceOidAnyValue() throws SchemaException {
+        when("searching audit by resource OID multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_RESOURCE_OID)
+                .eq(resourceOid, UUID.randomUUID().toString()) // second value will not match
+                .build());
+
+        then("audit events with any of the the specified resource OIDs are returned");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1");
+    }
+
+    @Test
     public void test300SearchReturnsMappedToManyAttributes() throws SchemaException {
         when("searching audit with query without any conditions and paging");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext

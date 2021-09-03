@@ -214,18 +214,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Returns the mapper creating string multi-value filter/delta processors from context.
-     */
-    protected ItemSqlMapper<Q, R> multiStringMapper(
-            Function<Q, ArrayPath<String[], String>> rootToQueryItem) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new ArrayPathItemFilterProcessor<String, String>(
-                        ctx, rootToQueryItem, "TEXT", String.class, null),
-                ctx -> new ArrayItemDeltaProcessor<String, String>(
-                        ctx, rootToQueryItem, String.class, null));
-    }
-
-    /**
      * Returns the mapper creating poly-string multi-value filter/delta processors from context.
      */
     protected ItemSqlMapper<Q, R> multiPolyStringMapper(
@@ -236,16 +224,21 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
+     * Returns the mapper creating string multi-value filter/delta processors from context.
+     */
+    protected ItemSqlMapper<Q, R> multiStringMapper(
+            Function<Q, ArrayPath<String[], String>> rootToQueryItem) {
+        return multiValueMapper(rootToQueryItem, String.class, "TEXT", null, null);
+    }
+
+    /**
      * Returns the mapper creating cached URI multi-value filter/delta processors from context.
      */
     protected ItemSqlMapper<Q, R> multiUriMapper(
             Function<Q, ArrayPath<Integer[], Integer>> rootToQueryItem) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new ArrayPathItemFilterProcessor<>(
-                        ctx, rootToQueryItem, "INTEGER", Integer.class,
-                        ((SqaleRepoContext) ctx.repositoryContext())::searchCachedUriId),
-                ctx -> new ArrayItemDeltaProcessor<>(ctx, rootToQueryItem, Integer.class,
-                        ctx.repositoryContext()::processCacheableUri));
+        return multiValueMapper(rootToQueryItem, Integer.class, "INTEGER",
+                repositoryContext()::searchCachedUriId,
+                repositoryContext()::processCacheableUri);
     }
 
     /**
@@ -260,12 +253,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, ArrayPath<ST[], ST>> rootToQueryItem,
             Class<ST> elementType,
             String dbType,
-            Function<VT, ST> conversionFunction) {
+            @Nullable Function<VT, ST> queryConversionFunction,
+            @Nullable Function<VT, ST> updateConversionFunction) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new ArrayPathItemFilterProcessor<>(
-                        ctx, rootToQueryItem, dbType, elementType, conversionFunction),
+                        ctx, rootToQueryItem, dbType, elementType, queryConversionFunction),
                 ctx -> new ArrayItemDeltaProcessor<>(
-                        ctx, rootToQueryItem, elementType, conversionFunction));
+                        ctx, rootToQueryItem, elementType, updateConversionFunction));
     }
 
     @Override

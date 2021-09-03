@@ -9,10 +9,14 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 import static com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord.TABLE_NAME;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.ArrayPath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -22,13 +26,18 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
+import com.evolveum.midpoint.repo.sqale.audit.filtering.AuditCustomColumnItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -76,10 +85,10 @@ public class QAuditEventRecordMapping
         addItemMapping(F_RESULT, stringMapper(q -> q.result));
         addItemMapping(F_MESSAGE, stringMapper(q -> q.message));
 
-        addItemMapping(F_CHANGED_ITEM, multiValueMapper(
-                q -> q.changedItemPaths,
-                String.class, "TEXT",
-                (ItemPathType i) -> prismContext().createCanonicalItemPath(i.getItemPath()).asString()));
+        Function<QAuditEventRecord, ArrayPath<String[], String>> rootToQueryItem = q -> q.changedItemPaths;
+        addItemMapping(F_CHANGED_ITEM, new DefaultItemSqlMapper<>(ctx ->
+                new ArrayPathItemFilterProcessor<>(ctx, rootToQueryItem, "TEXT", String.class,
+                        (ItemPathType i) -> prismContext().createCanonicalItemPath(i.getItemPath()).asString())));
         // Mapped as TEXT[], because UUID[] is harder to work with. PG driver doesn't convert Java Uuid[] directly,
         // so we would have to send String[] anyway. So we just keep it simple with String+TEXT here.
         addItemMapping(F_RESOURCE_OID, multiStringMapper(q -> q.resourceOids));
@@ -108,9 +117,9 @@ public class QAuditEventRecordMapping
                 q -> q.targetOwnerOid, q -> q.targetOwnerType, q -> q.targetOwnerName,
                 QObjectMapping::getObjectMapping);
 
-        /*
         addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
 
+        /*
         // lambdas use lowercase names matching the type parameters from SqlDetailFetchMapper
         addDetailFetchMapper(F_PROPERTY, new SqlDetailFetchMapper<>(
                 r -> r.id,

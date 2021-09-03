@@ -33,12 +33,13 @@ public class Jsonb {
 
     @Override
     public String toString() {
-        return "JSONB " + value;
+        // Pure JSON, this is critical for JSONB array serialization in PG JDBC driver.
+        return value;
     }
 
     // static stuff for parse/format
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
 
     static {
         class BigDecimalSerializer extends JsonSerializer<BigDecimal> {
@@ -56,7 +57,7 @@ public class Jsonb {
     }
 
     /** Returns JSONB object from map or null if map is null or empty. */
-    public static Jsonb fromMap(Map<String, Object> map) {
+    public static Jsonb fromMap(Map<String, ?> map) {
         if (map == null || map.isEmpty()) {
             return null;
         }

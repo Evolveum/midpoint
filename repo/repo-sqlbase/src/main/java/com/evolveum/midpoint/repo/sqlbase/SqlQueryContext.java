@@ -509,7 +509,9 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return sqlRepoContext.normalizeRelation(qName);
     }
 
-    // before-query hook, empty by default
+    /**
+     * Before-query hook, empty by default, called *before* the JDBC transaction starts.
+     */
     public void beforeQuery() {
     }
 }
