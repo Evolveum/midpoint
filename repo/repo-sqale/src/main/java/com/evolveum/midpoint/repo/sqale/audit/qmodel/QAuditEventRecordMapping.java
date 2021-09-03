@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.audit.filtering.AuditCustomColumnItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.audit.filtering.AuditPropertiesItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
@@ -38,10 +39,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceValueType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -81,33 +79,6 @@ public class QAuditEventRecordMapping
         addItemMapping(F_HOST_IDENTIFIER, stringMapper(q -> q.hostIdentifier));
         addItemMapping(F_NODE_IDENTIFIER, stringMapper(q -> q.nodeIdentifier));
         addItemMapping(F_REMOTE_HOST_ADDRESS, stringMapper(q -> q.remoteHostAddress));
-
-        addItemMapping(F_OUTCOME, enumMapper(q -> q.outcome));
-
-        addItemMapping(F_CHANNEL, stringMapper(q -> q.channel));
-        addItemMapping(F_PARAMETER, stringMapper(q -> q.parameter));
-        addItemMapping(F_RESULT, stringMapper(q -> q.result));
-        addItemMapping(F_MESSAGE, stringMapper(q -> q.message));
-
-        Function<QAuditEventRecord, ArrayPath<String[], String>> rootToQueryItem = q -> q.changedItemPaths;
-        addItemMapping(F_CHANGED_ITEM, new DefaultItemSqlMapper<>(ctx ->
-                new ArrayPathItemFilterProcessor<>(ctx, rootToQueryItem, "TEXT", String.class,
-                        (ItemPathType i) -> prismContext().createCanonicalItemPath(i.getItemPath()).asString())));
-        // Mapped as TEXT[], because UUID[] is harder to work with. PG driver doesn't convert Java Uuid[] directly,
-        // so we would have to send String[] anyway. So we just keep it simple with String+TEXT here.
-        addItemMapping(F_RESOURCE_OID, multiStringMapper(q -> q.resourceOids));
-
-        /* TODO
-        Function<QAuditResource, StringPath> rootToQueryItem = ai -> ai.resourceOid;
-        addItemMapping(F_RESOURCE_OID, DetailTableItemFilterProcessor.mapper(
-                QAuditResource.class,
-                joinOn((r, i) -> r.id.eq(i.recordId)),
-                new DefaultItemSqlMapper<>(
-                        ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                        rootToQueryItem)));
-        */
-
-        // TODO what are real target types of these refs? (for mapping)
         addAuditRefMapping(F_INITIATOR_REF,
                 q -> q.initiatorOid, q -> q.initiatorType, q -> q.initiatorName,
                 QFocusMapping::getFocusMapping);
@@ -120,30 +91,23 @@ public class QAuditEventRecordMapping
         addAuditRefMapping(F_TARGET_OWNER_REF,
                 q -> q.targetOwnerOid, q -> q.targetOwnerType, q -> q.targetOwnerName,
                 QObjectMapping::getObjectMapping);
+        addItemMapping(F_CHANNEL, stringMapper(q -> q.channel));
+        addItemMapping(F_OUTCOME, enumMapper(q -> q.outcome));
+        addItemMapping(F_PARAMETER, stringMapper(q -> q.parameter));
+        addItemMapping(F_RESULT, stringMapper(q -> q.result));
+        addItemMapping(F_MESSAGE, stringMapper(q -> q.message));
+
+        Function<QAuditEventRecord, ArrayPath<String[], String>> rootToQueryItem = q -> q.changedItemPaths;
+        addItemMapping(F_CHANGED_ITEM, new DefaultItemSqlMapper<>(
+                ctx -> new ArrayPathItemFilterProcessor<>(ctx, rootToQueryItem, "TEXT", String.class,
+                        (ItemPathType i) -> prismContext().createCanonicalItemPath(i.getItemPath()).asString())));
+        // Mapped as TEXT[], because UUID[] is harder to work with. PG driver doesn't convert Java Uuid[] directly,
+        // so we would have to send String[] anyway. So we just keep it simple with String+TEXT here.
+        addItemMapping(F_RESOURCE_OID, multiStringMapper(q -> q.resourceOids));
+        addItemMapping(F_PROPERTY, new DefaultItemSqlMapper<>(
+                ctx -> new AuditPropertiesItemFilterProcessor(ctx, q -> q.properties)));
 
         addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
-
-        /*
-        // lambdas use lowercase names matching the type parameters from SqlDetailFetchMapper
-        addDetailFetchMapper(F_PROPERTY, new SqlDetailFetchMapper<>(
-                r -> r.id,
-                QAuditPropertyValue.class,
-                dq -> dq.recordId,
-                dr -> dr.recordId,
-                (r, dr) -> r.addProperty(dr)));
-        addDetailFetchMapper(F_DELTA, new SqlDetailFetchMapper<>(
-                r -> r.id,
-                QAuditDelta.class,
-                dq -> dq.recordId,
-                dr -> dr.recordId,
-                (r, dr) -> r.addDelta(dr)));
-        addDetailFetchMapper(F_REFERENCE, new SqlDetailFetchMapper<>(
-                r -> r.id,
-                QAuditRefValue.class,
-                dq -> dq.recordId,
-                dr -> dr.recordId,
-                (r, dr) -> r.addRefValue(dr)));
-        */
     }
 
     @Override
@@ -179,7 +143,7 @@ public class QAuditEventRecordMapping
         mapDeltas(record, row.deltas);
         mapChangedItems(record, row.changedItemPaths);
         mapRefValues(record, row.refValues);
-//        mapProperties(record, row.properties);
+        mapProperties(record, row.properties);
         mapResourceOids(record, row.resourceOids);
         return record;
     }
@@ -228,23 +192,20 @@ public class QAuditEventRecordMapping
         }
     }
 
-    /*
-
-    private void mapProperties(AuditEventRecordType record, Map<String, List<String>> properties) {
+    private void mapProperties(AuditEventRecordType record, Jsonb properties) {
         if (properties == null) {
             return;
         }
 
-        for (Map.Entry<String, List<String>> entry : properties.entrySet()) {
+        for (Map.Entry<String, Object> entry : Jsonb.toMap(properties).entrySet()) {
             AuditEventRecordPropertyType propType =
                     new AuditEventRecordPropertyType().name(entry.getKey());
-            propType.getValue().addAll(entry.getValue());
+            //noinspection unchecked
+            propType.getValue().addAll((Collection<String>) entry.getValue());
             record.property(propType);
         }
     }
-    */
 
-    */
     private void mapResourceOids(AuditEventRecordType record, String[] resourceOids) {
         if (resourceOids == null) {
             return;
@@ -308,9 +269,12 @@ public class QAuditEventRecordMapping
         row.taskOid = SqaleUtils.oidToUUid(record.getTaskOid());
 
         row.resourceOids = stringsToArray(record.getResourceOids());
+        Map<String, ?> properties = record.getProperties();
+        if (properties != null) {
+            row.properties = Jsonb.fromMap(properties);
+        }
         // changedItemPaths are later extracted from deltas
 
-        // TODO properties and custom properties (and/or extensions)
         return row;
     }
 

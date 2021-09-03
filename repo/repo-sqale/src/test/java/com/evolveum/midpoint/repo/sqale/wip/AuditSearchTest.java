@@ -58,6 +58,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     public static final long TIMESTAMP_1 = 1577836800000L; // 2020-01-01
     public static final long TIMESTAMP_2 = 1580515200000L; // 2020-02-01
     public static final long TIMESTAMP_3 = 1583020800000L; // 2020-03-01
+    public static final long TIMESTAMP_4 = 1600000000000L; // 2020-04...
 
     @Autowired private AuditService auditService;
 
@@ -161,6 +162,11 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record3.setTaskIdentifier("task-identifier");
         record3.setTaskOid(taskOid);
         auditService.audit(record3, NullTaskImpl.INSTANCE, result);
+
+        AuditEventRecord record4 = new AuditEventRecord();
+        record4.setParameter("4");
+        record4.setTimestamp(TIMESTAMP_4);
+        auditService.audit(record4, NullTaskImpl.INSTANCE, result);
     }
 
     @NotNull
@@ -202,7 +208,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 operationResult);
 
         then("all audit events are returned");
-        assertThat(result).hasSize(3);
+        assertThat(result).hasSize(4);
 
         and("operation result is success");
         OperationResult subresult = operationResult.getLastSubresult();
@@ -286,7 +292,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("only audit events without any outcome are returned");
-        assertThat(result).hasSize(1);
+        assertThat(result).hasSize(2);
         assertThat(result.get(0).getOutcome()).isNull();
     }
 
@@ -326,7 +332,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("only audit events without any result are returned");
-        assertThat(result).hasSize(2);
+        assertThat(result).hasSize(3);
         assertThat(result).allMatch(aer -> aer.getResult() == null);
     }
 
@@ -483,8 +489,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("only audit events with the timestamp less or equal are returned");
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getParameter()).isEqualTo("3");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("3", "4");
     }
 
     @Test
@@ -527,7 +533,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("only audit events with NULL initiator are returned");
-        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "3", "4");
         assertThat(result).allMatch(aer -> aer.getInitiatorRef() == null);
     }
 
@@ -748,7 +755,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
         then("audit events with with remote host address not equal"
                 + " to the value are returned - including NULLs");
-        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("2", "3", "4");
         assertThat(result).allMatch(aer -> !"192.168.10.1".equals(aer.getRemoteHostAddress()));
     }
 
@@ -822,9 +830,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
         then("only audit events without any changed items are returned");
         // technically, null path in existing changed item would also match, but we don't care
-        assertThat(result).hasSize(1);
         assertThat(result).extracting(aer -> aer.getParameter())
-                .containsExactlyInAnyOrder("3");
+                .containsExactlyInAnyOrder("3", "4");
     }
 
     @Test
@@ -887,7 +894,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         when("searching audit by parameter equal to multiple values");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
-                .item(AuditEventRecordType.F_PARAMETER).eq("1", "2", "4") // 4 is unused, it's OK
+                .item(AuditEventRecordType.F_PARAMETER).eq("1", "2", "X") // X is unused, it's OK
                 .build());
 
         then("audit events with parameter equal to any of the specified values are returned");
@@ -965,7 +972,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("all audit events are returned");
-        assertThat(result).hasSize(3);
+        assertThat(result).hasSize(4);
         result.sort(Comparator.comparing(AuditEventRecordType::getParameter));
 
         and("record 1 has all the attributes filled");
@@ -1093,8 +1100,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("only audit events matching neither of conditions are returned");
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getParameter()).isEqualTo("2");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("2", "4");
     }
 
     @Test
@@ -1132,6 +1139,90 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
         then("only audit events having both specified changed items are returned");
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void test530SearchByProperty() throws SchemaException {
+        when("searching audit filtered by property key-value");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_PROPERTY)
+                        .eq(new AuditEventRecordPropertyType()
+                                .name("prop1").value("val1"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("only audit events having the specified property with key-value entry are returned");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1");
+    }
+
+    @Test
+    public void test531SearchEventWithNoProperty() throws SchemaException {
+        when("searching audit with no property key-value");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_PROPERTY).isNull()
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("only audit events having no property entries are returned");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("4");
+    }
+
+    @Test
+    public void test532SearchByPropertyWithMultipleValuesForOneKey() throws SchemaException {
+        when("searching audit filtered by property key-value");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_PROPERTY)
+                        .eq(new AuditEventRecordPropertyType()
+                                .name("prop1").value("val3-1").value("val3-2"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("only audit events having the specified property with all the provided values are returned");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("3");
+    }
+
+    @Test
+    public void test533SearchByPropertyWithMultipleValuesForOneKeyNoMatch() throws SchemaException {
+        when("searching audit filtered by property key-value with non-matching values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_PROPERTY)
+                        .eq(new AuditEventRecordPropertyType()
+                                // second value is in audit event 1, but not together with the first
+                                .name("prop1").value("val3-1").value("val1"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("nothing is found");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void test534SearchByPropertyWithMultipleKeyValuePairs() throws SchemaException {
+        when("searching audit filtered by multiple property key-value pairs");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_PROPERTY).eq(
+                                // with multiple "big" values ANY semantics is used
+                                new AuditEventRecordPropertyType()
+                                        .name("prop1").value("val1"),
+                                new AuditEventRecordPropertyType()
+                                        .name("prop2").value(null),
+                                // non-matching value does not eliminate any results
+                                new AuditEventRecordPropertyType()
+                                        .name("prop-nonexistent").value("xy"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("audit events having any of the property entries are returned");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "3");
     }
 
     @Test
@@ -1198,9 +1289,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 SelectorOptions.create(GetOperationOptions.createDistinct()));
 
         then("audit events having the custom property not equal or NULL are returned");
-        assertThat(result).hasSize(2);
         assertThat(result).extracting(aer -> aer.getParameter())
-                .containsExactlyInAnyOrder("2", "3");
+                .containsExactlyInAnyOrder("2", "3", "4");
     }
 
     @Test
@@ -1254,11 +1344,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 SelectorOptions.create(GetOperationOptions.createDistinct()));
 
         then("audit events with the specified custom property set to NULL are returned");
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getParameter()).isEqualTo("3");
-        assertThat(result.get(0).getCustomColumnProperty())
-                .filteredOn(p -> p.getName().equals("foo") && p.getValue() != null)
-                .isEmpty();
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("3", "4");
     }
 
     @Test
@@ -1282,7 +1369,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("all audit records are returned");
-        assertThat(result).hasSize(3);
+        assertThat(result).hasSize(4);
     }
 
     @Test
@@ -1307,9 +1394,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("all records are returned ordered by specified item");
-        assertThat(result).hasSize(3);
         assertThat(result).extracting(aer -> aer.getParameter())
-                .containsExactly("1", "2", "3");
+                .containsExactly("1", "2", "3", "4");
     }
 
     @Test
@@ -1323,8 +1409,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("only the expected page is returned");
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getParameter()).isEqualTo("2");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("2");
     }
 
     @Test
@@ -1338,7 +1424,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 operationResult);
 
         then("count of all audit records is returned");
-        assertThat(result).isEqualTo(3);
+        assertThat(result).isEqualTo(4);
 
         and("operation result is success");
         OperationResult subresult = operationResult.getLastSubresult();
@@ -1380,7 +1466,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("count of all records is returned, order is ignored");
-        assertThat(result).isEqualTo(3);
+        assertThat(result).isEqualTo(4);
     }
 
     @Test
@@ -1389,7 +1475,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         int result = auditService.countObjects(null, null, createOperationResult());
 
         then("count of all records is returned");
-        assertThat(result).isEqualTo(3);
+        assertThat(result).isEqualTo(4);
     }
 
     @Test
@@ -1403,7 +1489,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                 .build());
 
         then("count of all records is returned, paging is ignored");
-        assertThat(result).isEqualTo(3);
+        assertThat(result).isEqualTo(4);
     }
 
     @Test

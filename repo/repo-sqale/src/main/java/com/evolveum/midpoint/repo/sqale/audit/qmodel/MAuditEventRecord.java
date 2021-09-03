@@ -73,16 +73,6 @@ public class MAuditEventRecord {
         values.add(refValue);
     }
 
-    /* TODO props stored as JSONB
-    public void addProperty(MAuditPropertyValue propertyValue) {
-        if (properties == null) {
-            properties = new TreeMap<>();
-        }
-        List<String> values = properties.computeIfAbsent(propertyValue.name, s -> new ArrayList<>());
-        values.add(propertyValue.value);
-    }
-    */
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {return true;}
