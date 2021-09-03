@@ -2352,12 +2352,20 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="precondition" type="tns:ExpressionType" minOccurs="0">
+            <xsd:element name="activityPrecondition" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Precondition: an expression that governs whether the current activity should be executed or skipped,
                         or whether the task should stop altogether. Should return a single value
                         of ActivityPreconditionOutputType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bucketProcessingCondition" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Condition for processing or analysing specific buckets. Currently supported for iterative activities.
+                        (If present and if returns false, the bucket is marked as complete without any processing.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3418,6 +3426,111 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="sampling" type="tns:WorkBucketsSamplingConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set, we process only a sample of all buckets.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="WorkBucketsSamplingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="regular" type="tns:WorkBucketsRegularSamplingConfigurationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Sampling using regular distribution of samples.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="random" type="tns:WorkBucketsRandomSamplingConfigurationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Sampling using random distribution of samples.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="WorkBucketsRegularSamplingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="interval" type="xsd:int" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Interval of buckets in the sample (i.e. N means that each N-th bucket is selected).
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="sampleSize" type="xsd:int" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Number of buckets in the sample. It is converted to an interval
+                            by dividing the the total number of buckets (if known) by the sample size.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="WorkBucketsRandomSamplingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="probability" type="xsd:double" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Probability of including a bucket in the sample (a number between 0 and 1).
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="sampleSize" type="xsd:int" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Approximate number of buckets in the sample. It is converted to a probability
+                            by dividing the sample size by the total number of buckets (if known).
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

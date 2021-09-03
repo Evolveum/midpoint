@@ -19,11 +19,15 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.state.OtherActivityState;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.task.reports.ConnIdOperationsReport;
 import com.evolveum.midpoint.repo.common.task.reports.ItemsReport;
 
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -49,10 +53,6 @@ import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -67,7 +67,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * a. calls before/after execution "hook" methods + the main execution routine,
  * b. generates the execution result based on kind(s) of error(s) encountered.
  *
- * 2. Orchestrates the basic bucket execution cycle - see {@link #executeOrAnalyzeSingleBucket(OperationResult)}:
+ * 2. Orchestrates the basic bucket execution cycle - see {@link #executeOrAnalyzeOrSkipSingleBucket(OperationResult)}:
  *
  * a. item source preparation,
  * b. before/after bucket execution "hook" methods, along with main {@link #iterateOverItemsInBucket(OperationResult)} method,
@@ -232,7 +232,7 @@ public abstract class IterativeActivityExecution<
                     break;
                 }
 
-                complete = executeOrAnalyzeSingleBucket(result);
+                complete = executeOrAnalyzeOrSkipSingleBucket(result);
                 if (!complete) {
                     break;
                 }
@@ -247,6 +247,23 @@ public abstract class IterativeActivityExecution<
                     releaseAllBucketsWhenWorker(result);
                 }
             }
+        }
+    }
+
+    private boolean shouldProcessBucket(OperationResult result) {
+        ExpressionType condition = getActivity().getControlFlowDefinition().getBucketProcessingCondition();
+        if (condition == null) {
+            return true;
+        }
+
+        VariablesMap variables = new VariablesMap();
+        variables.put(ExpressionConstants.VAR_BUCKET, bucket, WorkBucketType.class);
+
+        try {
+            return ExpressionUtil.evaluateConditionDefaultTrue(variables, condition, null,
+                    beans.expressionFactory, "bucket condition expression", getRunningTask(), result);
+        } catch (CommonException e) {
+            throw new SystemException("Couldn't evaluate bucket processing condition: " + e.getMessage(), e);
         }
     }
 
@@ -319,11 +336,15 @@ public abstract class IterativeActivityExecution<
     }
 
     /**
-     * Execute or analyze a single bucket.
+     * Execute or analyze or skip a single bucket.
      *
      * @return true if the bucket was completed
      */
-    private boolean executeOrAnalyzeSingleBucket(OperationResult result) throws ActivityExecutionException, CommonException {
+    private boolean executeOrAnalyzeOrSkipSingleBucket(OperationResult result) throws ActivityExecutionException, CommonException {
+        if (!shouldProcessBucket(result)) {
+            return skipSingleBucket(result);
+        }
+
         prepareItemSource(result);
 
         if (isBucketsAnalysis()) {
@@ -331,6 +352,13 @@ public abstract class IterativeActivityExecution<
         } else {
             return executeSingleBucket(result);
         }
+    }
+
+    private boolean skipSingleBucket(OperationResult result) throws ActivityExecutionException {
+        LOGGER.debug("Skipping bucket {} because bucket processing condition evaluated to false", bucket);
+        // Actually we could go without committing progress, but it does no harm, so we keep it here.
+        completeWorkBucketAndCommitProgress(result);
+        return true;
     }
 
     private boolean analyzeSingleBucket(OperationResult result) throws CommonException, ActivityExecutionException {

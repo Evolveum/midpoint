@@ -11,14 +11,14 @@ import static com.evolveum.midpoint.repo.common.task.work.BucketOperation.bucket
 import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getActivityStateRequired;
 import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getStateItemPath;
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getWorkerOid;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_NUMBER_OF_BUCKETS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType.DELEGATED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -30,10 +30,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator.Response.FoundExisting;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator.Response.NewBuckets;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator.Response.NothingFound;
+import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
@@ -74,14 +71,10 @@ class GetBucketOperationAttempt {
     @NotNull private final ActivityStateType activityState;
 
     /**
-     * Current list of buckets. It is not updated directly in this class!
+     * Current list of buckets. It is a "working copy": updated by this class, but only to know the effect
+     * of the modifications planned.
      */
-    @NotNull private final List<WorkBucketType> buckets;
-
-    /**
-     * Configured allocator that generates buckets.
-     */
-    @NotNull private final BucketAllocator bucketAllocator;
+    @NotNull private final List<WorkBucketType> currentBuckets;
 
     /**
      * Modifications to be applied to the task. After they are applied successfully,
@@ -91,88 +84,223 @@ class GetBucketOperationAttempt {
     @NotNull private final Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
     /**
-     * If present, we have found a bucket that was already delegated. So no allocation was needed to do;
-     * and no modifications were needed either.
+     * Buckets to be added. They are swallowed into modifications at the end.
+     * (To aggregate them into one modification.)
+     *
+     * They are detached (cloned), ready to be used in the delta.
      */
-    private WorkBucketType alreadyDelegatedBucket;
+    @NotNull private final List<WorkBucketType> bucketsToAdd = new ArrayList<>();
 
     /**
-     * Response of the bucket allocator. Null if the allocator was not involved.
+     * Situation that occurred (for reporting).
+     *
+     * Must be non-null after successful execution of {@link #execute()}.
      */
-    private BucketAllocator.Response allocatorResponse;
+    private Situation situation;
+
+    /**
+     * Bucket to be returned to the caller.
+     */
+    private WorkBucketType bucketToUse;
+
+    /**
+     * How many buckets should we get? Normally the number is 1.
+     *
+     * But in sampling mode with sample size of N we want to get N buckets,
+     * where first N-1 are created in the COMPLETE state, and only the N-th is READY or DELEGATED.
+     *
+     * The exception is when we want to return already-delegated bucket. Then no sampling is done.
+     */
+    private int numberOfBucketsToGet = 1;
+
+    /** Do we do sampling? */
+    private final boolean doingSampling;
+
+    /**
+     * Configured allocator that generates buckets.
+     */
+    @NotNull private final BucketFactory bucketFactory;
 
     GetBucketOperationAttempt(@NotNull TaskType task, @Nullable String workerOid, @NotNull ActivityPath activityPath,
-            @NotNull BucketAllocator bucketAllocator) {
+            @NotNull BucketFactory bucketFactory, int numberOfBucketsToGet) {
         this.task = task;
         this.workerOid = workerOid;
         this.activityStateItemPath = getStateItemPath(task.getActivityState(), activityPath);
         this.activityState = getActivityStateRequired(task.getActivityState(), activityStateItemPath);
-        this.buckets = BucketingUtil.getBuckets(activityState);
-        this.bucketAllocator = bucketAllocator;
+        this.currentBuckets = BucketingUtil.getBuckets(activityState);
+        this.bucketFactory = bucketFactory;
+        this.numberOfBucketsToGet = numberOfBucketsToGet;
+        this.doingSampling = numberOfBucketsToGet > 1;
     }
 
     /**
-     * Obtains a bucket. This method can be called from {@link RepositoryService#modifyObjectDynamically(Class, String, Collection, RepositoryService.ModificationsSupplier, RepoModifyOptions, OperationResult)}
-     * method (in case of coordinator-workers scenario), or simply as part of `getObject` - compute changes - `modifyObject`
+     * Obtains a bucket. Skips buckets when sampling is used.
+     * Potentially pre-creates buckets if batch allocation is used.
+     *
+     * This method can be called from {@link RepositoryService#modifyObjectDynamically(Class, String, Collection,
+     * RepositoryService.ModificationsSupplier, RepoModifyOptions, OperationResult)} method (in case
+     * of coordinator-workers scenario), or simply as part of `getObject` - compute changes - `modifyObject`
      * process (in case of standalone scenario).
      */
     void execute() throws SchemaException {
 
+        argCheck(numberOfBucketsToGet > 0, "Number of buckets to get is less than 1: %s", numberOfBucketsToGet);
+
+        setOrUpdateEstimatedNumberOfBuckets();
+
         if (workerOid != null) {
-            Optional<WorkBucketType> delegatedToWorker = buckets.stream()
-                    .filter(b -> BucketingUtil.isDelegatedTo(b, workerOid))
-                    .findAny(); // usually at most one
-            if (delegatedToWorker.isPresent()) {
-                alreadyDelegatedBucket = delegatedToWorker.get();
+            offerExistingBuckets(
+                    getSelfDelegatedBucketsStream());
+            if (numberOfBucketsToGet == 0) {
+                situation = Situation.FOUND_DELEGATED_TO_ME;
                 return;
             }
         }
 
-        setOrUpdateEstimatedNumberOfBuckets();
+        offerExistingBuckets(
+                getReadyBucketsStream());
 
-        allocatorResponse = bucketAllocator.getBucket(buckets);
-        LOGGER.trace("Bucket allocator returned {} for task {}, worker {}", allocatorResponse, task, workerOid);
+        if (numberOfBucketsToGet == 0) {
+            situation = Situation.FOUND_READY;
+            return;
+        }
 
-        if (allocatorResponse instanceof NewBuckets) {
-            handleCreatedNew();
-        } else if (allocatorResponse instanceof FoundExisting) {
-            handleFoundExisting();
-        } else if (allocatorResponse instanceof NothingFound) {
-            // Nothing to do for now.
-        } else {
-            throw new AssertionError(allocatorResponse);
+        offerNewBuckets(
+                bucketFactory.createNewBuckets(currentBuckets, numberOfBucketsToGet));
+
+        if (numberOfBucketsToGet == 0) {
+            situation = Situation.CREATED_NEW;
+            return;
+        }
+
+        // If there remained some self-delegated buckets, the number of buckets to get is 0 and we are not here.
+        assert getSelfDelegatedBucketsStream().findAny().isEmpty();
+
+        situation = anyBucketsDelegated() ?
+                Situation.NOTHING_MORE_SOME_DELEGATED :
+                Situation.NOTHING_MORE_DEFINITE;
+    }
+
+    private boolean anyBucketsDelegated() {
+        return currentBuckets.stream()
+                .anyMatch(b -> b.getState() == DELEGATED);
+    }
+
+    @NotNull
+    private Stream<WorkBucketType> getReadyBucketsStream() {
+        return currentBuckets.stream()
+                .filter(b -> b.getState() == READY);
+    }
+
+    private Stream<WorkBucketType> getSelfDelegatedBucketsStream() {
+        return workerOid != null ?
+                currentBuckets.stream()
+                        .filter(b -> BucketingUtil.isDelegatedTo(b, workerOid)) :
+                Stream.empty();
+    }
+
+    /**
+     * Offers existing buckets for processing:
+     *
+     * - skipping first N-1 of them,
+     * - giving the N-th for use,
+     * - not touching the rest.
+     *
+     * If numberOfBucketsToGet is non-zero at exit, then all existing buckets were consumed.
+     */
+    private void offerExistingBuckets(Stream<WorkBucketType> buckets) {
+        Iterator<WorkBucketType> iterator = buckets.iterator();
+        while (iterator.hasNext()) {
+            WorkBucketType bucket = iterator.next();
+            if (numberOfBucketsToGet == 0) {
+                return; // leaving remaining existing buckets intact
+            } else if (numberOfBucketsToGet == 1) {
+                markExistingBucketToUse(bucket);
+            } else {
+                markExistingBucketSkipped(bucket);
+            }
+            numberOfBucketsToGet--;
         }
     }
 
-    private void handleCreatedNew() throws SchemaException {
-        NewBuckets newBucketsResponse = (NewBuckets) allocatorResponse;
-        List<WorkBucketType> bucketsToAdd = new ArrayList<>();
-        for (int i = 0; i < newBucketsResponse.newBuckets.size(); i++) {
-            WorkBucketType newBucket = newBucketsResponse.newBuckets.get(i);
-            if (workerOid != null) {
-                bucketsToAdd.add(newBucket.clone() // maybe cloning not even needed here
-                        .state(DELEGATED)
-                        .workerRef(workerOid, TaskType.COMPLEX_TYPE));
+    /**
+     * Offers new buckets for processing:
+     *
+     * - skipping first N-1 of them,
+     * - giving the N-th for use,
+     * - adding the rest for future use.
+     */
+    private void offerNewBuckets(List<WorkBucketType> buckets) {
+        for (WorkBucketType bucket : buckets) {
+            if (numberOfBucketsToGet == 0) {
+                markNewBucketForFutureUse(bucket);
+            } else if (numberOfBucketsToGet == 1) {
+                markNewBucketToUse(bucket);
             } else {
-                bucketsToAdd.add(newBucket);
+                markNewBucketSkipped(bucket);
+            }
+            if (numberOfBucketsToGet > 0) {
+                numberOfBucketsToGet--;
             }
         }
-        modifications.addAll(
-                BucketOperation.bucketsAddDeltas(activityStateItemPath, bucketsToAdd));
+        swallowBucketsToAdd();
     }
 
-    private void handleFoundExisting() throws SchemaException {
+    private void markExistingBucketToUse(@NotNull WorkBucketType bucket) {
         if (workerOid != null) {
-            FoundExisting foundExistingResponse = (FoundExisting) allocatorResponse;
-            modifications.addAll(
-                    bucketStateChangeDeltas(activityStateItemPath, foundExistingResponse.bucket, DELEGATED, workerOid));
+            if (!BucketingUtil.isDelegatedTo(bucket, workerOid)) {
+                bucket.state(DELEGATED)
+                        .workerRef(workerOid, TaskType.COMPLEX_TYPE);
+                swallow(bucketStateChangeDeltas(activityStateItemPath, bucket, DELEGATED, workerOid));
+            }
         } else {
-            // bucket is READY, no changes are needed
+            if (bucket.getState() != READY || getWorkerOid(bucket) != null) {
+                bucket.state(READY)
+                        .workerRef(null);
+                swallow(bucketStateChangeDeltas(activityStateItemPath, bucket, READY, null));
+            }
         }
+        bucketToUse = bucket.clone();
+    }
+
+    private void markNewBucketToUse(@NotNull WorkBucketType bucket) {
+        if (workerOid != null) {
+            bucket.state(DELEGATED)
+                    .workerRef(workerOid, TaskType.COMPLEX_TYPE);
+        } else {
+            bucket.state(READY)
+                    .workerRef(null);
+        }
+        swallow(bucket);
+        bucketToUse = bucket.clone();
+    }
+
+    private void markExistingBucketSkipped(@NotNull WorkBucketType bucket) {
+        LOGGER.debug("Marking existing bucket as COMPLETE because of sampling: {}", bucket);
+        bucket.state(COMPLETE);
+        swallow(bucketStateChangeDeltas(activityStateItemPath, bucket, COMPLETE));
+    }
+
+    private void markNewBucketSkipped(@NotNull WorkBucketType bucket) {
+        LOGGER.debug("Marking new bucket as COMPLETE because of sampling: {}", bucket);
+        bucket.state(COMPLETE);
+        swallow(bucket);
+    }
+
+    private void markNewBucketForFutureUse(@NotNull WorkBucketType bucket) {
+        LOGGER.debug("Marking new bucket as COMPLETE because of sampling: {}", bucket);
+        if (workerOid != null) {
+            bucket.state(DELEGATED)
+                    .workerRef(workerOid, TaskType.COMPLEX_TYPE);
+        } else {
+            bucket.state(READY)
+                    .workerRef(null);
+        }
+        swallow(bucket);
     }
 
     private void setOrUpdateEstimatedNumberOfBuckets() throws SchemaException {
-        Integer number = bucketAllocator.estimateNumberOfBuckets();
+        Integer number = bucketFactory.estimateNumberOfBuckets();
         if (number != null && !number.equals(getNumberOfBuckets(activityState))) {
             List<ItemDelta<?, ?>> numberOfBucketsMods = PrismContext.get().deltaFor(TaskType.class)
                     .item(activityStateItemPath.append(F_BUCKETING, F_NUMBER_OF_BUCKETS))
@@ -183,15 +311,36 @@ class GetBucketOperationAttempt {
         }
     }
 
+    private void swallow(Collection<ItemDelta<?, ?>> modifications) {
+        this.modifications.addAll(modifications);
+    }
+
+    private void swallow(WorkBucketType bucket) {
+        bucketsToAdd.add(bucket.cloneWithoutId());
+    }
+
+    private void swallowBucketsToAdd() {
+        swallow(
+                BucketOperation.bucketsAddDeltas(activityStateItemPath, bucketsToAdd));
+    }
+
     @NotNull Collection<? extends ItemDelta<?, ?>> getModifications() {
         return modifications;
     }
 
-    WorkBucketType getAlreadyDelegatedBucket() {
-        return alreadyDelegatedBucket;
+    WorkBucketType getBucketToUse() {
+        return bucketToUse;
     }
 
-    BucketAllocator.Response getAllocatorResponse() {
-        return allocatorResponse;
+    Situation getSituationRequired() {
+        return Objects.requireNonNull(situation, "no situation");
+    }
+
+    public boolean isDefinite() {
+        return situation == Situation.NOTHING_MORE_DEFINITE;
+    }
+
+    enum Situation {
+        FOUND_DELEGATED_TO_ME, FOUND_READY, CREATED_NEW, NOTHING_MORE_SOME_DELEGATED, NOTHING_MORE_DEFINITE
     }
 }

@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.repo.common.task.work;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import static java.util.Objects.requireNonNullElseGet;
 
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
@@ -20,6 +24,10 @@ import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
+
+import com.evolveum.midpoint.repo.common.task.work.GetBucketOperationAttempt.Situation;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,10 +36,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator.Response.FoundExisting;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator.Response.NewBuckets;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator.Response.NothingFound;
+import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
@@ -55,12 +60,16 @@ public class GetBucketOperation extends BucketOperation {
 
     private static final long DYNAMIC_SLEEP_INTERVAL = 100L;
 
+    /** This is to limit sample size if probabilities are used. */
+    private static final int MAX_RANDOM_SAMPLING_INTERVAL = 1000;
+
     @NotNull private final GetBucketOperationOptions options;
 
-    /**
-     * Generates new buckets under configuration provided by options.
-     */
-    private BucketAllocator bucketAllocator;
+    /** Generates new buckets under configuration provided by options. */
+    private BucketFactory bucketFactory;
+
+    /** If doing sampling, we try to get more buckets. All but the last are immediately marked as COMPLETE. */
+    private int bucketsToGet;
 
     GetBucketOperation(@NotNull String coordinatorTaskOid, @Nullable String workerTaskOid, @NotNull ActivityPath activityPath,
             ActivityBucketManagementStatistics statisticsCollector,
@@ -76,10 +85,12 @@ public class GetBucketOperation extends BucketOperation {
     public WorkBucketType execute(OperationResult result) throws SchemaException, ObjectNotFoundException,
             ObjectAlreadyExistsException, InterruptedException {
 
-        bucketAllocator = BucketAllocator.create(
+        bucketFactory = BucketFactory.create(
                 options.getDistributionDefinition(),
                 options.getImplicitSegmentationResolver(),
                 beans);
+
+        this.bucketsToGet = determineBucketsToGet();
 
         try {
             if (isStandalone()) {
@@ -97,35 +108,29 @@ public class GetBucketOperation extends BucketOperation {
     private WorkBucketType getBucketStandalone(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        TaskType coordinator = plainRepositoryService.getObject(TaskType.class, coordinatorTaskOid, null, result)
+        TaskType coordinatorTask = plainRepositoryService.getObject(TaskType.class, coordinatorTaskOid, null, result)
                 .asObjectable();
 
         GetBucketOperationAttempt attempt =
-                new GetBucketOperationAttempt(coordinator, workerTaskOid, activityPath, bucketAllocator);
+                new GetBucketOperationAttempt(coordinatorTask, workerTaskOid, activityPath, bucketFactory, bucketsToGet);
 
         attempt.execute();
 
-        assert attempt.getAlreadyDelegatedBucket() == null;
-
-        BucketAllocator.Response response = Objects.requireNonNull(
-                attempt.getAllocatorResponse(), "no allocator response");
-
-        plainRepositoryService.modifyObject(TaskType.class, coordinatorTaskOid, attempt.getModifications(), result);
-
-        if (response instanceof NewBuckets) {
-            return onNewBucket((NewBuckets) response);
-        } if (response instanceof FoundExisting) {
-            return onFoundExisting((FoundExisting) response);
-        } else if (response instanceof NothingFound) {
-            if (((NothingFound) response).definite) {
-                onNothingFoundDefinite(result);
-                return null;
-            } else {
-                throw new AssertionError("Unexpected 'indefinite' answer when looking for next bucket in a standalone task: " + coordinator);
-            }
-        } else {
-            throw new AssertionError(response);
+        if (!attempt.getModifications().isEmpty()) {
+            plainRepositoryService.modifyObject(TaskType.class, coordinatorTaskOid, attempt.getModifications(), result);
         }
+
+        if (attempt.getBucketToUse() != null) {
+            recordNonNullReturn(attempt);
+            return attempt.getBucketToUse();
+        }
+
+        // Nothing found!
+
+        stateCheck(attempt.isDefinite(), "Nothing was found with indefinite answer in standalone mode");
+        markWorkComplete(result);
+        recordNothingFoundDefinite();
+        return null;
     }
 
     private WorkBucketType getBucketMultiNode(OperationResult result)
@@ -138,7 +143,8 @@ public class GetBucketOperation extends BucketOperation {
                     coordinatorTaskOid, null,
                     coordinatorTask -> {
                         GetBucketOperationAttempt attempt =
-                                new GetBucketOperationAttempt(coordinatorTask, workerTaskOid, activityPath, bucketAllocator);
+                                new GetBucketOperationAttempt(coordinatorTask, workerTaskOid, activityPath,
+                                        bucketFactory, bucketsToGet);
                         lastAttemptHolder.setValue(attempt);
                         attempt.execute();
                         return attempt.getModifications();
@@ -151,42 +157,57 @@ public class GetBucketOperation extends BucketOperation {
             GetBucketOperationAttempt lastAttempt =
                     Objects.requireNonNull(lastAttemptHolder.getValue(), "no last attempt recorded");
 
-            WorkBucketType alreadyDelegated = lastAttempt.getAlreadyDelegatedBucket();
-            if (alreadyDelegated != null) {
-                statisticsKeeper.register(GET_WORK_BUCKET_FOUND_ALREADY_DELEGATED);
-                LOGGER.trace("Returning already delegated bucket for {}: {}", workerTaskOid, alreadyDelegated);
-                return alreadyDelegated;
+            if (lastAttempt.getBucketToUse() != null) {
+                recordNonNullReturn(lastAttempt);
+                return lastAttempt.getBucketToUse();
             }
 
-            BucketAllocator.Response response = Objects.requireNonNull(
-                    lastAttempt.getAllocatorResponse(), "no allocator response");
+            // Nothing found!
 
-            if (response instanceof NewBuckets) {
-                return onNewBucket((NewBuckets) response);
-            } if (response instanceof FoundExisting) {
-                return onFoundExisting((FoundExisting) response);
-            } else if (response instanceof NothingFound) {
-                if (!options.isScavenger()) {
-                    onNothingFoundForNonScavenger(result);
-                    return null;
-                } else if (((NothingFound) response).definite || options.getFreeBucketWaitTime() == 0L) {
-                    onNothingFoundDefinite(result);
-                    return null;
-                } else {
-                    long toWait = getRemainingTimeToWait();
-                    if (toWait <= 0) {
-                        onNothingFoundWithWaitTimeElapsed(result);
-                        return null;
-                    } else {
-                        sleep(toWait);
-                        reclaimWronglyAllocatedBuckets(result);
-                        // We continue even if we could not find any wrongly allocated
-                        // bucket -- maybe someone else found them before us, so we could use them.
-                    }
-                }
-            } else {
-                throw new AssertionError(response);
+            if (!options.isScavenger()) {
+                markScavengingIfNotYet(result);
+                recordNothingFoundForNonScavenger();
+                return null;
             }
+
+            if (lastAttempt.isDefinite() || options.getFreeBucketWaitTime() == 0L) {
+                markWorkComplete(result);
+                recordNothingFoundDefinite();
+                return null;
+            }
+
+            long toWait = getRemainingTimeToWait();
+            if (toWait <= 0) {
+                markWorkComplete(result); // TODO really marking work as complete?
+                recordNothingFoundWithWaitTimeElapsed();
+                return null;
+            }
+
+            sleep(toWait);
+            reclaimWronglyAllocatedBuckets(result);
+            // We continue even if we could not find any wrongly allocated
+            // bucket -- maybe someone else found them before us, so we could use them.
+        }
+    }
+
+    /**
+     * Recording situation when there is a bucket to be returned.
+     * (The cases where there is no bucket are treated separately for standalone/workers cases.
+     */
+    private void recordNonNullReturn(@NotNull GetBucketOperationAttempt attempt) {
+        @NotNull Situation situation = attempt.getSituationRequired();
+        switch (situation) {
+            case FOUND_DELEGATED_TO_ME:
+                recordFoundDelegated(attempt);
+                break;
+            case FOUND_READY:
+                recordFoundReady();
+                break;
+            case CREATED_NEW:
+                recordCreatedNew();
+                break;
+            default:
+                throw new AssertionError(situation);
         }
     }
 
@@ -247,43 +268,36 @@ public class GetBucketOperation extends BucketOperation {
         return waitUntil - System.currentTimeMillis();
     }
 
-    private void onNothingFoundWithWaitTimeElapsed(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        markWorkComplete(result); // TODO also if response is not definite?
+    private void recordFoundDelegated(@NotNull GetBucketOperationAttempt attempt) {
+        LOGGER.trace("Returning already delegated bucket for {}: {}", workerTaskOid, attempt.getBucketToUse());
+        statisticsKeeper.register(GET_WORK_BUCKET_FOUND_DELEGATED);
+    }
+
+    private void recordFoundReady() {
+        CONTENTION_LOGGER.trace("Existing bucket acquired after {} ms (conflicts: {}) in {}",
+                System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
+        statisticsKeeper.register(GET_WORK_BUCKET_FOUND_READY);
+    }
+
+    private void recordCreatedNew() {
+        CONTENTION_LOGGER.info("New bucket(s) acquired after {} ms (retries: {}) in {}",
+                System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
+        statisticsKeeper.register(GET_WORK_BUCKET_CREATED_NEW);
+    }
+
+    private void recordNothingFoundWithWaitTimeElapsed() {
         CONTENTION_LOGGER.trace("'No bucket' found (wait time elapsed) after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_WAIT_TIME_ELAPSED);
     }
 
-    private void onNothingFoundDefinite(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        markWorkComplete(result);
+    private void recordNothingFoundDefinite() {
         CONTENTION_LOGGER.trace("'No bucket' found after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_DEFINITE);
     }
 
-    private WorkBucketType onNewBucket(NewBuckets newBucketsResult) {
-        CONTENTION_LOGGER.info("New bucket(s) acquired after {} ms (retries: {}) in {}",
-                System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
-        statisticsKeeper.register(GET_WORK_BUCKET_CREATED_NEW);
-        return newBucketsResult.getSelectedBucket().clone(); // bucket state is not relevant
-    }
-
-    private WorkBucketType onFoundExisting(FoundExisting foundExistingResult) {
-        CONTENTION_LOGGER.trace("Existing bucket acquired after {} ms (conflicts: {}) in {}",
-                System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
-        if (workerTaskOid != null) {
-            statisticsKeeper.register(GET_WORK_BUCKET_DELEGATED);
-        } else {
-            statisticsKeeper.register(GET_WORK_BUCKET_FOUND_EXISTING);
-        }
-        return foundExistingResult.bucket.clone();
-    }
-
-    private void onNothingFoundForNonScavenger(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        markScavengingIfNotYet(result);
+    private void recordNothingFoundForNonScavenger() {
         CONTENTION_LOGGER.trace("'No bucket' found (and not a scavenger) after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_NOT_SCAVENGER);
@@ -367,6 +381,70 @@ public class GetBucketOperation extends BucketOperation {
                             .item(stateItemPath.append(F_BUCKETING, F_WORK_COMPLETE)).replace(true)
                             .asItemDeltas();
                 }, null, result);
+    }
+
+    private int determineBucketsToGet() {
+        ActivityDistributionDefinition def = options.getDistributionDefinition();
+        if (def == null || def.getBuckets() == null || def.getBuckets().getSampling() == null) {
+            return 1;
+        }
+
+        WorkBucketsSamplingConfigurationType sampling = def.getBuckets().getSampling();
+        var regular = sampling.getRegular();
+        var random = sampling.getRandom();
+        argCheck(regular == null || random == null, "Both regular and random sampling is selected");
+
+        int interval;
+        if (regular != null) {
+            argCheck(regular.getInterval() == null || regular.getSampleSize() == null,
+                    "Both interval and sample size are configured");
+            if (regular.getInterval() != null) {
+                interval = regular.getInterval();
+                argCheck(interval > 0, "Specified sampling interval is less than 1: %s", interval);
+            } else if (regular.getSampleSize() != null) {
+                int numberOfBuckets = getNumberOfBucketsForSampling();
+                interval = Math.max(1, numberOfBuckets / regular.getSampleSize());
+            } else {
+                throw new IllegalArgumentException("Regular sampling is selected but not configured");
+            }
+        } else if (random != null) {
+            double probability;
+            if (random.getSampleSize() != null) {
+                probability = (double) random.getSampleSize() / getNumberOfBucketsForSampling();
+            } else if (random.getProbability() != null) {
+                probability = random.getProbability();
+                argCheck(probability >= 0 && probability <= 1,
+                        "Probability is not in [0;1] interval: %s", probability);
+            } else {
+                throw new IllegalArgumentException("Random sampling is selected but not configured");
+            }
+            interval = getIntervalForProbability(probability);
+        } else {
+            throw new IllegalArgumentException("Sampling is selected but neither regular nor random variant is set");
+        }
+
+        LOGGER.info("Using sampling interval of {}", interval); // todo
+        stateCheck(interval > 0, "Computed interval is less than 1: %s", interval);
+        return interval;
+    }
+
+    private int getIntervalForProbability(double probability) {
+        // We are too lazy to compute the interval mathematically. So using random generator.
+
+        int interval;
+        for (interval = 1; interval < MAX_RANDOM_SAMPLING_INTERVAL; interval++) {
+            if (Math.random() < probability) {
+                break;
+            }
+        }
+        return interval;
+    }
+
+    private int getNumberOfBucketsForSampling() {
+        Integer numberOfBuckets = bucketFactory.estimateNumberOfBuckets();
+        stateCheck(numberOfBuckets != null, "Couldn't compute sampling parameters because the total number "
+                + "of buckets is not known.");
+        return numberOfBuckets;
     }
 
     @Override

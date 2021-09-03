@@ -72,4 +72,8 @@ public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
     public @Nullable ExpressionType getItemProcessingCondition() {
         return bean.getItemProcessingCondition();
     }
+
+    public @Nullable ExpressionType getBucketProcessingCondition() {
+        return bean.getBucketProcessingCondition();
+    }
 }

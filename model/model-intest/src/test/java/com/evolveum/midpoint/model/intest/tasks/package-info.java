@@ -28,5 +28,8 @@
  *
  * We _do not_ check details of the task functionality, except for cases when there is no dedicated test for such kind
  * of tasks.
+ *
+ * As a special case, we use NoOp activity to test some extra features
+ * - see {@link com.evolveum.midpoint.model.intest.tasks.TestNoOpTask}.
  */
 package com.evolveum.midpoint.model.intest.tasks;
