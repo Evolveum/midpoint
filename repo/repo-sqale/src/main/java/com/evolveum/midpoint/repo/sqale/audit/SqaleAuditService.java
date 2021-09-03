@@ -6,36 +6,43 @@
  */
 package com.evolveum.midpoint.repo.sqale.audit;
 
+import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.BiFunction;
 import javax.xml.datatype.Duration;
 
+import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.SQLQuery;
-import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
-import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sqale.SqaleServiceBase;
-import com.evolveum.midpoint.repo.sqale.audit.qmodel.*;
+import com.evolveum.midpoint.repo.sqale.*;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.MAuditDelta;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -44,6 +51,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -88,7 +97,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         OperationResult operationResult = parentResult.createSubresult(opNamePrefix + OP_AUDIT);
 
         try {
-            auditExecute(record);
+            executeAudit(record);
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -99,16 +108,16 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         }
     }
 
-    private void auditExecute(AuditEventRecord record) {
+    private void executeAudit(AuditEventRecord record) {
         long opHandle = registerOperationStart(OP_AUDIT);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            // We want to process deltas to prepare changed items array for main insert:
             long recordId = insertAuditEventRecord(jdbcSession, record);
 
-            /* TODO
-            Collection<MAuditDelta> deltas =
-                    insertAuditDeltas(jdbcSession, recordId, record.getDeltas());
-            insertChangedItemPaths(jdbcSession, recordId, deltas);
+//            Collection<MAuditDelta> deltas =
+//                    insertAuditDeltas(jdbcSession, recordId, record.getDeltas());
 
+            /* TODO
             insertProperties(jdbcSession, recordId, record.getProperties());
             insertReferences(jdbcSession, recordId, record.getReferences());
             insertResourceOids(jdbcSession, recordId, record.getResourceOids());
@@ -122,18 +131,20 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     /**
      * Inserts audit event record aggregate root without any subentities.
      *
-     * @return ID of created audit event record
+     * @return inserted row with transient deltas prepared for insertion
      */
-    private Long insertAuditEventRecord(
-            JdbcSession jdbcSession, AuditEventRecord record) {
+    private Long insertAuditEventRecord(JdbcSession jdbcSession, AuditEventRecord record) {
         QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.get();
         QAuditEventRecord aer = aerMapping.defaultAlias();
-        MAuditEventRecord aerBean = aerMapping.toRowObject(record);
-        SQLInsertClause insert = jdbcSession.newInsert(aer).populate(aerBean);
+        MAuditEventRecord row = aerMapping.toRowObject(record);
 
-        /* TODO or ext?
+        Collection<MAuditDelta> deltaRows = prepareDeltas(record.getDeltas());
+        Set<String> changedItemPaths = collectChangedItemPaths(deltaRows);
+        row.changedItemPaths = changedItemPaths.isEmpty() ? null : changedItemPaths.toArray(String[]::new);
+
+        SQLInsertClause insert = jdbcSession.newInsert(aer).populate(row);
         Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
-        for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
+        for (Map.Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
             String propertyName = property.getKey();
             if (!customColumns.containsKey(propertyName)) {
                 throw new IllegalArgumentException("Audit event record table doesn't"
@@ -142,13 +153,11 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             // Like insert.set, but that one is too parameter-type-safe for our generic usage here.
             insert.columns(aer.getPath(propertyName)).values(property.getValue());
         }
-        */
 
         return insert.executeWithKey(aer.id);
     }
 
-    private Collection<MAuditDelta> insertAuditDeltas(
-            JdbcSession jdbcSession, long recordId, Collection<ObjectDeltaOperation<?>> deltas) {
+    private Collection<MAuditDelta> prepareDeltas(Collection<ObjectDeltaOperation<?>> deltas) {
         // we want to keep only unique deltas, checksum is also part of PK
         Map<String, MAuditDelta> deltasByChecksum = new HashMap<>();
         for (ObjectDeltaOperation<?> deltaOperation : deltas) {
@@ -156,11 +165,18 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 continue;
             }
 
-            MAuditDelta mAuditDelta = convertDelta(deltaOperation, recordId);
+            MAuditDelta mAuditDelta = convertDelta(deltaOperation);
             deltasByChecksum.put(mAuditDelta.checksum, mAuditDelta);
         }
+        return deltasByChecksum.values();
+    }
+
+    /*
+    private Collection<MAuditDelta> insertAuditDeltas(
+            JdbcSession jdbcSession, long recordId, Collection<ObjectDeltaOperation<?>> deltas) {
 
         if (!deltasByChecksum.isEmpty()) {
+            // TODO add event PK (id+timestamp)
             SQLInsertClause insertBatch = jdbcSession.newInsert(
                     QAuditDeltaMapping.get().defaultAlias());
             for (MAuditDelta value : deltasByChecksum.values()) {
@@ -173,11 +189,12 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         return deltasByChecksum.values();
     }
 
-    private MAuditDelta convertDelta(ObjectDeltaOperation<?> deltaOperation, long recordId) {
-        MAuditDelta mAuditDelta = new MAuditDelta();
-        mAuditDelta.recordId = recordId;
-
-        /* TODO
+    /**
+     * Returns prepared audit delta row without PK columns which will be added later.
+     * For normal repo this code would be in mapper, but here we know exactly what type we work with.
+     */
+    private MAuditDelta convertDelta(ObjectDeltaOperation<?> deltaOperation) {
+        MAuditDelta deltaRow = new MAuditDelta();
         try {
             ObjectDelta<? extends ObjectType> delta = deltaOperation.getObjectDelta();
             if (delta != null) {
@@ -187,49 +204,60 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 String serializedDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
 
                 // serializedDelta is transient, needed for changed items later
-                mAuditDelta.serializedDelta = serializedDelta;
-                mAuditDelta.delta = RUtil.getBytesFromSerializedForm(
-                        serializedDelta, sqlConfiguration().isUseZipAudit());
-                mAuditDelta.deltaOid = delta.getOid();
-                mAuditDelta.deltaType = MiscUtil.enumOrdinal(
-                        RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
+                deltaRow.serializedDelta = serializedDelta;
+                deltaRow.delta = serializedDelta.getBytes(StandardCharsets.UTF_8);
+                deltaRow.deltaOid = SqaleUtils.oidToUUid(delta.getOid());
+                deltaRow.deltaType = delta.getChangeType();
             }
 
             OperationResult executionResult = deltaOperation.getExecutionResult();
             if (executionResult != null) {
                 OperationResultType jaxb = executionResult.createOperationResultType();
                 if (jaxb != null) {
-                    mAuditDelta.status = MiscUtil.enumOrdinal(
-                            RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+                    deltaRow.status = jaxb.getStatus();
                     // Note that escaping invalid characters and using toString for unsupported types is safe in the
                     // context of operation result serialization.
-                    String full = schemaService.createStringSerializer(PrismContext.LANG_XML)
+                    deltaRow.fullResult = sqlRepoContext.createStringSerializer()
                             .options(SerializationOptions.createEscapeInvalidCharacters()
                                     .serializeUnsupportedTypesAsString(true))
-                            .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
-                    mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(
-                            full, sqlConfiguration().isUseZipAudit());
+                            .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT)
+                            .getBytes(StandardCharsets.UTF_8);
                 }
             }
-            mAuditDelta.resourceOid = deltaOperation.getResourceOid();
+            deltaRow.resourceOid = SqaleUtils.oidToUUid(deltaOperation.getResourceOid());
             if (deltaOperation.getObjectName() != null) {
-                mAuditDelta.objectNameOrig = deltaOperation.getObjectName().getOrig();
-                mAuditDelta.objectNameNorm = deltaOperation.getObjectName().getNorm();
+                deltaRow.objectNameOrig = deltaOperation.getObjectName().getOrig();
+                deltaRow.objectNameNorm = deltaOperation.getObjectName().getNorm();
             }
             if (deltaOperation.getResourceName() != null) {
-                mAuditDelta.resourceNameOrig = deltaOperation.getResourceName().getOrig();
-                mAuditDelta.resourceNameNorm = deltaOperation.getResourceName().getNorm();
+                deltaRow.resourceNameOrig = deltaOperation.getResourceName().getOrig();
+                deltaRow.resourceNameNorm = deltaOperation.getResourceName().getNorm();
             }
-            mAuditDelta.checksum = RUtil.computeChecksum(mAuditDelta.delta, mAuditDelta.fullResult);
+            deltaRow.checksum = computeChecksum(deltaRow.delta, deltaRow.fullResult);
+            return deltaRow;
         } catch (Exception ex) {
             throw new SystemException("Problem during audit delta conversion", ex);
         }
-        */
-        return mAuditDelta;
     }
 
-    private void insertChangedItemPaths(
-            JdbcSession jdbcSession, long recordId, Collection<MAuditDelta> deltas) {
+    private String computeChecksum(byte[]... objects) {
+        try {
+            List<InputStream> list = new ArrayList<>();
+            for (byte[] data : objects) {
+                if (data == null) {
+                    continue;
+                }
+                list.add(new ByteArrayInputStream(data));
+            }
+            SequenceInputStream sis = new SequenceInputStream(Collections.enumeration(list));
+
+            return DigestUtils.md5Hex(sis);
+        } catch (IOException ex) {
+            throw new SystemException(ex);
+        }
+    }
+
+    private Set<String> collectChangedItemPaths(Collection<MAuditDelta> deltas) {
         Set<String> changedItemPaths = new HashSet<>();
         for (MAuditDelta delta : deltas) {
             try {
@@ -249,24 +277,12 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 if (InternalsConfig.isConsistencyChecks()) {
                     throw new SystemException("Problem during audit delta parse", e);
                 }
-                logger.warn("Serialized audit delta for recordId={} cannot be parsed."
+                logger.warn("Serialized audit delta with OID '{}' cannot be parsed."
                         + " No changed items were created. This may cause problem later, but is not"
-                        + " critical for storing the audit record.", recordId, e);
+                        + " critical for storing the audit record.", delta.deltaOid, e);
             }
         }
-        /*
-        if (!changedItemPaths.isEmpty()) {
-            QAuditItem qAuditItem = QAuditItemMapping.get().defaultAlias();
-            SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditItem);
-            for (String changedItemPath : changedItemPaths) {
-                insertBatch.set(qAuditItem.recordId, recordId)
-                        .set(qAuditItem.changedItemPath, changedItemPath)
-                        .addBatch();
-            }
-            insertBatch.setBatchToBulk(true);
-            insertBatch.execute();
-        }
-        */
+        return changedItemPaths;
     }
 
     private void insertProperties(
@@ -637,18 +653,26 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(
-                    AuditEventRecordType.class, sqlRepoContext);
-            return sqlQueryExecutor.count(queryContext, query, options);
+            return executeCountObjects(query, options);
         } catch (RepositoryException | RuntimeException e) {
-            // TODO
-//            baseHelper.handleGeneralException(e, operationResult);
-            throw new SystemException(e);
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private int executeCountObjects(@Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options) throws RepositoryException {
+        long opHandle = registerOperationStart(OP_COUNT_OBJECTS);
+        try {
+            var queryContext = SqaleQueryContext.from(
+                    AuditEventRecordType.class, sqlRepoContext);
+            return sqlQueryExecutor.count(queryContext, query, options);
+        } finally {
+            registerOperationFinish(opHandle, 1);
         }
     }
 
@@ -665,20 +689,28 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(
-                    AuditEventRecordType.class, sqlRepoContext);
-            SearchResultList<AuditEventRecordType> result =
-                    sqlQueryExecutor.list(queryContext, query, options);
-            return result;
+            return executeSearchObjects(query, options);
         } catch (RepositoryException | RuntimeException e) {
-            // TODO
-//            baseHelper.handleGeneralException(e, operationResult);
-            throw new SystemException(e);
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private SearchResultList<AuditEventRecordType> executeSearchObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException, SchemaException {
+        long opHandle = registerOperationStart(OP_SEARCH_OBJECTS);
+        try {
+            return sqlQueryExecutor.list(
+                    SqaleQueryContext.from(AuditEventRecordType.class, sqlRepoContext),
+                    query, options);
+        } finally {
+            registerOperationFinish(opHandle, 1);
         }
     }
 

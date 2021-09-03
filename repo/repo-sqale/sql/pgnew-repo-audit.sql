@@ -113,7 +113,7 @@ CREATE TABLE ma_audit_event (
     result TEXT,
     message TEXT,
     changedItemPaths TEXT[],
-    resourceOids UUID[],
+    resourceOids TEXT[],
     properties JSONB,
     ext JSONB, -- extension container + old custom properties?
 

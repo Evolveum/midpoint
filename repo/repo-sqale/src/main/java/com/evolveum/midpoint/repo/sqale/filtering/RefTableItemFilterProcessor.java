@@ -48,7 +48,7 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
         return subquery
                 .where(referenceMapping.correlationPredicate().apply(context.path(), ref))
                 .where(new RefItemFilterProcessor(
-                        context, ref.targetOid, ref.targetType, ref.relationId)
+                        context, ref.targetOid, ref.targetType, ref.relationId, null)
                         .process(filter))
                 .exists();
     }

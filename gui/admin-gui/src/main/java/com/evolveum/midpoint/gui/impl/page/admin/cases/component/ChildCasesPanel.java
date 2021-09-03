@@ -10,9 +10,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -44,8 +42,9 @@ import java.util.List;
  * Created by honchar
  */
 @PanelType(name = "childCases")
-@PanelInstance(identifier = "childCases",
+@PanelInstance(identifier = "childCases", applicableFor = CaseType.class,
         display = @PanelDisplay(label = "Child cases"))
+@Counter(provider = ChildrenCasesCounter.class)
 public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
     private static final long serialVersionUID = 1L;
 

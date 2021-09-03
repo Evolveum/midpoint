@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql.audit.mapping;
+package com.evolveum.midpoint.repo.sqale.audit.filtering;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Ops;
@@ -24,8 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCusto
 
 /**
  * Filter processor for an audit custom column attribute path (Prism item).
- *
- * NOTE: This is old-repo audit class, the same is used for new repo too - this one will go away eventually.
  *
  * While it is a single-path processor, it does NOT support ordering, because "what to order by"
  * is part of the filter value ({link {@link AuditEventRecordCustomColumnPropertyType#getName()}}).

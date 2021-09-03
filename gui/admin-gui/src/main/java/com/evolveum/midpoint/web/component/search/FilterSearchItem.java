@@ -55,7 +55,7 @@ public class FilterSearchItem extends SearchItem {
         super(search);
         Validate.notNull(predefinedFilter, "Filter must not be null.");
         this.predefinedFilter = predefinedFilter;
-        setApplyFilter(false);
+//        setApplyFilter(false);
     }
 
     @Override

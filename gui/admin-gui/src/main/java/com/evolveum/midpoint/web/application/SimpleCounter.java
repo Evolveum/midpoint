@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.application;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -15,7 +17,7 @@ public class SimpleCounter<ODM extends ObjectDetailsModels<O>, O extends ObjectT
 
     }
 
-    public int count(ODM objectDetailsModels) {
+    public int count(ODM objectDetailsModels, PageBase pageBase) {
         return 0;
     }
 
