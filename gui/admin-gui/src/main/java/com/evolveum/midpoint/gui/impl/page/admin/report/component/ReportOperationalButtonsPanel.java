@@ -172,12 +172,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getPageBase().getMainPopupBodyId(), getReport(), false) {
-                    @Override
-                    public StringResourceModel getTitle() {
-                        return createStringResource("PageReport.reportPreview");
-                    }
-                };
+                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getPageBase().getMainPopupBodyId(), getReport(), false);
                 getPageBase().showMainPopup(reportPopup, target);
                 target.add(ReportOperationalButtonsPanel.this);
             }

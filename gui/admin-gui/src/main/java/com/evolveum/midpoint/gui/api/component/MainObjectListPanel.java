@@ -182,13 +182,13 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     return;
                 }
 
-                MultiCompositedButtonPanel buttonsPanel = new MultiCompositedButtonPanel(getPageBase().getMainPopupBodyId(), new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
+                NewObjectCreationPopup buttonsPanel = new NewObjectCreationPopup(getPageBase().getMainPopupBodyId(), new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                         getPageBase().hideMainPopup(target);
-                        MainObjectListPanel.this.newObjectPerformed(target, relationSepc, collectionViews);
+                        MainObjectListPanel.this.newObjectPerformed(target, relationSpec, collectionViews);
                     }
 
                 };

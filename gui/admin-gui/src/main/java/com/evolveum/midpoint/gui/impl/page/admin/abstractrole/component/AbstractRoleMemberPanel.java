@@ -1013,11 +1013,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             @Override
-            public StringResourceModel getTitle() {
-                return createStringResource("pageUsers.message.confirmActionPopupTitle");
-            }
-
-            @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 MemberOperationsHelper.recomputeMembersPerformed(getModelObject(), getPageBase(), getQueryScope(),
                         getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);

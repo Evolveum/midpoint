@@ -28,12 +28,11 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.model.StringResourceModel;
 
-public abstract class MultiCompositedButtonPanel extends BasePanel<List<CompositedIconButtonDto>> implements Popupable {
+public abstract class MultiCompositedButtonPanel extends BasePanel<List<CompositedIconButtonDto>> {
 
     private static final String ID_BUTTONS_PANEL = "additionalButtons";
     private static final String ID_BUTTON_DESCRIPTION = "buttonDescription";
     private static final String ID_ADDITIONAL_BUTTON = "additionalButton";
-    private static final String ID_BUTTON_CANCEL = "cancelButton";
 
     public MultiCompositedButtonPanel(String id, IModel<List<CompositedIconButtonDto>> model) {
         super(id, model);
@@ -72,21 +71,6 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
         };
         buttonsPanel.add(new VisibleBehaviour(() -> getModelObject() != null));
         add(buttonsPanel);
-
-        AjaxButton cancel = new AjaxButton(ID_BUTTON_CANCEL,
-                createStringResource("PageBase.button.cancel")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed(target);
-            }
-        };
-        cancel.add(new VisibleBehaviour(() -> isCancelButtonVisible()));
-        add(cancel);
-    }
-
-    protected void cancelPerformed(AjaxRequestTarget target) {
-        getPageBase().hideMainPopup(target);
     }
 
     private String getButtonDescription(CompositedIconButtonDto button) {
@@ -103,41 +87,6 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
 //    protected abstract DisplayType getDefaultObjectButtonDisplayType();
 
 
-    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
-    }
-
-    protected boolean isCancelButtonVisible() {
-        return !(MultiCompositedButtonPanel.this.findParent(BasePanel.class) instanceof Popupable) &&
-                !(getParent() instanceof PageBase);
-    }
-
-    @Override
-    public int getWidth() {
-        return 90;
-    }
-
-    @Override
-    public int getHeight() {
-        return 60;
-    }
-
-    @Override
-    public String getWidthUnit() {
-        return "%";
-    }
-
-    @Override
-    public String getHeightUnit() {
-        return "%";
-    }
-
-    @Override
-    public StringResourceModel getTitle() {
-        return createStringResource("Create from template");
-    }
-
-    @Override
-    public Component getComponent() {
-        return MultiCompositedButtonPanel.this;
+    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
     }
 }

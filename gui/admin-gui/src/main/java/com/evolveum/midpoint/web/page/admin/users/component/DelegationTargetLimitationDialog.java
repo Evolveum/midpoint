@@ -22,11 +22,6 @@ public class DelegationTargetLimitationDialog extends AssignmentsInfoDialog {
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("AssignmentPreviewDialog.delegationPreviewLabel");
-    }
-
-    @Override
     protected boolean enableMultiSelect() {
         return true;
     }

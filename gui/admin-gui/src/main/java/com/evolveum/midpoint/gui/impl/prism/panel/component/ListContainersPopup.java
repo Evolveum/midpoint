@@ -156,11 +156,6 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("ListContainersPopup.availableContainers");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

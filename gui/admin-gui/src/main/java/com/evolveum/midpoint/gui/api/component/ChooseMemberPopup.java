@@ -519,10 +519,6 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return "%";
     }
 
-    public StringResourceModel getTitle(){
-        return createStringResource("TypedAssignablePanel.selectObjects");
-    }
-
     public Component getComponent(){
         return this;
     }

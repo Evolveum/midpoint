@@ -118,11 +118,6 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("TestConnectionResultPanel.testConnection.result");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

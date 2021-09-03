@@ -123,11 +123,6 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public StringResourceModel getTitle() {
-                return createStringResource("pageUsers.message.confirmActionPopupTitle");
-            }
-
-            @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 menuItem.getAction().onClick(target);
             }

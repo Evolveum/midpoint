@@ -265,12 +265,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         AjaxButton showPreviewInPopup = new AjaxButton(showPreviewInPopupId, createStringResource("pageCreateCollectionReport.button.showPreviewInPopup")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getMainPopupBodyId(), getReport(), false) {
-                    @Override
-                    public StringResourceModel getTitle() {
-                        return createStringResource("PageReport.reportPreview");
-                    }
-                };
+                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getMainPopupBodyId(), getReport(), false);
                 showMainPopup(reportPopup, target);
                 target.add(getOperationalButtonsPanel());
             }
