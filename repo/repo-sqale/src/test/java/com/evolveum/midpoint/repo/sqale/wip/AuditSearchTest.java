@@ -69,6 +69,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     private Long record1RepoId;
     private final String taskOid = UUID.randomUUID().toString();
     private final String resourceOid = UUID.randomUUID().toString();
+    private final String ignoredDeltasOid = UUID.randomUUID().toString();
 
     @BeforeClass
     public void initAuditEvents() throws Exception {
@@ -136,7 +137,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record2.setRequestIdentifier("req-id");
         record2.addDelta(createDelta(UserType.F_FULL_NAME, PolyString.fromOrig("somePolyString")));
         record2.addDelta(createDelta(UserType.F_ADDITIONAL_NAME));
-        // these two deltas should collapse into single no-op delta + no changed items for them
+        // These two deltas should collapse into single no-op delta + no changed items for them.
+        // They must have the same OID too, so they have the same resulting checksum.
         record2.addDelta(createDeltaWithIgnoredPath(UserType.F_GIVEN_NAME));
         record2.addDelta(createDeltaWithIgnoredPath(UserType.F_FAMILY_NAME));
         record2.getCustomColumnProperty().put("foo", "foo-value-2");
@@ -177,7 +179,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         ObjectDeltaOperation<UserType> delta = new ObjectDeltaOperation<>();
         delta.setObjectDelta(prismContext.deltaFor(UserType.class)
                 .item(itemPath).add() // this path with ADD without value should be ignored
-                .asObjectDelta(UUID.randomUUID().toString()));
+                .asObjectDelta(ignoredDeltasOid));
         return delta;
     }
 

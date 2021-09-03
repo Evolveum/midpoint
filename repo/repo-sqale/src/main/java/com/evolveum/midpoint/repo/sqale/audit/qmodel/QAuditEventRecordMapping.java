@@ -22,6 +22,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.audit.filtering.AuditCustomColumnItemFilterProcessor;
@@ -38,9 +39,11 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceValueType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Mapping between {@link QAuditEventRecord} and {@link AuditEventRecordType}.
@@ -175,7 +178,7 @@ public class QAuditEventRecordMapping
 
         mapDeltas(record, row.deltas);
         mapChangedItems(record, row.changedItemPaths);
-//        mapRefValues(record, row.refValues);
+        mapRefValues(record, row.refValues);
 //        mapProperties(record, row.properties);
         mapResourceOids(record, row.resourceOids);
         return record;
@@ -190,7 +193,6 @@ public class QAuditEventRecordMapping
             record.delta(QAuditDeltaMapping.get().toSchemaObject(delta));
         }
     }
-    */
 
     private void mapChangedItems(AuditEventRecordType record, String[] changedItemPaths) {
         if (changedItemPaths == null) {
@@ -203,7 +205,6 @@ public class QAuditEventRecordMapping
         }
     }
 
-    /*
     private void mapRefValues(
             AuditEventRecordType record, Map<String, List<MAuditRefValue>> refValues) {
         if (refValues == null) {
@@ -215,8 +216,8 @@ public class QAuditEventRecordMapping
                     new AuditEventRecordReferenceType().name(entry.getKey());
             for (MAuditRefValue refValue : entry.getValue()) {
                 AuditEventRecordReferenceValueType value = new AuditEventRecordReferenceValueType()
-                        .oid(refValue.oid)
-                        .type(QName.valueOf(refValue.type));
+                        .oid(refValue.targetOid.toString())
+                        .type(objectTypeToQName(refValue.targetType));
                 if (refValue.targetNameOrig != null) {
                     value.targetName(new PolyStringType(
                             new PolyString(refValue.targetNameOrig, refValue.targetNameNorm)));
@@ -226,6 +227,8 @@ public class QAuditEventRecordMapping
             record.reference(referenceValues);
         }
     }
+
+    /*
 
     private void mapProperties(AuditEventRecordType record, Map<String, List<String>> properties) {
         if (properties == null) {
@@ -241,6 +244,7 @@ public class QAuditEventRecordMapping
     }
     */
 
+    */
     private void mapResourceOids(AuditEventRecordType record, String[] resourceOids) {
         if (resourceOids == null) {
             return;
@@ -343,8 +347,7 @@ public class QAuditEventRecordMapping
             }
         }
 
-        QAuditDeltaMapping deltaMapping = QAuditDeltaMapping.get();
-        QAuditDelta qd = deltaMapping.defaultAlias();
+        QAuditDelta qd = QAuditDeltaMapping.get().defaultAlias();
         jdbcSession.newQuery()
                 .select(qd)
                 .from(qd)
@@ -353,5 +356,15 @@ public class QAuditEventRecordMapping
                         .and(qd.timestamp.between(minTimestamp, maxTimestamp)))
                 .fetch()
                 .forEach(d -> rowMap.get(d.recordId).addDelta(d));
+
+        QAuditRefValue qr = QAuditRefValueMapping.get().defaultAlias();
+        jdbcSession.newQuery()
+                .select(qr)
+                .from(qr)
+                .where(qr.recordId.in(rowMap.keySet())
+                        // here between is OK, it's inclusive on both sides
+                        .and(qr.timestamp.between(minTimestamp, maxTimestamp)))
+                .fetch()
+                .forEach(r -> rowMap.get(r.recordId).addRefValue(r));
     }
 }
