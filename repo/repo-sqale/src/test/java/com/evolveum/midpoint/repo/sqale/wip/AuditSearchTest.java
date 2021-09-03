@@ -102,9 +102,12 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record1.setTargetOwner(targetOwner, prismContext);
         record1.addDelta(createDelta(UserType.F_FULL_NAME)); // values are not even necessary
         record1.addDelta(createDelta(UserType.F_FAMILY_NAME, PolyString.fromOrig("familyNameVal")));
-        record1.addDelta(createDelta(ItemPath.create(
+        ObjectDeltaOperation<UserType> delta3 = createDelta(ItemPath.create(
                         ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP),
-                MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis())));
+                MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis()));
+        // adding additional "column" to one of deltas
+        delta3.setExecutionResult(new OperationResult("delta-op", OperationResultStatus.SUCCESS, "message"));
+        record1.addDelta(delta3);
         // just want to see two values, that's all
         record1.addReferenceValue("ref1",
                 ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.USER).asReferenceValue());

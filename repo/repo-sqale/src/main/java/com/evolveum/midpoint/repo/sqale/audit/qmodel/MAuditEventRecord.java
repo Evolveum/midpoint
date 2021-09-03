@@ -55,7 +55,7 @@ public class MAuditEventRecord {
     public Jsonb customColumnProperties;
 
     // "transient" fields not used by Querydsl
-    public List<MAuditDelta> deltas;
+    public Collection<MAuditDelta> deltas;
     public Map<String, List<MAuditRefValue>> refValues;
 
     public void addDelta(MAuditDelta mAuditDelta) {

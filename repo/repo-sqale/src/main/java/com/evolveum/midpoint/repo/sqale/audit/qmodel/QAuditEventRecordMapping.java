@@ -9,10 +9,8 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 import static com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord.TABLE_NAME;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Function;
 
 import com.querydsl.core.Tuple;
@@ -33,7 +31,10 @@ import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
@@ -172,8 +173,7 @@ public class QAuditEventRecordMapping
                 .result(row.result)
                 .message(row.message);
 
-        // TODO
-//        mapDeltas(record, row.deltas);
+        mapDeltas(record, row.deltas);
         mapChangedItems(record, row.changedItemPaths);
 //        mapRefValues(record, row.refValues);
 //        mapProperties(record, row.properties);
@@ -181,8 +181,7 @@ public class QAuditEventRecordMapping
         return record;
     }
 
-    /*
-    private void mapDeltas(AuditEventRecordType record, List<MAuditDelta> deltas) {
+    private void mapDeltas(AuditEventRecordType record, Collection<MAuditDelta> deltas) {
         if (deltas == null) {
             return;
         }
@@ -320,5 +319,39 @@ public class QAuditEventRecordMapping
                     new AuditEventRecordCustomColumnPropertyType()
                             .name(propertyName).value((String) customColumnValue));
         }
+    }
+
+    @Override
+    public void processResult(
+            List<Tuple> data, QAuditEventRecord entityPath, JdbcSession jdbcSession,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (data.isEmpty()) {
+            return;
+        }
+
+        Instant minTimestamp = Instant.MAX;
+        Instant maxTimestamp = Instant.MIN;
+        Map<Long, MAuditEventRecord> rowMap = new HashMap<>();
+        for (Tuple rowTuple : data) {
+            MAuditEventRecord row = Objects.requireNonNull(rowTuple.get(entityPath));
+            rowMap.put(row.id, row);
+            if (row.timestamp.isBefore(minTimestamp)) {
+                minTimestamp = row.timestamp;
+            }
+            if (row.timestamp.isAfter(maxTimestamp)) {
+                maxTimestamp = row.timestamp;
+            }
+        }
+
+        QAuditDeltaMapping deltaMapping = QAuditDeltaMapping.get();
+        QAuditDelta qd = deltaMapping.defaultAlias();
+        jdbcSession.newQuery()
+                .select(qd)
+                .from(qd)
+                .where(qd.recordId.in(rowMap.keySet())
+                        // here between is OK, it's inclusive on both sides
+                        .and(qd.timestamp.between(minTimestamp, maxTimestamp)))
+                .fetch()
+                .forEach(d -> rowMap.get(d.recordId).addDelta(d));
     }
 }
