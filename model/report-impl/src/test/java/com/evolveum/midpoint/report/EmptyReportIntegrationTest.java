@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -194,9 +195,12 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     }
 
     File findOutputFile(PrismObject<ReportType> report) throws ParseException {
-        String filePrefix = report.getName().getOrig();
-        File[] matchingFiles = EXPORT_DIR.listFiles((dir, name) -> name.startsWith(filePrefix));
-        if (matchingFiles.length == 0) {
+        // We should use a more robust way of finding the file names, e.g. by looking at ReportDataType repo objects.
+        String expectedFilePrefix =
+                MiscUtil.replaceColonsInFileNameOnWindows(
+                        report.getName().getOrig());
+        File[] matchingFiles = EXPORT_DIR.listFiles((dir, name) -> name.startsWith(expectedFilePrefix));
+        if (matchingFiles == null || matchingFiles.length == 0) {
             return null;
         }
         if (matchingFiles.length > 1) {
