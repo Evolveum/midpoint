@@ -88,6 +88,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     // other info used in queries
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
     private final QName relation2 = QName.valueOf("{https://random.org/ns}rel-2");
+    private final String resourceOid = UUID.randomUUID().toString();
 
     private ItemDefinition<?> shadowAttributeDefinition;
 
@@ -143,7 +144,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
                 .pendingOperation(new PendingOperationType().attemptNumber(1))
                 .pendingOperation(new PendingOperationType().attemptNumber(2))
+                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE) // what relation is used for shadow->resource?
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent")
+                .tag("tag")
                 .extension(new ExtensionType(prismContext));
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
         ItemName shadowAttributeName = new ItemName("https://example.com/p", "string-mv");
@@ -151,7 +156,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
         shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
         shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
-        // another shadow just to be check we don't select it accidentally
+        // another shadow just to check we don't select shadow1 accidentally/randomly
         repositoryService.addObject(
                 new ShadowType(prismContext).name("shadow-2").asPrismObject(), null, result);
 
@@ -1679,7 +1684,31 @@ AND(
                 .singleElement()
                 .matches(a -> a.getLifecycleState().equals("ls-user3-ass1"));
     }
+    // endregion
 
+    // region various real-life use cases
+    // MID-3289
+    @Test
+    public void test700SearchUsersWithAccountsOnSpecificResource()
+            throws SchemaException {
+        searchUsersTest("with extension poly-string multi-value item",
+                f -> f.item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_RESOURCE_REF)
+                        .ref(resourceOid),
+                user3Oid);
+
+        // TODO failing: java.lang.IllegalArgumentException: Item path of 'linkRef/{http://prism.evolveum.com/xml/ns/public/types-3}objectReference'
+        //  in class com.evolveum.midpoint.xml.ns._public.common.common_3.UserType does not point to a valid PrismContainerDefinition
+        /*
+        searchUsersTest("with extension poly-string multi-value item",
+                f -> f.exists(UserType.F_LINK_REF, T_OBJECT_REFERENCE)
+                        .block()
+                        .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+                        .and()
+                        .item(ShadowType.F_TAG).eq("tag")
+                        .endBlock(),
+                user3Oid);
+        */
+    }
     // endregion
 
     // region special cases
