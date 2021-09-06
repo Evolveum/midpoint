@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
-import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
@@ -148,6 +147,17 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
     private class LabelModel implements IModel<String> {
         @Override
         public String getObject() {
+            SceneItemValue val = getModelObject();
+            if (val == null) {
+                return null;
+            }
+            if (val.getSourceValue() != null) {
+                if (val.getSourceValue() instanceof PrismReferenceValue) {
+                    return WebComponentUtil.getReferencedObjectDisplayNameAndName(((PrismReferenceValue) val.getSourceValue()).asReferencable(), true, getPageBase());
+                } else if (val.getSourceValue() instanceof Objectable) {
+                    WebComponentUtil.getDisplayNameOrName(((Objectable)val.getSourceValue()).asPrismObject());
+                }
+            }
             return getModelObject() != null ? getModelObject().getText() : null;
         }
     }
