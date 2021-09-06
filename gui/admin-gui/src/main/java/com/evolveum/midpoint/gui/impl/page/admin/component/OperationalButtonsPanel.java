@@ -26,7 +26,6 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -34,9 +33,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.Iterator;
@@ -48,6 +47,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_STATE_BUTTONS = "stateButtons";
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
+    private String saveButtonPath = "";
 
     public OperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<O>> wrapperModel) {
         super(id, wrapperModel);
@@ -123,6 +123,11 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         save.setOutputMarkupId(true);
         save.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         repeatingView.add(save);
+
+        Form form = save.findParent(Form.class);
+        if (form != null) {
+            form.setDefaultButton(save);
+        }
 
     }
 
