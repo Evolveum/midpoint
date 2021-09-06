@@ -84,7 +84,8 @@
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconAuthorizations"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask"/>
-            <!--<class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTaskPartitioned"/> &lt;!&ndash; MID-7112 &ndash;&gt;-->
+            <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTaskPartitionedSingleTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTaskPartitionedMultipleTasks"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestUuid"/>

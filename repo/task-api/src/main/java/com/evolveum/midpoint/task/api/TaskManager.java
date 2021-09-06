@@ -386,6 +386,14 @@ public interface TaskManager {
             throws SchemaException, ObjectNotFoundException;
 
     /**
+     * Brings a closed task to suspended state. This is to allow later resumption of the task.
+     *
+     * Not very clean solution, so don't use unless really needed.
+     */
+    @Experimental
+    void markClosedTaskSuspended(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    /**
      * Suspends tasks and deletes them.
      *
      * @param taskOidList List of task OIDs to be suspended and deleted.

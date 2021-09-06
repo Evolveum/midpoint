@@ -44,6 +44,11 @@ public class TaskStateManager {
         return suspendAndDeleteHelper.suspendTask(task, waitTime, result);
     }
 
+    public void markClosedTaskSuspended(String taskOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        suspendAndDeleteHelper.markClosedTaskSuspended(taskOid, result);
+    }
+
     public boolean suspendTask(TaskQuartzImpl task, long waitTime, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         return suspendAndDeleteHelper.suspendTask(task, waitTime, result);

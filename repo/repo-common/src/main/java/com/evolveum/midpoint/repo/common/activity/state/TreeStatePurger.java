@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.common.activity.state;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.ActivityTree;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 
@@ -33,16 +32,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+/**
+ * Responsible for purging detailed state of the activities, including worker and delegator tasks.
+ *
+ * We include the task deletion here because we need to know which subtasks to purge and which not:
+ * and the distinction is similar to distinction when purging the state itself (the state persistence).
+ */
 public class TreeStatePurger {
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeStatePurger.class);
@@ -62,38 +64,61 @@ public class TreeStatePurger {
     }
 
     /**
-     * Purges state from current task and its subtasks.
+     * Purges state from current task and its subtasks. Deletes subtasks if possible.
      *
      * * Pre: task is an execution root
      * * Post: task is refreshed
      */
     public void purge(OperationResult result) throws ActivityExecutionException {
         try {
-            purgeSubtasks(taskExecution.getRunningTask(), result);
-            purgeTask(ActivityPath.empty(), taskExecution.getRunningTask(), result);
+            purgeInTaskRecursively(ActivityPath.empty(), taskExecution.getRunningTask(), result);
         } catch (CommonException e) {
             throw new ActivityExecutionException("Couldn't purge activity tree state", FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
 
-    private void purgeTask(ActivityPath activityPath, Task task, OperationResult result) throws CommonException {
-        new TaskStatePurger(activityPath, task)
+    /**
+     * Purges all activity states in a given task and all of its subtasks.
+     *
+     * Returns true if nothing of any relevance did remain in the task nor in the subtasks, so the task itself can be deleted
+     * if needed.
+     */
+    private boolean purgeInTaskRecursively(ActivityPath activityPath, Task task, OperationResult result) throws CommonException {
+        boolean noSubtasksLeft = purgeInSubtasks(task, result);
+        boolean canDeleteThisTask = purgeInTaskLocally(activityPath, task, result);
+        return noSubtasksLeft && canDeleteThisTask;
+    }
+
+    private boolean purgeInTaskLocally(ActivityPath activityPath, Task task, OperationResult result) throws CommonException {
+        return new TaskStatePurger(activityPath, task)
                 .doPurge(result);
     }
 
-    private void purgeSubtasks(Task parent, OperationResult result) throws CommonException {
-        List<? extends Task> subtasks = parent.listSubtasks(result);
-        for (Task subtask : subtasks) {
+    /**
+     * Purges activity states in the subtasks. Deletes those subtasks if possible.
+     *
+     * @return true if there are no subtasks left
+     */
+    private boolean purgeInSubtasks(Task parent, OperationResult result) throws CommonException {
+        List<? extends Task> subtasks = parent.listSubtasks(true, result);
+        for (Iterator<? extends Task> iterator = subtasks.iterator(); iterator.hasNext(); ) {
+            Task subtask = iterator.next();
             TaskActivityStateType taskActivityState = subtask.getActivitiesStateOrClone();
             if (taskActivityState == null) {
                 LOGGER.error("Non-activity related subtask {} of {}. Please resolve manually.", subtask, parent);
                 continue;
             }
-            purgeTask(
+            boolean canDeleteSubtask = purgeInTaskRecursively(
                     ActivityPath.fromBean(taskActivityState.getLocalRoot()),
                     subtask,
                     result);
+            if (canDeleteSubtask) {
+                LOGGER.info("Deleting obsolete subtask {}", subtask);
+                beans.taskManager.deleteTask(subtask.getOid(), result);
+                iterator.remove();
+            }
         }
+        return subtasks.isEmpty();
     }
 
     /**
@@ -106,6 +131,9 @@ public class TreeStatePurger {
         final TaskActivityStateType taskActivityState;
         @NotNull private final List<ItemDelta<?, ?>> deltas = new ArrayList<>();
 
+        /** True if nothing of relevance remains in the task, so it can be deleted (if needed). */
+        private boolean canDelete;
+
         private TaskStatePurger(@NotNull ActivityPath activityPath, @NotNull Task task) {
             this.localRootPath = activityPath;
             this.task = task;
@@ -113,12 +141,16 @@ public class TreeStatePurger {
         }
 
         /**
-         * Assuming that task's children already have been processed.
+         * Purges the state in the current task.
+         * Assumes that task's children already have been processed.
+         *
+         * @return True if nothing of relevance remains in the task, so it can be deleted (if needed).
          */
-        private void doPurge(OperationResult result) throws CommonException {
+        private boolean doPurge(OperationResult result) throws CommonException {
             if (taskActivityState == null || taskActivityState.getActivity() == null) {
-                return;
+                return true;
             }
+            canDelete = true;
             doPurge(Context.root(localRootPath, taskActivityState));
             if (!deltas.isEmpty()) {
                 beans.repositoryService.modifyObject(TaskType.class, task.getOid(), deltas, result);
@@ -126,6 +158,7 @@ public class TreeStatePurger {
                     task.refresh(result);
                 }
             }
+            return canDelete;
         }
 
         private void doPurge(Context ctx) throws CommonException {
@@ -139,6 +172,7 @@ public class TreeStatePurger {
                 removeCurrentState(ctx);
             } else {
                 purgeCurrentState(ctx);
+                canDelete = false;
             }
         }
 
@@ -149,29 +183,29 @@ public class TreeStatePurger {
 
         private void removeCurrentState(Context ctx) throws CommonException {
             if (ctx.isLocalRoot()) {
-                deleteFromSingle(ctx);
+                deleteFromSingleValuedState(ctx);
             } else {
-                deleteFromMulti(ctx, ctx.currentState.getId());
+                deleteFromMultiValuedState(ctx, ctx.currentState.getId());
             }
         }
 
-        private void deleteFromSingle(Context ctx) throws SchemaException {
-            LOGGER.trace("Deleting from single: task = {}, activity path = '{}', item path = '{}'",
+        private void deleteFromSingleValuedState(Context ctx) throws SchemaException {
+            LOGGER.trace("Deleting from single-valued state: task = {}, activity path = '{}', item path = '{}'",
                     task, ctx.currentActivityPath, ctx.currentStateItemPath);
 
-            deltas.addAll(
+            swallow(
                     beans.prismContext.deltaFor(TaskType.class)
                             .item(ctx.currentStateItemPath).replace()
                             .asItemDeltas());
         }
 
-        private void deleteFromMulti(Context ctx, Long id) throws SchemaException {
-            LOGGER.trace("Deleting from multi: task = {}, activity path = '{}', item path = '{}' with id = {}",
+        private void deleteFromMultiValuedState(Context ctx, Long id) throws SchemaException {
+            LOGGER.trace("Deleting from multi-valued state: task = {}, activity path = '{}', item path = '{}' with id = {}",
                     task, ctx.currentActivityPath, ctx.currentStateItemPath, id);
 
             argCheck(id != null, "Null activity state PCV id in task %s activity path '%s' item path '%s'",
                     task, ctx.currentActivityPath, ctx.currentStateItemPath);
-            deltas.addAll(
+            swallow(
                     beans.prismContext.deltaFor(TaskType.class)
                             .item(ctx.currentStateItemPath.allExceptLast()).delete(new ActivityStateType().id(id))
                             .asItemDeltas());
@@ -185,7 +219,7 @@ public class TreeStatePurger {
             LOGGER.trace("Purging from multi: task = {}, activity path = '{}', item path = '{}'",
                     task, ctx.currentActivityPath, ctx.currentStateItemPath);
 
-            deltas.addAll(
+            swallow(
                     beans.prismContext.deltaFor(TaskType.class)
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_STATE)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
@@ -193,7 +227,7 @@ public class TreeStatePurger {
                             .asItemDeltas());
 
             if (ctx.currentState.getPersistence() != ActivityStatePersistenceType.PERPETUAL) {
-                deltas.addAll(
+                swallow(
                         beans.prismContext.deltaFor(TaskType.class)
                                 .item(ctx.currentStateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
                                 .item(ctx.currentStateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
@@ -202,13 +236,24 @@ public class TreeStatePurger {
 
             // keeping: workState + activity
         }
+
+        private void swallow(Collection<ItemDelta<?, ?>> deltas) {
+            this.deltas.addAll(deltas);
+        }
+
+        private boolean isTransient(ActivityStateType state) {
+            return state.getPersistence() == null || state.getPersistence() == ActivityStatePersistenceType.SINGLE_REALIZATION;
+        }
     }
 
-    private boolean isTransient(ActivityStateType state) {
-        return state.getPersistence() == null || state.getPersistence() == ActivityStatePersistenceType.SINGLE_REALIZATION;
-    }
-
+    /**
+     * Context for purging methods in {@link TaskStatePurger}.
+     *
+     * This class is at this level because Java 11 does not allow to have static classes embedded in inner classes.
+     */
     private static class Context {
+
+        /** Activity path whose state is being purged. */
         @NotNull private final ActivityPath currentActivityPath;
 
         /**
@@ -217,7 +262,10 @@ public class TreeStatePurger {
          */
         @NotNull private final ItemPath currentStateItemPath;
 
+        /** Object holding the current state (i.e. TaskActivityStateType or ActivityStateType). */
         @NotNull private final Object currentStateHolder;
+
+        /** Current state being purged. */
         @NotNull private final ActivityStateType currentState;
 
         private Context(@NotNull ActivityPath currentActivityPath, @NotNull ItemPath currentStateItemPath,
