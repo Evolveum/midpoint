@@ -445,11 +445,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
             }
             AbstractAssignmentTypePanel.this.createNewItemContainerValueWrapper(newAssignment, getContainerModel().getObject(),
                     target);
-            AbstractAssignmentTypePanel.this.refreshTable(target);
-            AbstractAssignmentTypePanel.this.reloadSavePreviewButtons(target);
-
         });
-
+        AbstractAssignmentTypePanel.this.refreshTable(target);
+        AbstractAssignmentTypePanel.this.reloadSavePreviewButtons(target);
+        getPageBase().hideMainPopup(target);
     }
 
     @Override
@@ -548,11 +547,11 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);
 
-    @Override
-    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
-        super.refreshTable(ajaxRequestTarget);
-        AbstractAssignmentTypePanel.this.refreshTable(ajaxRequestTarget);
-    }
+//    @Override
+//    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
+//        super.refreshTable(ajaxRequestTarget);
+//        AbstractAssignmentTypePanel.this.refreshTable(ajaxRequestTarget);
+//    }
 
     @Override
     protected boolean isCollectionViewPanel() {
