@@ -335,11 +335,8 @@ public class ArchetypeManager implements Cache {
             return currentObjectDetails.clone();
         }
 
-        GuiObjectDetailsPageType mergedObjectDetails = superObjectDetails.clone();
-        adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(mergedObjectDetails, currentObjectDetails);
+        return adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(superObjectDetails, currentObjectDetails);
         //TODO save method, objectForm, relations
-
-        return mergedObjectDetails;
     }
 
     private ApplicablePoliciesType mergeApplicablePolicies(ArchetypePolicyType currentPolicy, ArchetypePolicyType superPolicy) {

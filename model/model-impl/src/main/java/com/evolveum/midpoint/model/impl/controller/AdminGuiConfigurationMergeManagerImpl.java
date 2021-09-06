@@ -48,42 +48,51 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         for (ContainerPanelConfigurationType configuredPanel : configuredPanels) {
             mergePanelConfigurations(configuredPanel, defaultPanels, mergedPanels);
         }
+        sort(mergedPanels);
         return mergedPanels;
+    }
+
+    private void sort(List<ContainerPanelConfigurationType> panels) {
+        panels.sort((p1, p2) -> {
+            int displayOrder1 = (p1 == null || p1.getDisplayOrder() == null) ? Integer.MAX_VALUE : p1.getDisplayOrder();
+            int displayOrder2 = (p2 == null || p2.getDisplayOrder() == null) ? Integer.MAX_VALUE : p2.getDisplayOrder();
+
+            return Integer.compare(displayOrder1, displayOrder2);
+        });
     }
 
     @Override
     public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(@NotNull GuiObjectDetailsPageType defaultPageConfiguration, ArchetypePolicyType archetypePolicyType, OperationResult result) throws SchemaException, ConfigurationException {
-        GuiObjectDetailsPageType mergedPageConfiguration = defaultPageConfiguration.cloneWithoutId();
-        mergeObjectDetailsPageConfiguration(mergedPageConfiguration, archetypePolicyType);
-
-        return mergedPageConfiguration;
+        return mergeObjectDetailsPageConfiguration(defaultPageConfiguration, archetypePolicyType);
     }
 
-    private void mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypePolicyType archetypePolicyType) {
+    private GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypePolicyType archetypePolicyType) {
         if (archetypePolicyType == null) {
-            return;
+            return defaultPageConfiguration;
         }
 
         ArchetypeAdminGuiConfigurationType archetypeAdminGuiConfigurationType = archetypePolicyType.getAdminGuiConfiguration();
         if (archetypeAdminGuiConfigurationType == null) {
-            return;
+            return defaultPageConfiguration;
         }
 
         GuiObjectDetailsPageType archetypePageConfiguration = archetypeAdminGuiConfigurationType.getObjectDetails();
         if (archetypePageConfiguration == null) {
-            return;
+            return defaultPageConfiguration;
         }
 
-        mergeObjectDetailsPageConfiguration(defaultPageConfiguration, archetypePageConfiguration);
+        return mergeObjectDetailsPageConfiguration(defaultPageConfiguration, archetypePageConfiguration);
     }
 
     @Override
-    public void mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, GuiObjectDetailsPageType compiledPageType) {
+    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, GuiObjectDetailsPageType compiledPageType) {
         if (compiledPageType == null) {
-            return;
+            return defaultPageConfiguration;
         }
 
-        List<ContainerPanelConfigurationType> mergedPanels = mergeContainerPanelConfigurationType(defaultPageConfiguration.getPanel(), compiledPageType.getPanel());
+        GuiObjectDetailsPageType mergedDetailsPage = defaultPageConfiguration.cloneWithoutId();
+
+        List<ContainerPanelConfigurationType> mergedPanels = mergeContainerPanelConfigurationType(mergedDetailsPage.getPanel(), compiledPageType.getPanel());
 
         //backward compatibility
         Optional<ContainerPanelConfigurationType> optionalPropertiesPanelConfiguration = mergedPanels
@@ -92,7 +101,7 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
         if (optionalPropertiesPanelConfiguration.isPresent()) {
             ContainerPanelConfigurationType propertiesPanelConfiguration = optionalPropertiesPanelConfiguration.get();
-            List<VirtualContainersSpecificationType> virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), defaultPageConfiguration.getContainer());
+            List<VirtualContainersSpecificationType> virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), mergedDetailsPage.getContainer());
             propertiesPanelConfiguration.getContainer().clear();
             propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
 
@@ -101,8 +110,9 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
             propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
         }
 
-        defaultPageConfiguration.getPanel().clear();
-        defaultPageConfiguration.getPanel().addAll(CloneUtil.cloneCollectionMembersWithoutIds(mergedPanels));
+        mergedDetailsPage.getPanel().clear();
+        mergedDetailsPage.getPanel().addAll(CloneUtil.cloneCollectionMembersWithoutIds(mergedPanels));
+        return mergedDetailsPage;
     }
 
     private boolean containsConfigurationForEmptyPath(ContainerPanelConfigurationType panel) {

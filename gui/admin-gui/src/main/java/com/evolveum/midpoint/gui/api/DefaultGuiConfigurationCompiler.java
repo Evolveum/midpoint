@@ -11,26 +11,24 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-
-import com.evolveum.midpoint.web.application.*;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfileCompilable;
 import com.evolveum.midpoint.model.api.authentication.GuiProfileCompilerRegistry;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -60,9 +58,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.gui.impl.page.admin.report.component"
     };
 
-    private Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
+    private final Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
 
-    private Map<String, SimpleCounter> countersMap = new HashMap<>();
+    private final Map<String, SimpleCounter> countersMap = new HashMap<>();
 
     private Boolean experimentalFeaturesEnabled = false;
 
@@ -83,39 +81,24 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     @Override
     public void postProcess(CompiledGuiProfile compiledGuiProfile) {
         experimentalFeaturesEnabled = compiledGuiProfile.isEnableExperimentalFeatures();
-        fillInPanelsMap();
 
-        GuiObjectDetailsSetType defaultDetailsPages = compileDefaultGuiObjectDetailsSetType();
+        Set<Class<?>> classes = collectClasses();
+
+        fillInPanelsMap(classes);
+        fillInCountersMap(classes);
+
+        GuiObjectDetailsSetType defaultDetailsPages = compileDefaultGuiObjectDetailsSetType(classes);
         List<GuiObjectDetailsPageType> detailsPages = defaultDetailsPages.getObjectDetailsPage();
         for (GuiObjectDetailsPageType defaultDetailsPage : detailsPages) {
             GuiObjectDetailsPageType compiledPageType = compiledGuiProfile.findObjectDetailsConfiguration(defaultDetailsPage.getType());
-            if (compiledPageType == null) {
-                compiledGuiProfile.getObjectDetails().getObjectDetailsPage().add(defaultDetailsPage.cloneWithoutId());
-                continue;
-            }
-            List<ContainerPanelConfigurationType> mergedPanels = adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(defaultDetailsPage.getPanel(), compiledPageType.getPanel());
-            setupDefaultPanel(ObjectTypes.getObjectTypeClass(compiledPageType.getType()), mergedPanels);
-            compiledPageType.getPanel().clear();
-            compiledPageType.getPanel().addAll(CloneUtil.cloneCollectionMembersWithoutIds(mergedPanels));
+            GuiObjectDetailsPageType mergedDetailsPage = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(defaultDetailsPage, compiledPageType);
+
+            compiledGuiProfile.getObjectDetails().getObjectDetailsPage().removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
+            compiledGuiProfile.getObjectDetails().getObjectDetailsPage().add(mergedDetailsPage.cloneWithoutId());
         }
     }
 
-    private void setupDefaultPanel(Class<? extends ObjectType> objectType, List<ContainerPanelConfigurationType> mergedPanels) {
-        long defaultPanelsCount = mergedPanels.stream().filter(p -> BooleanUtils.isTrue(p.isDefault())).count();
-        if (defaultPanelsCount >= 1) {
-            return;
-        }
-
-        ContainerPanelConfigurationType systemDefault = defaultContainerPanelConfigurationMap.get(objectType);
-        for (ContainerPanelConfigurationType mergedPanel : mergedPanels) {
-            if (systemDefault.getIdentifier().equals(mergedPanel.getIdentifier())) {
-                mergedPanel.setDefault(true);
-            }
-        }
-    }
-
-    private void fillInPanelsMap() {
-        Set<Class<?>> classes = collectClasses();
+    private void fillInPanelsMap(Set<Class<?>> classes) {
         for (Class<?> clazz : classes) {
             PanelType panelType = clazz.getAnnotation(PanelType.class);
             if (isNotPanelTypeDefinition(clazz, panelType)) {
@@ -137,9 +120,27 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
         return false;
     }
-    private GuiObjectDetailsSetType compileDefaultGuiObjectDetailsSetType() {
+
+    private void fillInCountersMap(Set<Class<?>> scannedClasses) {
+        for (Class<?> clazz : scannedClasses) {
+            Counter counterDefinition = clazz.getAnnotation(Counter.class);
+            if (counterDefinition != null) {
+                Class<? extends SimpleCounter> counterProvider = counterDefinition.provider();
+                try {
+                    PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
+                    if (panelInstance != null) {
+                        countersMap.put(panelInstance.identifier(), counterProvider.getDeclaredConstructor().newInstance());
+                    }
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    //TODO log at least
+                }
+            }
+        }
+
+    }
+
+    private GuiObjectDetailsSetType compileDefaultGuiObjectDetailsSetType(Set<Class<?>> scannedClasses) {
         GuiObjectDetailsSetType guiObjectDetailsSetType = new GuiObjectDetailsSetType();
-        Set<Class<?>> scannedClasses = collectClasses();
         for (ObjectTypes objectType : ObjectTypes.values()) {
             GuiObjectDetailsPageType detailsPageType = compileDefaultGuiObjectDetailsPage(objectType, scannedClasses);
             guiObjectDetailsSetType.getObjectDetailsPage().add(detailsPageType);
@@ -170,21 +171,20 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                     ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, allClasses, panelInstance);
                     panels.add(config);
                 }
-            }
+            } else {
+                PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
+                if (isNotApplicableFor(objectType, panelInstance)) {
+                    continue;
+                }
 
-            PanelInstance panelInstance = clazz.getAnnotation(PanelInstance.class);
-            if (isNotApplicableFor(objectType, panelInstance)) {
-                continue;
+                if (isSubPanel(panelInstance)) {
+                    continue;
+                }
+                ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, allClasses, panelInstance);
+                panels.add(config);
             }
-
-            if (isSubPanel(panelInstance)) {
-                continue;
-            }
-            ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, allClasses, panelInstance);
-            panels.add(config);
         }
 
-        sort(panels);
         return panels;
     }
 
@@ -220,8 +220,6 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return !panelInstance.childOf().equals(Panel.class);
     }
 
-    Map<Class<? extends ObjectType>, ContainerPanelConfigurationType> defaultContainerPanelConfigurationMap = new HashMap<>();
-
     private ContainerPanelConfigurationType compileContainerPanelConfiguration(Class<?> clazz, Class<? extends ObjectType> objectType, Set<Class<?>> classes, PanelInstance panelInstance) {
         ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
         config.setIdentifier(panelInstance.identifier());
@@ -235,23 +233,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         if (panelInstance.defaultPanel()) {
             config.setDefault(true);
         }
-
-        setupCountersForPanelInstance(panelInstance.identifier(), clazz);
         return config;
     }
-
-    private void setupCountersForPanelInstance(String panelInstanceIdentifier, Class<?> clazz) {
-        Counter counterDefinition = clazz.getAnnotation(Counter.class);
-        if (counterDefinition != null) {
-            Class<? extends SimpleCounter> counterProvider = counterDefinition.provider();
-            try {
-                countersMap.put(panelInstanceIdentifier, counterProvider.getDeclaredConstructor().newInstance());
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                //TODO log at least
-            }
-        }
-    }
-
+    
     private void addPanelTypeConfiguration(Class<?> clazz, ContainerPanelConfigurationType config) {
         PanelType panelType = clazz.getAnnotation(PanelType.class);
         if (panelType == null) {
@@ -313,7 +297,6 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             configs.add(config);
         }
 
-        sort(configs);
         return configs;
     }
 
@@ -322,14 +305,5 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         displayType.setLabel(WebComponentUtil.createPolyFromOrigString(display.label()));
         displayType.setIcon(new IconType().cssClass(display.icon()));
         return displayType;
-    }
-
-    private void sort(List<ContainerPanelConfigurationType> panels) {
-        panels.sort((p1, p2) -> {
-            int displayOrder1 = (p1 == null || p1.getDisplayOrder() == null) ? Integer.MAX_VALUE : p1.getDisplayOrder();
-            int displayOrder2 = (p2 == null || p2.getDisplayOrder() == null) ? Integer.MAX_VALUE : p2.getDisplayOrder();
-
-            return Integer.compare(displayOrder1, displayOrder2);
-        });
     }
 }
