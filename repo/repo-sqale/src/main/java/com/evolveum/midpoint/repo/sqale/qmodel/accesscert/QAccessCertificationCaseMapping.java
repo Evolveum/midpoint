@@ -254,8 +254,8 @@ public class QAccessCertificationCaseMapping
             JdbcSession jdbcSession) {
         Map<UUID, PrismObject<AccessCertificationCampaignType>> cache = new HashMap<>();
         return (tuple, entityPath, options) -> {
-            MAccessCertificationCase row = Objects.requireNonNull(tuple.get(entityPath));
-            UUID ownerOid = row.ownerOid;
+            Long cid = Objects.requireNonNull(tuple.get(entityPath.cid));
+            UUID ownerOid = Objects.requireNonNull(tuple.get(entityPath.ownerOid));
             PrismObject<AccessCertificationCampaignType> owner = cache.get(ownerOid);
             if (owner == null) {
                 owner = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext).loadObject(jdbcSession, AccessCertificationCampaignType.class, ownerOid, options);
@@ -265,9 +265,9 @@ public class QAccessCertificationCaseMapping
             if (container == null) {
                 throw new SystemException("Campaing" + owner + " has no cases even if it should have " + tuple);
             }
-            PrismContainerValue<AccessCertificationCaseType> value = container.findValue(row.cid);
+            PrismContainerValue<AccessCertificationCaseType> value = container.findValue(cid);
             if (value == null) {
-                throw new SystemException("Campaing " + owner + " has no cases with ID " + row.cid);
+                throw new SystemException("Campaing " + owner + " has no cases with ID " + cid);
             }
             return value.asContainerable();
         };
