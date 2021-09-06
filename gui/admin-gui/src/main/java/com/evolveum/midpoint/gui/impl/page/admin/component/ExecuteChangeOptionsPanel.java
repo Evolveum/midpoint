@@ -9,17 +9,22 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -36,15 +41,10 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
     private static final Trace LOGGER = TraceManager.getTrace(ExecuteChangeOptionsPanel.class);
 
-    private static final String ID_FORCE = "force";
     private static final String ID_FORCE_CONTAINER = "forceContainer";
-    private static final String ID_RECONCILE = "reconcile";
     private static final String ID_RECONCILE_CONTAINER = "reconcileContainer";
-    private static final String ID_RECONCILE_AFFECTED = "reconcileAffected";
     private static final String ID_RECONCILE_AFFECTED_CONTAINER = "reconcileAffectedContainer";
-    private static final String ID_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
     private static final String ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER = "executeAfterAllApprovalsContainer";
-    private static final String ID_KEEP_DISPLAYING_RESULTS = "keepDisplayingResults";
     private static final String ID_KEEP_DISPLAYING_RESULTS_CONTAINER = "keepDisplayingResultsContainer";
     private static final String ID_TRACING = "tracing";
     private static final String ID_TRACING_CONTAINER = "tracingContainer";
@@ -63,24 +63,19 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     private static final String SAVE_IN_BACKGROUND_LABEL = "ExecuteChangeOptionsPanel.label.saveInBackgroundLabel";
     private static final String SAVE_IN_BACKGROUND_HELP = "ExecuteChangeOptionsPanel.label.saveInBackground.help";
 
-    private final boolean showReconcile;
-    private final boolean showReconcileAffected;
-    private final boolean showKeepDisplayingResults;
+    private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
-    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model,
-            boolean showReconcile, boolean showReconcileAffected) {
-        super(id, model);
-        this.showReconcile = showReconcile;
-        this.showReconcileAffected = showReconcileAffected;
-        showKeepDisplayingResults = getWebApplicationConfiguration().isProgressReportingEnabled();
-    }
+    public ExecuteChangeOptionsPanel(String id) {
+        super(id);
 
-    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model,
-            boolean showReconcile, boolean showReconcileAffected, boolean showKeepDisplayingResults) {
-        super(id, model);
-        this.showReconcile = showReconcile;
-        this.showReconcileAffected = showReconcileAffected;
-        this.showKeepDisplayingResults = showKeepDisplayingResults;
+         executeOptionsModel = new LoadableModel<>(false) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected ExecuteChangeOptionsDto load() {
+                return ExecuteChangeOptionsDto.createFromSystemConfiguration();
+            }
+        };
     }
 
     @Override
@@ -89,46 +84,48 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         initLayout();
     }
 
+    @Override
+    public IModel<ExecuteChangeOptionsDto> getModel() {
+        return executeOptionsModel;
+    }
+
+    @Override
+    public ExecuteChangeOptionsDto getModelObject() {
+        return executeOptionsModel.getObject();
+    }
+
     private void initLayout() {
         setOutputMarkupId(true);
 
         createContainer(ID_FORCE_CONTAINER,
                 new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_FORCE),
                 FORCE_LABEL,
-                FORCE_HELP,
-                true);
+                FORCE_HELP);
 
         createContainer(ID_RECONCILE_CONTAINER,
                 new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE),
                 RECONCILE_LABEL,
-                RECONCILE_HELP,
-                showReconcile);
+                RECONCILE_HELP);
 
         createContainer(ID_RECONCILE_AFFECTED_CONTAINER,
                 new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE_AFFECTED),
                 RECONCILE_AFFECTED_LABEL,
-                RECONCILE_AFFECTED_HELP,
-                showReconcileAffected);
+                RECONCILE_AFFECTED_HELP);
 
         createContainer(ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER,
                 new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS),
                 EXECUTE_AFTER_ALL_APPROVALS_LABEL,
-                EXECUTE_AFTER_ALL_APPROVALS_HELP,
-                true);
+                EXECUTE_AFTER_ALL_APPROVALS_HELP);
 
         createContainer(ID_KEEP_DISPLAYING_RESULTS_CONTAINER,
                 new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS),
                 KEEP_DISPLAYING_RESULTS_LABEL,
-                KEEP_DISPLAYING_RESULTS_HELP,
-                showKeepDisplayingResults,
-                true);
+                KEEP_DISPLAYING_RESULTS_HELP);
 
         createContainer(ID_SAVE_IN_BACKGROUND_CONTAINER,
                 new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_SAVE_IN_BACKGROUND),
                 SAVE_IN_BACKGROUND_LABEL,
-                SAVE_IN_BACKGROUND_HELP,
-                showKeepDisplayingResults,
-                true);
+                SAVE_IN_BACKGROUND_HELP);
 
         boolean canRecordTrace;
         try {
@@ -174,52 +171,22 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         tracingContainer.add(tracing);
     }
 
-    private void createContainer(String containerId, IModel<Boolean> checkboxModel, String labelKey, String helpKey, boolean show) {
-        createContainer(containerId, checkboxModel, labelKey, helpKey, show, false);
-    }
-    private void createContainer(String containerId, IModel<Boolean> checkboxModel, String labelKey, String helpKey, boolean show,
-            final boolean reloadPanelOnUpdate) {
-        CheckBoxPanel panel = new CheckBoxPanel(containerId, checkboxModel, createStringResource(labelKey),
-                createStringResource(helpKey, WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midPoint"))){
+    private void createContainer(String containerId, IModel<Boolean> checkboxModel, String labelKey, String helpKey) {
 
-            private static final long serialVersionUID = 1L;
-
+        AjaxButton button = new AjaxButton(containerId, createStringResource(labelKey)) {
             @Override
-            public void onUpdate(AjaxRequestTarget target) {
-                if (reloadPanelOnUpdate){
-                    target.add(ExecuteChangeOptionsPanel.this);
-                    reloadPanelOnOptionsUpdate(target);
-                }
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                checkboxModel.setObject(!checkboxModel.getObject());
+                ajaxRequestTarget.add(ExecuteChangeOptionsPanel.this);
             }
-
-            @Override
-            protected boolean isCheckboxEnabled(){
-                return isCheckBoxEnabled(containerId);
-            }
-
         };
-        panel.setOutputMarkupId(true);
-        panel.setVisible(show);
-        add(panel);
-    }
-
-    private boolean isCheckBoxEnabled(String componentId){
-        if (ID_KEEP_DISPLAYING_RESULTS_CONTAINER.equals(componentId)){
-            return !getModelObject().isSaveInBackground();
-        } else if (ID_SAVE_IN_BACKGROUND_CONTAINER.equals(componentId)){
-            return !getModelObject().isKeepDisplayingResults();
-        }
-        return true;
+        button.add(AttributeAppender.append("title", createStringResource(helpKey)));
+        button.add(AttributeAppender.append("class", new ReadOnlyModel<>(() -> checkboxModel.getObject() ? " active" : "")));
+        button.setOutputMarkupId(true);
+        add(button);
     }
 
     protected void reloadPanelOnOptionsUpdate(AjaxRequestTarget target) {
     }
 
-    private CheckBoxPanel getKeepDisplayingResultsPanel(){
-        return (CheckBoxPanel) get(ID_KEEP_DISPLAYING_RESULTS_CONTAINER);
-    }
-
-    private CheckBoxPanel getSaveInBackgroundPanel(){
-        return (CheckBoxPanel) get(ID_KEEP_DISPLAYING_RESULTS_CONTAINER);
-    }
 }

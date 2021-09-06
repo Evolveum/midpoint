@@ -8,16 +8,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-        <div class="option-checkbox" wicket:id="forceContainer"/>
-        <div class="option-checkbox" wicket:id="reconcileContainer"/>
-        <div class="option-checkbox" wicket:id="reconcileAffectedContainer"/>
-        <div class="option-checkbox" wicket:id="executeAfterAllApprovalsContainer"/>
-        <div class="option-checkbox" wicket:id="keepDisplayingResultsContainer"/>
-        <div class="option-checkbox" wicket:id="saveInBackgroundContainer"/>
+        <a class="btn btn-default btn-sm" wicket:id="forceContainer"/>
+        <a class="btn btn-default btn-sm" wicket:id="reconcileContainer"/>
+        <a class="btn btn-default btn-sm" wicket:id="reconcileAffectedContainer"/>
+        <a class="btn btn-default btn-sm" wicket:id="executeAfterAllApprovalsContainer"/>
+        <a class="btn btn-default btn-sm" wicket:id="keepDisplayingResultsContainer"/>
+        <a class="btn btn-default btn-sm" wicket:id="saveInBackgroundContainer"/>
         <!-- TODO style -->
         <div class="option-checkbox" wicket:id="tracingContainer">
             <div class="checkbox">
-                <i class="helpTextIcon fa fa-fw fa-lightbulb-o text-warning" wicket:message="title:ItemHeaderPanel.experimentalFeature"></i>
+                <i class="helpTextIcon fa fa-fw fa-lightbulb-o text-warning" wicket:message="title:ItemHeaderPanel.experimentalFeature"></i>s
                 <label style="padding-left: 0;" wicket:message="title:ExecuteChangeOptionsPanel.label.trace.help">
                     <wicket:message key="ExecuteChangeOptionsPanel.label.trace"/>
                     <select wicket:id="tracing"></select>
