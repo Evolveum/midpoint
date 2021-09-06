@@ -85,7 +85,7 @@ public class PageCreateFromTemplate extends PageAdmin {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                 List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionViews);
                 try {
                     WebComponentUtil.initNewObjectWithReference(getPageBase(),

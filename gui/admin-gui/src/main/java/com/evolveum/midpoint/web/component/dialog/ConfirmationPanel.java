@@ -146,11 +146,6 @@ public class ConfirmationPanel extends Panel implements Popupable {
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("AssignmentTablePanel.modal.title.confirmDeletion");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

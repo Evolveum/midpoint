@@ -178,10 +178,10 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                 new MultiCompositedButtonPanel(ID_COMPOSITED_BUTTONS, createNewButtonDescriptionModel()) {
 
                     @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                         Form form = (Form) AssignmentPopup.this.get(ID_FORM);
                         AssignmentPopup.this.getModelObject().setSelectionVisible(false);
-                        addOrReplaceTabPanels(form, relationSepc);
+                        addOrReplaceTabPanels(form, relationSpec);
                         target.add(form);
                     }
                 };

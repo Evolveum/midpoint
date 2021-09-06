@@ -289,11 +289,6 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return parentPage.createStringResource("ObjectBrowserPanel.chooseObject");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

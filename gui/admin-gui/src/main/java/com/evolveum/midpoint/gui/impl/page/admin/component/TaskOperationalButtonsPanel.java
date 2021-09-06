@@ -351,11 +351,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public StringResourceModel getTitle() {
-                        return createStringResource("pageUsers.message.confirmActionPopupTitle");
-                    }
-
-                    @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         try {
                             deleteStatistics(target);
@@ -406,11 +401,6 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             public void onClick(AjaxRequestTarget target) {
                 ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupResults.confirmation")) {
                     private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public StringResourceModel getTitle() {
-                        return createStringResource("pageUsers.message.confirmActionPopupTitle");
-                    }
 
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
