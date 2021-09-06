@@ -25,15 +25,6 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
 
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
-    private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<>(false) {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        protected ExecuteChangeOptionsDto load() {
-            return ExecuteChangeOptionsDto.createFromSystemConfiguration();
-        }
-    };
-
     public FocusOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> model) {
         super(id, model);
     }
@@ -45,9 +36,7 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
     }
 
     private void initLayout() {
-        ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS,
-                executeOptionsModel, true, false) {
-            private static final long serialVersionUID = 1L;
+        ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS) {
 
             @Override
             protected void reloadPanelOnOptionsUpdate(AjaxRequestTarget target) {

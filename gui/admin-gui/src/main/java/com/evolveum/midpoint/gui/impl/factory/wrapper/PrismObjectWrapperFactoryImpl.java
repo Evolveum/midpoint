@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import java.util.Collection;
-import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -15,7 +13,6 @@ import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
@@ -26,7 +23,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectWrapperImpl;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -59,7 +55,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         }
         context.setObject(object);
 
-        setupContextWithVirtualContainerAndMetadataProcessing(object, context);
+        setupContextWithMetadataProcessing(object, context);
 
         PrismObjectWrapper<O> objectWrapper = createObjectWrapper(object, status);
         if (context.getReadOnly() != null) {
@@ -88,7 +84,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         }
         context.setObject(wrapper.getObject());
 
-        setupContextWithVirtualContainerAndMetadataProcessing(wrapper.getObject(), context);
+        setupContextWithMetadataProcessing(wrapper.getObject(), context);
 
         context.setShowEmpty(ItemStatus.ADDED == wrapper.getStatus());
         wrapper.setExpanded(true);
@@ -189,10 +185,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
     }
 
-    protected void setupContextWithVirtualContainerAndMetadataProcessing(PrismObject<O> object, WrapperContext context) {
-        Collection<VirtualContainersSpecificationType> virtualContainers = getModelInteractionService().determineVirtualContainers(object, context.getTask(), context.getResult());
-        context.setVirtualContainers(virtualContainers);
-
+    protected void setupContextWithMetadataProcessing(PrismObject<O> object, WrapperContext context) {
          try {
             MetadataItemProcessingSpec metadataItemProcessingSpec = getModelInteractionService().getMetadataItemProcessingSpec(ValueMetadataType.F_PROVENANCE, object, context.getTask(), context.getResult());
              context.setMetadataItemProcessingSpec(metadataItemProcessingSpec);

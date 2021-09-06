@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.util.*;
 import javax.xml.datatype.Duration;
 
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
@@ -358,6 +357,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             deletedCount = jdbcSession.newDelete(qae)
                     .where(qae.timestamp.lt(olderThan))
                     .execute();
+            jdbcSession.commit();
         } finally {
             registerOperationFinish(opHandle, 1);
             logger.info("Audit cleanup based on age finished; deleted {} entries in {} seconds.",
@@ -395,18 +395,20 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         // TODO finish, write test, etc
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             logger.info("Audit cleanup, deleting to leave only {} records.", maxRecords);
-            Long lastId = jdbcSession.newQuery().select(Expressions.numberTemplate(Long.class, "last_value"))
-                    .from(Expressions.stringTemplate("ma_audit_event_id_seq"))
+            QAuditEventRecord qae = QAuditEventRecordMapping.get().defaultAlias();
+            Long lastId = jdbcSession.newQuery()
+                    .select(qae.id.max())
+                    .from(qae)
                     .fetchOne();
             if (lastId == null || lastId < maxRecords) {
                 logger.info("Nothing to delete from audit, {} entries allowed, current max ID is {}.", maxRecords, lastId);
                 return;
             }
 
-            QAuditEventRecord qae = QAuditEventRecordMapping.get().defaultAlias();
             deletedCount = jdbcSession.newDelete(qae)
-                    .where(qae.id.lt(lastId - maxRecords))
+                    .where(qae.id.loe(lastId - maxRecords))
                     .execute();
+            jdbcSession.commit();
         } finally {
             registerOperationFinish(opHandle, 1);
             logger.info("Audit cleanup based on record count finished; deleted {} entries in {} seconds.",

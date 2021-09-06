@@ -18,9 +18,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
@@ -48,7 +46,8 @@ import java.util.List;
 @PanelType(name = "userDelegations")
 @PanelInstance(identifier = "userDelegations", status = ItemStatus.NOT_CHANGED, applicableFor = UserType.class,
         display = @PanelDisplay(label = "Delegations", order = 70))
-public class UserDelegationsPanel<F extends FocusType> extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
+@Counter(provider = UserDelegationsCounter.class)
+public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_DELEGATIONS_CONTAINER = "delegationsContainer";
