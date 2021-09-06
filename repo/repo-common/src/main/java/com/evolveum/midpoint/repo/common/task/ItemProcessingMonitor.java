@@ -7,20 +7,28 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import java.util.Collection;
+import java.util.List;
+
 import ch.qos.logback.classic.Level;
 
+import com.evolveum.midpoint.repo.common.task.ItemProcessingConditionEvaluator.AdditionalVariableProvider;
+import com.evolveum.midpoint.task.api.Tracer;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessProfilingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessTracingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Starts and stops tracing and [dynamic] profiling for item processing that is a part of activity execution.
@@ -30,45 +38,41 @@ import java.util.List;
  * is returning back to {@link ItemProcessingGatekeeper}.
  *
  * This class was originally part of {@link ItemProcessingGatekeeper}, but was factored out to attain more clarity.
+ *
+ * TODO extend to all reporting (i.e. also execution reports)?
  */
 class ItemProcessingMonitor<I> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemProcessingMonitor.class);
 
-    /**
-     * Task on which the tracing is requested.
-     */
+    /** Task on which the tracing is requested. */
     @NotNull private final RunningTask workerTask;
 
-    /**
-     * Execution of the related activity. Used to determine e.g. whether the tracing/profiling interval applies.
-     */
+    /** Execution of the related activity. */
     @NotNull private final IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution;
 
-    /**
-     * Definition of the monitoring (e.g. intervals, profile, points, etc).
-     */
+    /** Definition of the monitoring (e.g. intervals, profile, points, etc). */
     @NotNull private final ActivityReportingDefinition reportingDefinition;
 
-    /**
-     * Used to turn on dynamic profiling: keeps the original logging level of the corresponding logger.
-     */
+    /** Helper for before/after conditions evaluation. */
+    @NotNull private final ItemProcessingConditionEvaluator conditionEvaluator;
+
+    /** Used to turn on dynamic profiling: keeps the original logging level of the corresponding logger. */
     private Level originalProfilingLevel;
+
+    /** Tracing configuration that was selected and applied (if any). */
+    @Nullable private ProcessTracingConfigurationType tracingConfigurationUsed;
 
     ItemProcessingMonitor(ItemProcessingGatekeeper<I> itemProcessingGatekeeper) {
         this.workerTask = itemProcessingGatekeeper.getWorkerTask();
         this.activityExecution = itemProcessingGatekeeper.getActivityExecution();
         this.reportingDefinition = activityExecution.getActivity().getDefinition().getReportingDefinition();
+        this.conditionEvaluator = itemProcessingGatekeeper.conditionEvaluator;
     }
 
-    void startProfilingAndTracingIfNeeded() {
-        if (activityExecution.isExcludedFromProfilingAndTracing()) {
-            return;
-        }
-
-        int itemsProcessed = activityExecution.getItemsProcessed();
-        startProfilingIfNeeded(itemsProcessed);
-        startTracingIfNeeded(itemsProcessed);
+    void startProfilingAndTracingIfNeeded(OperationResult result) {
+        startProfilingIfNeeded(result);
+        startTracingIfNeeded(result);
     }
 
     void stopProfilingAndTracing() {
@@ -76,35 +80,48 @@ class ItemProcessingMonitor<I> {
         stopTracing();
     }
 
-    private void startProfilingIfNeeded(int itemsProcessed) {
-        int interval = reportingDefinition.getDynamicProfilingInterval();
-        if (!intervalMatches(interval, itemsProcessed)) {
+    private void startProfilingIfNeeded(OperationResult result) {
+        ProcessProfilingConfigurationType profilingConfig = reportingDefinition.getProfilingConfiguration();
+        if (profilingConfig == null ||
+                conditionEvaluator.legacyIntervalRejects(profilingConfig.getInterval()) ||
+                !conditionEvaluator.anyItemReportingConditionApplies(profilingConfig.getBeforeItemCondition(), result)) {
             return;
         }
-        LOGGER.info("Starting dynamic profiling for object number {} (interval is {})", itemsProcessed, interval);
-        originalProfilingLevel = OperationExecutionLogger.getLocalOperationInvocationLevelOverride();
-        OperationExecutionLogger.setLocalOperationInvocationLevelOverride(Level.TRACE);
+
+        startProfiling();
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean intervalMatches(int interval, int itemsProcessed) {
-        return interval != 0 && itemsProcessed%interval == 0;
+    private void startTracingIfNeeded(OperationResult result) {
+        for (ProcessTracingConfigurationType tracingConfig : reportingDefinition.getTracingConfigurationsSorted()) {
+            if (conditionEvaluator.legacyIntervalRejects(tracingConfig.getInterval())) {
+                continue;
+            }
+            if (conditionEvaluator.anyItemReportingConditionApplies(tracingConfig.getBeforeItemCondition(), result)) {
+                startTracing(tracingConfig);
+                break;
+            }
+        }
+    }
+
+    private void startProfiling() {
+        LOGGER.info("Starting dynamic profiling for object number {}", activityExecution.getItemsProcessed());
+        originalProfilingLevel = OperationExecutionLogger.getLocalOperationInvocationLevelOverride();
+        OperationExecutionLogger.setLocalOperationInvocationLevelOverride(Level.TRACE);
     }
 
     private void stopProfiling() {
         OperationExecutionLogger.setLocalOperationInvocationLevelOverride(originalProfilingLevel);
     }
 
-    private void startTracingIfNeeded(int itemsProcessed) {
-        int interval = reportingDefinition.getTracingInterval();
-        if (!intervalMatches(reportingDefinition.getTracingInterval(), itemsProcessed)) {
-            return;
-        }
+    private void startTracing(@NotNull ProcessTracingConfigurationType tracingConfiguration) {
+        tracingConfigurationUsed = tracingConfiguration;
 
-        LOGGER.info("Starting tracing for object number {} (interval is {})", itemsProcessed, interval);
+        // This is on debug level because we may start tracing "just for sure" (with low overhead)
+        // and write trace only if after-condition is true.
+        LOGGER.debug("Starting tracing for object number {}", activityExecution.getItemsProcessed());
 
-        TracingProfileType configuredProfile = reportingDefinition.getTracingProfile();
-        List<TracingRootType> configuredPoints = reportingDefinition.getTracingPoint();
+        TracingProfileType configuredProfile = tracingConfiguration.getTracingProfile();
+        List<TracingRootType> configuredPoints = tracingConfiguration.getTracingPoint();
 
         TracingProfileType profile = configuredProfile != null ?
                 configuredProfile : activityExecution.getBeans().tracer.getDefaultProfile();
@@ -118,5 +135,21 @@ class ItemProcessingMonitor<I> {
     private void stopTracing() {
         workerTask.removeTracingRequests();
         workerTask.setTracingProfile(null);
+    }
+
+    public void storeTrace(@NotNull Tracer tracer, @NotNull AdditionalVariableProvider additionalVariableProvider,
+            @NotNull RunningTask workerTask, @NotNull OperationResult resultToStore, OperationResult opResult) {
+
+        if (tracingConfigurationUsed != null) {
+            if (!conditionEvaluator.anyItemReportingConditionApplies(tracingConfigurationUsed.getAfterItemCondition(),
+                    additionalVariableProvider, opResult)) {
+                LOGGER.debug("Trace is discarded because of after-item conditions not matching");
+                return;
+            }
+        } else {
+            LOGGER.trace("We were not the one that requested the tracing. So we are not checking after-item conditions.");
+        }
+
+        tracer.storeTrace(workerTask, resultToStore, opResult);
     }
 }

@@ -59,7 +59,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  * @author Radovan Semancik
  * @author Pavol Mederly
  */
-public interface Task extends DebugDumpable, StatisticsCollector {
+public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
@@ -894,6 +894,19 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     /** Sets the profile to be used for future tracing within this task. */
     @Experimental
     void setTracingProfile(TracingProfileType tracingProfile);
+
+    //endregion
+
+    //region Reporting
+
+    /** Registers a {@link ConnIdOperationsListener}. */
+    @Experimental
+    void registerConnIdOperationsListener(@NotNull ConnIdOperationsListener listener);
+
+    /** Unregisters a {@link ConnIdOperationsListener}. */
+
+    @Experimental
+    void unregisterConnIdOperationsListener(@NotNull ConnIdOperationsListener listener);
 
     //endregion
 

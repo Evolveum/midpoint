@@ -31,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 /**
  * Contains common functionality for executions of export report-related activities.
  * This is an experiment - using object composition instead of inheritance.
@@ -94,7 +96,7 @@ public class ExportActivitySupport extends ReportActivitySupport {
      * Count container objects for iterative task.
      * Temporary until will be implemented iterative search for audit records and containerable objects.
      */
-    public long countRecords(Class<? extends Containerable> type,
+    public int countRecords(Class<? extends Containerable> type,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result) throws CommonException {
@@ -102,9 +104,9 @@ public class ExportActivitySupport extends ReportActivitySupport {
             return modelAuditService.countObjects(query, options, runningTask, result);
         } else if (ObjectType.class.isAssignableFrom(type)) {
             Class<? extends ObjectType> objectType = type.asSubclass(ObjectType.class);
-            return modelService.countObjects(objectType, query, options, runningTask, result);
+            return or0(modelService.countObjects(objectType, query, options, runningTask, result));
         } else {
-            return modelService.countContainers(type, query, options, runningTask, result);
+            return or0(modelService.countContainers(type, query, options, runningTask, result));
         }
     }
 }

@@ -95,4 +95,6 @@ public interface OperationResultBuilder {
     OperationResultBuilder tracingProfile(CompiledTracingProfile profile);
 
     OperationResultBuilder operationKind(OperationKindType kind);
+
+    OperationResultBuilder preserve();
 }

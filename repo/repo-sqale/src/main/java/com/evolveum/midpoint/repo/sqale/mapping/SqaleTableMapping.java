@@ -214,18 +214,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Returns the mapper creating string multi-value filter/delta processors from context.
-     */
-    protected ItemSqlMapper<Q, R> multiStringMapper(
-            Function<Q, ArrayPath<String[], String>> rootToQueryItem) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new ArrayPathItemFilterProcessor<String, String>(
-                        ctx, rootToQueryItem, "TEXT", String.class, null),
-                ctx -> new ArrayItemDeltaProcessor<String, String>(
-                        ctx, rootToQueryItem, String.class, null));
-    }
-
-    /**
      * Returns the mapper creating poly-string multi-value filter/delta processors from context.
      */
     protected ItemSqlMapper<Q, R> multiPolyStringMapper(
@@ -236,16 +224,21 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
+     * Returns the mapper creating string multi-value filter/delta processors from context.
+     */
+    protected ItemSqlMapper<Q, R> multiStringMapper(
+            Function<Q, ArrayPath<String[], String>> rootToQueryItem) {
+        return multiValueMapper(rootToQueryItem, String.class, "TEXT", null, null);
+    }
+
+    /**
      * Returns the mapper creating cached URI multi-value filter/delta processors from context.
      */
     protected ItemSqlMapper<Q, R> multiUriMapper(
             Function<Q, ArrayPath<Integer[], Integer>> rootToQueryItem) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new ArrayPathItemFilterProcessor<>(
-                        ctx, rootToQueryItem, "INTEGER", Integer.class,
-                        ((SqaleRepoContext) ctx.repositoryContext())::searchCachedUriId),
-                ctx -> new ArrayItemDeltaProcessor<>(ctx, rootToQueryItem, Integer.class,
-                        ctx.repositoryContext()::processCacheableUri));
+        return multiValueMapper(rootToQueryItem, Integer.class, "INTEGER",
+                repositoryContext()::searchCachedUriId,
+                repositoryContext()::processCacheableUri);
     }
 
     /**
@@ -253,16 +246,20 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      *
      * @param <VT> real-value type from schema
      * @param <ST> stored type (e.g. String for TEXT[])
+     * @param dbType name of the type for element in DB (without []) for the cast part of the condition
+     * @param elementType class necessary for array creation; must be a class convertable to {@code dbType} by PG JDBC driver
      */
     protected <VT, ST> ItemSqlMapper<Q, R> multiValueMapper(
             Function<Q, ArrayPath<ST[], ST>> rootToQueryItem,
-            Class<ST> storeType,
-            Function<VT, ST> conversionFunction) {
+            Class<ST> elementType,
+            String dbType,
+            @Nullable Function<VT, ST> queryConversionFunction,
+            @Nullable Function<VT, ST> updateConversionFunction) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new ArrayPathItemFilterProcessor<>(
-                        ctx, rootToQueryItem, "TEXT", storeType, conversionFunction),
+                        ctx, rootToQueryItem, dbType, elementType, queryConversionFunction),
                 ctx -> new ArrayItemDeltaProcessor<>(
-                        ctx, rootToQueryItem, storeType, conversionFunction));
+                        ctx, rootToQueryItem, elementType, updateConversionFunction));
     }
 
     @Override
@@ -285,6 +282,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     // TODO reconsider, if not necessary in 2023 DELETE (originally meant for ext item per column,
     //  but can this be used for adding index-only exts to schema object even from JSON?)
+
     @SuppressWarnings("unused")
     protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
         // empty by default, can be overridden
@@ -309,7 +307,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid.toString())
-                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(objectTypeToQName(repoObjectType))
                 .relation(resolveUriIdToQName(relationId));
     }
 
@@ -329,9 +327,16 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid.toString())
-                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(objectTypeToQName(repoObjectType))
                 .description(targetName)
                 .targetName(targetName);
+    }
+
+    @Nullable
+    protected QName objectTypeToQName(MObjectType objectType) {
+        return objectType != null
+                ? repositoryContext().schemaClassToQName(objectType.getSchemaType())
+                : null;
     }
 
     /**
@@ -412,7 +417,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected String[] stringsToArray(List<String> strings) {
+    protected String[] stringsToArray(Collection<String> strings) {
         if (strings == null || strings.isEmpty()) {
             return null;
         }

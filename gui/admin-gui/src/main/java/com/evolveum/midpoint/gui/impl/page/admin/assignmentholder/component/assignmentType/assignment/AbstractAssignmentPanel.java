@@ -123,7 +123,11 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
 
     @Override
     protected List<ObjectTypes> getObjectTypesList() {
-        return Collections.singletonList(ObjectTypes.getObjectTypeFromTypeQName(getAssignmentType()));
+        QName assignmentType = getAssignmentType();
+        if (assignmentType == null) {
+            return Collections.EMPTY_LIST;
+        }
+        return Collections.singletonList(ObjectTypes.getObjectTypeFromTypeQName(assignmentType));
     }
 
     protected RefFilter getTargetTypeFilter() {

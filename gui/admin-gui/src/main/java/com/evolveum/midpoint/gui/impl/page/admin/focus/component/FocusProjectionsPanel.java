@@ -172,6 +172,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                                                         List<ResourceType> selected) {
                                 FocusProjectionsPanel.this.addSelectedAccountPerformed(target,
                                         selected);
+                                target.add(getPageBase().getFeedbackPanel());
                             }
                         };
                         resourceSelectionPanel.setOutputMarkupId(true);

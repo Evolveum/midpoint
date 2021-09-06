@@ -43,7 +43,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator;
+import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketFactory;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactory;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactoryGenerator;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.StringBucketContentFactory;
@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Low level tests of working with buckets: creating, getting, completing, releasing, and using buckets.
  *
- * These tests are "static": no tasks are run here. We explicitly call {@link BucketAllocator} and {@link BucketingManager}
+ * These tests are "static": no tasks are run here. We explicitly call {@link BucketFactory} and {@link BucketingManager}
  * to check their functionality.
  *
  * Tests 010-099 only check that the bucket allocator provides correct sequence of buckets (plus check query narrowing).
@@ -120,7 +120,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), null, beans);
+        BucketFactory allocator = BucketFactory.create(getDistributionDefinition(task), null, beans);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -175,14 +175,14 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), null, beans);
-        BucketContentFactory contentFactory = allocator.getContentFactory();
+        BucketFactory bucketFactory = BucketFactory.create(getDistributionDefinition(task), null, beans);
+        BucketContentFactory contentFactory = bucketFactory.getContentFactory();
 
         then();
 
         assertBoundariesAndBucketCount(contentFactory, Arrays.asList("a", "01abc", "01abc"), 25);
 
-        WorkBucketType bucket = assumeNextValue(allocator, workState, "a00", 1);
+        WorkBucketType bucket = assumeNextValue(bucketFactory, workState, "a00", 1);
 
         assertNarrowedQuery(task, bucket,
                 prismContext.queryFor(UserType.class)
@@ -190,31 +190,31 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
                         .build()
         );
 
-        assumeNextValue(allocator, workState, "a01", 2);
-        assumeNextValue(allocator, workState, "a0a", 3);
-        assumeNextValue(allocator, workState, "a0b", 4);
-        assumeNextValue(allocator, workState, "a0c", 5);
-        assumeNextValue(allocator, workState, "a10", 6);
-        assumeNextValue(allocator, workState, "a11", 7);
-        assumeNextValue(allocator, workState, "a1a", 8);
-        assumeNextValue(allocator, workState, "a1b", 9);
-        assumeNextValue(allocator, workState, "a1c", 10);
-        assumeNextValue(allocator, workState, "aa0", 11);
-        assumeNextValue(allocator, workState, "aa1", 12);
-        assumeNextValue(allocator, workState, "aaa", 13);
-        assumeNextValue(allocator, workState, "aab", 14);
-        assumeNextValue(allocator, workState, "aac", 15);
-        assumeNextValue(allocator, workState, "ab0", 16);
-        assumeNextValue(allocator, workState, "ab1", 17);
-        assumeNextValue(allocator, workState, "aba", 18);
-        assumeNextValue(allocator, workState, "abb", 19);
-        assumeNextValue(allocator, workState, "abc", 20);
-        assumeNextValue(allocator, workState, "ac0", 21);
-        assumeNextValue(allocator, workState, "ac1", 22);
-        assumeNextValue(allocator, workState, "aca", 23);
-        assumeNextValue(allocator, workState, "acb", 24);
-        assumeNextValue(allocator, workState, "acc", 25);
-        assumeNoNextBucket(allocator, workState);
+        assumeNextValue(bucketFactory, workState, "a01", 2);
+        assumeNextValue(bucketFactory, workState, "a0a", 3);
+        assumeNextValue(bucketFactory, workState, "a0b", 4);
+        assumeNextValue(bucketFactory, workState, "a0c", 5);
+        assumeNextValue(bucketFactory, workState, "a10", 6);
+        assumeNextValue(bucketFactory, workState, "a11", 7);
+        assumeNextValue(bucketFactory, workState, "a1a", 8);
+        assumeNextValue(bucketFactory, workState, "a1b", 9);
+        assumeNextValue(bucketFactory, workState, "a1c", 10);
+        assumeNextValue(bucketFactory, workState, "aa0", 11);
+        assumeNextValue(bucketFactory, workState, "aa1", 12);
+        assumeNextValue(bucketFactory, workState, "aaa", 13);
+        assumeNextValue(bucketFactory, workState, "aab", 14);
+        assumeNextValue(bucketFactory, workState, "aac", 15);
+        assumeNextValue(bucketFactory, workState, "ab0", 16);
+        assumeNextValue(bucketFactory, workState, "ab1", 17);
+        assumeNextValue(bucketFactory, workState, "aba", 18);
+        assumeNextValue(bucketFactory, workState, "abb", 19);
+        assumeNextValue(bucketFactory, workState, "abc", 20);
+        assumeNextValue(bucketFactory, workState, "ac0", 21);
+        assumeNextValue(bucketFactory, workState, "ac1", 22);
+        assumeNextValue(bucketFactory, workState, "aca", 23);
+        assumeNextValue(bucketFactory, workState, "acb", 24);
+        assumeNextValue(bucketFactory, workState, "acc", 25);
+        assumeNoNextBucket(bucketFactory, workState);
     }
 
     /**
@@ -230,7 +230,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), null, beans);
+        BucketFactory allocator = BucketFactory.create(getDistributionDefinition(task), null, beans);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -849,9 +849,9 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
     // TODO some test for batch allocation
 
-    private WorkBucketType assumeNextValue(BucketAllocator allocator, ActivityStateType workState,
+    private WorkBucketType assumeNextValue(BucketFactory bucketFactory, ActivityStateType workState,
             String expectedNextValue, int expectedSequentialNumber) throws SchemaException {
-        WorkBucketType newBucket = getNextBucket(allocator, workState, expectedSequentialNumber);
+        WorkBucketType newBucket = getNextBucket(bucketFactory, workState, expectedSequentialNumber);
         AbstractWorkBucketContentType content = newBucket.getContent();
         assertEquals("Wrong content class", StringValueWorkBucketContentType.class, content.getClass());
         StringValueWorkBucketContentType prefixContent = (StringValueWorkBucketContentType) content;
@@ -863,7 +863,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         return newBucket;
     }
 
-    private WorkBucketType assumeNextPrefix(BucketAllocator allocator, ActivityStateType workState,
+    private WorkBucketType assumeNextPrefix(BucketFactory allocator, ActivityStateType workState,
             String expectedNextPrefix, int expectedSequentialNumber) throws SchemaException {
         WorkBucketType newBucket = getNextBucket(allocator, workState, expectedSequentialNumber);
         AbstractWorkBucketContentType content = newBucket.getContent();
@@ -877,7 +877,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         return newBucket;
     }
 
-    private WorkBucketType assumeNextInterval(BucketAllocator allocator, ActivityStateType workState,
+    private WorkBucketType assumeNextInterval(BucketFactory allocator, ActivityStateType workState,
             String expectedNextFrom, String expectedNextTo, int expectedSequentialNumber) throws SchemaException {
         WorkBucketType newBucket = getNextBucket(allocator, workState, expectedSequentialNumber);
         AbstractWorkBucketContentType content = newBucket.getContent();
@@ -892,26 +892,20 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
     }
 
     @NotNull
-    private WorkBucketType getNextBucket(BucketAllocator allocator, ActivityStateType workState,
+    private WorkBucketType getNextBucket(BucketFactory bucketFactory, ActivityStateType workState,
             int expectedSequentialNumber) throws SchemaException {
-        BucketAllocator.Response response = allocator.getBucket(getOrCreateBuckets(workState));
-        displayValue("get bucket response", response);
-        assertTrue("Wrong answer", response instanceof BucketAllocator.Response.NewBuckets);
-        BucketAllocator.Response.NewBuckets nbr = (BucketAllocator.Response.NewBuckets) response;
-        displayValue("new buckets obtained", nbr.newBuckets);
-        assertEquals("Wrong new buckets count", 1, nbr.newBuckets.size());
-        WorkBucketType newBucket = nbr.newBuckets.get(0);
+        var newBuckets = bucketFactory.createNewBuckets(getOrCreateBuckets(workState), 1);
+        displayValue("new buckets obtained", newBuckets);
+        assertEquals("Wrong new buckets count", 1, newBuckets.size());
+        WorkBucketType newBucket = newBuckets.get(0);
         assertEquals("Wrong sequential number", expectedSequentialNumber, newBucket.getSequentialNumber());
         return newBucket;
     }
 
-    private void assumeNoNextBucket(BucketAllocator allocator, ActivityStateType workState) throws SchemaException {
-        BucketAllocator.Response response = allocator.getBucket(getBuckets(workState));
-        displayValue("get bucket response", response);
-        assertTrue("Wrong answer", response instanceof BucketAllocator.Response.NothingFound);
-        BucketAllocator.Response.NothingFound nothingFound = (BucketAllocator.Response.NothingFound) response;
-        //noinspection SimplifiedTestNGAssertion
-        assertEquals("Wrong definite flag", true, nothingFound.definite);
+    private void assumeNoNextBucket(BucketFactory bucketFactory, ActivityStateType workState) throws SchemaException {
+        var newBuckets = bucketFactory.createNewBuckets(getBuckets(workState), 1);
+        displayValue("new buckets obtained", newBuckets);
+        assertThat(newBuckets).as("new buckets").isEmpty();
     }
 
     private List<WorkBucketType> getBuckets(Task task) {

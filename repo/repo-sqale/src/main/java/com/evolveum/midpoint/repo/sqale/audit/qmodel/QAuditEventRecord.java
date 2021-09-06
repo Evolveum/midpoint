@@ -6,12 +6,15 @@
  */
 package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
+
 import java.sql.Types;
 import java.time.Instant;
 
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
@@ -87,9 +90,10 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
             ColumnMetadata.named("message").ofType(Types.VARCHAR);
     public static final ColumnMetadata CHANGED_ITEM_PATHS =
             ColumnMetadata.named("changedItemPaths").ofType(Types.ARRAY);
-    // TODO UUID[] resourceOids;
-    // TODO Jsonb properties;
-    // TODO Jsonb ext;
+    public static final ColumnMetadata RESOURCE_OIDS =
+            ColumnMetadata.named("resourceOids").ofType(Types.ARRAY);
+    public static final ColumnMetadata PROPERTIES =
+            ColumnMetadata.named("properties").ofType(JSONB_TYPE);
 
     // columns and relations
     public final NumberPath<Long> id = createLong("id", ID);
@@ -131,7 +135,10 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final StringPath message = createString("message", MESSAGE);
     public final ArrayPath<String[], String> changedItemPaths =
             createArray("changedItemPaths", String[].class, CHANGED_ITEM_PATHS);
-    // TODO columns above
+    public final ArrayPath<String[], String> resourceOids =
+            createArray("resourceOids", String[].class, RESOURCE_OIDS);
+    public final JsonbPath properties =
+            addMetadata(add(new JsonbPath(forProperty("properties"))), PROPERTIES);
 
     public QAuditEventRecord(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

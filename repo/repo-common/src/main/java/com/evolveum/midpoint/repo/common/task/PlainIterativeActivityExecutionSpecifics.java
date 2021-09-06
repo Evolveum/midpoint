@@ -51,7 +51,7 @@ public interface PlainIterativeActivityExecutionSpecifics<I>
      *
      * (Also note that in case of bucketed executions this method should run null - at least for now.)
      */
-    default @Nullable Long determineExpectedTotal(OperationResult result) throws CommonException {
+    default @Nullable Integer determineExpectedTotal(OperationResult result) throws CommonException {
         return null;
     }
 

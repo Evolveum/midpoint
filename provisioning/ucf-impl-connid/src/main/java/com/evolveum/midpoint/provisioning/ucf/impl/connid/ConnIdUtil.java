@@ -681,6 +681,9 @@ public class ConnIdUtil {
         return map;
     }
 
+    static Object dumpOptionsLazily(OperationOptions options) {
+        return DebugUtil.lazy(() -> dumpOptions(options));
+    }
 
     public static String dumpOptions(OperationOptions options) {
         if (options == null) {

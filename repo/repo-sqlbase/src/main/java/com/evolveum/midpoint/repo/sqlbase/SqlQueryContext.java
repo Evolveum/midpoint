@@ -274,7 +274,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 .select(buildSelectExpressions(entity, query))
                 .fetch();
 
-        // TODO: run fetchers selectively based on options?
+        entityPathMapping.processResult(data, entity, jdbcSession, options);
+        // TODO: This is currently used for old audit only.
+        //  New audit would work too as the ID there is unique, but we want to use timestamp column
+        //  which is a partition key. Fetchers are not suitable to do that.
+        //  Instead the mechanism used above is more flexible, just let the mapper do it.
         Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers =
                 entityPathMapping.detailFetchMappers();
         if (!detailFetchMappers.isEmpty()) {
@@ -509,7 +513,9 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return sqlRepoContext.normalizeRelation(qName);
     }
 
-    // before-query hook, empty by default
+    /**
+     * Before-query hook, empty by default, called *before* the JDBC transaction starts.
+     */
     public void beforeQuery() {
     }
 }

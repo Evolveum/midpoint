@@ -288,9 +288,11 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .isEqualTo(formatAccountName(IDX_LONG_UID));
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
-                .display();
+                .display()
+                .assertHasComplexOperationExecution(TASK_IMPORT.oid, OperationResultStatusType.SUCCESS);
         assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
-                .display();
+                .display()
+                .assertHasComplexOperationExecution(TASK_IMPORT.oid, OperationResultStatusType.FATAL_ERROR);
     }
 
     @Test

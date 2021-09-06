@@ -63,7 +63,7 @@ public class ReleaseBucketsOperation extends BucketOperation {
         statisticsKeeper.register(BucketingConstants.RELEASE_WORK_BUCKET);
     }
 
-    private @NotNull Collection<ItemDelta<?, ?>> computeReleaseModifications(@NotNull TaskType task) throws SchemaException {
+    private @NotNull Collection<ItemDelta<?, ?>> computeReleaseModifications(@NotNull TaskType task) {
         assert workerTaskOid != null;
 
         List<WorkBucketType> bucketsToRelease = new ArrayList<>();

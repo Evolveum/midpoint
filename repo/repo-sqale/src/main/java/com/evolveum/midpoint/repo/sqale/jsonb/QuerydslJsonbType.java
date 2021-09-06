@@ -51,7 +51,7 @@ public class QuerydslJsonbType extends AbstractType<Jsonb> {
     @Override
     public void setValue(PreparedStatement st, int startIndex, Jsonb value) throws SQLException {
         PGobject jsonObject = new PGobject();
-        jsonObject.setType("json");
+        jsonObject.setType("jsonb");
         jsonObject.setValue(value.value);
         st.setObject(startIndex, jsonObject);
     }

@@ -94,9 +94,6 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
         if (configuration.getString(PROPERTY_JDBC_URL) == null
                 && configuration.getString(PROPERTY_DATASOURCE) == null) {
             LOGGER.info("SQL audit service will use default repository configuration.");
-            // NOTE: If default BaseHelper is used, it's used to configure PerformanceMonitor
-            // in SqlBaseService. Perhaps the base class is useless and these factories can provide
-            // PerformanceMonitor for the services.
             return createSqaleRepoContext(
                     sqaleRepositoryConfiguration,
                     repositoryDataSource,

@@ -138,6 +138,25 @@ public abstract class ActivityState implements DebugDumpable {
                         .asItemDelta());
     }
 
+    /**
+     * DO NOT use for setting work state items because of dynamic typing of the work state container value.
+     */
+     public void addDeleteItemRealValues(@NotNull ItemPath path, @NotNull Collection<?> valuesToAdd,
+             @NotNull Collection<?> valuesToDelete)
+             throws ActivityExecutionException {
+        Task task = getTask();
+        LOGGER.trace("addDeleteItemRealValues: path={}, valuesToAdd={}, valuesToDelete={} in {}",
+                path, valuesToAdd, valuesToDelete, task);
+
+        convertException(
+                () -> task.modify(
+                        PrismContext.get().deltaFor(TaskType.class)
+                                .item(stateItemPath.append(path))
+                                .deleteRealValues(valuesToDelete)
+                                .addRealValues(valuesToAdd)
+                                .asItemDelta()));
+    }
+
     public void flushPendingModifications(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         getTask().flushPendingModifications(result);

@@ -1077,7 +1077,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected String getStorageKeyTabSuffix(){
-        return "";
+        return getPanelConfiguration().getIdentifier();
     }
 
     public R getModelObject() {

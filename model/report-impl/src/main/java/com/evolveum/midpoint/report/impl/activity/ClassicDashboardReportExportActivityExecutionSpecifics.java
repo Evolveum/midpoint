@@ -107,10 +107,10 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
     }
 
     @Override
-    public @Nullable Long determineExpectedTotal(OperationResult result) throws CommonException {
-        long expectedTotal = support.getDashboard().getWidget().size();
+    public Integer determineExpectedTotal(OperationResult result) throws CommonException {
+        int expectedTotal = support.getDashboard().getWidget().size();
         for (DashboardWidgetHolder holder : mapOfWidgetsController.values()) {
-            expectedTotal =+ support.countRecords(
+            expectedTotal += support.countRecords(
                     holder.getSearchSpecificationHolder().getType(),
                     holder.getSearchSpecificationHolder().getQuery(),
                     holder.getSearchSpecificationHolder().getOptions(),

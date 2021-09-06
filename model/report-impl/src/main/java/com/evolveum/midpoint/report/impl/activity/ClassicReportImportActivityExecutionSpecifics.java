@@ -81,8 +81,8 @@ class ClassicReportImportActivityExecutionSpecifics
     }
 
     @Override
-    public @Nullable Long determineExpectedTotal(OperationResult result) throws CommonException {
-        return (long) variables.size();
+    public @Nullable Integer determineExpectedTotal(OperationResult result) throws CommonException {
+        return variables.size();
     }
 
     @Override

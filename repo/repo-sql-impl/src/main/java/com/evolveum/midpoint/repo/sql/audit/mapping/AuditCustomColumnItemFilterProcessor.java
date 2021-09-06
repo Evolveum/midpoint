@@ -23,7 +23,10 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
 
 /**
- * Filter processor for a audit custom column attribute path (Prism item).
+ * Filter processor for an audit custom column attribute path (Prism item).
+ *
+ * NOTE: This is old-repo audit class, the same is used for new repo too - this one will go away eventually.
+ *
  * While it is a single-path processor, it does NOT support ordering, because "what to order by"
  * is part of the filter value ({link {@link AuditEventRecordCustomColumnPropertyType#getName()}}).
  * <p>

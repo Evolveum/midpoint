@@ -94,7 +94,7 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
     }
 
     @Override
-    public @Nullable Long determineExpectedTotal(OperationResult result) throws CommonException {
+    public @Nullable Integer determineExpectedTotal(OperationResult result) throws CommonException {
         return support.countRecords(
                 searchSpecificationHolder.getType(),
                 searchSpecificationHolder.getQuery(),

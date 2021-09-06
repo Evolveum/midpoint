@@ -8,12 +8,13 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.DatatypeConstants;
-import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -285,10 +286,8 @@ public class EnvironmentalPerformanceInformation {
         return Math.max(a, b);
     }
 
-    public synchronized void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
-            ProvisioningOperation operation, boolean success, int count, long duration) {
-        provisioningStatistics.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation,
-                success, count, duration);
+    public synchronized void recordProvisioningOperation(@NotNull ConnIdOperation operation) {
+        provisioningStatistics.recordProvisioningOperation(operation);
     }
 
     public synchronized void recordNotificationOperation(String transportName, boolean success, long duration) {

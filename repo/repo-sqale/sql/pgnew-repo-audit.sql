@@ -113,23 +113,14 @@ CREATE TABLE ma_audit_event (
     result TEXT,
     message TEXT,
     changedItemPaths TEXT[],
-    resourceOids UUID[],
+    resourceOids TEXT[],
     properties JSONB,
     ext JSONB, -- extension container + old custom properties?
 
     PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
 
-/*
--- changed to properties JSONB, values are all considered multivalue and stored in []
-CREATE TABLE m_audit_prop_value (
-  id        BIGSERIAL NOT NULL,
-  record_id BIGINT,
-  name      TEXT,
-  value     VARCHAR(1024),
-  PRIMARY KEY (id)
-);
-*/
+CREATE INDEX ma_audit_event_timestamp_idx ON ma_audit_event (timestamp);
 
 CREATE TABLE ma_audit_delta (
     recordId BIGINT NOT NULL, -- references ma_audit_event.id
@@ -149,7 +140,8 @@ CREATE TABLE ma_audit_delta (
     PRIMARY KEY (recordId, timestamp, checksum)
 ) PARTITION BY RANGE (timestamp);
 
-/* Similar FK is created PER PARTITION only
+/* Similar FK is created PER PARTITION only, see audit_create_monthly_partitions
+   or *_default tables:
 ALTER TABLE ma_audit_delta ADD CONSTRAINT ma_audit_delta_fk
     FOREIGN KEY (recordId, timestamp) REFERENCES ma_audit_event (id, timestamp)
         ON DELETE CASCADE;
@@ -180,8 +172,6 @@ CREATE INDEX ma_audit_ref_recordId_timestamp_idx ON ma_audit_ref (recordId, time
 /* TODO audit indexes
 CREATE INDEX iAuditDeltaRecordId
   ON m_audit_delta (record_id);
-CREATE INDEX iTimestamp
-  ON m_audit_event (timestamp);
 CREATE INDEX iAuditEventRecordEStageTOid
   ON m_audit_event (eventStage, targetOid);
 CREATE INDEX iChangedItemPath
@@ -196,17 +186,6 @@ CREATE INDEX iAuditResourceOid
   ON m_audit_resource (resourceOid);
 CREATE INDEX iAuditResourceOidRecordId
   ON m_audit_resource (record_id);
-
-ALTER TABLE m_audit_delta
-  ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_item
-  ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_prop_value
-  ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_ref_value
-  ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_resource
-  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
 */
 
 -- Default tables used when no timestamp range partitions are created:

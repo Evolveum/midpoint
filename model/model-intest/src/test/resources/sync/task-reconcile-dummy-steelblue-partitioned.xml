@@ -30,6 +30,14 @@
         <distribution>
             <subtasks/>
         </distribution>
+        <reporting>
+            <executionReports>
+                <buckets/>
+                <items/>
+                <connIdOperations/>
+                <internalOperations/>
+            </executionReports>
+        </reporting>
         <tailoring>
             <change>
                 <reference>resourceObjects</reference>

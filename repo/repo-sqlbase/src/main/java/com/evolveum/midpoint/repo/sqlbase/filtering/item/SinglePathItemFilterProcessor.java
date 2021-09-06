@@ -15,9 +15,11 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Typical item filter processor is related to one table column represented by the {@link #path}.
- * This is typically obtained from context path (typically relational) using mapping function.
- * Typically it's the same function that is also called "primary mapping" and used for ordering.
+ * Item filter processor related to one table column represented by the {@link #path}.
+ * The path is typically obtained from query context using the provided mapping function.
+ * The same function is also called "primary mapping" and used for ordering (if possible).
+ * Single-path does not mean single value - although normally used for single-value properties,
+ * multi-values can be represented in DB by array or JSOBN columns too.
  *
  * @param <T> type parameter of processed {@link PropertyValueFilter}
  * @param <P> type of the Querydsl path

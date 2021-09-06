@@ -15,6 +15,7 @@ import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.google.common.base.Strings;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -589,8 +590,8 @@ public class TaskManagerConfiguration {
         return clustered;
     }
 
-    public String getNodeId() {
-        return nodeId;
+    public @NotNull String getNodeId() {
+        return Objects.requireNonNull(nodeId, "No node ID");
     }
 
     public int getJmxPort() {
