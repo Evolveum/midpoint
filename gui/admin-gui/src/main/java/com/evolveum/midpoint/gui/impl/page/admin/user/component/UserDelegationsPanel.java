@@ -48,7 +48,7 @@ import java.util.List;
 @PanelType(name = "userDelegations")
 @PanelInstance(identifier = "userDelegations", status = ItemStatus.NOT_CHANGED, applicableFor = UserType.class,
         display = @PanelDisplay(label = "Delegations", order = 70))
-public class UserDelegationsPanel<F extends FocusType> extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
+public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_DELEGATIONS_CONTAINER = "delegationsContainer";
