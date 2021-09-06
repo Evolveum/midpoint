@@ -7,8 +7,9 @@
   -->
 
 <task oid="1cf4e4fd-7648-4f83-bed4-78bd5d30d2a3"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <name>Reconciliation</name>
 
@@ -29,5 +30,22 @@
                 </resourceObjects>
             </reconciliation>
         </work>
+        <reporting>
+            <executionReports>
+                <buckets/>
+                <items/>
+                <connIdOperations>
+                    <recordFilter>
+                        <q:not>
+                            <q:equal>
+                                <q:path>operation</q:path>
+                                <q:value>ICF_SCRIPT</q:value>
+                            </q:equal>
+                        </q:not>
+                    </recordFilter>
+                </connIdOperations>
+                <internalOperations/>
+            </executionReports>
+        </reporting>
     </activity>
 </task>

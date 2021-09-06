@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.DashboardReportDataWriter;
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -76,22 +77,6 @@ class SaveReportFileSupport {
                 null :
                 report.getDashboard().getStoreExportedWidgetData();
         this.storeType = storeType == null ? StoreExportedWidgetDataType.ONLY_FILE : storeType;
-    }
-
-    /**
-     * Very strange: colons are no problem for Windows, but Apache file utils complain for them (when running on Windows).
-     * So they will be replaced, at least temporarily.
-     */
-    private String replaceColons(String path) {
-        if (onWindows()) {
-            return path.replaceAll(":", "_");
-        } else {
-            return path;
-        }
-    }
-
-    private boolean onWindows() {
-        return File.separatorChar == '\\';
     }
 
     public void saveReportFile(String aggregatedData,
@@ -170,18 +155,13 @@ class SaveReportFileSupport {
         }
     }
 
-    public String getDestinationFileName(ReportType reportType,
+    private String getDestinationFileName(ReportType reportType,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter) {
-        File exportDir = getExportDir();
-        if (!exportDir.exists() || !exportDir.isDirectory()) {
-            if (!exportDir.mkdir()) {
-                LOGGER.error("Couldn't create export dir {}", exportDir);
-            }
-        }
+        File exportDir = ReportSupportUtil.getOrCreateExportDir();
 
         String fileNamePrefix = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
         String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
-        return replaceColons(new File(exportDir, fileName).getPath());
+        return MiscUtil.replaceColonsInFileNameOnWindows(new File(exportDir, fileName).getPath());
     }
 
     static String getNameOfExportedReportData(ReportType reportType, String type) {
@@ -193,14 +173,6 @@ class SaveReportFileSupport {
         Date createDate = new Date(System.currentTimeMillis());
         SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss.SSS");
         return formatDate.format(createDate);
-    }
-
-    private File getExportDir() {
-        return new File(getMidPointHomeDirName(), "export");
-    }
-
-    private String getMidPointHomeDirName() {
-        return System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
     }
 
     private void writeToReportFile(String contextOfFile, String aggregatedFilePath) {

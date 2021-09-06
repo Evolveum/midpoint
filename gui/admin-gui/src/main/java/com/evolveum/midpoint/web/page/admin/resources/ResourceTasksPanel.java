@@ -285,11 +285,6 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return getPageBase().createStringResource("ResourceTasksPanel.definedTasks");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

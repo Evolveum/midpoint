@@ -9,8 +9,11 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
+import static java.util.Comparator.*;
+
 import com.evolveum.midpoint.prism.Containerable;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,8 +52,8 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
                         definitionBean.getReporting().clone() :
                         new ActivityReportingDefinitionType(PrismContext.get());
 
-        if (bean.getTracing() == null) {
-            bean.setTracing(createTracingDefinitionFromTask(task));
+        if (bean.getTracing().isEmpty()) {
+            CollectionUtils.addIgnoreNull(bean.getTracing(), createTracingDefinitionFromTask(task));
         }
 
         if (bean.getProfiling() != null) {
@@ -105,20 +109,17 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
         }
     }
 
-    public int getTracingInterval() {
-        return bean.getTracing() != null ? or0(bean.getTracing().getInterval()) : 0;
+    public @NotNull List<ProcessTracingConfigurationType> getTracingConfigurationsSorted() {
+        var sorted = new ArrayList<>(bean.getTracing());
+        sorted.sort(
+                comparing(
+                        ProcessTracingConfigurationType::getOrder,
+                        nullsLast(naturalOrder())));
+        return sorted;
     }
 
-    public @Nullable TracingProfileType getTracingProfile() {
-        return bean.getTracing() != null ? bean.getTracing().getTracingProfile() : null;
-    }
-
-    public @NotNull List<TracingRootType> getTracingPoint() {
-        return bean.getTracing() != null ? bean.getTracing().getTracingPoint() : List.of();
-    }
-
-    public int getDynamicProfilingInterval() {
-        return bean.getProfiling() != null ? or0(bean.getProfiling().getInterval()) : 0;
+    public @Nullable ProcessProfilingConfigurationType getProfilingConfiguration() {
+        return bean.getProfiling();
     }
 
     void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
@@ -132,8 +133,8 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     @Override
     public String toString() {
         return "logging: " + size(bean.getLogging()) + " item(s), "
-                + "tracing: @" + getTracingInterval() + ", " + size(bean.getTracing()) + " item(s), "
-                + "profiling: @" + getDynamicProfilingInterval() + ", " + size(bean.getProfiling()) + " item(s)";
+                + "tracing: " + bean.getTracing().size() + " configuration(s), "
+                + "profiling: " + (bean.getProfiling() != null ? "present" : "absent");
     }
 
     private int size(Containerable containerable) {
@@ -153,5 +154,25 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
 
     public @NotNull ActivityReportingDefinitionType getBean() {
         return bean;
+    }
+
+    public BucketsExecutionReportConfigurationType getBucketsReportDefinition() {
+        ActivityExecutionReportsConfigurationType reports = bean.getExecutionReports();
+        return reports != null ? reports.getBuckets() : null;
+    }
+
+    public ItemsExecutionReportConfigurationType getItemsReportDefinition() {
+        ActivityExecutionReportsConfigurationType reports = bean.getExecutionReports();
+        return reports != null ? reports.getItems() : null;
+    }
+
+    public ConnIdOperationsReportConfigurationType getConnIdOperationsReportDefinition() {
+        ActivityExecutionReportsConfigurationType reports = bean.getExecutionReports();
+        return reports != null ? reports.getConnIdOperations() : null;
+    }
+
+    public InternalOperationsReportConfigurationType getInternalOperationsReportDefinition() {
+        ActivityExecutionReportsConfigurationType reports = bean.getExecutionReports();
+        return reports != null ? reports.getInternalOperations() : null;
     }
 }

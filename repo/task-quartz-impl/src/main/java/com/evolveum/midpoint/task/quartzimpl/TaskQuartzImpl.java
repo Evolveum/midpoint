@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregoria
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -22,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
@@ -41,7 +43,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
@@ -187,6 +188,10 @@ public class TaskQuartzImpl implements Task {
      */
     @Experimental
     private TracingProfileType tracingProfile;
+
+    /** ConnId operations listeners. */
+    @Experimental
+    @NotNull private final Set<ConnIdOperationsListener> connIdOperationsListeners = ConcurrentHashMap.newKeySet();
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
@@ -1901,6 +1906,43 @@ public class TaskQuartzImpl implements Task {
     }
     //endregion
 
+    //region ConnId listeners
+    @Override
+    public void onConnIdOperationStart(@NotNull ConnIdOperation operation) {
+        connIdOperationsListeners.forEach(l -> l.onConnIdOperationStart(operation));
+    }
+
+    @Override
+    public void onConnIdOperationEnd(@NotNull ConnIdOperation operation) {
+        updateConnIdStatistics(operation);
+        connIdOperationsListeners.forEach(l -> l.onConnIdOperationEnd(operation));
+    }
+
+    private void updateConnIdStatistics(@NotNull ConnIdOperation operation) {
+        statistics.recordProvisioningOperation(operation);
+    }
+
+    @Override
+    public void onConnIdOperationSuspend(@NotNull ConnIdOperation operation) {
+        connIdOperationsListeners.forEach(l -> l.onConnIdOperationSuspend(operation));
+    }
+
+    @Override
+    public void onConnIdOperationResume(@NotNull ConnIdOperation operation) {
+        connIdOperationsListeners.forEach(l -> l.onConnIdOperationResume(operation));
+    }
+
+    @Override
+    public void registerConnIdOperationsListener(@NotNull ConnIdOperationsListener listener) {
+        connIdOperationsListeners.add(listener);
+    }
+
+    @Override
+    public void unregisterConnIdOperationsListener(@NotNull ConnIdOperationsListener listener) {
+        connIdOperationsListeners.remove(listener);
+    }
+    //endregion
+
     //region More complex processing: Refresh, subtasks, path to root, self reference
     @Override
     public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
@@ -2145,12 +2187,6 @@ public class TaskQuartzImpl implements Task {
     @Override
     public void recordStateMessage(String message) {
         statistics.recordState(message);
-    }
-
-    @Override
-    public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
-            ProvisioningOperation operation, boolean success, int count, long duration) {
-        statistics.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
     }
 
     @Override

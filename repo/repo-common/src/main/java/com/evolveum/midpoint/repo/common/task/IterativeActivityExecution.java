@@ -9,11 +9,26 @@ package com.evolveum.midpoint.repo.common.task;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.PARTIAL_ERROR;
+import static com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil.*;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.util.MiscUtil.toLong;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.state.OtherActivityState;
+
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.task.reports.ConnIdOperationsReport;
+import com.evolveum.midpoint.repo.common.task.reports.ItemsReport;
+
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
+import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,16 +53,9 @@ import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * Represents an execution of an iterative activity: either plain iterative one or search-based one.
@@ -59,7 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
  * a. calls before/after execution "hook" methods + the main execution routine,
  * b. generates the execution result based on kind(s) of error(s) encountered.
  *
- * 2. Orchestrates the basic bucket execution cycle - see {@link #executeSingleBucket(OperationResult)}:
+ * 2. Orchestrates the basic bucket execution cycle - see {@link #executeOrAnalyzeOrSkipSingleBucket(OperationResult)}:
  *
  * a. item source preparation,
  * b. before/after bucket execution "hook" methods, along with main {@link #iterateOverItemsInBucket(OperationResult)} method,
@@ -147,6 +155,11 @@ public abstract class IterativeActivityExecution<
     /** Custom execution logic and state. */
     @NotNull protected final AES executionSpecifics;
 
+    /**
+     * Listener for ConnId operations that occur outside item processing (e.g. during search and pre-processing).
+     */
+    @NotNull private final ConnIdOperationsListener globalConnIdOperationsListener;
+
     public IterativeActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
             @NotNull String shortName,
             @NotNull SpecificsSupplier<AE, AES> specificsSupplier) {
@@ -161,6 +174,7 @@ public abstract class IterativeActivityExecution<
                 .cloneWithConfiguration(context.getActivity().getDefinition().getReportingDefinition().getBean());
         this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(getActivity(), getRunningTask(),
                 getDefaultErrorAction(), beans);
+        this.globalConnIdOperationsListener = new GlobalConnIdOperationsListener();
     }
 
     protected @NotNull ActivityExecutionResult executeLocal(OperationResult result)
@@ -168,20 +182,26 @@ public abstract class IterativeActivityExecution<
 
         LOGGER.trace("{}: Starting with local coordinator task {}", shortName, getRunningTask());
 
-        transientExecutionStatistics.recordExecutionStart();
+        try {
+            enableGlobalConnIdOperationsListener();
 
-        executionSpecifics.beforeExecution(result);
+            transientExecutionStatistics.recordExecutionStart();
 
-        doExecute(result);
+            executionSpecifics.beforeExecution(result);
+            doExecute(result);
+            executionSpecifics.afterExecution(result);
 
-        executionSpecifics.afterExecution(result);
+            ActivityExecutionResult executionResult = createExecutionResult();
 
-        ActivityExecutionResult executionResult = createExecutionResult();
+            LOGGER.trace("{} run finished (task {}, execution result {})", shortName, getRunningTask(),
+                    executionResult);
 
-        LOGGER.trace("{} run finished (task {}, execution result {})", shortName, getRunningTask(),
-                executionResult);
+            return executionResult;
 
-        return executionResult;
+        } finally {
+            disableGlobalConnIdOperationsListener();
+            getActivityState().getConnIdOperationsReport().flush(getRunningTask(), result);
+        }
     }
 
     /**
@@ -212,12 +232,11 @@ public abstract class IterativeActivityExecution<
                     break;
                 }
 
-                executeSingleBucket(result);
-                if (!task.canRun() || errorState.wasStoppingExceptionEncountered()) {
+                complete = executeOrAnalyzeOrSkipSingleBucket(result);
+                if (!complete) {
                     break;
                 }
 
-                complete = true;
             } finally {
                 if (!complete) {
                     // This is either when the task was stopped (canRun is false or there's an stopping exception)
@@ -225,12 +244,32 @@ public abstract class IterativeActivityExecution<
                     //
                     // This most probably means that the task is going to be suspended. So let us release the buckets
                     // to allow their processing by other workers.
-                    releaseAllBucketsIfWorker(result);
+                    releaseAllBucketsWhenWorker(result);
                 }
             }
-
-            completeWorkBucketAndCommitProgress(result);
         }
+    }
+
+    private boolean shouldProcessBucket(OperationResult result) {
+        ExpressionType condition = getActivity().getControlFlowDefinition().getBucketProcessingCondition();
+        if (condition == null) {
+            return true;
+        }
+
+        VariablesMap variables = new VariablesMap();
+        variables.put(ExpressionConstants.VAR_BUCKET, bucket, WorkBucketType.class);
+
+        try {
+            return ExpressionUtil.evaluateConditionDefaultTrue(variables, condition, null,
+                    beans.expressionFactory, "bucket condition expression", getRunningTask(), result);
+        } catch (CommonException e) {
+            throw new SystemException("Couldn't evaluate bucket processing condition: " + e.getMessage(), e);
+        }
+    }
+
+    @NotNull
+    private ActivityItemProcessingStatistics getLiveItemProcessing() {
+        return activityState.getLiveStatistics().getLiveItemProcessing();
     }
 
     private WorkBucketType getWorkBucket(boolean initialExecution, OperationResult result) {
@@ -268,7 +307,7 @@ public abstract class IterativeActivityExecution<
         return BucketingUtil.isScavenger(task.getActivitiesStateOrClone(), getActivityPath());
     }
 
-    private void releaseAllBucketsIfWorker(OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void releaseAllBucketsWhenWorker(OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (bucketingSituation.workerTaskOid != null) {
             beans.bucketingManager.releaseAllWorkBucketsFromWorker(bucketingSituation.coordinatorTaskOid,
                     bucketingSituation.workerTaskOid, getActivityPath(), getLiveBucketManagementStatistics(), result);
@@ -297,10 +336,53 @@ public abstract class IterativeActivityExecution<
     }
 
     /**
-     * Execute a single bucket.
+     * Execute or analyze or skip a single bucket.
+     *
+     * @return true if the bucket was completed
      */
-    private void executeSingleBucket(OperationResult result) throws ActivityExecutionException, CommonException {
+    private boolean executeOrAnalyzeOrSkipSingleBucket(OperationResult result) throws ActivityExecutionException, CommonException {
+        if (!shouldProcessBucket(result)) {
+            return skipSingleBucket(result);
+        }
+
         prepareItemSource(result);
+
+        if (isBucketsAnalysis()) {
+            return analyzeSingleBucket(result);
+        } else {
+            return executeSingleBucket(result);
+        }
+    }
+
+    private boolean skipSingleBucket(OperationResult result) throws ActivityExecutionException {
+        LOGGER.debug("Skipping bucket {} because bucket processing condition evaluated to false", bucket);
+        // Actually we could go without committing progress, but it does no harm, so we keep it here.
+        completeWorkBucketAndCommitProgress(result);
+        return true;
+    }
+
+    private boolean analyzeSingleBucket(OperationResult result) throws CommonException, ActivityExecutionException {
+        Integer bucketSize = determineExpectedTotal(result);
+        if (bucketSize != null) {
+            LOGGER.info("Bucket size is {} for {}", bucketSize, bucket);
+        } else {
+            LOGGER.warn("Couldn't determine bucket size while analyzing bucket {}", bucket);
+        }
+
+        reportBucketAnalyzed(bucketSize, result);
+
+        // Actually we could go without committing progress, but it does no harm, so we keep it here.
+        completeWorkBucketAndCommitProgress(result);
+
+        return true;
+    }
+
+    /**
+     * @return true if the bucket was completed
+     */
+    private boolean executeSingleBucket(OperationResult result) throws ActivityExecutionException, CommonException {
+
+        BucketExecutionRecord record = new BucketExecutionRecord(getLiveItemProcessing());
 
         executionSpecifics.beforeBucketExecution(result);
 
@@ -325,6 +407,19 @@ public abstract class IterativeActivityExecution<
 
         new StatisticsLogger(this)
                 .logBucketCompletion();
+
+        boolean complete = canRun() && !errorState.wasStoppingExceptionEncountered();
+
+        if (complete) {
+            record.end(getLiveItemProcessing());
+
+            completeWorkBucketAndCommitProgress(result);
+
+            // We want to report bucket as completed only after it's really marked as completed.
+            reportBucketCompleted(record, result);
+        }
+
+        return complete;
     }
 
     /**
@@ -352,8 +447,8 @@ public abstract class IterativeActivityExecution<
     }
 
     private void setExpectedTotal(OperationResult result) throws CommonException {
-        Long expectedTotal = determineExpectedTotal(result);
-        getRunningTask().setExpectedTotal(expectedTotal);
+        Integer expectedTotal = determineExpectedTotal(result);
+        getRunningTask().setExpectedTotal(toLong(expectedTotal));
         getRunningTask().flushPendingModifications(result);
     }
 
@@ -363,7 +458,7 @@ public abstract class IterativeActivityExecution<
      *
      * @return null if no value could be determined or is not applicable
      */
-    protected abstract @Nullable Long determineExpectedTotal(OperationResult opResult) throws CommonException;
+    protected abstract @Nullable Integer determineExpectedTotal(OperationResult opResult) throws CommonException;
 
     /**
      * Starts the item source (e.g. `searchObjectsIterative` call or `synchronize` call) and begins processing items
@@ -447,22 +542,6 @@ public abstract class IterativeActivityExecution<
         return reportingOptions;
     }
 
-    public boolean isPreview() {
-        return getExecutionMode() == ExecutionModeType.PREVIEW;
-    }
-
-    public boolean isDryRun() {
-        return getExecutionMode() == ExecutionModeType.DRY_RUN;
-    }
-
-    public boolean isFullExecution() {
-        return getExecutionMode() == ExecutionModeType.FULL;
-    }
-
-    boolean isNoExecution() {
-        return getExecutionMode() == ExecutionModeType.NONE;
-    }
-
     public @NotNull String getRootTaskOid() {
         return getRunningTask().getRootTaskOid();
     }
@@ -508,16 +587,6 @@ public abstract class IterativeActivityExecution<
     public abstract boolean processItem(@NotNull ItemProcessingRequest<I> request, @NotNull RunningTask workerTask,
             OperationResult result) throws ActivityExecutionException, CommonException;
 
-    /**
-     * Returns true if this activity execution should ignore profiling and tracing configuration.
-     *
-     * Currently this feature is used to limit profiling/tracing to selected worker tasks in coordinator-workers
-     * scenarios.
-     */
-    public boolean isExcludedFromProfilingAndTracing() {
-        return false;
-    }
-
     @Override
     protected @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
@@ -548,6 +617,58 @@ public abstract class IterativeActivityExecution<
 
     public @NotNull AES getExecutionSpecifics() {
         return executionSpecifics;
+    }
+
+    @NotNull ItemsReport getItemsReport() {
+        return activityState.getItemsReport();
+    }
+
+    @NotNull ConnIdOperationsReport getConnIdOperationsReport() {
+        return activityState.getConnIdOperationsReport();
+    }
+
+    private void reportBucketCompleted(BucketExecutionRecord executionRecord, OperationResult result) {
+        if (shouldReportBuckets()) {
+            activityState.getBucketsReport().recordBucketCompleted(
+                    new BucketProcessingRecordType(PrismContext.get())
+                            .sequentialNumber(bucket.getSequentialNumber())
+                            .content(bucket.getContent())
+                            .size(executionRecord.getTotalSize())
+                            .itemsSuccessfullyProcessed(executionRecord.success)
+                            .itemsFailed(executionRecord.failure)
+                            .itemsSkipped(executionRecord.skip)
+                            .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(executionRecord.startTimestamp))
+                            .endTimestamp(XmlTypeConverter.createXMLGregorianCalendar(executionRecord.endTimestamp))
+                            .duration(executionRecord.getDuration()),
+                    getRunningTask(), result);
+        }
+    }
+
+    private void reportBucketAnalyzed(Integer size, OperationResult result) {
+        if (shouldReportBuckets()) {
+            activityState.getBucketsReport().recordBucketCompleted(
+                    new BucketProcessingRecordType(PrismContext.get())
+                            .sequentialNumber(bucket.getSequentialNumber())
+                            .content(bucket.getContent())
+                            .size(size),
+                    getRunningTask(), result);
+        }
+    }
+
+    private boolean shouldReportBuckets() {
+        return activityState.getBucketsReport().isEnabled();
+    }
+
+    boolean shouldReportItems() {
+        return activityState.getItemsReport().isEnabled();
+    }
+
+    boolean shouldReportConnIdOperations() {
+        return activityState.getConnIdOperationsReport().isEnabled();
+    }
+
+    boolean shouldReportInternalOperations() {
+        return activityState.getInternalOperationsReport().isEnabled();
     }
 
     @FunctionalInterface
@@ -588,6 +709,71 @@ public abstract class IterativeActivityExecution<
 
         public static BucketingSituation standalone(RunningTask task) {
             return new BucketingSituation(task.getOid(), null);
+        }
+    }
+
+    /** Contains data needed to create a bucket completion record for the sake of reporting. */
+
+    private static class BucketExecutionRecord {
+
+        private final long startTimestamp;
+        private long endTimestamp;
+
+        private final int successAtStart;
+        private final int failureAtStart;
+        private final int skipAtStart;
+
+        private int success;
+        private int failure;
+        private int skip;
+
+        BucketExecutionRecord(@NotNull ActivityItemProcessingStatistics startStats) {
+            startTimestamp = System.currentTimeMillis();
+            ActivityItemProcessingStatisticsType statsBean = startStats.getValueCopy();
+            successAtStart = getItemsProcessedWithSuccess(statsBean);
+            failureAtStart = getItemsProcessedWithFailure(statsBean);
+            skipAtStart = getItemsProcessedWithSkip(statsBean);
+        }
+
+        public void end(@NotNull ActivityItemProcessingStatistics endStats) {
+            endTimestamp = System.currentTimeMillis();
+            ActivityItemProcessingStatisticsType statsBean = endStats.getValueCopy();
+            success = getItemsProcessedWithSuccess(statsBean) - successAtStart;
+            failure = getItemsProcessedWithFailure(statsBean) - failureAtStart;
+            skip = getItemsProcessedWithSkip(statsBean) - skipAtStart;
+        }
+
+        private int getTotalSize() {
+            return success + failure + skip;
+        }
+
+        private long getDuration() {
+            return endTimestamp - startTimestamp;
+        }
+    }
+
+    void enableGlobalConnIdOperationsListener() {
+        if (shouldReportConnIdOperations()) {
+            getRunningTask().registerConnIdOperationsListener(globalConnIdOperationsListener);
+        }
+    }
+
+    void disableGlobalConnIdOperationsListener() {
+        if (shouldReportConnIdOperations()) {
+            getRunningTask().unregisterConnIdOperationsListener(globalConnIdOperationsListener);
+        }
+    }
+
+    /**
+     * Listener for ConnId operations outside item processing.
+     */
+    private class GlobalConnIdOperationsListener implements ConnIdOperationsListener {
+
+        @Override
+        public void onConnIdOperationEnd(@NotNull ConnIdOperation operation) {
+            getConnIdOperationsReport().addRecord(
+                    operation.toOperationRecordBean()
+                            .bucketSequentialNumber(bucket != null ? bucket.getSequentialNumber() : null));
         }
     }
 }

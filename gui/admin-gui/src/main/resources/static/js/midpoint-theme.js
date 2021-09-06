@@ -393,7 +393,7 @@ jQuery(function ($) {
         if (typeof $(this).tooltip === "function") {
             var wl = $.fn.tooltip.Constructor.DEFAULTS.whiteList;
             wl['xsd:documentation'] = [];
-            var parent = $(this).closest('.wicket-modal');
+            var parent = $(this).closest('.modal-dialog-content');
             var container = "body";
             if (parent.length != 0) {
                 container = '#' + parent.attr('id');
@@ -401,5 +401,14 @@ jQuery(function ($) {
             $(this).tooltip({html: true, whiteList: wl, 'container': container});
             $(this).tooltip("show");
             };
+    });
+});
+
+jQuery(function ($) {
+    $(document).on("click", ".compositedButton[data-toggle='tooltip']", function (e, t) {
+        var parent = $(this).closest('.modal-dialog-content');
+        if (parent.length != 0) {
+            $(this).tooltip("hide");
+        }
     });
 });

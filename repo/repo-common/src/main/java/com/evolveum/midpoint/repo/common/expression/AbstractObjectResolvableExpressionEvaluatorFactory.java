@@ -50,6 +50,4 @@ public abstract class AbstractObjectResolvableExpressionEvaluatorFactory extends
     public void register() {
         getExpressionFactory().registerEvaluatorFactory(this);
     }
-
-
 }

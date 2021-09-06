@@ -7,16 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.report.component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
@@ -25,40 +19,20 @@ import com.evolveum.midpoint.web.page.admin.reports.component.ImportReportPopupP
 import com.evolveum.midpoint.web.page.admin.reports.component.ReportObjectsListPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
-import com.evolveum.midpoint.gui.api.component.FocusTypeAssignmentPopupTabPanel;
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -71,7 +45,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
     private static final String OPERATION_IMPORT_REPORT = DOT_CLASS + "importReport";
     private static final String ID_REPORT_BUTTONS = "reportButtons";
 
-    private IModel<Boolean> isShowingPreview = Model.of(Boolean.FALSE);
+    private final IModel<Boolean> isShowingPreview = Model.of(Boolean.FALSE);
 
     public ReportOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ReportType>> model) {
         super(id, model);
@@ -116,7 +90,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-//        saveAndRunButton.add(getVisibilityForSaveAndRunButton());
+        saveAndRunButton.add(new VisibleBehaviour(() -> !getModelObject().isReadOnly()));
         saveAndRunButton.setOutputMarkupId(true);
         saveAndRunButton.setOutputMarkupPlaceholderTag(true);
         saveAndRunButton.add(AttributeAppender.append("class", "btn-default btn-sm"));
@@ -138,7 +112,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ReportObjectsListPanel table = getReportTable();
+                ReportObjectsListPanel<?> table = getReportTable();
                 table.getPageStorage().setSearch(null);
                 table.resetSearchModel();
                 table.resetTable(target);
@@ -150,7 +124,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-        refresh.add(new VisibleBehaviour(() -> isShowingPreview.getObject()));
+        refresh.add(new VisibleBehaviour(isShowingPreview::getObject));
         refresh.add(AttributeAppender.append("class", "btn-default btn-sm"));
         refresh.setOutputMarkupId(true);
         repeatingView.add(refresh);
@@ -163,7 +137,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
             @Override
             public void onClick(AjaxRequestTarget target) {
                 isShowingPreview.setObject(!isShowingPreview.getObject());
-                ReportObjectsListPanel table = getReportTable();
+                ReportObjectsListPanel<?> table = getReportTable();
                 if (isShowingPreview.getObject()) {
                     table.getPageStorage().setSearch(null);
                     table.resetSearchModel();
@@ -198,12 +172,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getPageBase().getMainPopupBodyId(), getReport(), false) {
-                    @Override
-                    public StringResourceModel getTitle() {
-                        return createStringResource("PageReport.reportPreview");
-                    }
-                };
+                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getPageBase().getMainPopupBodyId(), getReport(), false);
                 getPageBase().showMainPopup(reportPopup, target);
                 target.add(ReportOperationalButtonsPanel.this);
             }
@@ -251,31 +220,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
 
     protected abstract Component getTableBox();
 
-    protected abstract ReportObjectsListPanel getReportTable();
-
-    //    private VisibleEnableBehaviour getVisibilityForSaveAndRunButton() {
-//        return new VisibleEnableBehaviour() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return !getModelWrapperObject().isReadOnly() &&
-//                        !getDetailsPage().isForcedPreview();
-//            }
-//
-//            @Override
-//            public boolean isEnabled() {
-//                return !getOperationalButtonsPanel().isSaveInBackground();
-//            }
-//        };
-//    }
-//
-//    @Override
-//    public void reloadSavePreviewButtons(AjaxRequestTarget target) {
-//        super.reloadSavePreviewButtons(target);
-//        target.add(ReportMainPanel.this.get(ID_MAIN_FORM).get(ID_SAVE_AND_RUN));
-//
-//    }
+    protected abstract ReportObjectsListPanel<?> getReportTable();
 
     private ReportType getOriginalReport() {
         return getModelObject().getObjectOld().asObjectable();

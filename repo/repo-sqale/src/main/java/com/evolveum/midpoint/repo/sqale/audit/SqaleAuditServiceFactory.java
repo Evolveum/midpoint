@@ -94,9 +94,6 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
         if (configuration.getString(PROPERTY_JDBC_URL) == null
                 && configuration.getString(PROPERTY_DATASOURCE) == null) {
             LOGGER.info("SQL audit service will use default repository configuration.");
-            // NOTE: If default BaseHelper is used, it's used to configure PerformanceMonitor
-            // in SqlBaseService. Perhaps the base class is useless and these factories can provide
-            // PerformanceMonitor for the services.
             return createSqaleRepoContext(
                     sqaleRepositoryConfiguration,
                     repositoryDataSource,
@@ -156,14 +153,11 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
                     subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
             // No type definition for now, it's all String or String implicit conversion.
 
-            ColumnMetadata columnMetadata =
-                    ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata columnMetadata = ColumnMetadata.named(columnName).ofType(Types.VARCHAR);
             QAuditEventRecordMapping.get().addExtensionColumn(propertyName, columnMetadata);
             if (tableMetadata != null && tableMetadata.get(columnName) == null) {
-                // Fails on SQL Server with snapshot transaction, so different isolation is used.
                 try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-                    jdbcSession.addColumn(QAuditEventRecord.TABLE_NAME,
-                            ColumnMetadata.named(columnName).ofType(Types.VARCHAR).withSize(255));
+                    jdbcSession.addColumn(QAuditEventRecord.TABLE_NAME, columnMetadata);
                     jdbcSession.commit();
                 }
             }
@@ -181,7 +175,6 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
         }
 
         return value;
-
     }
 
     @Override

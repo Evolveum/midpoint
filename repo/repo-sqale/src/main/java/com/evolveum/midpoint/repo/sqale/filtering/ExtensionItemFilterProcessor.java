@@ -15,11 +15,12 @@ import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.AR
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SCALAR;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.types.ExpressionUtils;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.repo.sqale.ExtUtils;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
@@ -51,8 +53,6 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Filter processor for extension items stored in JSONB.
@@ -75,8 +75,6 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
 
     private final MExtItemHolderType holderType;
     private final JsonbPath path;
-
-    private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
     public ExtensionItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
@@ -115,15 +113,18 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                 throw new QueryException("Null value for other than EQUAL filter: " + filter);
             }
         }
+
+        if (extItem.valueType.equals(STRING_TYPE)) {
+            return processString(extItem, values, operation, filter);
+        }
+
+        // TODO for anything lower we don't support multi-value filter yet, but the solution from string can be adapted.
         if (filterValues.size() > 1) {
-            // TODO where do we want to support eq with multiple values?
             throw new QueryException(
                     "Multiple values in filter are not supported for extension items: " + filter);
         }
 
-        if (extItem.valueType.equals(STRING_TYPE)) {
-            return processString(extItem, values, operation, filter);
-        } else if (ExtUtils.isEnumDefinition((PrismPropertyDefinition<?>) definition)) {
+        if (ExtUtils.isEnumDefinition((PrismPropertyDefinition<?>) definition)) {
             return processEnum(extItem, values, operation, filter);
         } else if (extItem.valueType.equals(INT_TYPE) || extItem.valueType.equals(INTEGER_TYPE)
                 || extItem.valueType.equals(LONG_TYPE) || extItem.valueType.equals(SHORT_TYPE)
@@ -172,47 +173,41 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             return extItemIsNull(extItem);
         }
 
-        StringBuilder json = new StringBuilder("{");
-        boolean commaNeeded = false;
-
+        Map<String, Object> json = new HashMap<>();
         if (ref.getOid() != null) {
-            json.append("\"o\":\"").append(ref.getOid()).append("\"");
-            commaNeeded = true;
+            json.put("o", ref.getOid());
         }
-
         if (ref.getTargetType() != null) {
             MObjectType objectType = MObjectType.fromTypeQName(ref.getTargetType());
-            if (commaNeeded) {
-                json.append(',');
-            }
-            json.append("\"t\":\"").append(objectType).append("\"");
-            commaNeeded = true;
+            json.put("t", objectType);
         }
-
         if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
             Integer relationId = ((SqaleQueryContext<?, ?, ?>) context)
                     .searchCachedRelationId(ref.getRelation());
-            if (commaNeeded) {
-                json.append(',');
-            }
-            json.append("\"r\":").append(relationId);
-        } else {
-            // relation == Q_ANY, no additional predicate needed
-        }
+            json.put("r", relationId);
+        } // else relation == Q_ANY, no additional predicate needed
 
-        // closing } for inner object is in String.format
-        return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                String.format("{\"%d\":%s}}", extItem.id, json)));
+        return predicateWithNotTreated(path,
+                booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, json)));
     }
 
     private Predicate processString(
             MExtItem extItem, ValueFilterValues<?, ?> values, FilterOperation operation, ObjectFilter filter)
             throws QueryException {
-        if (extItem.cardinality == SCALAR) {
-            if (operation.isEqualOperation()) {
-                return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                        String.format("{\"%d\": %s}", extItem.id, jsonbEscapeString(values.singleValue()))));
+        if (operation.isEqualOperation()) {
+            if (values.isMultiValue()) {
+                // This works with GIN index: https://dba.stackexchange.com/a/130863/157622
+                return predicateWithNotTreated(path,
+                        booleanTemplate("{0} @> ANY ({1})", path,
+                                values.allValues().stream()
+                                        .map(v -> jsonbValue(extItem, v))
+                                        .toArray(Jsonb[]::new)));
             } else {
+                return predicateWithNotTreated(path,
+                        booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, values.singleValue())));
+            }
+        } else {
+            if (extItem.cardinality == SCALAR) {
                 // {1s} means "as string", this is replaced before JDBC driver, just as path is,
                 // but for path types it's automagic, integer would turn to param and ?.
                 // IMPORTANT: To get string from JSONB we want to use ->> or #>>'{}' operators,
@@ -220,29 +215,11 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                 // double-quotes. For more: https://dba.stackexchange.com/a/234047/157622
                 return singleValuePredicate(stringTemplate("{0}->>'{1s}'", path, extItem.id),
                         operation, values.singleValue());
-            }
-        } else { // multi-value ext item
-            if (operation.isEqualOperation()) {
-                return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                        String.format("{\"%d\":[%s]}", extItem.id, jsonbEscapeString(values.singleValue()))));
             } else {
                 throw new QueryException("Only equals is supported for"
                         + " multi-value extensions; used filter: " + filter);
             }
         }
-    }
-
-    private Object jsonbEscapeString(@Nullable Object singleValue) {
-        if (singleValue == null) {
-            return null;
-        }
-        String payload;
-        try {
-            payload = JSON_OBJECT_MAPPER.writeValueAsString(singleValue.toString());
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(e);
-        }
-        return payload;
     }
 
     private Predicate processEnum(
@@ -253,32 +230,24 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                     "Only equals is supported for enum extensions; used filter: " + filter);
         }
 
-        return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                String.format(
-                        extItem.cardinality == SCALAR ? "{\"%d\":\"%s\"}" : "{\"%d\":[\"%s\"]}",
-                        extItem.id, values.singleValue())));
+        return predicateWithNotTreated(path,
+                booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, values.singleValue())));
     }
 
     private Predicate processNumeric(
             MExtItem extItem, ValueFilterValues<?, ?> values, FilterOperation operation, ObjectFilter filter)
             throws QueryException {
-        if (extItem.cardinality == SCALAR) {
-            if (operation.isEqualOperation()) {
-                return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                        String.format("{\"%d\":%s}", extItem.id, values.singleValue())));
-            } else {
+        if (operation.isEqualOperation()) {
+            return predicateWithNotTreated(path,
+                    booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, values.singleValue())));
+        } else {
+            if (extItem.cardinality == SCALAR) {
                 // {1s} means "as string", this is replaced before JDBC driver, just as path is,
                 // but for path types it's automagic, integer would turn to param and ?.
                 return singleValuePredicate(
                         stringTemplate("({0}->'{1s}')::numeric", path, extItem.id),
                         operation,
                         values.singleValue());
-            }
-        } else { // multi-value ext item
-            if (operation.isEqualOperation()) {
-                return predicateWithNotTreated(path,
-                        booleanTemplate("{0} @> {1}::jsonb", path,
-                                String.format("{\"%d\":[%s]}", extItem.id, values.singleValue())));
             } else {
                 throw new QueryException("Only equals is supported for"
                         + " multi-value numeric extensions; used filter: " + filter);
@@ -295,10 +264,8 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         }
 
         // array for booleans doesn't make any sense, but whatever...
-        return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                String.format(
-                        extItem.cardinality == SCALAR ? "{\"%d\":%s}" : "{\"%d\":[%s]}",
-                        extItem.id, values.singleValue())));
+        return predicateWithNotTreated(path,
+                booleanTemplate("{0} @> {1}", path, jsonbValue(extItem, values.singleValue())));
     }
 
     // filter should be PropertyValueFilter<PolyString>, but pure Strings are handled fine
@@ -336,28 +303,24 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         PolyString poly = (PolyString) values.singleValueRaw(); // must be Poly here
         assert poly != null; // empty values treated in main process()
 
-        if (extItem.cardinality == SCALAR) {
-            if (operation.isEqualOperation()) {
-                return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                        String.format("{\"%d\":{\"" + JSONB_POLY_ORIG_KEY + "\":\"%s\",\""
-                                        + JSONB_POLY_NORM_KEY + "\":\"%s\"}}",
-                                extItem.id, poly.getOrig(), poly.getNorm())));
-            } else {
-                return ExpressionUtils.and(
-                        singleValuePredicate(
-                                stringTemplate("{0}->'{1s}'->>'{2s}'",
-                                        path, extItem.id, JSONB_POLY_ORIG_KEY),
-                                operation, poly.getOrig()),
-                        singleValuePredicate(
-                                stringTemplate("{0}->'{1s}'->>'{2s}'",
-                                        path, extItem.id, JSONB_POLY_NORM_KEY),
-                                operation, poly.getNorm()));
-            }
-        } else { // multi-value ext item, only EQ operation can get here
-            return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                    String.format("{\"%d\":[{\"" + JSONB_POLY_ORIG_KEY + "\":\"%s\",\""
-                                    + JSONB_POLY_NORM_KEY + "\":\"%s\"}]}",
-                            extItem.id, poly.getOrig(), poly.getNorm())));
+        if (operation.isEqualOperation()) {
+            return predicateWithNotTreated(path,
+                    booleanTemplate("{0} @> {1}", path,
+                            jsonbValue(extItem, Map.of(
+                                    JSONB_POLY_ORIG_KEY, poly.getOrig(),
+                                    JSONB_POLY_NORM_KEY, poly.getNorm()))));
+        } else if (extItem.cardinality == SCALAR) {
+            return ExpressionUtils.and(
+                    singleValuePredicate(
+                            stringTemplate("{0}->'{1s}'->>'{2s}'",
+                                    path, extItem.id, JSONB_POLY_ORIG_KEY),
+                            operation, poly.getOrig()),
+                    singleValuePredicate(
+                            stringTemplate("{0}->'{1s}'->>'{2s}'",
+                                    path, extItem.id, JSONB_POLY_NORM_KEY),
+                            operation, poly.getNorm()));
+        } else {
+            throw new AssertionError("Multi-value non-equal filter should not get here.");
         }
     }
 
@@ -365,20 +328,15 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             ValueFilterValues<?, ?> values, String subKey, FilterOperation operation)
             throws QueryException {
         // Here the values are converted to Strings already
-        if (extItem.cardinality == SCALAR) {
-            if (operation.isEqualOperation()) {
-                return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                        String.format("{\"%d\":{\"%s\":\"%s\"}}",
-                                extItem.id, subKey, values.singleValue())));
-            } else {
-                return singleValuePredicate(
-                        stringTemplate("{0}->'{1s}'->>'{2s}'", path, extItem.id, subKey),
-                        operation, values.singleValue());
-            }
-        } else { // multi-value ext item, EQ
-            return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                    String.format("{\"%d\":[{\"%s\":\"%s\"}]}",
-                            extItem.id, subKey, values.singleValue())));
+        if (operation.isEqualOperation()) {
+            return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}", path,
+                    jsonbValue(extItem, Map.of(subKey, Objects.requireNonNull(values.singleValue())))));
+        } else if (extItem.cardinality == SCALAR) {
+            return singleValuePredicate(
+                    stringTemplate("{0}->'{1s}'->>'{2s}'", path, extItem.id, subKey),
+                    operation, values.singleValue());
+        } else {
+            throw new AssertionError("Multi-value non-equal filter should not get here.");
         }
     }
 
@@ -407,5 +365,15 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
 
     private String extractNorm(Object value) {
         return PolyStringItemFilterProcessor.extractNorm(value, context.prismContext());
+    }
+
+    /**
+     * Creates JSONB value for `@>` (contains) operation.
+     * Only one value should be provided, it is wrapped in collection (JSONB array in the end)
+     * only to match the structure of stored multi-value extension property.
+     */
+    private Jsonb jsonbValue(MExtItem extItem, Object value) {
+        return Jsonb.fromMap(Map.of(extItem.id.toString(),
+                extItem.cardinality == SCALAR ? value : List.of(value)));
     }
 }

@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
 import java.sql.Types;
+import java.time.Instant;
 
+import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -18,19 +20,21 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
- * Querydsl query type for `MA_AUDIT_REF_VALUE` table.
+ * Querydsl query type for `MA_AUDIT_REF` table.
  */
 @SuppressWarnings("unused")
 public class QAuditRefValue extends FlexibleRelationalPathBase<MAuditRefValue> {
 
     private static final long serialVersionUID = 2778508481708634421L;
 
-    public static final String TABLE_NAME = "ma_audit_ref_value";
+    public static final String TABLE_NAME = "ma_audit_ref";
 
     public static final ColumnMetadata ID =
             ColumnMetadata.named("id").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata RECORD_ID =
-            ColumnMetadata.named("recordId").ofType(Types.BIGINT);
+            ColumnMetadata.named("recordId").ofType(Types.BIGINT).notNull();
+    public static final ColumnMetadata TIMESTAMP =
+            ColumnMetadata.named("timestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE).notNull();
     public static final ColumnMetadata NAME =
             ColumnMetadata.named("name").ofType(Types.VARCHAR);
     public static final ColumnMetadata TARGET_OID =
@@ -44,6 +48,7 @@ public class QAuditRefValue extends FlexibleRelationalPathBase<MAuditRefValue> {
 
     public final NumberPath<Long> id = createLong("id", ID);
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
+    public final DateTimePath<Instant> timestamp = createInstant("timestamp", TIMESTAMP);
     public final StringPath name = createString("name", NAME);
     public final UuidPath targetOid = createUuid("targetOid", TARGET_OID);
     public final StringPath targetNameNorm = createString("targetNameNorm", TARGET_NAME_NORM);

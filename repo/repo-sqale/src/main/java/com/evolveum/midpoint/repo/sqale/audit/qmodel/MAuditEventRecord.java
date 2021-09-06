@@ -47,13 +47,15 @@ public class MAuditEventRecord {
     public String parameter;
     public String result;
     public String message;
+
+    // changedItemPaths are normalized with PrismContext.createCanonicalItemPath()
     public String[] changedItemPaths;
-    public UUID[] resourceOids;
+    public String[] resourceOids;
     public Jsonb properties;
     public Jsonb customColumnProperties;
 
     // "transient" fields not used by Querydsl
-    public List<MAuditDelta> deltas;
+    public Collection<MAuditDelta> deltas;
     public Map<String, List<MAuditRefValue>> refValues;
 
     public void addDelta(MAuditDelta mAuditDelta) {
@@ -70,16 +72,6 @@ public class MAuditEventRecord {
         List<MAuditRefValue> values = refValues.computeIfAbsent(refValue.name, s -> new ArrayList<>());
         values.add(refValue);
     }
-
-    /* TODO props stored as JSONB
-    public void addProperty(MAuditPropertyValue propertyValue) {
-        if (properties == null) {
-            properties = new TreeMap<>();
-        }
-        List<String> values = properties.computeIfAbsent(propertyValue.name, s -> new ArrayList<>());
-        values.add(propertyValue.value);
-    }
-    */
 
     @Override
     public boolean equals(Object o) {

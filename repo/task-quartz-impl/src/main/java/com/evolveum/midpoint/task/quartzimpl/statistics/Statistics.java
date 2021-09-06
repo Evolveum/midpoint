@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Objects;
 
@@ -208,10 +208,8 @@ public class Statistics {
         environmentalPerformanceInformation.recordState(message);
     }
 
-    public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
-            ProvisioningOperation operation, boolean success, int count, long duration) {
-        environmentalPerformanceInformation
-                .recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
+    public void recordProvisioningOperation(@NotNull ConnIdOperation operation) {
+        environmentalPerformanceInformation.recordProvisioningOperation(operation);
     }
 
     public void recordNotificationOperation(String transportName, boolean success, long duration) {

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.test;
 
 import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -28,6 +29,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.task.reports.ActivityExecutionReportUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -206,6 +211,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     @Autowired(required = false)
     protected GuiProfiledPrincipalManager focusProfileService;
+
+    @Autowired protected CommonTaskBeans commonTaskBeans;
 
     protected DummyResourceCollection dummyResourceCollection;
 
@@ -6542,5 +6549,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertPerformance(
                 activityManager.getPerformanceInformation(rootOid, getTestOperationResult()),
                 message);
+    }
+
+    protected @NotNull String getBucketReportDataOid(TaskType taskAfter, ActivityPath path) {
+        return requireNonNull(
+                ActivityExecutionReportUtil.getReportDataOid(taskAfter.getActivityState(), path,
+                        ActivityReportsType.F_BUCKETS, taskManager.getNodeId()),
+                () -> "no bucket report data in " + taskAfter + " (activity path " + path.toDebugName() + ")");
     }
 }

@@ -87,7 +87,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
     }
 
     /** Returns a current value of this statistics. It is copied because of thread safety issues. */
-    public synchronized ActivityItemProcessingStatisticsType getValueCopy() {
+    public synchronized @NotNull ActivityItemProcessingStatisticsType getValueCopy() {
         assertInitialized();
         return value.cloneWithoutId();
     }
@@ -250,7 +250,11 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
         long getEndTimeMillis();
 
+        /** Returns the item characterization for this operation. */
         @NotNull IterationItemInformation getIterationItemInformation();
+
+        /** Returns start info for this operation. */
+        @NotNull IterativeOperationStartInfo getStartInfo();
     }
 
     /**
@@ -315,6 +319,11 @@ public class ActivityItemProcessingStatistics extends Initializable {
         @Override
         public @NotNull IterationItemInformation getIterationItemInformation() {
             return startInfo.getItem();
+        }
+
+        @Override
+        public @NotNull IterativeOperationStartInfo getStartInfo() {
+            return startInfo;
         }
     }
 }

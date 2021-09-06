@@ -276,11 +276,6 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return createStringResource("RunReportPopupPanel.title");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

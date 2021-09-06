@@ -164,7 +164,7 @@ public abstract class AbstractActivityExecution<
         ActivityExecutionResult executionResult = executeTreatingExceptions(result);
         logEnd(executionResult);
 
-        updateActivityState(executionResult, result);
+        updateAndCloseActivityState(executionResult, result);
 
         return executionResult;
     }
@@ -209,7 +209,7 @@ public abstract class AbstractActivityExecution<
      * Updates the activity state with the result of the execution.
      * Stores also the live values of progress/statistics into the current task.
      */
-    private void updateActivityState(ActivityExecutionResult executionResult, OperationResult result)
+    private void updateAndCloseActivityState(ActivityExecutionResult executionResult, OperationResult result)
             throws ActivityExecutionException {
 
         activityState.updateProgressAndStatisticsNoCommit();
@@ -224,6 +224,8 @@ public abstract class AbstractActivityExecution<
         }
 
         activityState.flushPendingModificationsChecked(result); // if not flushed above
+
+        activityState.close();
     }
 
     /**
@@ -407,7 +409,31 @@ public abstract class AbstractActivityExecution<
         return activity.getDefinition().getExecutionMode();
     }
 
+    public boolean isPreview() {
+        return getExecutionMode() == ExecutionModeType.PREVIEW;
+    }
+
+    public boolean isDryRun() {
+        return getExecutionMode() == ExecutionModeType.DRY_RUN;
+    }
+
+    public boolean isFullExecution() {
+        return getExecutionMode() == ExecutionModeType.FULL;
+    }
+
+    public boolean isNoExecution() {
+        return getExecutionMode() == ExecutionModeType.NONE;
+    }
+
+    public boolean isBucketsAnalysis() {
+        return getExecutionMode() == ExecutionModeType.BUCKETS_ANALYSIS;
+    }
+
     public int getItemsProcessed() {
         return getActivityState().getLiveStatistics().getLiveItemProcessing().getItemsProcessed();
+    }
+
+    public boolean isNonScavengingWorker() {
+        return activityState.isWorker() && !activityState.isScavenger();
     }
 }

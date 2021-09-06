@@ -568,11 +568,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
-            ProvisioningOperation operation, boolean success, int count, long duration) {
-    }
-
-    @Override
     public void recordNotificationOperation(String transportName, boolean success, long duration) {
     }
 
@@ -766,6 +761,14 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void setTracingProfile(TracingProfileType tracingProfile) {
+    }
+
+    @Override
+    public void registerConnIdOperationsListener(@NotNull ConnIdOperationsListener listener) {
+    }
+
+    @Override
+    public void unregisterConnIdOperationsListener(@NotNull ConnIdOperationsListener listener) {
     }
 
     @Override

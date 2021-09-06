@@ -222,18 +222,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Returns the mapper creating string multi-value filter/delta processors from context.
-     */
-    protected ItemSqlMapper<Q, R> multiStringMapper(
-            Function<Q, ArrayPath<String[], String>> rootToQueryItem) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new ArrayPathItemFilterProcessor<String, String>(
-                        ctx, rootToQueryItem, "TEXT", String.class, null),
-                ctx -> new ArrayItemDeltaProcessor<String, String>(
-                        ctx, rootToQueryItem, String.class, null));
-    }
-
-    /**
      * Returns the mapper creating poly-string multi-value filter/delta processors from context.
      */
     protected ItemSqlMapper<Q, R> multiPolyStringMapper(
@@ -244,16 +232,42 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
+     * Returns the mapper creating string multi-value filter/delta processors from context.
+     */
+    protected ItemSqlMapper<Q, R> multiStringMapper(
+            Function<Q, ArrayPath<String[], String>> rootToQueryItem) {
+        return multiValueMapper(rootToQueryItem, String.class, "TEXT", null, null);
+    }
+
+    /**
      * Returns the mapper creating cached URI multi-value filter/delta processors from context.
      */
     protected ItemSqlMapper<Q, R> multiUriMapper(
             Function<Q, ArrayPath<Integer[], Integer>> rootToQueryItem) {
+        return multiValueMapper(rootToQueryItem, Integer.class, "INTEGER",
+                repositoryContext()::searchCachedUriId,
+                repositoryContext()::processCacheableUri);
+    }
+
+    /**
+     * Returns the mapper creating general array-stored multi-value filter/delta processors.
+     *
+     * @param <VT> real-value type from schema
+     * @param <ST> stored type (e.g. String for TEXT[])
+     * @param dbType name of the type for element in DB (without []) for the cast part of the condition
+     * @param elementType class necessary for array creation; must be a class convertable to {@code dbType} by PG JDBC driver
+     */
+    protected <VT, ST> ItemSqlMapper<Q, R> multiValueMapper(
+            Function<Q, ArrayPath<ST[], ST>> rootToQueryItem,
+            Class<ST> elementType,
+            String dbType,
+            @Nullable Function<VT, ST> queryConversionFunction,
+            @Nullable Function<VT, ST> updateConversionFunction) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new ArrayPathItemFilterProcessor<>(
-                        ctx, rootToQueryItem, "INTEGER", Integer.class,
-                        ((SqaleRepoContext) ctx.repositoryContext())::searchCachedUriId),
-                ctx -> new ArrayItemDeltaProcessor<>(ctx, rootToQueryItem, Integer.class,
-                        ctx.repositoryContext()::processCacheableUri));
+                        ctx, rootToQueryItem, dbType, elementType, queryConversionFunction),
+                ctx -> new ArrayItemDeltaProcessor<>(
+                        ctx, rootToQueryItem, elementType, updateConversionFunction));
     }
 
     @Override
@@ -276,6 +290,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     // TODO reconsider, if not necessary in 2023 DELETE (originally meant for ext item per column,
     //  but can this be used for adding index-only exts to schema object even from JSON?)
+
     @SuppressWarnings("unused")
     protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
         // empty by default, can be overridden
@@ -300,7 +315,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid.toString())
-                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(objectTypeToQName(repoObjectType))
                 .relation(resolveUriIdToQName(relationId));
     }
 
@@ -320,9 +335,16 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid.toString())
-                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(objectTypeToQName(repoObjectType))
                 .description(targetName)
                 .targetName(targetName);
+    }
+
+    @Nullable
+    protected QName objectTypeToQName(MObjectType objectType) {
+        return objectType != null
+                ? repositoryContext().schemaClassToQName(objectType.getSchemaType())
+                : null;
     }
 
     /**
@@ -369,14 +391,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return repositoryContext().resolveUriIdToQName(uriId);
     }
 
-    protected @Nullable UUID oidToUUid(@Nullable String oid) {
-        try {
-            return oid != null ? UUID.fromString(oid) : null;
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Cannot convert oid '" + oid + "' to UUID", e);
-        }
-    }
-
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
         return schemaType == null ? null :
                 MObjectType.fromSchemaType(repositoryContext().qNameToSchemaClass(schemaType));
@@ -397,7 +411,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             if (ref.getType() == null) {
                 ref = SqaleUtils.referenceWithTypeFixed(ref);
             }
-            targetOidConsumer.accept(oidToUUid(ref.getOid()));
+            targetOidConsumer.accept(SqaleUtils.oidToUUid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
             relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
         }
@@ -411,7 +425,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected String[] stringsToArray(List<String> strings) {
+    protected String[] stringsToArray(Collection<String> strings) {
         if (strings == null || strings.isEmpty()) {
             return null;
         }

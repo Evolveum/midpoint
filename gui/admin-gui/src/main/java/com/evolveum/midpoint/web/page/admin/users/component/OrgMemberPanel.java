@@ -92,8 +92,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected List<QName> getNewMemberObjectTypes() {
-        List<QName> objectTypes = WebComponentUtil.createFocusTypeList();
-        objectTypes.add(ResourceType.COMPLEX_TYPE);
+        List<QName> objectTypes = WebComponentUtil.createAvailableNewObjectsTypesList();
         return objectTypes;
     }
 

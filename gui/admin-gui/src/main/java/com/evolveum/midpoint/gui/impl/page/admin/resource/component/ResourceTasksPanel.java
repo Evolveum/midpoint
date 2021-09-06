@@ -277,11 +277,6 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Ob
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return getPageBase().createStringResource("ResourceTasksPanel.definedTasks");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

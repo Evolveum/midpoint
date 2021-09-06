@@ -13,6 +13,11 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstan
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.framework.api.ConnectorFacade;
@@ -45,6 +50,8 @@ import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
  * Executes `search` operation. (Offloads {@link ConnectorInstanceConnIdImpl} from this task.)
  */
 class SearchExecutor {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SearchExecutor.class);
 
     @NotNull private final ObjectClassComplexTypeDefinition objectClassDefinition;
     @NotNull private final PrismObjectDefinition<ShadowType> objectDefinition;
@@ -199,26 +206,27 @@ class SearchExecutor {
         OperationResult result = parentResult.createSubresult(ConnectorFacade.class.getName() + ".search");
         result.addArbitraryObjectAsParam("objectClass", icfObjectClass);
 
-        ResultsHandler connIdHandler = new SearchResultsHandler(result);
-
         SearchResult connIdSearchResult;
+        InternalMonitor.recordConnectorOperation("search");
+        ConnIdOperation operation = recordIcfOperationStart();
+
+        ResultsHandler connIdHandler = new SearchResultsHandler(operation, result);
         try {
 
-            InternalMonitor.recordConnectorOperation("search");
-            recordIcfOperationStart();
+            LOGGER.trace("Executing ConnId search operation: {}", operation);
             connIdSearchResult = connectorInstance.getConnIdConnectorFacade()
                     .search(icfObjectClass, connIdFilter, connIdHandler, connIdOptions);
-            recordIcfOperationEnd(null);
+            recordIcfOperationEnd(operation, null);
 
             result.recordSuccess();
         } catch (IntermediateException inEx) {
             Throwable ex = inEx.getCause();
-            recordIcfOperationEnd(ex);
+            recordIcfOperationEnd(operation, ex);
             result.recordFatalError(ex);
             throwProperException(ex, ex);
             throw new AssertionError("should not get here");
         } catch (Throwable ex) {
-            recordIcfOperationEnd(ex);
+            recordIcfOperationEnd(operation, ex);
             Throwable midpointEx = processConnIdException(ex, connectorInstance, result);
             throwProperException(midpointEx, ex);
             throw new AssertionError("should not get here");
@@ -251,20 +259,20 @@ class SearchExecutor {
         }
     }
 
-    private void recordIcfOperationStart() {
-        connectorInstance.recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+    private ConnIdOperation recordIcfOperationStart() {
+        return connectorInstance.recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
     }
 
-    private void recordIcfOperationEnd(Throwable ex) {
-        connectorInstance.recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition, ex);
+    private void recordIcfOperationEnd(ConnIdOperation operation, Throwable ex) {
+        connectorInstance.recordIcfOperationEnd(reporter, operation, ex);
     }
 
-    private void recordIcfOperationResume() {
-        connectorInstance.recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+    private void recordIcfOperationResume(@NotNull ConnIdOperation operation) {
+        connectorInstance.recordIcfOperationResume(reporter, operation);
     }
 
-    private void recordIcfOperationSuspend() {
-        connectorInstance.recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+    private void recordIcfOperationSuspend(@NotNull ConnIdOperation operation) {
+        connectorInstance.recordIcfOperationSuspend(reporter, operation);
     }
 
     @Nullable
@@ -299,9 +307,11 @@ class SearchExecutor {
 
     private class SearchResultsHandler implements ResultsHandler {
 
+        @NotNull private final ConnIdOperation operation;
         private final OperationResult result;
 
-        SearchResultsHandler(OperationResult result) {
+        SearchResultsHandler(@NotNull ConnIdOperation operation, OperationResult result) {
+            this.operation = operation;
             this.result = result;
         }
 
@@ -309,7 +319,7 @@ class SearchExecutor {
         public boolean handle(ConnectorObject connectorObject) {
             Validate.notNull(connectorObject, "null connector object"); // todo apply error reporting method?
 
-            recordIcfOperationSuspend();
+            recordIcfOperationSuspend(operation);
             try {
                 int number = objectsFetched.getAndIncrement(); // The numbering starts at 0
                 if (isNoConnectorPaging()) {
@@ -334,7 +344,7 @@ class SearchExecutor {
             } catch (SchemaException e) {
                 throw new IntermediateException(e);
             } finally {
-                recordIcfOperationResume();
+                recordIcfOperationResume(operation);
             }
         }
 

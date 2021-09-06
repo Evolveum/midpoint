@@ -111,10 +111,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
         if (collectionView == null) {
             collectionView = getObjectCollectionView();
-        }
+         }
         try {
             WebComponentUtil.initNewObjectWithReference(getPageBase(),
-                    WebComponentUtil.classToQName(getPrismContext(), getType()),
+                    relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
+                            relation.getObjectTypes().get(0) : WebComponentUtil.classToQName(getPrismContext(), getType()),
                     getNewObjectReferencesList(collectionView, relation));
         } catch (SchemaException ex) {
             getPageBase().getFeedbackMessages().error(MainObjectListPanel.this, ex.getUserFriendlyMessage());
@@ -181,13 +182,13 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     return;
                 }
 
-                MultiCompositedButtonPanel buttonsPanel = new MultiCompositedButtonPanel(getPageBase().getMainPopupBodyId(), new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
+                NewObjectCreationPopup buttonsPanel = new NewObjectCreationPopup(getPageBase().getMainPopupBodyId(), new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                         getPageBase().hideMainPopup(target);
-                        MainObjectListPanel.this.newObjectPerformed(target, relationSepc, collectionViews);
+                        MainObjectListPanel.this.newObjectPerformed(target, relationSpec, collectionViews);
                     }
 
                 };

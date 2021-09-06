@@ -29,6 +29,13 @@
                         </ext:searchIterativeMock>
                     </extension>
                 </work>
+                <reporting>
+                    <executionReports>
+                        <buckets/>
+                        <items/>
+                        <internalOperations/>
+                    </executionReports>
+                </reporting>
             </activity>
             <activity>
                 <order>2</order>
@@ -43,6 +50,13 @@
                         </ext:searchIterativeMock>
                     </extension>
                 </work>
+                <reporting>
+                    <executionReports>
+                        <buckets/>
+                        <items/>
+                        <internalOperations/>
+                    </executionReports>
+                </reporting>
             </activity>
             <activity>
                 <order>3</order>
@@ -88,6 +102,13 @@
                                 </stringSegmentation>
                             </buckets>
                         </distribution>
+                        <reporting>
+                            <executionReports>
+                                <buckets/>
+                                <items/>
+                                <internalOperations/>
+                            </executionReports>
+                        </reporting>
                     </activity>
                     <activity>
                         <order>2</order>
@@ -102,6 +123,13 @@
                                 </ext:searchIterativeMock>
                             </extension>
                         </work>
+                        <reporting>
+                            <executionReports>
+                                <buckets/>
+                                <items/>
+                                <internalOperations/>
+                            </executionReports>
+                        </reporting>
                     </activity>
                 </composition>
             </activity>
@@ -143,6 +171,13 @@
                         </stringSegmentation>
                     </buckets>
                 </distribution>
+                <reporting>
+                    <executionReports>
+                        <buckets/>
+                        <items/>
+                        <internalOperations/>
+                    </executionReports>
+                </reporting>
             </activity>
         </composition>
     </activity>

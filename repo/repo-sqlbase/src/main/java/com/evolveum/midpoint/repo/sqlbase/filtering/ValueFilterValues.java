@@ -62,7 +62,7 @@ public class ValueFilterValues<T, V> {
     /**
      * Returns single value or null or fails if there are multiple values, all converted.
      */
-    public @Nullable Object singleValue() throws QueryException {
+    public @Nullable V singleValue() throws QueryException {
         return convert(filter.getSingleValue());
     }
 
@@ -106,12 +106,13 @@ public class ValueFilterValues<T, V> {
                 .collect(Collectors.toList());
     }
 
-    private Object convert(PrismPropertyValue<T> value) throws QueryException {
+    private V convert(PrismPropertyValue<T> value) throws QueryException {
         if (value == null) {
             return null;
         }
         if (conversionFunction == null) {
-            return value.getRealValue();
+            //noinspection unchecked
+            return (V) value.getRealValue();
         }
         try {
             return conversionFunction.apply(value.getRealValue());

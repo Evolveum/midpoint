@@ -12,6 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +82,7 @@ public class ResourceManager {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ResourceOperationalStateManager operationalStateManager;
     @Autowired private ProvisioningService provisioningService;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
 
@@ -1267,7 +1270,7 @@ public class ResourceManager {
         ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
         ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on "+resource, prismContext);
         try {
-            StateReporter reporter = new StateReporter(resourceOid, task);
+            StateReporter reporter = new StateReporter(lightweightIdentifierGenerator, resourceOid, task);
             return connectorInstance.executeScript(scriptOperation, reporter, result);
         } catch (GenericFrameworkException e) {
             // Not expected. Transform to system exception
@@ -1459,5 +1462,9 @@ public class ResourceManager {
 
     public PrismContext getPrismContext() {
         return prismContext;
+    }
+
+    public @NotNull LightweightIdentifierGenerator getLightweightIdentifierGenerator() {
+        return lightweightIdentifierGenerator;
     }
 }

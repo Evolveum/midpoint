@@ -236,6 +236,7 @@ public class TestUtil {
             if (result.getStatus() != OperationResultStatusType.SUCCESS
                     && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE
                     && result.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
+                LOGGER.error("Failing operation result:\n{}", OperationResult.createOperationResult(result).debugDump(1));
                 fail(message + ": " + result.getMessage() + " (" + result.getStatus() + ")");
             }
         }

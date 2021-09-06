@@ -88,6 +88,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     // other info used in queries
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
     private final QName relation2 = QName.valueOf("{https://random.org/ns}rel-2");
+    private final String resourceOid = UUID.randomUUID().toString();
 
     private ItemDefinition<?> shadowAttributeDefinition;
 
@@ -143,7 +144,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
                 .pendingOperation(new PendingOperationType().attemptNumber(1))
                 .pendingOperation(new PendingOperationType().attemptNumber(2))
+                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE) // what relation is used for shadow->resource?
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent")
+                .tag("tag")
                 .extension(new ExtensionType(prismContext));
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
         ItemName shadowAttributeName = new ItemName("https://example.com/p", "string-mv");
@@ -151,7 +156,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
         shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
         shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
-        // another shadow just to be check we don't select it accidentally
+        // another shadow just to check we don't select shadow1 accidentally/randomly
         repositoryService.addObject(
                 new ShadowType(prismContext).name("shadow-2").asPrismObject(), null, result);
 
@@ -962,7 +967,7 @@ AND(
     public void test415SearchObjectByAssignmentApproverName() throws SchemaException {
         searchUsersTest("having assignment approved by user with specified name",
                 f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA,
-                        MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE, UserType.F_NAME)
+                                MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE, UserType.F_NAME)
                         .eq(new PolyString("user-1")),
                 user3Oid);
     }
@@ -971,7 +976,7 @@ AND(
     public void test420SearchObjectBySingleValueReferenceTargetAttribute() throws SchemaException {
         searchUsersTest("with object creator name",
                 f -> f.item(UserType.F_METADATA, MetadataType.F_CREATOR_REF,
-                        T_OBJECT_REFERENCE, UserType.F_NAME)
+                                T_OBJECT_REFERENCE, UserType.F_NAME)
                         .eq(new PolyString("creator")),
                 user1Oid);
     }
@@ -1105,7 +1110,7 @@ AND(
     }
 
     @Test
-    public void test515SearchObjectHavingSpecifiedMultivalueStringExtension() {
+    public void test515SearchObjectWithMultivalueExtensionUsingNonEqualFilterFails() {
         given("query for multi-value extension string item with non-equal operation");
         OperationResult operationResult = createOperationResult();
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -1116,6 +1121,14 @@ AND(
         assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
                 .isInstanceOf(SystemException.class)
                 .hasMessageContaining("supported");
+    }
+
+    @Test
+    public void test516SearchObjectHavingAnyOfSpecifiedMultivalueStringExtension() throws SchemaException {
+        searchUsersTest("with multi-value extension string matching any of provided values",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv"))
+                        .eq("string-value2", "string-valueX"), // second value does not match, but that's OK
+                user1Oid, user2Oid); // both users have "string-value2" in "string-mv"
     }
 
     // integer tests
@@ -1129,7 +1142,7 @@ AND(
     @Test
     public void test521SearchObjectNotHavingSpecifiedIntegerExtension() throws SchemaException {
         searchUsersTest("not having extension int item equal to value",
-                f -> f.not().item(UserType.F_EXTENSION, new QName("int")).eq("1"),
+                f -> f.not().item(UserType.F_EXTENSION, new QName("int")).eq(1),
                 creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
     }
 
@@ -1541,7 +1554,7 @@ AND(
     public void test591SearchShadowWithAttribute() throws SchemaException {
         searchObjectTest("with assignment extension item equal to value", ShadowType.class,
                 f -> f.itemWithDef(shadowAttributeDefinition,
-                        ShadowType.F_ATTRIBUTES, new QName("https://example.com/p", "string-mv"))
+                                ShadowType.F_ATTRIBUTES, new QName("https://example.com/p", "string-mv"))
                         .eq("string-value2"),
                 shadow1Oid);
     }
@@ -1665,13 +1678,37 @@ AND(
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "by approver name", AssignmentType.class,
                 f -> f.item(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
-                        T_OBJECT_REFERENCE, UserType.F_NAME)
+                                T_OBJECT_REFERENCE, UserType.F_NAME)
                         .eq(new PolyString("user-1")));
         assertThat(result)
                 .singleElement()
                 .matches(a -> a.getLifecycleState().equals("ls-user3-ass1"));
     }
+    // endregion
 
+    // region various real-life use cases
+    // MID-3289
+    @Test
+    public void test700SearchUsersWithAccountsOnSpecificResource()
+            throws SchemaException {
+        searchUsersTest("with extension poly-string multi-value item",
+                f -> f.item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_RESOURCE_REF)
+                        .ref(resourceOid),
+                user3Oid);
+
+        // TODO failing: java.lang.IllegalArgumentException: Item path of 'linkRef/{http://prism.evolveum.com/xml/ns/public/types-3}objectReference'
+        //  in class com.evolveum.midpoint.xml.ns._public.common.common_3.UserType does not point to a valid PrismContainerDefinition
+        /*
+        searchUsersTest("with extension poly-string multi-value item",
+                f -> f.exists(UserType.F_LINK_REF, T_OBJECT_REFERENCE)
+                        .block()
+                        .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+                        .and()
+                        .item(ShadowType.F_TAG).eq("tag")
+                        .endBlock(),
+                user3Oid);
+        */
+    }
     // endregion
 
     // region special cases
@@ -2040,11 +2077,11 @@ AND(
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
         return repositoryService.searchObjects(
-                type,
-                query,
-                selectorOptions != null && selectorOptions.length != 0
-                        ? List.of(selectorOptions) : null,
-                operationResult)
+                        type,
+                        query,
+                        selectorOptions != null && selectorOptions.length != 0
+                                ? List.of(selectorOptions) : null,
+                        operationResult)
                 .map(p -> p.asObjectable());
     }
 

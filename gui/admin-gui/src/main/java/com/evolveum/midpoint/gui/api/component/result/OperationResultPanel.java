@@ -705,11 +705,6 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("OperationResultPanel.result");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

@@ -122,7 +122,7 @@ public class OperationResult
     private Map<String, Collection<String>> params;
     private Map<String, Collection<String>> context;
     private Map<String, Collection<String>> returns;
-    private final List<String> qualifiers = new ArrayList<>();
+    @NotNull private final List<String> qualifiers = new ArrayList<>();
 
     private long token;
     private String messageCode;
@@ -151,6 +151,9 @@ public class OperationResult
 
     // The following properties are NOT SERIALIZED
     private CompiledTracingProfile tracingProfile;
+
+    /** Whether we should preserve the content of the result e.g. for the sake of reporting. */
+    private boolean preserve;
 
     /**
      * True if we collect log entries.
@@ -253,6 +256,7 @@ public class OperationResult
         subresult.building = true;
         subresult.futureParent = this;
         subresult.tracingProfile = tracingProfile;
+        subresult.preserve = preserve;
         subresult.parentLogRecorder = logRecorder;
         return subresult;
     }
@@ -474,10 +478,7 @@ public class OperationResult
     }
 
     /**
-     * Method returns list of operation subresults @{link
-     * {@link OperationResult}.
-     *
-     * @return never returns null
+     * Method returns list of operation subresults {@link OperationResult}.
      */
     @NotNull
     public List<OperationResult> getSubresults() {
@@ -517,6 +518,7 @@ public class OperationResult
         if (subresult.tracingProfile == null) {
             subresult.tracingProfile = tracingProfile;
         }
+        subresult.preserve = preserve;
     }
 
     public OperationResult findSubresult(String operation) {
@@ -565,6 +567,10 @@ public class OperationResult
      */
     public OperationResultStatus getStatus() {
         return status;
+    }
+
+    public OperationResultStatusType getStatusBean() {
+        return OperationResultStatus.createStatusType(status);
     }
 
     /**
@@ -1105,6 +1111,10 @@ public class OperationResult
         return params;
     }
 
+    public @Nullable ParamsType getParamsBean() {
+        return ParamsTypeUtil.toParamsType(getParams());
+    }
+
     public Collection<String> getParam(String name) {
         return getParams().get(name);
     }
@@ -1225,6 +1235,10 @@ public class OperationResult
         return context;
     }
 
+    public @Nullable ParamsType getContextBean() {
+        return ParamsTypeUtil.toParamsType(getContext());
+    }
+
     @Override
     public OperationResult addContext(String name, String value) {
         getContext().put(name, collectionize(value));
@@ -1320,6 +1334,10 @@ public class OperationResult
             returns = new HashMap<>();
         }
         return returns;
+    }
+
+    public @Nullable ParamsType getReturnsBean() {
+        return ParamsTypeUtil.toParamsType(getReturns());
     }
 
     public Collection<String> getReturn(String name) {
@@ -1782,9 +1800,9 @@ public class OperationResult
             resultType.setUserFriendlyMessage(msg);
         }
 
-        resultType.setParams(ParamsTypeUtil.toParamsType(opResult.getParams()));
-        resultType.setContext(ParamsTypeUtil.toParamsType(opResult.getContext()));
-        resultType.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
+        resultType.setParams(opResult.getParamsBean());
+        resultType.setContext(opResult.getContextBean());
+        resultType.setReturns(opResult.getReturnsBean());
 
         for (OperationResult subResult : opResult.getSubresults()) {
             resultType.getPartialResults().add(createOperationResultType(subResult, resolveKeys));
@@ -1808,7 +1826,7 @@ public class OperationResult
 
     public void summarize(boolean alsoSubresults) {
 
-        if (isTraced()) {
+        if (!canBeCleanedUp()) {
             return;
         }
 
@@ -1822,8 +1840,7 @@ public class OperationResult
                 // Already summarized
                 continue;
             }
-            if (subresult.isTraced()) {
-                // We don't want to summarize traced subresults.
+            if (!subresult.canBeCleanedUp()) {
                 continue;
             }
             if (subresult.isError() && summarizeErrors) {
@@ -1985,8 +2002,8 @@ public class OperationResult
      */
     public void cleanupResult(Throwable e) {
 
-        if (isTraced()) {
-            return;         // TEMPORARY fixme
+        if (!canBeCleanedUp()) {
+            return; // TEMPORARY fixme
         }
 
         OperationResultImportanceType preserveDuringCleanup = getPreserveDuringCleanup();
@@ -2019,6 +2036,11 @@ public class OperationResult
 
     private boolean canCleanup(OperationResultImportanceType preserveDuringCleanup) {
         return isLesserThan(importance, preserveDuringCleanup) && (status == OperationResultStatus.SUCCESS || status == OperationResultStatus.NOT_APPLICABLE);
+    }
+
+    // TODO better name
+    public boolean canBeCleanedUp() {
+        return !isTraced() && !preserve;
     }
 
     /**
@@ -2204,6 +2226,16 @@ public class OperationResult
 
     public OperationKindType getOperationKind() {
         return operationKind;
+    }
+
+    @Override
+    public OperationResultBuilder preserve() {
+        this.preserve = true;
+        return this;
+    }
+
+    public boolean isPreserve() {
+        return preserve;
     }
 
     @Override
@@ -2506,7 +2538,7 @@ public class OperationResult
         return traces;
     }
 
-    public List<String> getQualifiers() {
+    public @NotNull List<String> getQualifiers() {
         return qualifiers;
     }
 

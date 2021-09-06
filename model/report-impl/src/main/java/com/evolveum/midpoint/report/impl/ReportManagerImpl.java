@@ -103,7 +103,7 @@ public class ReportManagerImpl implements ReportManager {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
 
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_REPORT_TASK.value());
+        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
 
         if (!reportService.isAuthorizedToRunReport(report, task, parentResult)) {
             LOGGER.error("User is not authorized to run report {}", report);
@@ -144,7 +144,7 @@ public class ReportManagerImpl implements ReportManager {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
 
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_REPORT_TASK.value());
+        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value());
 
         if (!reportService.isAuthorizedToImportReport(report, task, parentResult)) {
             LOGGER.error("User is not authorized to import report {}", report);

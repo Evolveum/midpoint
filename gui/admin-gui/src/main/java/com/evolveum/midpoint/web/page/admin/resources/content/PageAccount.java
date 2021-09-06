@@ -261,10 +261,6 @@ public class PageAccount extends PageAdmin {
                         navigateToNext(PageDebugView.class, parameters);
                     }
 
-                    @Override
-                    public StringResourceModel getTitle() {
-                        return new StringResourceModel("pageUsers.message.confirmActionPopupTitle");
-                    }
                 };
 
                 showMainPopup(confirmationPanel, target);

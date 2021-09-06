@@ -65,6 +65,10 @@ public class ArrayPathItemFilterProcessor<T, E>
         }
 
         ValueFilterValues<T, E> values = ValueFilterValues.from(filter, conversionFunction);
+        if (values.isEmpty()) {
+            return Expressions.booleanTemplate("({0} = '{}' OR {0} is null)", path);
+        }
+
         // valueArray can't be just Object[], it must be concrete type, e.g. String[],
         // otherwise PG JDBC driver will complain.
         //noinspection unchecked

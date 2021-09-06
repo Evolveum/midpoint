@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
@@ -95,18 +94,27 @@ class BucketOperation implements DebugDumpable {
         return workerTaskOid == null;
     }
 
-    static Collection<ItemDelta<?, ?>> bucketsAddDeltas(ItemPath statePath, List<WorkBucketType> buckets) throws SchemaException {
-        return PrismContext.get().deltaFor(TaskType.class)
-                .item(statePath.append(F_BUCKETING, F_BUCKET))
-                .addRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
+    /** Buckets have to be detached and ID-less, free to be added to the delta. */
+    static Collection<ItemDelta<?, ?>> bucketsAddDeltas(ItemPath statePath, List<WorkBucketType> buckets) {
+        try {
+            return PrismContext.get().deltaFor(TaskType.class)
+                    .item(statePath.append(F_BUCKETING, F_BUCKET))
+                    .addRealValues(buckets).asItemDeltas();
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);
+        }
     }
 
     @SuppressWarnings("SameParameterValue")
-    static List<ItemDelta<?, ?>> bucketStateChangeDeltas(ItemPath statePath, WorkBucketType bucket, WorkBucketStateType newState)
-            throws SchemaException {
-        return PrismContext.get().deltaFor(TaskType.class)
-                .item(createBucketPath(statePath, bucket).append(WorkBucketType.F_STATE))
-                .replace(newState).asItemDeltas();
+    static List<ItemDelta<?, ?>> bucketStateChangeDeltas(ItemPath statePath, WorkBucketType bucket,
+            WorkBucketStateType newState) {
+        try {
+            return PrismContext.get().deltaFor(TaskType.class)
+                    .item(createBucketPath(statePath, bucket).append(WorkBucketType.F_STATE))
+                    .replace(newState).asItemDeltas();
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);
+        }
     }
 
     @NotNull
@@ -115,8 +123,8 @@ class BucketOperation implements DebugDumpable {
     }
 
     @SuppressWarnings("SameParameterValue")
-    static Collection<ItemDelta<?, ?>> bucketsStateChangeDeltas(ItemPath statePath, Collection<WorkBucketType> buckets,
-            WorkBucketStateType newState, String workerOid) throws SchemaException {
+    static Collection<ItemDelta<?, ?>> bucketsStateChangeDeltas(@NotNull ItemPath statePath,
+            @NotNull Collection<WorkBucketType> buckets, @NotNull WorkBucketStateType newState, @Nullable String workerOid) {
         Collection<ItemDelta<?, ?>> deltas = new ArrayList<>();
         for (WorkBucketType bucket : buckets) {
             deltas.addAll(bucketStateChangeDeltas(statePath, bucket, newState, workerOid));
@@ -125,21 +133,29 @@ class BucketOperation implements DebugDumpable {
     }
 
     static Collection<ItemDelta<?, ?>> bucketStateChangeDeltas(@NotNull ItemPath statePath, @NotNull WorkBucketType bucket,
-            @NotNull WorkBucketStateType newState, @Nullable String workerOid) throws SchemaException {
+            @NotNull WorkBucketStateType newState, @Nullable String workerOid) {
         ItemPath bucketPath = createBucketPath(statePath, bucket);
         Collection<?> workerRefs = workerOid != null ?
                 singletonList(new ObjectReferenceType().oid(workerOid).type(TaskType.COMPLEX_TYPE)) : emptyList();
 
-        return PrismContext.get().deltaFor(TaskType.class)
-                .item(bucketPath.append(WorkBucketType.F_STATE)).replace(newState)
-                .item(bucketPath.append(WorkBucketType.F_WORKER_REF)).replaceRealValues(workerRefs)
-                .asItemDeltas();
+        try {
+            return PrismContext.get().deltaFor(TaskType.class)
+                    .item(bucketPath.append(WorkBucketType.F_STATE)).replace(newState)
+                    .item(bucketPath.append(WorkBucketType.F_WORKER_REF)).replaceRealValues(workerRefs)
+                    .asItemDeltas();
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);
+        }
     }
 
-    Collection<ItemDelta<?, ?>> bucketDeleteDeltas(ItemPath statePath, WorkBucketType bucket) throws SchemaException {
-        return prismContext.deltaFor(TaskType.class)
-                .item(statePath.append(F_BUCKETING, F_BUCKET))
-                .delete(bucket.clone()).asItemDeltas();
+    Collection<ItemDelta<?, ?>> bucketDeleteDeltas(ItemPath statePath, WorkBucketType bucket) {
+        try {
+            return prismContext.deltaFor(TaskType.class)
+                    .item(statePath.append(F_BUCKETING, F_BUCKET))
+                    .delete(bucket.clone()).asItemDeltas();
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);
+        }
     }
 
     void checkBucketReadyOrDelegated(@NotNull WorkBucketType bucket) {

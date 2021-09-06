@@ -13,6 +13,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactoryGenerator;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
@@ -46,4 +47,5 @@ public class CommonTaskBeans {
     @Autowired public TaskActivityManager activityManager;
 
     @Autowired public BucketContentFactoryGenerator contentFactoryCreator;
+    @Autowired public ExpressionFactory expressionFactory;
 }

@@ -212,11 +212,6 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("AssignmentPreviewDialog.label");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

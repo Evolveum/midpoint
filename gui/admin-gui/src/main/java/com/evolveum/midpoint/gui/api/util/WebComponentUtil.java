@@ -217,8 +217,8 @@ public final class WebComponentUtil {
      */
     private static RelationRegistry staticallyProvidedRelationRegistry;
 
-    private static final Map<Class<?>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
-    private static final Map<Class<?>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
+    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
+    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
 
     static {
         OBJECT_DETAILS_PAGE_MAP = new HashMap<>();
@@ -965,6 +965,18 @@ public final class WebComponentUtil {
         focusTypeList.add(ObjectTypes.SERVICE);
 
         return focusTypeList;
+    }
+
+    public static List<QName> createAvailableNewObjectsTypesList() {
+        List<QName> objectTypesList = new ArrayList<>();
+
+        OBJECT_DETAILS_PAGE_MAP.keySet().forEach(type -> {
+            if (type.equals(ShadowType.class) || type.equals(ValuePolicyType.class) || type.equals(CaseType.class)) {
+                return;
+            }
+            objectTypesList.add(ObjectTypes.getObjectType(type).getTypeQName());
+        });
+        return objectTypesList;
     }
 
     public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
@@ -1928,6 +1940,12 @@ public final class WebComponentUtil {
             return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
         } else if (QNameUtil.match(ReportType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_REPORT_ICON;
+        } else if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON;
+        } else if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON;
+        } else if (QNameUtil.match(ObjectTemplateType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON;
         } else if (QNameUtil.match(MappingType.COMPLEX_TYPE, objectType)) {
             //TODO fix icon style for mapping type
             return "";

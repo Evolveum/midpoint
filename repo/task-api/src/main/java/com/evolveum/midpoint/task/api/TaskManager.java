@@ -476,7 +476,7 @@ public interface TaskManager {
     /**
      * Returns identifier for current node.
      */
-    String getNodeId();
+    @NotNull String getNodeId();
 
     /**
      * Checks whether supplied node is the current node.
