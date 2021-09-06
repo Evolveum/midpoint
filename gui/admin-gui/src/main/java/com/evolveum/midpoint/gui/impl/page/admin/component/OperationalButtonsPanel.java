@@ -144,10 +144,6 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 getPageBase().navigateToNext(PageDebugView.class, parameters);
             }
 
-            @Override
-            public StringResourceModel getTitle() {
-                return new StringResourceModel("pageUsers.message.confirmActionPopupTitle");
-            }
         };
 
         getPageBase().showMainPopup(confirmationPanel, ajaxRequestTarget);
