@@ -60,7 +60,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
                 OperationResult result = task.getResult();
                 WrapperContext ctx = new WrapperContext(task, result);
                 ctx.setCreateIfEmpty(true);
-                ctx.setContainerPanelConfigurationType(detailsPageConfigurationModel.getObject().getPanel());
+                ctx.setDetailsPageTypeConfiguration(detailsPageConfigurationModel.getObject());
                 if (isReadonly()) {
                     ctx.setReadOnly(isReadonly());
                 }

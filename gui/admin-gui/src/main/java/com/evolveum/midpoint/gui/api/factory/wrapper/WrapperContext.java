@@ -19,10 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author katka
@@ -50,7 +47,6 @@ public class WrapperContext {
     //used e.g. for metadata - opertionsla attributes but want to create wrappers for them
     private boolean createOperational;
 
-    private Collection<VirtualContainersSpecificationType> virtualContainers;
     private List<VirtualContainerItemSpecificationType>  virtualItemSpecification;
 
     private MetadataItemProcessingSpec metadataItemProcessingSpec;
@@ -60,7 +56,8 @@ public class WrapperContext {
      @Experimental
     private Map<String, LookupTableType> lookupTableCache = new HashMap();
 
-     private List<ContainerPanelConfigurationType> containerPanelConfigurationType;
+     private GuiObjectDetailsPageType detailsPageTypeConfiguration;
+    private Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
 
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
@@ -143,13 +140,13 @@ public class WrapperContext {
         this.createOperational = createOperational;
     }
 
-    public Collection<VirtualContainersSpecificationType> getVirtualContainers() {
-        return virtualContainers;
-    }
+//    public Collection<VirtualContainersSpecificationType> getVirtualContainers() {
+//        return virtualContainers;
+//    }
 
-    public void setVirtualContainers(Collection<VirtualContainersSpecificationType> virtualContainers) {
-        this.virtualContainers = virtualContainers;
-    }
+//    public void setVirtualContainers(Collection<VirtualContainersSpecificationType> virtualContainers) {
+//        this.virtualContainers = virtualContainers;
+//    }
 
     public void setVirtualItemSpecification(List<VirtualContainerItemSpecificationType> virtualItemSpecification) {
         this.virtualItemSpecification = virtualItemSpecification;
@@ -196,24 +193,45 @@ public class WrapperContext {
         return lookupTableCache.get(oid);
     }
 
-    public List<ContainerPanelConfigurationType> getContainerPanelConfigurationType() {
-        return containerPanelConfigurationType;
+    public Collection<VirtualContainersSpecificationType> getVirtualContainers() {
+        if (!virtualContainers.isEmpty()) {
+            return virtualContainers;
+        }
+
+        if (detailsPageTypeConfiguration == null) {
+            return virtualContainers;
+        }
+        List<ContainerPanelConfigurationType> containerPanelConfigurationTypes = detailsPageTypeConfiguration.getPanel();
+        if (containerPanelConfigurationTypes.isEmpty()) {
+            return virtualContainers;
+        }
+
+        collectVirtualContainers(containerPanelConfigurationTypes, virtualContainers);
+        return virtualContainers;
     }
 
-    public void setContainerPanelConfigurationType(List<ContainerPanelConfigurationType> containerPanelConfigurationType) {
-        this.containerPanelConfigurationType = containerPanelConfigurationType;
+    private void collectVirtualContainers(@NotNull Collection<ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
+        for (ContainerPanelConfigurationType panelConfig : panelConfigs) {
+            virtualContainers.addAll(panelConfig.getContainer());
+            collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
+        }
     }
 
     public VirtualContainersSpecificationType findVirtualContainerConfiguration(ItemPath path) {
-        if (virtualContainers == null) {
-            return null;
-        }
-        for (VirtualContainersSpecificationType virtualContainer : virtualContainers) {
+        for (VirtualContainersSpecificationType virtualContainer : getVirtualContainers()) {
             if (virtualContainer.getPath() != null && path.equivalent(virtualContainer.getPath().getItemPath())) {
                 return virtualContainer;
             }
         }
         return null;
+    }
+
+    public GuiObjectDetailsPageType getDetailsPageTypeConfiguration() {
+        return detailsPageTypeConfiguration;
+    }
+
+    public void setDetailsPageTypeConfiguration(GuiObjectDetailsPageType detailsPageTypeConfiguration) {
+        this.detailsPageTypeConfiguration = detailsPageTypeConfiguration;
     }
 
     public WrapperContext clone() {
@@ -226,13 +244,12 @@ public class WrapperContext {
         ctx.setResource(resource);
         ctx.setDiscriminator(discriminator);
         ctx.setCreateOperational(createOperational);
-        ctx.setVirtualContainers(virtualContainers);
         ctx.setVirtualItemSpecification(virtualItemSpecification);
         ctx.setObject(object);
         ctx.setMetadata(isMetadata);
         ctx.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
         ctx.lookupTableCache = lookupTableCache;
-        ctx.setContainerPanelConfigurationType(containerPanelConfigurationType);
+        ctx.setDetailsPageTypeConfiguration(detailsPageTypeConfiguration);
         return ctx;
     }
 }

@@ -86,16 +86,30 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         List<ContainerPanelConfigurationType> mergedPanels = mergeContainerPanelConfigurationType(defaultPageConfiguration.getPanel(), compiledPageType.getPanel());
 
         //backward compatibility
-        Optional<ContainerPanelConfigurationType> optionalPropertiesPanelConfiguration = mergedPanels.stream().filter(p -> pathsMatch(p.getPath(), new ItemPathType(ItemPath.EMPTY_PATH))).findFirst();
+        Optional<ContainerPanelConfigurationType> optionalPropertiesPanelConfiguration = mergedPanels
+                .stream()
+                    .filter(p -> containsConfigurationForEmptyPath(p)).findFirst();
+
         if (optionalPropertiesPanelConfiguration.isPresent()) {
             ContainerPanelConfigurationType propertiesPanelConfiguration = optionalPropertiesPanelConfiguration.get();
-            List<VirtualContainersSpecificationType> virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), compiledPageType.getContainer());
+            List<VirtualContainersSpecificationType> virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), defaultPageConfiguration.getContainer());
+            propertiesPanelConfiguration.getContainer().clear();
+            propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
+
+            virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), compiledPageType.getContainer());
             propertiesPanelConfiguration.getContainer().clear();
             propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
         }
 
         defaultPageConfiguration.getPanel().clear();
         defaultPageConfiguration.getPanel().addAll(CloneUtil.cloneCollectionMembersWithoutIds(mergedPanels));
+    }
+
+    private boolean containsConfigurationForEmptyPath(ContainerPanelConfigurationType panel) {
+        return panel.getContainer().stream()
+                .filter(c -> pathsMatch(c.getPath(), new ItemPathType(ItemPath.EMPTY_PATH)))
+                .findFirst()
+                .isPresent();
     }
 
     private void mergePanelConfigurations(ContainerPanelConfigurationType configuredPanel, List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> mergedPanels) {
