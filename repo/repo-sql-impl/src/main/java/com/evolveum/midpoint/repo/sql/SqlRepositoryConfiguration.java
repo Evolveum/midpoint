@@ -299,6 +299,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE = "lockForUpdateViaHibernate";
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_SQL = "lockForUpdateViaSql";
     public static final String PROPERTY_READ_ONLY_TRANSACTIONS_STATEMENT = "readOnlyTransactionsStatement";
+    public static final String PROPERTY_LOCK_ORG_CLOSURE_TABLE = "lockOrgClosureTable";
     public static final String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
     public static final String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
 
@@ -377,11 +378,13 @@ public class SqlRepositoryConfiguration {
     private boolean defaultLockForUpdateViaHibernate;
     private boolean defaultLockForUpdateViaSql;
     private String defaultReadOnlyTransactionStatement;
+    private boolean defaultLockOrgClosureTable;
 
     private final TransactionIsolation transactionIsolation;
     private final boolean lockForUpdateViaHibernate;
     private final boolean lockForUpdateViaSql;
     private final String readOnlyTransactionStatement;
+    private final boolean lockOrgClosureTable;
 
     private final String performanceStatisticsFile;
     private final int performanceStatisticsLevel;
@@ -509,6 +512,12 @@ public class SqlRepositoryConfiguration {
                 PROPERTY_LOCK_FOR_UPDATE_VIA_SQL, defaultLockForUpdateViaSql);
         readOnlyTransactionStatement = configuration.getString(
                 PROPERTY_READ_ONLY_TRANSACTIONS_STATEMENT, defaultReadOnlyTransactionStatement);
+        lockOrgClosureTable = configuration.getBoolean(
+                PROPERTY_LOCK_ORG_CLOSURE_TABLE, defaultLockOrgClosureTable);
+        if (!lockOrgClosureTable && transactionIsolation != TransactionIsolation.SERIALIZABLE) {
+            // This is a safeguard against not-setting lockOrgClosureTable when changing transaction isolation level.
+            throw new IllegalStateException("lockOrgClosureTable must be true if the transaction isolation is not SERIALIZABLE");
+        }
 
         performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
         performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL,
@@ -669,6 +678,7 @@ public class SqlRepositoryConfiguration {
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = true;
             defaultReadOnlyTransactionStatement = null; // h2 does not support read only transactions
+            defaultLockOrgClosureTable = true;
         } else if (isUsingMySqlCompatible()) {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
@@ -677,6 +687,7 @@ public class SqlRepositoryConfiguration {
             // read-only transaction read JDBC metadata, the following RW transaction was still RO.
             // Mysterious problem: https://stackoverflow.com/a/63580806/658826
             defaultReadOnlyTransactionStatement = "START TRANSACTION READ ONLY";
+            defaultLockOrgClosureTable = false;
         } else if (isUsingOracle()) {
             /*
              * Isolation of SERIALIZABLE causes false ORA-8177 (serialization) exceptions even for single-thread scenarios
@@ -694,27 +705,32 @@ public class SqlRepositoryConfiguration {
             // Technically supported but causes rather random ORA-01466 errors
             defaultReadOnlyTransactionStatement = null;
 //            defaultReadOnlyTransactionStatement = "SET TRANSACTION READ ONLY";
+            defaultLockOrgClosureTable = true;
         } else if (isUsingPostgreSQL()) {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = false;
             defaultReadOnlyTransactionStatement = "SET TRANSACTION READ ONLY";
+            defaultLockOrgClosureTable = false;
         } else if (isUsingSQLServer()) {
             defaultTransactionIsolation = TransactionIsolation.SNAPSHOT;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = false;
             defaultReadOnlyTransactionStatement = null;
+            defaultLockOrgClosureTable = true;
         } else {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = false;
             defaultReadOnlyTransactionStatement = "SET TRANSACTION READ ONLY";
+            defaultLockOrgClosureTable = true;
             //noinspection ConstantConditions
             LOGGER.warn("Fine-tuned concurrency parameters defaults for hibernate dialect " + hibernateDialect
                     + " not found; using the following defaults: transactionIsolation = " + defaultTransactionIsolation
                     + ", lockForUpdateViaHibernate = " + defaultLockForUpdateViaHibernate
                     + ", lockForUpdateViaSql = " + defaultLockForUpdateViaSql
                     + ", readOnlyTransactionStatement = " + defaultReadOnlyTransactionStatement
+                    + ", lockOrgClosureTable = " + defaultLockOrgClosureTable
                     + ". Please override them if necessary.");
         }
     }
@@ -877,6 +893,10 @@ public class SqlRepositoryConfiguration {
 
     public String getReadOnlyTransactionStatement() {
         return readOnlyTransactionStatement;
+    }
+
+    public boolean isLockOrgClosureTable() {
+        return lockOrgClosureTable;
     }
 
     public String getPerformanceStatisticsFile() {

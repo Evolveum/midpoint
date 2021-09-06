@@ -166,7 +166,7 @@ public class OrgClosureManager {
 
     private Context onBeginTransaction(Session session) {
         // table locking
-        if (isH2() || isOracle() || isSQLServer()) {
+        if (baseHelper.getConfiguration().isLockOrgClosureTable()) {
             lockClosureTable(session);
         }
         // other
@@ -914,6 +914,10 @@ public class OrgClosureManager {
                     "SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
             q.list();
         } else if (isOracle()) {
+            NativeQuery<?> q = session.createNativeQuery(
+                    "LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
+            q.executeUpdate();
+        } else if (isPostgreSQL()) {
             NativeQuery<?> q = session.createNativeQuery(
                     "LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
             q.executeUpdate();

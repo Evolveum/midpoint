@@ -103,6 +103,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_FOR_UPDATE_VIA_SQL);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_READ_ONLY_TRANSACTIONS_STATEMENT);
+        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_ORG_CLOSURE_TABLE);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_PERFORMANCE_STATISTICS_FILE);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_PERFORMANCE_STATISTICS_LEVEL);
 
