@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.assertj.core.api.Assertions;
+import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -52,6 +53,9 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -2695,6 +2699,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         + " Delta path must always point to item, not to value");
     }
 
+    private @NotNull Collection<SelectorOptions<GetOperationOptions>> retrieveWithCases() {
+        return SchemaService.get().getOperationOptionsBuilder()
+                .item(AccessCertificationCampaignType.F_CASE).retrieve()
+                .build();
+    }
+
     @Test
     public void test330AddedCertificationCaseStoresItAndGeneratesMissingId()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
@@ -2724,7 +2734,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         AccessCertificationCampaignType campaignObjectAfter = repositoryService
                 .getObject(AccessCertificationCampaignType.class,
-                        accessCertificationCampaign1Oid, null, result)
+                        accessCertificationCampaign1Oid, retrieveWithCases(), result)
                 .asObjectable();
         assertThat(campaignObjectAfter.getVersion())
                 .isEqualTo(String.valueOf(originalRow.version + 1));
@@ -2784,7 +2794,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         AccessCertificationCampaignType campaignObjectAfter = repositoryService
                 .getObject(AccessCertificationCampaignType.class,
-                        accessCertificationCampaign1Oid, null, result)
+                        accessCertificationCampaign1Oid, retrieveWithCases(), result)
                 .asObjectable();
         assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
@@ -2824,6 +2834,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         display("Case full object:\n" + fullObjectStr);
         // added objects have normalized relations, so we have to do this for original too
         ObjectTypeUtil.normalizeAllRelations(caseBefore.asPrismContainerValue(), relationRegistry);
+
+        // Make sure caseBefore contains also container id, otherwise serialization will be different
+        caseBefore.setId(aRow.cid);
         String caseBeforeStr = prismContext.serializerFor(PrismContext.LANG_XML)
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
@@ -2854,7 +2867,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         and("serialized form (fullObject) is updated");
         AccessCertificationCampaignType campaignObjectAfter = repositoryService
-                .getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+                .getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, retrieveWithCases(), result)
                 .asObjectable();
         assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
