@@ -42,7 +42,8 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
         if (searchResults == null) {
             searchResults = new ArrayList<>();
             result.accept(subresult -> {
-                if (subresult.getOperation().startsWith("com.evolveum.midpoint.repo.api.RepositoryService.search")) {
+                // this works for any search operation for any repo implementation under "com...repo" package
+                if (subresult.getOperation().matches("com\\.evolveum\\.midpoint\\.repo\\..*\\.search.*")) {
                     searchResults.add(subresult);
                 }
             });
