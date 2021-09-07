@@ -42,7 +42,7 @@ import java.util.List;
 @PanelInstance(identifier = "policyRuleAssignments",
         applicableFor = AbstractRoleType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
-        display = @PanelDisplay(label = "Policy rule", icon = GuiStyleConstants.CLASS_POLICY_RULES_ICON, order = 60))
+        display = @PanelDisplay(label = "AssignmentType.policyRule", icon = GuiStyleConstants.CLASS_POLICY_RULES_ICON, order = 60))
 public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleAssignmentsPanel.class);

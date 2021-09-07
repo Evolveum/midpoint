@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
  */
 @PanelType(name = "approvalCase")
 @PanelInstance(identifier = "approvalCase",
-        display = @PanelDisplay(label = "Approvals", order = 1))
+        display = @PanelDisplay(label = "PageCase.approvalTab", order = 1))
 public class ApprovalCasePanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
     private static final long serialVersionUID = 1L;
 

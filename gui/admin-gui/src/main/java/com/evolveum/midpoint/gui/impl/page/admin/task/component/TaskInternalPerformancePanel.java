@@ -42,7 +42,7 @@ import java.util.Locale;
 
 @PanelType(name = "internalPerformance")
 @PanelInstance(identifier = "internalPerformance", applicableFor = TaskType.class, childOf = TaskPerformancePanel.class,
-        display = @PanelDisplay(label = "Internal performance", order = 50))
+        display = @PanelDisplay(label = "pageTask.internalPerformance.title", order = 50))
 public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

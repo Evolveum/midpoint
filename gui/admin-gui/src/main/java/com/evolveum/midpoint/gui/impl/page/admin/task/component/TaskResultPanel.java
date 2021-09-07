@@ -50,7 +50,7 @@ import java.util.*;
  */
 @PanelType(name = "results")
 @PanelInstance(identifier = "results", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED,
-        display = @PanelDisplay(label = "Results", order = 70))
+        display = @PanelDisplay(label = "pageTask.result.title", order = 70))
 public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

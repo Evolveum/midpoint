@@ -45,7 +45,7 @@ import java.util.List;
  */
 @PanelType(name = "userDelegations")
 @PanelInstance(identifier = "userDelegations", status = ItemStatus.NOT_CHANGED, applicableFor = UserType.class,
-        display = @PanelDisplay(label = "Delegations", order = 70))
+        display = @PanelDisplay(label = "FocusType.delegations", order = 70))
 @Counter(provider = UserDelegationsCounter.class)
 public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
     private static final long serialVersionUID = 1L;

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "monitoring", defaultContainerPath = "activity/monitoring", defaultType = ActivityMonitoringDefinitionType.class)
 @PanelInstance(identifier = "monitoring", applicableFor = TaskType.class, childOf = TaskActivityPanel.class,
-        display = @PanelDisplay(label = "Monitoring", order = 40))
+        display = @PanelDisplay(label = "ActivityDefinitionType.monitoring", order = 40))
 public class TaskMonitoringPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskMonitoringPanel.class);

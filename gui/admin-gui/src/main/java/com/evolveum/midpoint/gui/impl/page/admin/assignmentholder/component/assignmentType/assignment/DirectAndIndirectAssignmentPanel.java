@@ -54,7 +54,7 @@ import java.util.List;
 @PanelInstance(identifier = "indirectAssignments",
         applicableFor = AssignmentHolderType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
-        display = @PanelDisplay(label = "With indirect"))
+        display = @PanelDisplay(label = "AssignmentTablePanel.menu.showAllAssignments"))
 public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
     private static final long serialVersionUID = 1L;
 

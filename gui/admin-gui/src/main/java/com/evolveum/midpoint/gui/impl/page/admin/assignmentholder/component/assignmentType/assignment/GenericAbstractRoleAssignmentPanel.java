@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(identifier = "dataProtectionAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
-        display = @PanelDisplay(label = "Data protection"))
+        display = @PanelDisplay(label = "pageAdminFocus.dataProtection"))
 public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends AbstractRoleAssignmentPanel<F> {
 
     private static final long serialVersionUID = 1L;

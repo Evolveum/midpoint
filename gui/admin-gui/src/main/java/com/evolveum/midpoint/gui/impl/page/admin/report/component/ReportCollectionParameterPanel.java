@@ -46,7 +46,7 @@ import java.util.List;
 
 @PanelType(name = "reportCollectionParameter")
 @PanelInstance(identifier = "reportCollectionParameter", status = ItemStatus.NOT_CHANGED,
-        display = @PanelDisplay(label = "Parameter", order = 90))
+        display = @PanelDisplay(label = "ObjectCollectionReportEngineConfigurationType.parameter", order = 90))
 public class ReportCollectionParameterPanel extends AbstractObjectMainPanel<ReportType, AssignmentHolderDetailsModel<ReportType>> {
 
     private static final String ID_PARAMETERS_TABLE = "parametersTable";

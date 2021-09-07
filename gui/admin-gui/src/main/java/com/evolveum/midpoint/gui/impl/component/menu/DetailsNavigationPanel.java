@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -213,6 +215,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     }
 
     private IModel<String> createButtonLabel(IModel<ContainerPanelConfigurationType> model) {
+
         return new ReadOnlyModel<>(() -> {
             ContainerPanelConfigurationType config = model.getObject();
 
@@ -224,7 +227,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 return "N/A";
             }
 
-            return config.getDisplay().getLabel().getOrig();
+            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getLabel());
         });
     }
 

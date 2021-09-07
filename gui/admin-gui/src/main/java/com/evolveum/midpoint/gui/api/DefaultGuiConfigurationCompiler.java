@@ -11,6 +11,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -235,7 +241,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
         return config;
     }
-    
+
     private void addPanelTypeConfiguration(Class<?> clazz, ContainerPanelConfigurationType config) {
         PanelType panelType = clazz.getAnnotation(PanelType.class);
         if (panelType == null) {
@@ -302,7 +308,10 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     private DisplayType createDisplayType(PanelDisplay display) {
         DisplayType displayType = new DisplayType();
-        displayType.setLabel(WebComponentUtil.createPolyFromOrigString(display.label()));
+        PolyStringTranslationType translationType = new PolyStringTranslationType();
+        translationType.setKey(display.label());
+        PolyString polyString = new PolyString(null, null, translationType);
+        displayType.setLabel(new PolyStringType(polyString));
         displayType.setIcon(new IconType().cssClass(display.icon()));
         return displayType;
     }
