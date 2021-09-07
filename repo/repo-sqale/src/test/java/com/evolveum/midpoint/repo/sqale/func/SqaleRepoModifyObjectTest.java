@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -265,7 +266,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email replace for user 1 (email has previous value)");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                // without value it would not be recognized as delete
                 .item(UserType.F_EMAIL_ADDRESS).replace("newest@email.com")
                 .asObjectDelta(user1Oid);
 
@@ -292,7 +292,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with email delete for user 1 using valid previous value");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                // without value it would not be recognized as delete
+                // without a value it would not be recognized as delete
                 .item(UserType.F_EMAIL_ADDRESS).delete("newest@email.com")
                 .asObjectDelta(user1Oid);
 
@@ -3177,12 +3177,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta adding int extension item");
-        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+        List<ItemDelta<?, ?>> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_EXTENSION).replace()
-                .asObjectDelta(user1Oid);
+                .asItemDeltas();
 
         when("modifyObject is called");
-        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta, result);
 
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
@@ -3199,12 +3199,127 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.ext).isNull();
     }
-
-    // TODO index only not done
     // endregion
 
-    // TODO: photo test, currently it puts it into fullObject and not into column.
-    //  It should be other way around.
+    // region precondition and modify dynamically
+    @Test
+    public void test800ModifyWithPositivePrecondition() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EMAIL_ADDRESS).replace(getTestNumber() + "@email.com")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called with positive precondition");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(),
+                // obviously true precondition, we want to use the object, not just return true
+                u -> u.asObjectable().getOid() != null,
+                null, result);
+
+        then("operation is successful and modification is executed");
+        assertThatOperationResult(result).isSuccess();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.emailAddress).isEqualTo(getTestNumber() + "@email.com");
+    }
+
+    @Test
+    public void test801ModifyWithNegativePrecondition() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EMAIL_ADDRESS).replace(getTestNumber() + "@email.com")
+                .asObjectDelta(user1Oid);
+
+        expect("modifyObject called with negative precondition fails");
+        Assertions.assertThatThrownBy(() ->
+                        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(),
+                                // obviously false precondition, we want to use the object, not just return true
+                                u -> u.asObjectable().getOid() == null,
+                                null, result))
+                .hasMessageStartingWith("Modification precondition does not hold for user");
+
+        and("operation is fatal error and modification is not executed");
+        assertThatOperationResult(result).isFatalError();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version);
+        assertThat(row.emailAddress).isNotEqualTo(getTestNumber() + "@email.com");
+    }
+
+    @Test
+    public void test810ModifyDynamically() throws Exception {
+        OperationResult result = createOperationResult();
+
+        when("modifyObjectDynamically is called");
+        repositoryService.modifyObjectDynamically(UserType.class, user1Oid, null,
+                u -> prismContext.deltaFor(UserType.class)
+                        .item(FocusType.F_EMAIL_ADDRESS).replace(getTestNumber() + "@email.com")
+                        .asItemDeltas(),
+                null, result);
+
+        then("operation is successful and modification is executed");
+        assertThatOperationResult(result).isSuccess();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.emailAddress).isEqualTo(getTestNumber() + "@email.com");
+    }
+
+    @Test
+    public void test811ModifyDynamicallyWithFailingSupplier() {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        expect("modifyObjectDynamically with failing supplier fails");
+        Assertions.assertThatThrownBy(() ->
+                        repositoryService.modifyObjectDynamically(UserType.class, user1Oid, null,
+                                u -> {
+                                    throw new RuntimeException("Random exception");
+                                },
+                                null, result))
+                .isInstanceOf(SystemException.class)
+                .hasMessage("Random exception");
+
+        and("operation is fatal error and modification is not executed");
+        assertThatOperationResult(result).isFatalError();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version);
+    }
+
+    @Test
+    public void test815ModifyDynamicallyWithObjectNotFound() {
+        OperationResult result = createOperationResult();
+
+        expect("modifyObjectDynamically for non-existent object fails");
+        Assertions.assertThatThrownBy(() ->
+                        repositoryService.modifyObjectDynamically(
+                                UserType.class, TestUtil.NON_EXISTENT_OID, null,
+                                u -> List.of(),
+                                null, result))
+                .isInstanceOf(ObjectNotFoundException.class);
+
+        and("operation is fatal error");
+        assertThatOperationResult(result).isFatalError();
+    }
+
+    @Test
+    public void test816ModifyDynamicallyWithObjectNotFound() {
+        OperationResult result = createOperationResult();
+
+        when("modifyObjectDynamically for non-existent fails with allow-not-found option");
+        Assertions.assertThatThrownBy(() ->
+                        repositoryService.modifyObjectDynamically(
+                                UserType.class, TestUtil.NON_EXISTENT_OID,
+                                SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
+                                u -> List.of(),
+                                null, result))
+                .isInstanceOf(ObjectNotFoundException.class);
+
+        then("operation is not fatal error (nothing happens really)");
+        assertThatOperationResult(result).isSuccess();
+    }
+
+    // endregion
 
     // region other tests
     @Test
@@ -3216,7 +3331,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         expect("modifyObject throws exception");
         //noinspection ConstantConditions
         Assertions.assertThatThrownBy(() ->
-                repositoryService.modifyObject(UserType.class, user1Oid, null, result))
+                        repositoryService.modifyObject(UserType.class, user1Oid, null, result))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("Modifications must not be null.");
     }
@@ -3258,8 +3373,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         expect("modifyObject throws exception");
         Assertions.assertThatThrownBy(() ->
-                repositoryService.modifyObject(UserType.class, nonexistentOid.toString(),
-                        delta.getModifications(), result))
+                        repositoryService.modifyObject(UserType.class, nonexistentOid.toString(),
+                                delta.getModifications(), result))
                 .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessageMatching("Object of type 'UserType' with OID .* was not found\\.");
 
