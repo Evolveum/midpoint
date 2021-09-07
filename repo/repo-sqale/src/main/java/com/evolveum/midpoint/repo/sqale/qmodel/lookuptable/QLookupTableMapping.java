@@ -13,6 +13,9 @@ import javax.xml.namespace.QName;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLQuery;
@@ -20,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -95,7 +100,7 @@ public class QLookupTableMapping
     @Override
     public LookupTableType toSchemaObject(Tuple row, QLookupTable entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession session, boolean forceFull) throws SchemaException {
-        LookupTableType base = super.toSchemaObject(row, entityPath, options);
+        LookupTableType base = super.toSchemaObject(row, entityPath, options, session, forceFull);
 
         if (forceFull || SelectorOptions.hasToLoadPath(F_ROW, options)) {
             @Nullable GetOperationOptions rowOptions = findLookupTableGetOption(options);
@@ -118,7 +123,7 @@ public class QLookupTableMapping
                     .select(alias)
                     .where(whereQuery);
 
-            query = paging(query, queryDef);
+            query = pagingAndOrdering(query, queryDef, rowMapping, alias);
 
             List<MLookupTableRow> result = query.fetch();
 
@@ -167,7 +172,7 @@ public class QLookupTableMapping
         return base.and(right);
     }
 
-    private <R> SQLQuery<R> paging(SQLQuery<R> query, RelationalValueSearchQuery queryDef) {
+    private <R> SQLQuery<R> pagingAndOrdering(SQLQuery<R> query, RelationalValueSearchQuery queryDef, QLookupTableRowMapping rowMapping, QLookupTableRow alias) throws QueryException {
         if (queryDef != null && queryDef.getPaging() != null) {
             var paging = queryDef.getPaging();
             if (paging.getOffset() != null) {
@@ -175,6 +180,15 @@ public class QLookupTableMapping
             }
             if (paging.getMaxSize() != null) {
                 query = query.limit(paging.getMaxSize());
+            }
+            for (ObjectOrdering ordering : paging.getOrderingInstructions()) {
+                Order direction = ordering.getDirection() == OrderDirection.DESCENDING ? Order.DESC : Order.ASC;
+                if (ordering.getOrderBy() == null || !ordering.getOrderBy().isSingleName()) {
+                    throw new SystemException("Only single name order path is supported");
+                }
+                @SuppressWarnings("rawtypes")
+                Expression path = rowMapping.itemMapper(ordering.getOrderBy().firstToQName()).itemOrdering(alias, null);
+                query.orderBy(new OrderSpecifier<>(direction, path));
             }
         }
         return query;
@@ -196,4 +210,5 @@ public class QLookupTableMapping
 
         return null;
     }
+
 }
