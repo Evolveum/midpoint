@@ -115,12 +115,22 @@ CREATE TABLE ma_audit_event (
     changedItemPaths TEXT[],
     resourceOids TEXT[],
     properties JSONB,
-    ext JSONB, -- extension container + old custom properties?
+    -- ext JSONB, -- TODO extension container later
 
     PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
 
 CREATE INDEX ma_audit_event_timestamp_idx ON ma_audit_event (timestamp);
+CREATE INDEX ma_audit_event_eventIdentifier_idx ON ma_audit_event (eventIdentifier);
+CREATE INDEX ma_audit_event_sessionIdentifier_idx ON ma_audit_event (sessionIdentifier);
+CREATE INDEX ma_audit_event_requestIdentifier_idx ON ma_audit_event (requestIdentifier);
+-- This was originally eventStage + targetOid, but low variability eventStage can do more harm.
+CREATE INDEX ma_audit_event_targetOid_idx ON ma_audit_event (targetOid);
+-- TODO do we want to index every single column or leave the rest to full/partial scans?
+-- Original repo/audit didn't have any more indexes either...
+CREATE INDEX ma_audit_event_changedItemPaths_idx ON ma_audit_event USING gin(changeditempaths);
+CREATE INDEX ma_audit_event_resourceOids_idx ON ma_audit_event USING gin(resourceOids);
+CREATE INDEX ma_audit_event_properties_idx ON ma_audit_event USING gin(properties);
 
 CREATE TABLE ma_audit_delta (
     recordId BIGINT NOT NULL, -- references ma_audit_event.id
@@ -146,7 +156,6 @@ ALTER TABLE ma_audit_delta ADD CONSTRAINT ma_audit_delta_fk
     FOREIGN KEY (recordId, timestamp) REFERENCES ma_audit_event (id, timestamp)
         ON DELETE CASCADE;
 */
-CREATE INDEX ma_audit_delta_recordId_timestamp_idx ON ma_audit_delta (recordId, timestamp);
 
 -- TODO: any unique combination within single recordId? name+oid+type perhaps?
 CREATE TABLE ma_audit_ref (
@@ -168,25 +177,6 @@ ALTER TABLE ma_audit_ref ADD CONSTRAINT ma_audit_ref_fk
         ON DELETE CASCADE;
 */
 CREATE INDEX ma_audit_ref_recordId_timestamp_idx ON ma_audit_ref (recordId, timestamp);
-
-/* TODO audit indexes
-CREATE INDEX iAuditDeltaRecordId
-  ON m_audit_delta (record_id);
-CREATE INDEX iAuditEventRecordEStageTOid
-  ON m_audit_event (eventStage, targetOid);
-CREATE INDEX iChangedItemPath
-  ON m_audit_item (changedItemPath);
-CREATE INDEX iAuditItemRecordId
-  ON m_audit_item (record_id);
-CREATE INDEX iAuditPropValRecordId
-  ON m_audit_prop_value (record_id);
-CREATE INDEX iAuditRefValRecordId
-  ON m_audit_ref_value (record_id);
-CREATE INDEX iAuditResourceOid
-  ON m_audit_resource (resourceOid);
-CREATE INDEX iAuditResourceOidRecordId
-  ON m_audit_resource (record_id);
-*/
 
 -- Default tables used when no timestamp range partitions are created:
 CREATE TABLE ma_audit_event_default PARTITION OF ma_audit_event DEFAULT;
@@ -290,72 +280,22 @@ BEGIN
 END $$;
 -- endregion
 
--- TODO call creation here? What if we have multiple ways M/Q/Y? Probably admin should do it.
-
--- For Quartz tables see:
--- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
-
--- region Experiments TODO remove when finished
-
 /*
-CREATE OR REPLACE FUNCTION random_bytea(min_len integer, max_len integer)
-    RETURNS bytea
-    LANGUAGE sql
-    -- VOLATILE - default behavior, can't be optimized, other options are IMMUTABLE or STABLE
-AS $$
-    SELECT decode(string_agg(lpad(to_hex(width_bucket(random(), 0, 1, 256) - 1), 2, '0'), ''), 'hex')
-    -- width_bucket starts with 1, we counter it with series from 2; +1 is there to includes upper bound too
-    -- should be marginally more efficient than: generate_series(1, $1 + trunc(random() * ($2 - $1 + 1))::integer)
-    FROM generate_series(2, $1 + width_bucket(random(), 0, 1, $2 - $1 + 1));
-$$;
+IMPORTANT: Only default partitions are created in this script!
+Use something like this, if you desire monthly partitioning:
+call audit_create_monthly_partitions(12);
 
-do $$
-declare
-    event_id bigint;
-    ts timestamptz;
-begin
-    for i in 10001..100000 loop
-        select current_timestamp + interval '3s' * i into ts;
-        insert into ma_audit_event (timestamp, eventIdentifier)
-            -- current value of serial: https://dba.stackexchange.com/a/3284/157622
-        values (ts, currval(pg_get_serial_sequence('ma_audit_event', 'id')))
-        returning id into event_id
-        ;
+This creates 12 monthly partitions into the future.
+It can be safely called multiple times, so you can run it again anytime in the future.
+If you forget to run, audit events will go to default partition so no data is lost,
+however it may be complicated to organize it into proper partitions after the fact.
 
-        insert into ma_audit_delta (recordid, timestamp, checksum, delta)
-        values (event_id, ts, 'cs1', random_bytea(100, 1000))
-        ;
-        insert into ma_audit_delta (recordid, timestamp, checksum, delta)
-        values (event_id, ts, 'cs2', random_bytea(100, 1000))
-        ;
+For Quartz tables see:
+repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
 
-        insert into ma_audit_ref (recordid, timestamp, name)
-        values (event_id, ts, 'some-ref')
-        ;
-        insert into ma_audit_ref (recordid, timestamp, name)
-        values (event_id, ts, 'some-ref')
-        ;
-        insert into ma_audit_ref (recordid, timestamp, name)
-        values (event_id, ts, 'some-ref2')
-        ;
-
-    end loop;
-end $$;
-
-delete from ma_audit_event;
-
-select count(*) from ma_audit_event;
-select tableoid::regclass::text AS table_name, * from ma_audit_event order by id desc;
-
-call audit_create_monthly_partitions(10)
-;
-
-EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
-select *
-from ma_audit_event ae
-         join ma_audit_delta ad on ae.id = ad.recordid
-where ae.timestamp >= '2021-10-10' and ae.timestamp < '2021-10-20'
-        and ad.timestamp >= '2021-10-10' and ad.timestamp < '2021-10-20'
--- and ... other ad. condition as necessary
+Try this to see recent audit events with the real table where they are stored:
+select tableoid::regclass::text AS table_name, *
+from ma_audit_event
+order by id desc
+limit 50;
 */
--- endregion

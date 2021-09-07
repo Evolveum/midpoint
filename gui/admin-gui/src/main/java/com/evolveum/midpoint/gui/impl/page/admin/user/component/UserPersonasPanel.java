@@ -47,7 +47,7 @@ import java.util.List;
 @PanelType(name = "personas")
 @PanelInstance(identifier = "personas",
         applicableFor = UserType.class,
-        display = @PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60))
+        display = @PanelDisplay(label = "pageAdminFocus.personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60))
 @Counter(provider = PersonasCounter.class)
 public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
     private static final long serialVersionUID = 1L;

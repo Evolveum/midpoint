@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 @PanelInstance(identifier = "serviceAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
-        display = @PanelDisplay(label = "Service", icon = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, order = 40))
+        display = @PanelDisplay(label = "ObjectType.ServiceType", icon = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, order = 40))
 public class ServiceAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel<AH> {
 
     public ServiceAssignmentsPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {

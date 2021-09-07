@@ -42,7 +42,7 @@ import java.util.Collections;
 //TODO implement correctly
 @PanelType(name = "operation")
 @PanelInstance(identifier = "operation", applicableFor = TaskType.class,
-        display = @PanelDisplay(label = "Operation", order = 60))
+        display = @PanelDisplay(label = "pageTaskEdit.operation", order = 60))
 public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

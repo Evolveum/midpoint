@@ -32,7 +32,7 @@ import org.apache.wicket.model.IModel;
  */
 @PanelType(name = "manualCase")
 @PanelInstance(identifier = "manualCase",
-        display = @PanelDisplay(label = "Manual case", order = 1))
+        display = @PanelDisplay(label = "PageCase.manualOperationDetailsTab", order = 1))
 public class ManualCasePanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
     private static final long serialVersionUID = 1L;
 

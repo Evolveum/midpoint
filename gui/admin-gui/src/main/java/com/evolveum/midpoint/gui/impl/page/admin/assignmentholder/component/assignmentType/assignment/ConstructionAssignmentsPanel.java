@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(identifier = "constructionAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
-        display = @PanelDisplay(label = "Resource", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, order = 50))
+        display = @PanelDisplay(label = "ObjectType.ResourceType", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, order = 50))
 public class ConstructionAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
 
     public ConstructionAssignmentsPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {

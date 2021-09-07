@@ -49,7 +49,7 @@ import java.util.List;
  */
 @PanelType(name = "statistics")
 @PanelInstance(identifier = "statistics", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED,
-        display = @PanelDisplay(label = "Statistics", order = 50))
+        display = @PanelDisplay(label = "pageTask.operationStats.title", order = 50))
 public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
     private static final String ID_ITEM_PROCESSING = "itemProcessing";

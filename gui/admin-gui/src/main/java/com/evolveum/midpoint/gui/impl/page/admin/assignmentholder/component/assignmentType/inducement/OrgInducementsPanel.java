@@ -21,7 +21,7 @@ import org.apache.wicket.model.IModel;
 @PanelInstance(identifier = "orgInducements",
         applicableFor = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
-        display = @PanelDisplay(label = "Organization", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 30))
+        display = @PanelDisplay(label = "ObjectType.OrgType", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 30))
 public class OrgInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
     public OrgInducementsPanel(String id, IModel<PrismObjectWrapper<AR>> model, ContainerPanelConfigurationType config) {

@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @PanelInstance(identifier = "gdprAssignments",
         applicableFor = UserType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
-        display = @PanelDisplay(label = "GDPR"))
+        display = @PanelDisplay(label = "FocusType.consents"))
 public class GdprAssignmentPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel {
 
     private static final long serialVersionUID = 1L;

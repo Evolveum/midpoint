@@ -21,7 +21,7 @@ import org.apache.wicket.model.IModel;
 @PanelInstance(identifier = "focusMappingsInducements",
         applicableFor = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
-        display = @PanelDisplay(label = "Focus mappings", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 80))
+        display = @PanelDisplay(label = "AssignmentType.focusMappings", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 80))
 public class FocusMappingsInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
     public FocusMappingsInducementsPanel(String id, IModel<PrismObjectWrapper<AR>> model, ContainerPanelConfigurationType config) {

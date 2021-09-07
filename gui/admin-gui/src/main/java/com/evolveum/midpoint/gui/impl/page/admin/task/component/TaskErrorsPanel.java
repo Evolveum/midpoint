@@ -53,7 +53,7 @@ import java.util.List;
  */
 @PanelType(name = "taskErrors")
 @PanelInstance(identifier = "taskErrors", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED,
-        display = @PanelDisplay(label = "Task errors", order = 50))
+        display = @PanelDisplay(label = "pageTask.errors.title", order = 50))
 public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

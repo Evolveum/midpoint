@@ -26,7 +26,7 @@ import java.util.List;
 @PanelInstance(identifier = "roleInducements",
         applicableFor = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
-        display = @PanelDisplay(label = "Role", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 20))
+        display = @PanelDisplay(label = "ObjectType.RoleType", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 20))
 public class RoleInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
     public RoleInducementsPanel(String id, IModel<PrismObjectWrapper<AR>> model, ContainerPanelConfigurationType config) {

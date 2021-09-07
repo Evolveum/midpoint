@@ -7,16 +7,18 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
@@ -145,9 +147,14 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public S toSchemaObject(Tuple row, Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
-        return parseSchemaObject(
-                Objects.requireNonNull(row.get(entityPath.fullObject)),
-                Objects.requireNonNull(row.get(entityPath.oid)).toString());
+        byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
+        UUID oid = Objects.requireNonNull(row.get(entityPath.oid));
+        S ret = parseSchemaObject(fullObject, oid.toString());
+        if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
+            RepositoryObjectDiagnosticData diagData = new RepositoryObjectDiagnosticData(fullObject.length);
+            ret.asPrismContainer().setUserData(RepositoryService.KEY_DIAG_DATA, diagData);
+        }
+        return ret;
     }
 
     /**

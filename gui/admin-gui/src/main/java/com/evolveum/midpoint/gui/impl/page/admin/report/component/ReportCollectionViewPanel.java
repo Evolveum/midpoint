@@ -47,7 +47,7 @@ import java.util.List;
 
 @PanelType(name = "reportCollectionView")
 @PanelInstance(identifier = "reportCollectionView", status = ItemStatus.NOT_CHANGED,
-        display = @PanelDisplay(label = "View", order = 80))
+        display = @PanelDisplay(label = "ObjectCollectionReportEngineConfigurationType.view", order = 80))
 public class ReportCollectionViewPanel extends AbstractObjectMainPanel<ReportType, AssignmentHolderDetailsModel<ReportType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportCollectionViewPanel.class);

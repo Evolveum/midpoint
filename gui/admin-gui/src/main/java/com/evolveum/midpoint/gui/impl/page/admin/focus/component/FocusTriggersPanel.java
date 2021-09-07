@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 @PanelInstance(identifier = "focusTriggers",
         status = ItemStatus.NOT_CHANGED,
         applicableFor = FocusType.class,
-        display = @PanelDisplay(label = "Triggers", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON, order = 100))
+        display = @PanelDisplay(label = "pageAdminFocus.triggers", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON, order = 100))
 @Counter(provider = FocusTriggersCounter.class)
 public class FocusTriggersPanel<F extends FocusType, FDM extends FocusDetailsModels<F>> extends AbstractObjectMainPanel<F, FDM> {
     private static final long serialVersionUID = 1L;
