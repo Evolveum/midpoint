@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,21 +13,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 
@@ -181,12 +179,14 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     private Boolean attachDiagData;
 
     /**
-     * TODO
+     * TODO, currently used only in model-impl SchemaTransformer, so it seems.
      */
     private DefinitionProcessingOption definitionProcessing;
 
     /**
      * Whether to override default iteration method (in searchObjectsIterative) configured for particular DBMS.
+     *
+     * @deprecated for new repo, it knows how to do iterative search properly
      */
     private IterationMethodType iterationMethod;
 
@@ -940,8 +940,12 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (!(o instanceof GetOperationOptions)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof GetOperationOptions)) {
+            return false;
+        }
         GetOperationOptions that = (GetOperationOptions) o;
         return retrieve == that.retrieve &&
                 Objects.equals(resolve, that.resolve) &&

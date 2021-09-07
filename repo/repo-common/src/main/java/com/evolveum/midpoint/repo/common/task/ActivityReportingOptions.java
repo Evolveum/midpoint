@@ -13,10 +13,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityReportingDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Options that drive state, progress, and error reporting of a search-iterative task.
@@ -28,9 +28,17 @@ import org.jetbrains.annotations.NotNull;
 @Experimental
 public class ActivityReportingOptions implements Cloneable, Serializable {
 
-    private boolean defaultDetermineExpectedTotal = true;
-    private ActivityEventLoggingOptionType defaultBucketCompletionLogging = ActivityEventLoggingOptionType.BRIEF;
-    private ActivityEventLoggingOptionType defaultItemCompletionLogging = ActivityEventLoggingOptionType.NONE;
+    /** Default value for the output of {@link #getDetermineBucketSize()} method. */
+    @NotNull private ActivityItemCountingOptionType defaultDetermineBucketSize = ActivityItemCountingOptionType.WHEN_IN_REPOSITORY_AND_NOT_BUCKETED;
+
+    /** Default value for the output of {@link #getDetermineOverallSize()} method. */
+    @NotNull private ActivityOverallItemCountingOptionType defaultDetermineOverallSize = ActivityOverallItemCountingOptionType.WHEN_IN_REPOSITORY;
+
+    /** Default value for the output of {@link #getBucketCompletionLogging()} method. */
+    @NotNull private ActivityEventLoggingOptionType defaultBucketCompletionLogging = ActivityEventLoggingOptionType.BRIEF;
+
+    /** Default value for the output of {@link #getItemCompletionLogging()} method. */
+    @NotNull private ActivityEventLoggingOptionType defaultItemCompletionLogging = ActivityEventLoggingOptionType.NONE;
 
     private boolean persistentStatistics;
     private boolean enableSynchronizationStatistics;
@@ -55,25 +63,34 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
      */
     private final AtomicReference<ActivityReportingDefinitionType> instanceReportingOptions = new AtomicReference<>();
 
-    public void setDefaultDetermineExpectedTotal(boolean value) {
-        this.defaultDetermineExpectedTotal = value;
+    private void setDefaultDetermineBucketSize(@NotNull ActivityItemCountingOptionType value) {
+        this.defaultDetermineBucketSize = value;
     }
 
-    public ActivityReportingOptions defaultDetermineExpectedTotal(boolean value) {
-        setDefaultDetermineExpectedTotal(value);
+    public ActivityReportingOptions defaultDetermineBucketSize(@NotNull ActivityItemCountingOptionType value) {
+        setDefaultDetermineBucketSize(value);
         return this;
     }
 
-    public void setDefaultBucketCompletionLogging(ActivityEventLoggingOptionType value) {
+    public void setDefaultDetermineOverallSize(@NotNull ActivityOverallItemCountingOptionType value) {
+        this.defaultDetermineOverallSize = value;
+    }
+
+    public ActivityReportingOptions defaultDetermineOverallSize(@NotNull ActivityOverallItemCountingOptionType value) {
+        setDefaultDetermineOverallSize(value);
+        return this;
+    }
+
+    public void setDefaultBucketCompletionLogging(@NotNull ActivityEventLoggingOptionType value) {
         this.defaultBucketCompletionLogging = value;
     }
 
-    public ActivityReportingOptions defaultBucketCompletionLogging(ActivityEventLoggingOptionType value) {
+    public ActivityReportingOptions defaultBucketCompletionLogging(@NotNull ActivityEventLoggingOptionType value) {
         setDefaultBucketCompletionLogging(value);
         return this;
     }
 
-    public void setDefaultItemCompletionLogging(ActivityEventLoggingOptionType value) {
+    public void setDefaultItemCompletionLogging(@NotNull ActivityEventLoggingOptionType value) {
         this.defaultItemCompletionLogging = value;
     }
 
@@ -133,7 +150,7 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
         return skipWritingOperationExecutionRecords;
     }
 
-    public void setSkipWritingOperationExecutionRecords(boolean skipWritingOperationExecutionRecords) {
+    private void setSkipWritingOperationExecutionRecords(boolean skipWritingOperationExecutionRecords) {
         this.skipWritingOperationExecutionRecords = skipWritingOperationExecutionRecords;
     }
 
@@ -176,6 +193,7 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
         return !persistentStatistics;
     }
 
+    /** How should be bucket completion logged? (none/brief/full) */
     @NotNull
     public ActivityEventLoggingOptionType getBucketCompletionLogging() {
         ActivityReportingDefinitionType options = instanceReportingOptions.get();
@@ -186,8 +204,8 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
         }
     }
 
-    @NotNull
-    public ActivityEventLoggingOptionType getItemCompletionLogging() {
+    /** How should be item completion logged? (none/brief/full) */
+    public @NotNull ActivityEventLoggingOptionType getItemCompletionLogging() {
         ActivityReportingDefinitionType options = instanceReportingOptions.get();
         if (options != null && options.getLogging() != null && options.getLogging().getItemCompletion() != null) {
             return options.getLogging().getItemCompletion();
@@ -196,12 +214,36 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
         }
     }
 
-    public boolean isDetermineExpectedTotal() {
-        ActivityReportingDefinitionType options = instanceReportingOptions.get();
-        if (options != null && options.isDetermineExpectedTotal() != null) {
-            return options.isDetermineExpectedTotal();
+    public @NotNull ActivityItemCountingOptionType getDetermineBucketSize() {
+        ActivityItemCountingConfigurationType itemCounting = getItemCounting();
+        if (itemCounting != null && itemCounting.getDetermineBucketSize() != null) {
+            return itemCounting.getDetermineBucketSize();
         } else {
-            return defaultDetermineExpectedTotal;
+            return defaultDetermineBucketSize;
         }
+    }
+
+    public ActivityOverallItemCountingOptionType getDetermineOverallSize() {
+        ActivityItemCountingConfigurationType itemCounting = getItemCounting();
+        if (itemCounting != null && itemCounting.getDetermineOverallSize() != null) {
+            return itemCounting.getDetermineOverallSize();
+        } else {
+            return defaultDetermineOverallSize;
+        }
+    }
+
+    /** Whether we should use the "expected total" (overall size) information if already present. */
+    boolean isCacheOverallSize() {
+        ActivityItemCountingConfigurationType itemCounting = getItemCounting();
+        if (itemCounting != null && itemCounting.isCacheOverallSize() != null) {
+            return itemCounting.isCacheOverallSize();
+        } else {
+            return false;
+        }
+    }
+
+    private @Nullable ActivityItemCountingConfigurationType getItemCounting() {
+        ActivityReportingDefinitionType options = instanceReportingOptions.get();
+        return options != null ? options.getItemCounting() : null;
     }
 }

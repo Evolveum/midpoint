@@ -51,7 +51,7 @@ public class ItemsProgressInformationAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ItemsProgressInformationAsserter<RA> assertNoExpectedTotal() {
-        assertThat(information.getExpectedTotal()).isNull();
+        assertThat(information.getExpectedProgress()).isNull();
         return this;
     }
 }

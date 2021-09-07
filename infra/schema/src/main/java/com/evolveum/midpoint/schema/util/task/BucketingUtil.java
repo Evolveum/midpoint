@@ -7,19 +7,19 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.google.common.base.MoreObjects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Methods related to bucketing part of an activity state and activity distribution definition.
@@ -119,10 +119,12 @@ public class BucketingUtil {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static boolean isCoordinator(ActivityStateType state) {
-        return state != null &&
-                state.getBucketing() != null &&
-                state.getBucketing().getBucketsProcessingRole() == BucketsProcessingRoleType.COORDINATOR;
+    public static boolean isCoordinator(@Nullable ActivityStateType state) {
+        return getBucketsProcessingRole(state) == BucketsProcessingRoleType.COORDINATOR;
+    }
+
+    public static boolean isStandalone(@Nullable ActivityStateType state) {
+        return getBucketsProcessingRole(state) == BucketsProcessingRoleType.STANDALONE;
     }
 
     public static @NotNull List<WorkBucketType> getBuckets(@NotNull TaskActivityStateType taskState,
@@ -136,26 +138,36 @@ public class BucketingUtil {
         return bucketing != null ? bucketing.getBucket() : List.of();
     }
 
-    public static @NotNull List<WorkBucketType> getReadyBuckets(@NotNull ActivityStateType state) {
-        return getBuckets(state).stream()
-                .filter(b -> b.getState() == WorkBucketStateType.READY)
-                .collect(Collectors.toList());
-    }
-
     public static Integer getNumberOfBuckets(@NotNull ActivityStateType state) {
         ActivityBucketingStateType bucketing = state.getBucketing();
         return bucketing != null ? bucketing.getNumberOfBuckets() : null;
     }
 
-    public static BucketsProcessingRoleType getBucketsProcessingRole(TaskActivityStateType taskState, ItemPath stateItemPath) {
-        ActivityBucketingStateType bucketing = ActivityStateUtil.getActivityStateRequired(taskState, stateItemPath)
-                .getBucketing();
-        return bucketing != null ? bucketing.getBucketsProcessingRole() : null;
+    /** A little guesswork for now. */
+    @SuppressWarnings("unused") // Expected to be used later.
+    public static boolean hasNonTrivialBuckets(@NotNull ActivityStateType state) {
+        ActivityBucketingStateType bucketing = state.getBucketing();
+        if (bucketing == null) {
+            return false;
+        }
+        if (bucketing.getNumberOfBuckets() != null && bucketing.getNumberOfBuckets() > 1) {
+            return true;
+        }
+        List<WorkBucketType> buckets = bucketing.getBucket();
+        if (buckets.size() > 1) {
+            return true;
+        } else {
+            return buckets.size() == 1 &&
+                    buckets.get(0).getContent() != null &&
+                    !(buckets.get(0).getContent() instanceof NullWorkBucketContentType);
+        }
     }
 
-    public static boolean isStandalone(TaskActivityStateType taskState, ItemPath stateItemPath) {
-        BucketsProcessingRoleType bucketsProcessingRole = getBucketsProcessingRole(taskState, stateItemPath);
-        return bucketsProcessingRole == null || bucketsProcessingRole == BucketsProcessingRoleType.STANDALONE;
+    private static @NotNull BucketsProcessingRoleType getBucketsProcessingRole(@Nullable ActivityStateType state) {
+        ActivityBucketingStateType bucketing = state != null ? state.getBucketing() : null;
+        return MoreObjects.firstNonNull(
+                bucketing != null ? bucketing.getBucketsProcessingRole() : null,
+                BucketsProcessingRoleType.STANDALONE);
     }
 
     public static boolean isScavenger(TaskActivityStateType taskState, ActivityPath activityPath) {

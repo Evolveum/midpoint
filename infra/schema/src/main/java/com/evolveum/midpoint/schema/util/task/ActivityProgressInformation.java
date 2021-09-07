@@ -300,7 +300,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         }
         if (longForm) {
             return String.format("%.1f%% (%d of %d)", percentage * 100,
-                    itemsProgress.getProgress(), itemsProgress.getExpectedTotal());
+                    itemsProgress.getProgress(), itemsProgress.getExpectedProgress());
         } else {
             return String.format("%.1f%%", percentage * 100);
         }

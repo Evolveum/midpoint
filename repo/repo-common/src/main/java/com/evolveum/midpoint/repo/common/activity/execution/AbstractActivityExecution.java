@@ -434,6 +434,10 @@ public abstract class AbstractActivityExecution<
     }
 
     public boolean isNonScavengingWorker() {
-        return activityState.isWorker() && !activityState.isScavenger();
+        return isWorker() && !activityState.isScavenger();
+    }
+
+    public boolean isWorker() {
+        return activityState.isWorker();
     }
 }

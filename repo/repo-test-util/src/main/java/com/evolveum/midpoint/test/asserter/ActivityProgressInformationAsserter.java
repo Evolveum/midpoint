@@ -12,6 +12,8 @@ import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation.Realiz
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import org.jetbrains.annotations.Nullable;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -49,6 +51,7 @@ public class ActivityProgressInformationAsserter<RA> extends AbstractAsserter<RA
         return assertRealizationState(null);
     }
 
+    @SuppressWarnings("unused")
     public ActivityProgressInformationAsserter<RA> assertNotComplete() {
         assertThat(information.isComplete()).as("Complete").isFalse();
         return this;
@@ -64,6 +67,7 @@ public class ActivityProgressInformationAsserter<RA> extends AbstractAsserter<RA
         return this;
     }
 
+    @SuppressWarnings("unused")
     public ActivityProgressInformationAsserter<RA> assertPath(ActivityPath expected) {
         assertThat(information.getActivityPath()).as("activity path").isEqualTo(expected);
         return this;
@@ -105,12 +109,25 @@ public class ActivityProgressInformationAsserter<RA> extends AbstractAsserter<RA
         return information.getItemsProgress() != null ? information.getItemsProgress().getProgress() : 0;
     }
 
-    public ActivityProgressInformationAsserter<RA> assertItems(int expectedProgress, Integer expectedTotal) {
-        int progress = information.getItemsProgress() != null ? information.getItemsProgress().getProgress() : 0;
-        Integer total = information.getItemsProgress() != null ? information.getItemsProgress().getExpectedTotal() : null;
-        assertThat(progress).as("progress").isEqualTo(expectedProgress);
-        assertThat(total).as("total").isEqualTo(expectedTotal);
+    public ActivityProgressInformationAsserter<RA> assertItems(int progress, Integer expectedProgress) {
+        assertThat(getProgress()).as("progress").isEqualTo(progress);
+        assertThat(getExpectedProgress()).as("expected progress").isEqualTo(expectedProgress);
         return this;
+    }
+
+    public ActivityProgressInformationAsserter<RA> assertExpectedItems(Integer expectedTotal) {
+        assertThat(getExpectedProgress()).as("expected progress").isEqualTo(expectedTotal);
+        return this;
+    }
+
+    private int getProgress() {
+        ItemsProgressInformation itemsProgress = information.getItemsProgress();
+        return itemsProgress != null ? itemsProgress.getProgress() : 0;
+    }
+
+    private @Nullable Integer getExpectedProgress() {
+        ItemsProgressInformation itemsProgress = information.getItemsProgress();
+        return itemsProgress != null ? itemsProgress.getExpectedProgress() : null;
     }
 
     @Override

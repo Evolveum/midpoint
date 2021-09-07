@@ -323,7 +323,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .display()
                 .assertComplete()
                 .assertBuckets(1, 1)
-                .assertItems(5, null);
+                .assertItems(5, 5);
 
         assertPerformance(task1.getOid(), "after")
                 .display()
@@ -703,7 +703,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertProgress(task1.getOid(), "after")
                 .display()
                 .assertComplete()
-                .assertItems(5, null);
+                .assertItems(5, 5);
         assertPerformance(task1.getOid(), "after")
                 .display()
                 .assertItemsProcessed(5)
@@ -785,7 +785,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertProgress(task1.getOid(), "after")
                 .display()
                 .assertComplete()
-                .assertItems(12, null)
+                .assertItems(12, 12)
                 .assertBuckets(4, 4);
         assertPerformance(task1.getOid(), "after")
                 .display()
@@ -865,7 +865,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .display()
                 .assertComplete()
                 .assertBuckets(1, 1)
-                .assertItems(100, null); // TODO expected
+                .assertItems(100, 100);
         assertPerformance(task1.getOid(), "after")
                 .display()
                 .assertItemsProcessed(100)
@@ -930,7 +930,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .display()
                 .assertComplete()
                 .assertBuckets(11, 11)
-                .assertItems(100, null); // TODO expected
+                .assertItems(100, 100);
         assertPerformance(task1.getOid(), "after")
                 .display()
                 .assertItemsProcessed(100)
@@ -1123,13 +1123,13 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .child("first") // 0 configs
                     .assertComplete()
                     .assertBuckets(1, 1)
-                    .assertItems(0, null)
+                    .assertItems(0, 0)
                     .assertNoChildren()
                 .end()
                 .child("second") // 1 user
                     .assertComplete()
                     .assertBuckets(1, 1)
-                    .assertItems(1, null)
+                    .assertItems(1, 1)
                 .end()
                 .child("composition:1")
                     .assertComplete()
@@ -1139,18 +1139,18 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .child("third-A")
                         .assertComplete()
                         .assertBuckets(11, 11)
-                        .assertItems(10, null)
+                        .assertItems(10, 10)
                     .end()
                     .child("third-B")
                         .assertComplete()
                         .assertBuckets(1, 1)
-                        .assertItems(1, null)
+                        .assertItems(1, 1)
                     .end()
                 .end()
                 .child("fourth")
                     .assertComplete()
                     .assertBuckets(101, 101)
-                    .assertItems(100, null)
+                    .assertItems(100, 100)
                     .assertNoChildren()
                 .end();
 
@@ -1249,18 +1249,18 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .child("first") // 0 configs
                     .assertComplete()
                     .assertBuckets(1, 1)
-                    .assertItems(0, null)
+                    .assertItems(0, 0) // we determine expected total also in bucket analysis mode
                     .assertNoChildren()
                 .end()
                 .child("second")
                     .assertComplete()
                     .assertBuckets(11, 11)
-                    .assertItems(0, null)
+                    .assertItems(0, 10) // we determine expected total also in bucket analysis mode
                 .end()
                 .child("third")
                     .assertComplete()
                     .assertBuckets(101, 101)
-                    .assertItems(0, null)
+                    .assertItems(0, 100) // we determine expected total also in bucket analysis mode
                 .end();
 
         assertPerformance( task1.getOid(),"after")
