@@ -10,6 +10,8 @@ import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -20,6 +22,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.test.SearchAssertion;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -85,6 +89,23 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         then();
         assertSuperuserAccess(NUMBER_OF_ALL_USERS);
+
+        Collection<SelectorOptions<GetOperationOptions>> withCases = SchemaService.get().getOperationOptionsBuilder().
+                item(AccessCertificationCampaignType.F_CASE).retrieve().build();
+        assertSearch(AccessCertificationCampaignType.class, null, withCases, new SearchAssertion<>() {
+
+            public void assertObjects(String message, List<PrismObject<AccessCertificationCampaignType>> objects) throws Exception {
+                for (PrismObject<AccessCertificationCampaignType> obj : objects) {
+                    assertTrue(!obj.asObjectable().getCase().isEmpty());
+                }
+
+            }
+
+            public void assertCount(int count) throws Exception {
+
+            }
+
+        });
         assertGlobalStateUntouched();
     }
 
