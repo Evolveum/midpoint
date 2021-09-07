@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static org.testng.Assert.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
+
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -352,6 +355,9 @@ public class TestDelivery extends AbstractStoryTest {
         //noinspection PrimitiveArrayArgumentToVarargsMethod
         modifyUserAdd(userBobOid, UserType.F_JPEG_PHOTO, task, result, "SGVsbG8=".getBytes());
         assertResultStatus(result, OperationResultStatus.SUCCESS);
+
+        PrismObject<UserType> userBobNoRetrievePhoto = modelService.getObject(UserType.class, userBobOid, Collections.emptyList(), task, result);
+        assertNull(userBobNoRetrievePhoto.asObjectable().getJpegPhoto(), "Jpeg photo should not be returned");
 
         PrismObject<UserType> userBobAfter = modelService.getObject(UserType.class, userBobOid, getOperationOptionsBuilder().item(UserType.F_JPEG_PHOTO).retrieve().build(), task, result);
         assertUser(userBobAfter, "after")

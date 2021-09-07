@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestActivation;
@@ -14,11 +15,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -50,11 +49,11 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
     private static final File TEST_DIR = new File("src/test/resources/sync");
 
-    protected static final File ROLE_RED_JUDGE_FILE = new File(TEST_DIR, "role-red-judge.xml");
-    protected static final String ROLE_RED_JUDGE_OID = "12345111-1111-2222-1111-121212111222";
+    private static final File ROLE_RED_JUDGE_FILE = new File(TEST_DIR, "role-red-judge.xml");
+    private static final String ROLE_RED_JUDGE_OID = "12345111-1111-2222-1111-121212111222";
 
-    protected static final File ROLE_BIG_JUDGE_FILE = new File(TEST_DIR, "role-big-judge.xml");
-    protected static final String ROLE_BIG_JUDGE_OID = "12345111-1111-2222-1111-121212111224";
+    private static final File ROLE_BIG_JUDGE_FILE = new File(TEST_DIR, "role-big-judge.xml");
+    private static final String ROLE_BIG_JUDGE_OID = "12345111-1111-2222-1111-121212111224";
 
     private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 0, 0);
 
@@ -476,6 +475,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNoDummyAccount(null, USER_JACK_USERNAME);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private AssignmentType getJudgeAssignment(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = getUser(userOid);
         List<AssignmentType> assignments = user.asObjectable().getAssignment();
@@ -1414,7 +1414,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         TestUtil.assertSuccess(result);
 
         // Let's wait for the task to give it a change to screw up
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTriggerNextRunAssertSuccess();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("Jack", userJack);
@@ -1449,7 +1449,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         when();
         clock.override(time);
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTriggerNextRunAssertSuccess();
 
         // THEN
         then();
@@ -1465,38 +1465,34 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         PrismObject<UserType> userDrake = PrismTestUtil.parseObject(USER_DRAKE_FILE);
         UserType userDrakeType = userDrake.asObjectable();
 
-        // Activation
-        ActivationType activationType = new ActivationType();
-        userDrakeType.setActivation(activationType);
         drakeValidFrom = clock.currentTimeXMLGregorianCalendar();
         drakeValidFrom.add(XmlTypeConverter.createDuration(true, 0, 0, 10, 0, 0, 0));
-        activationType.setValidFrom(drakeValidFrom);
         drakeValidTo = clock.currentTimeXMLGregorianCalendar();
         drakeValidTo.add(XmlTypeConverter.createDuration(true, 0, 0, 80, 0, 0, 0));
-        activationType.setValidTo(drakeValidTo);
+
+        // Activation
+        ActivationType activation =
+                userDrakeType.beginActivation()
+                        .validFrom(drakeValidFrom)
+                        .validTo(drakeValidTo);
 
         // Assignment: dummy red
-        AssignmentType assignmentType = new AssignmentType();
-        userDrakeType.getAssignment().add(assignmentType);
-        ConstructionType constructionType = new ConstructionType();
-        assignmentType.setConstruction(constructionType);
-        constructionType.setKind(ShadowKindType.ACCOUNT);
-        ObjectReferenceType resourceRedRef = new ObjectReferenceType();
-        resourceRedRef.setOid(RESOURCE_DUMMY_RED_OID);
-        constructionType.setResourceRef(resourceRedRef);
+        userDrakeType.beginAssignment()
+                .beginConstruction()
+                    .kind(ShadowKindType.ACCOUNT)
+                    .resourceRef(RESOURCE_DUMMY_RED_OID, ResourceType.COMPLEX_TYPE);
 
-        // the following assignments are used only to generate superfluous searches
-        // in validity scanner task
-        AssignmentType dummyAssignmentType1 = new AssignmentType();
-        userDrakeType.getAssignment().add(dummyAssignmentType1);
-        dummyAssignmentType1.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_SUPERUSER_OID, ObjectTypes.ROLE));
-        dummyAssignmentType1.setActivation(activationType.clone());
-
-        AssignmentType dummyAssignmentType2 = new AssignmentType();
-        userDrakeType.getAssignment().add(dummyAssignmentType2);
-        dummyAssignmentType2.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_SUPERUSER_OID, ObjectTypes.ROLE));
-        dummyAssignmentType2.setActivation(activationType.clone());
-        dummyAssignmentType2.setDescription("just to differentiate");
+        // the following assignments are used only to generate superfluous searches in validity scanner task
+        userDrakeType
+                .beginAssignment()
+                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .activation(activation.clone())
+                .<UserType>end()
+                .beginAssignment()
+                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .activation(activation.clone())
+                    .description("just to differentiate")
+                .end();
 
         display("Drake before", userDrake);
 
@@ -1507,10 +1503,11 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         // THEN
         // Give the tasks a chance to screw up
+        then();
         waitForValidityNextRunAssertSuccess();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTriggerNextRunAssertSuccess();
 
-        // Make sure that it is effectivelly disabled
+        // Make sure that it is effectively disabled
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
@@ -1530,10 +1527,10 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         // just wait
         waitForValidityNextRunAssertSuccess();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTriggerNextRunAssertSuccess();
 
         // THEN
-        // Make sure that it is effectivelly disabled
+        // Make sure that it is effectively disabled
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
@@ -1555,7 +1552,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         // just wait
         waitForValidityNextRunAssertSuccess();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTriggerNextRunAssertSuccess();
 
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1579,7 +1576,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         // just wait
         waitForValidityNextRunAssertSuccess();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTriggerNextRunAssertSuccess();
 
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1603,7 +1600,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         // just wait
         waitForValidityNextRunAssertSuccess();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTriggerNextRunAssertSuccess();
 
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1628,7 +1625,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         // just wait
         waitForValidityNextRunAssertSuccess();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTriggerNextRunAssertSuccess();
 
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1653,7 +1650,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         // just wait
         waitForValidityNextRunAssertSuccess();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTriggerNextRunAssertSuccess();
 
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
@@ -1780,12 +1777,30 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForTaskFinish(TASK_VALIDITY_SCANNER_OID, true);
     }
 
-    protected void waitForValidityTaskStart() throws Exception {
+    private void waitForValidityTaskStart() throws Exception {
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, false);
     }
 
     protected void waitForValidityNextRunAssertSuccess() throws Exception {
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        displayValidityScannerState();
+    }
+
+    private void waitForTriggerNextRunAssertSuccess() throws Exception {
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        assertTask(TASK_TRIGGER_SCANNER_OID, "trigger scanner task")
+                .rootActivityState()
+                    .display()
+                    .itemProcessingStatistics()
+                        .display();
+    }
+
+    protected void displayValidityScannerState() throws SchemaException, ObjectNotFoundException {
+        assertTask(TASK_VALIDITY_SCANNER_OID, "validity task")
+                .activityState(ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_PATH)
+                    .display()
+                    .itemProcessingStatistics()
+                        .display();
     }
 
     // Overridden to check the partitioned case

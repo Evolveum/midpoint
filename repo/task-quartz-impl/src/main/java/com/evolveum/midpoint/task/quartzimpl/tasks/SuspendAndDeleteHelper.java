@@ -265,4 +265,29 @@ class SuspendAndDeleteHelper {
         allTasks.add(root);
         deleteTasks(allTasks, result);
     }
+
+    void markClosedTaskSuspended(String taskOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        try {
+            repositoryService.modifyObjectDynamically(TaskType.class, taskOid, null,
+                    task -> {
+                        TaskExecutionStateType state = task.getExecutionStatus();
+                        if (state == TaskExecutionStateType.CLOSED) {
+                            return prismContext.deltaFor(TaskType.class)
+                                    .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStateType.SUSPENDED)
+                                    .item(TaskType.F_SCHEDULING_STATE).replace(TaskSchedulingStateType.SUSPENDED)
+                                    .item(TaskType.F_STATE_BEFORE_SUSPEND).replace(TaskExecutionStateType.RUNNABLE)
+                                    .item(TaskType.F_SCHEDULING_STATE_BEFORE_SUSPEND).replace(TaskSchedulingStateType.READY)
+                                    .asItemDeltas();
+                        } else if (state == TaskExecutionStateType.SUSPENDED) {
+                            return List.of();
+                        } else {
+                            throw new IllegalStateException("Couldn't mark closed task as suspended, "
+                                    + "because the state is " + state);
+                        }
+                    }, null, result);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new SystemException("Unexpected ObjectAlreadyExistsException: " + e.getMessage(), e);
+        }
+    }
 }

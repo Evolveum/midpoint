@@ -27,7 +27,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskUnpauseActionType;
 
 /**
@@ -43,21 +42,19 @@ class SubtaskHelper {
         this.activityExecution = activityExecution;
     }
 
-    void deleteRelevantSubtasksIfPossible(OperationResult result) throws ActivityExecutionException {
-        LOGGER.debug("Going to delete subtasks, if there are any, and if they are closed");
+    /**
+     * Checks that there are no relevant subtasks existing. (They should have been deleted during state purging process,
+     * unless the state is persistent.)
+     */
+    void checkNoRelevantSubtasksDoExist(OperationResult result) throws ActivityExecutionException {
+        LOGGER.debug("Going to check for existing subtasks");
         try {
             List<? extends Task> relevantChildren = getRelevantChildren(result);
-            List<? extends Task> notClosed = relevantChildren.stream()
-                    .filter(t -> !t.isClosed())
-                    .collect(Collectors.toList());
-            if (!notClosed.isEmpty()) {
+            if (!relevantChildren.isEmpty()) {
                 // The error may be permanent or transient. But reporting it as permanent is more safe, as it causes
                 // the parent task to always suspend, catching the attention of the administrators.
-                throw new ActivityExecutionException("Couldn't (re)create activity subtask(s) because there are existing one(s) "
-                        + "that are not closed: " + notClosed, FATAL_ERROR, PERMANENT_ERROR);
-            }
-            for (Task worker : relevantChildren) {
-                getBeans().taskManager.deleteTaskTree(worker.getOid(), result);
+                throw new ActivityExecutionException("Couldn't (re)create activity subtask(s) because there are existing one(s): "
+                        + "that are not closed: " + relevantChildren, FATAL_ERROR, PERMANENT_ERROR);
             }
         } catch (Exception e) {
             throw new ActivityExecutionException("Couldn't delete activity subtask(s)", FATAL_ERROR, PERMANENT_ERROR, e);

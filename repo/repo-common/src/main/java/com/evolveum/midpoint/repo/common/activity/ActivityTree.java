@@ -97,15 +97,19 @@ public class ActivityTree implements DebugDumpable {
         treeStateOverview.updateRealizationState(value, result);
     }
 
+    /** Purges the activity state (usually before new realization). */
     public void purgeState(GenericTaskExecution taskExecution, OperationResult result) throws ActivityExecutionException {
-        purgeStateOverview(result);
+        purgeTreeStateOverview(result);
         purgeDetailedState(taskExecution, result);
     }
 
-    private void purgeStateOverview(OperationResult result) throws ActivityExecutionException {
+    private void purgeTreeStateOverview(OperationResult result) throws ActivityExecutionException {
         treeStateOverview.purge(result);
     }
 
+    /**
+     * Purges detailed state of the activities: including worker and delegator tasks!
+     */
     private void purgeDetailedState(GenericTaskExecution taskExecution, OperationResult result)
             throws ActivityExecutionException {
         new TreeStatePurger(taskExecution, beans)

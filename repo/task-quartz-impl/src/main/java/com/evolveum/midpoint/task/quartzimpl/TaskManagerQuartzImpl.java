@@ -98,6 +98,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     private static final String OP_STOP_SCHEDULER = DOT_INTERFACE + "stopScheduler";
     private static final String OP_STOP_SCHEDULERS_AND_TASKS = DOT_INTERFACE + "stopSchedulersAndTasks";
     private static final String OP_SUSPEND_TASK = DOT_INTERFACE + "suspendTask";
+    private static final String OP_MARK_CLOSED_TASK_SUSPENDED = DOT_INTERFACE + "markClosedTaskSuspended";
     private static final String OP_SUSPEND_TASKS = DOT_INTERFACE + "suspendTasks";
 
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
@@ -231,6 +232,22 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
+    public void markClosedTaskSuspended(String taskOid, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+        OperationResult result = parentResult.subresult(OP_MARK_CLOSED_TASK_SUSPENDED)
+                .addParam("taskOid", taskOid)
+                .build();
+        try {
+            taskStateManager.markClosedTaskSuspended(taskOid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 

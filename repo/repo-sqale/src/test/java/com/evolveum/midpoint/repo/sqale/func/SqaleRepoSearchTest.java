@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
@@ -32,7 +33,10 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -49,6 +53,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -1954,6 +1959,22 @@ AND(
         assertThat(result)
                 .extracting(f -> f.getOid())
                 .containsExactlyInAnyOrder(user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test960SearchGetNames() throws SchemaException {
+        var options = SchemaService.get().getOperationOptionsBuilder().resolveNames().build();
+        ObjectQuery query = PrismContext.get().queryFor(FocusType.class).all().build();
+        SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options.iterator().next());
+        assertNotNull(result);
+        Visitor check = visitable -> {
+            if (visitable instanceof PrismReferenceValue) {
+                assertNotNull(((PrismReferenceValue) visitable).getTargetName(), "TargetName should be set.");
+            }
+        };
+        for(FocusType obj : result) {
+            obj.asPrismObject().accept(check);
+        }
     }
 
     @Test
