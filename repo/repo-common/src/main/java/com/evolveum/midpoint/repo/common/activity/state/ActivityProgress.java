@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.state;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -21,7 +23,6 @@ import com.evolveum.midpoint.schema.util.task.ActivityProgressUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProgressType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 
@@ -99,7 +100,11 @@ public class ActivityProgress extends Initializable {
         assertInitialized();
         // TODO We should use the dynamic modification approach in order to provide most current values to the task
         //  (in case of update conflicts). But let's wait for the new repo with this.
-        activityState.setItemRealValues(ActivityStateType.F_PROGRESS, getValueCopy());
+        ActivityProgressType value = getValueCopy();
+        activityState.setItemRealValuesCollection(ActivityState.PROGRESS_COMMITTED_PATH,
+                CloneUtil.cloneCollectionMembers(value.getCommitted()));
+        activityState.setItemRealValuesCollection(ActivityState.PROGRESS_UNCOMMITTED_PATH,
+                CloneUtil.cloneCollectionMembers(value.getUncommitted()));
     }
 
     private CommonTaskBeans getBeans() {

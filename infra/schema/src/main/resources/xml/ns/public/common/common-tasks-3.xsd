@@ -396,7 +396,17 @@
                                 Expected target (goal) value of task progress. Perceived progress
                                 is computed as a ratio of progress/expectedTotal. May be null; in that
                                 case we just do not know how much progress we should expect.
+
+                                DEPRECATED. This property is not used by standard (activity-based) tasks.
+                                It will be eventually removed, after all tasks are migrated to activities.
+
+                                For activity-based tasks, it is replaced by activityState/progress/expectedInCurrentBucket
+                                and - eventually - activityState/progress/expectedTotal.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
@@ -823,6 +833,22 @@
                     <xsd:documentation>
                         Counters representing items that were processed but they may be processed again if the activity is
                         re-run, e.g. their bucket is not completed yet. (Or because the live sync token was not yet updated.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expectedTotal" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expected total progress for this activity (comprising all buckets, if the activity is bucketed).
+                        May or may not be known. Currently only very experimental. (Must be explicitly turned on,
+                        and not supported for coordinator-workers scenarios.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expectedInCurrentBucket" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expected progress (i.e. number of items) in the current bucket.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5794,18 +5820,179 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="determineExpectedTotal" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="itemCounting" type="tns:ActivityItemCountingConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Should the activity execution try to determine expected total (usually by counting
-                        objects before processing)? Currently not applicable to bucketed activities.
+                        How should the activity deal with item counting, i.e. determining "expected progress"
+                        for a bucket or overall.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="activityReportingDefinition" type="tns:ActivityReportingDefinitionType" />
+
+    <xsd:complexType name="ActivityItemCountingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should the activity deal with item counting, i.e. determining "expected total"
+                for a bucket or overall.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="determineBucketSize" type="tns:ActivityItemCountingOptionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should the activity execution try to determine the size of individual buckets (usually by counting
+                        objects before processing)? When execution mode is bucketAnalysis, the bucket size is determined
+                        regardless of this setting.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="determineOverallSize" type="tns:ActivityOverallItemCountingOptionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should the activity execution try to determine expected total progress (usually by counting
+                        objects before processing)? Currently not supported for coordinator-workers scenarios.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="cacheOverallSize" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should we cache expected total progress between activity executions? (Meaning when suspending
+                        and resuming an activity.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ActivityItemCountingOptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity will always execute the items counting.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="whenNotBucketed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity counts the items only if it is not bucketed (i.e. does not support bucketing
+                        at all, or has a single "default" bucket only). The idea is that in this case the items count
+                        really matters in order to estimate the relative task progress.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WHEN_NOT_BUCKETED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="whenInRepository">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity counts the items only if the item source resides in repository
+                        (the idea is that repository searches are faster than resource object searches).
+                        Currently available only for search-based activities.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WHEN_IN_REPOSITORY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="whenInRepositoryAndNotBucketed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity counts the items only if the item source resides in repository
+                        and the activity is not bucketed.
+                        Currently available only for search-based activities.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WHEN_IN_REPOSITORY_AND_NOT_BUCKETED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity does not count the items.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ActivityOverallItemCountingOptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Just like ActivityItemCountingOptionType but currently does not support distinguishing based
+                on bucketed/non-bucketed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity will always execute the items counting.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="whenInRepository">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity counts the items only if the item source resides in repository
+                        (the idea is that repository searches are faster than resource object searches).
+                        Currently available only for search-based activities.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WHEN_IN_REPOSITORY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity does not count the items.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ProcessTracingConfigurationType">
         <xsd:annotation>

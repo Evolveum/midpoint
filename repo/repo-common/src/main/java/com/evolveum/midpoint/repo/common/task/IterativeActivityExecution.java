@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import static com.evolveum.midpoint.repo.common.activity.state.ActivityState.EXPECTED_IN_CURRENT_PROGRESS_PATH;
+import static com.evolveum.midpoint.repo.common.activity.state.ActivityState.EXPECTED_TOTAL_PATH;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.PARTIAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil.*;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-import static com.evolveum.midpoint.util.MiscUtil.toLong;
 
 import java.util.Objects;
 
@@ -109,6 +110,13 @@ public abstract class IterativeActivityExecution<
      * It is used to narrow the search query for search-based activities.
      */
     protected WorkBucketType bucket;
+
+    /**
+     * Expected progress (overall) if it was determined for the current execution.
+     * It is used to avoid re-counting objects if there's no bucketing.
+     * So only fresh values are stored here.
+     */
+    private Integer expectedTotal;
 
     /**
      * Information needed to manage buckets.
@@ -214,6 +222,8 @@ public abstract class IterativeActivityExecution<
         boolean initialExecution = true;
 
         bucketingSituation = determineBucketingSituation();
+
+        setExpectedTotal(result);
 
 //        resetWorkStateAndStatisticsIfWorkComplete(result);
 //        startCollectingStatistics(task, handler);
@@ -345,7 +355,7 @@ public abstract class IterativeActivityExecution<
             return skipSingleBucket(result);
         }
 
-        prepareItemSource(result);
+        prepareItemSourceForCurrentBucket(result);
 
         if (isBucketsAnalysis()) {
             return analyzeSingleBucket(result);
@@ -362,7 +372,7 @@ public abstract class IterativeActivityExecution<
     }
 
     private boolean analyzeSingleBucket(OperationResult result) throws CommonException, ActivityExecutionException {
-        Integer bucketSize = determineExpectedTotal(result);
+        Integer bucketSize = determineCurrentBucketSize(result);
         if (bucketSize != null) {
             LOGGER.info("Bucket size is {} for {}", bucketSize, bucket);
         } else {
@@ -386,7 +396,7 @@ public abstract class IterativeActivityExecution<
 
         executionSpecifics.beforeBucketExecution(result);
 
-        setExpectedTotal(result);
+        setCurrentBucketSize(result);
 
         coordinator = setupCoordinatorAndWorkerThreads();
         try {
@@ -428,7 +438,8 @@ public abstract class IterativeActivityExecution<
      * Iterative activities delegate this method fully to the plugin. However, search-based activities provide
      * their own default implementation.
      */
-    abstract protected void prepareItemSource(OperationResult result) throws ActivityExecutionException, CommonException;
+    abstract protected void prepareItemSourceForCurrentBucket(OperationResult result)
+            throws ActivityExecutionException, CommonException;
 
     private ActivityExecutionResult createExecutionResult() {
         if (!canRun()) {
@@ -446,19 +457,106 @@ public abstract class IterativeActivityExecution<
         }
     }
 
-    private void setExpectedTotal(OperationResult result) throws CommonException {
-        Integer expectedTotal = determineExpectedTotal(result);
-        getRunningTask().setExpectedTotal(toLong(expectedTotal));
-        getRunningTask().flushPendingModifications(result);
+    private void setExpectedTotal(OperationResult result) throws CommonException, ActivityExecutionException {
+        Integer knownExpectedTotal = activityState.getPropertyRealValue(EXPECTED_TOTAL_PATH, Integer.class);
+
+        Integer expectedTotal;
+        if (isWorker()) {
+            LOGGER.trace("Expected total progress is not supported for worker tasks yet.");
+            // We'd need something executed before distributing activity creates the workers.
+            expectedTotal = null;
+        } else if (!shouldDetermineOverallSize(result)) {
+            expectedTotal = null;
+        } else if (getReportingOptions().isCacheOverallSize()) {
+            if (knownExpectedTotal != null) {
+                return; // no need to set anything
+            } else {
+                this.expectedTotal = expectedTotal = determineOverallSize(result);
+            }
+        } else {
+            this.expectedTotal = expectedTotal = determineOverallSize(result);
+        }
+
+        if (!Objects.equals(expectedTotal, knownExpectedTotal)) {
+            activityState.setItemRealValues(EXPECTED_TOTAL_PATH, expectedTotal);
+            activityState.flushPendingModificationsChecked(result);
+        }
+    }
+
+    private boolean shouldDetermineOverallSize(OperationResult result) throws ActivityExecutionException, CommonException {
+        ActivityOverallItemCountingOptionType option = getReportingOptions().getDetermineOverallSize();
+        switch (option) {
+            case ALWAYS:
+                return true;
+            case NEVER:
+                return false;
+            case WHEN_IN_REPOSITORY:
+                return isInRepository(result);
+            default:
+                throw new AssertionError(option);
+        }
+    }
+
+    private void setCurrentBucketSize(OperationResult result) throws CommonException, ActivityExecutionException {
+        Integer bucketSize;
+        if (expectedTotal != null && isNotBucketed()) {
+            bucketSize = expectedTotal;
+            LOGGER.trace("Determined bucket size from expected progress obtained earlier in this execution: {}", bucketSize);
+        } else if (shouldDetermineBucketSize(result)) {
+            bucketSize = determineCurrentBucketSize(result);
+            LOGGER.trace("Determined bucket size: {}", bucketSize);
+        } else {
+            bucketSize = null;
+        }
+
+        activityState.setItemRealValues(EXPECTED_IN_CURRENT_PROGRESS_PATH, bucketSize);
+        activityState.flushPendingModificationsChecked(result);
+    }
+
+    private boolean shouldDetermineBucketSize(OperationResult result) throws ActivityExecutionException, CommonException {
+        ActivityItemCountingOptionType option = getReportingOptions().getDetermineBucketSize();
+        switch (option) {
+            case ALWAYS:
+                return true;
+            case NEVER:
+                return false;
+            case WHEN_NOT_BUCKETED:
+                return isNotBucketed();
+            case WHEN_IN_REPOSITORY:
+                return isInRepository(result);
+            case WHEN_IN_REPOSITORY_AND_NOT_BUCKETED:
+                return isInRepository(result) && isNotBucketed();
+            default:
+                throw new AssertionError(option);
+        }
     }
 
     /**
-     * Determines "expected total" for the activity.
-     * E.g. for search-iterative tasks we count the objects here. (Except for bucketed executions.)
+     * BEWARE! assumes that bucket is already set. So use this method only in {@link #executeSingleBucket(OperationResult)}!
+     */
+    private boolean isNotBucketed() {
+        assert bucket != null;
+        return !BucketingUtil.hasLimitations(bucket);
+    }
+
+    protected abstract boolean isInRepository(OperationResult result) throws ActivityExecutionException, CommonException;
+
+    /**
+     * Determines expected progress (overall size) for the activity.
+     * E.g. for search-based activities we count the objects here (overall).
      *
      * @return null if no value could be determined or is not applicable
      */
-    protected abstract @Nullable Integer determineExpectedTotal(OperationResult opResult) throws CommonException;
+    protected abstract @Nullable Integer determineOverallSize(OperationResult result)
+            throws CommonException, ActivityExecutionException;
+
+    /**
+     * Determines the current bucket size.
+     * E.g. for search-based activities we count the objects here (in current bucket).
+     *
+     * @return null if no value could be determined or is not applicable
+     */
+    protected abstract @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException;
 
     /**
      * Starts the item source (e.g. `searchObjectsIterative` call or `synchronize` call) and begins processing items

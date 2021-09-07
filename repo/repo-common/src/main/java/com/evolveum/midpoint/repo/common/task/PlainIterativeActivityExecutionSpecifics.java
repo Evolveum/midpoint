@@ -44,14 +44,22 @@ public interface PlainIterativeActivityExecutionSpecifics<I>
     void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult opResult) throws CommonException;
 
     /**
-     * Determines "expected total" value for the current execution.
+     * Determines the expected total progress.
      *
-     * Majority of current iterative activities do not know the expected total: for example, ConnId SyncOp does not
+     * Majority of current plain iterative activities do not know the number of items: for example, ConnId SyncOp does not
      * provide information about how many changes are on the resource. But there might be some activities that do.
-     *
-     * (Also note that in case of bucketed executions this method should run null - at least for now.)
      */
-    default @Nullable Integer determineExpectedTotal(OperationResult result) throws CommonException {
+    default @Nullable Integer determineOverallSize(OperationResult result) throws CommonException {
+        return null;
+    }
+
+    /**
+     * Determines the current bucket size.
+     *
+     * Not applicable to the majority of current plain iterative activities, just like
+     * {@link #determineOverallSize(OperationResult)}.
+     */
+    default @Nullable Integer determineCurrentBucketSize(WorkBucketType bucket, OperationResult result) throws CommonException {
         return null;
     }
 

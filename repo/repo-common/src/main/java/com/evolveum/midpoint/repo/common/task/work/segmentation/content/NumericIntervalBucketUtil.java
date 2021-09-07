@@ -63,5 +63,9 @@ public class NumericIntervalBucketUtil {
         public static Interval of(int from, int to) {
             return new Interval(from, to);
         }
+
+        public int getSize() {
+            return to - from;
+        }
     }
 }

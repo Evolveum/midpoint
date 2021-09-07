@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemCountingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +40,8 @@ public class AsyncUpdateActivityExecutionSpecifics
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .defaultDetermineBucketSize(ActivityItemCountingOptionType.NEVER)
+                .defaultDetermineOverallSize(ActivityOverallItemCountingOptionType.NEVER)
                 .persistentStatistics(true)
                 .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(true); // TODO ok?

@@ -20,12 +20,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType.NONE;
 
 /**
  * Things that we want to remember for all task scanners, like scanning timestamps.
@@ -49,8 +48,9 @@ public abstract class ScanActivityExecutionSpecifics<
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return super.getDefaultReportingOptions()
                 .persistentStatistics(true)
-                .defaultDetermineExpectedTotal(false) // To avoid problems like in MID-6934.
-                .defaultBucketCompletionLogging(ActivityEventLoggingOptionType.NONE); // To avoid log noise.
+                .defaultDetermineBucketSize(ActivityItemCountingOptionType.NEVER) // To avoid problems like in MID-6934.
+                .defaultDetermineOverallSize(ActivityOverallItemCountingOptionType.NEVER)
+                .defaultBucketCompletionLogging(NONE); // To avoid log noise.
     }
 
     @Override

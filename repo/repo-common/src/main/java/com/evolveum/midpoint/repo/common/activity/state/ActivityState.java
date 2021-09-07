@@ -45,6 +45,10 @@ public abstract class ActivityState implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityState.class);
 
+    public static final @NotNull ItemPath PROGRESS_COMMITTED_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_COMMITTED);
+    public static final @NotNull ItemPath PROGRESS_UNCOMMITTED_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_UNCOMMITTED);
+    public static final @NotNull ItemPath EXPECTED_IN_CURRENT_PROGRESS_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_EXPECTED_IN_CURRENT_BUCKET);
+    public static final @NotNull ItemPath EXPECTED_TOTAL_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_EXPECTED_TOTAL);
     private static final @NotNull ItemPath BUCKETING_ROLE_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKETS_PROCESSING_ROLE);
     private static final @NotNull ItemPath SCAVENGER_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
 
@@ -121,15 +125,23 @@ public abstract class ActivityState implements DebugDumpable {
      */
     public void setItemRealValues(ItemPath path, Object... values) throws ActivityExecutionException {
         convertException(
-                () -> setItemRealValues(path, isSingleNull(values) ? List.of() : Arrays.asList(values)));
+                () -> setItemRealValuesInternal(path, isSingleNull(values) ? List.of() : Arrays.asList(values)));
     }
 
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
      */
-    private void setItemRealValues(ItemPath path, Collection<?> values) throws SchemaException {
+    public void setItemRealValuesCollection(ItemPath path, Collection<?> values) throws ActivityExecutionException {
+        convertException(
+                () -> setItemRealValuesInternal(path, values));
+    }
+
+    /**
+     * DO NOT use for setting work state items because of dynamic typing of the work state container value.
+     */
+    private void setItemRealValuesInternal(ItemPath path, Collection<?> values) throws SchemaException {
         Task task = getTask();
-        LOGGER.trace("setItemRealValues: path={}, values={} in {}", path, values, task);
+        LOGGER.trace("setItemRealValuesInternal: path={}, values={} in {}", path, values, task);
 
         task.modify(
                 PrismContext.get().deltaFor(TaskType.class)

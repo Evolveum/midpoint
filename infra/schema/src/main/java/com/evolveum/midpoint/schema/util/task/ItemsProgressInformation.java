@@ -13,6 +13,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProgressType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -29,11 +30,11 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
     /**
      * Expected total number of items, if known.
      */
-    private final Integer expectedTotal;
+    private final Integer expectedProgress;
 
-    private ItemsProgressInformation(int progress, Integer expectedTotal) {
+    private ItemsProgressInformation(int progress, Integer expectedProgress) {
         this.progress = progress;
-        this.expectedTotal = expectedTotal;
+        this.expectedProgress = expectedProgress;
     }
 
     public static ItemsProgressInformation create(int totalProgress, Integer expectedTotal) {
@@ -61,12 +62,12 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
 
     public static ItemsProgressInformation fromActivityState(ActivityStateType state) {
         if (state == null || state.getProgress() == null) {
-            return null; // TODO ok?
-        } else {
-            // TODO expected total
-            return new ItemsProgressInformation(
-                    ActivityProgressUtil.getCurrentProgress(state.getProgress()), null);
+            return null;
         }
+
+        ActivityProgressType progress = state.getProgress();
+        return new ItemsProgressInformation(
+                ActivityProgressUtil.getCurrentProgress(progress), progress.getExpectedTotal());
     }
 
     /**
@@ -79,22 +80,22 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
                 ActivityTreeUtil.getSubtasksForPath(task, activityPath, resolver).stream()
                         .mapToInt(subtask -> ActivityProgressUtil.getCurrentProgress(subtask, activityPath))
                         .sum(),
-                null);
+                null); // TODO use expectedProgress when available for bucketed coordinators
     }
 
     public int getProgress() {
         return progress;
     }
 
-    public Integer getExpectedTotal() {
-        return expectedTotal;
+    public Integer getExpectedProgress() {
+        return expectedProgress;
     }
 
     @Override
     public String toString() {
         return "ItemsProgressInformation{" +
                 "progress=" + progress +
-                ", expectedTotal=" + expectedTotal +
+                ", expected=" + expectedProgress +
                 '}';
     }
 
@@ -102,20 +103,20 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpWithLabelLn(sb, "Progress", progress, indent);
-        DebugUtil.debugDumpWithLabel(sb, "Expected total", expectedTotal, indent);
+        DebugUtil.debugDumpWithLabel(sb, "Expected progress", expectedProgress, indent);
         return sb.toString();
     }
 
     public float getPercentage() {
-        if (expectedTotal != null && expectedTotal > 0) {
-            return (float) progress / expectedTotal;
+        if (expectedProgress != null && expectedProgress > 0) {
+            return (float) progress / expectedProgress;
         } else {
             return Float.NaN;
         }
     }
 
     public void checkConsistence() {
-        stateCheck(expectedTotal == null || progress <= expectedTotal,
-                "There are more completed items (%s) than expected total (%s)", progress, expectedTotal);
+        stateCheck(expectedProgress == null || progress <= expectedProgress,
+                "There are more completed items (%s) than expected total (%s)", progress, expectedProgress);
     }
 }
