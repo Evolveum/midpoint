@@ -37,8 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * An activity that distributes (usually bucketed) activity to a set of worker tasks.
  * What is interesting is that this activity can maintain a work state of the type belonging to activity being distributed.
  *
- * @param <WD>
- * @param <AH>
+ * @param <WD> work definition
+ * @param <AH> activity handler
  */
 public class DistributingActivityExecution<
         WD extends WorkDefinition,
@@ -119,7 +119,9 @@ public class DistributingActivityExecution<
     private void distribute(OperationResult result) throws ActivityExecutionException {
         setProcessingRole(result);
 
-        helper.deleteRelevantSubtasksIfPossible(result);
+        // Currently there are no activities having workers with persistent state,
+        // so we assume there are no workers left at this point.
+        helper.checkNoRelevantSubtasksDoExist(result);
 
         List<Task> children = createSuspendedChildren(result);
         helper.switchExecutionToChildren(children, result);
@@ -172,8 +174,14 @@ public class DistributingActivityExecution<
     }
 
     private enum DistributionState {
+
+        /** The distribution (i.e. subtasks creation) didn't take place yet. */
         NOT_DISTRIBUTED_YET,
+
+        /** The activity realization is already distributed, but not complete. */
         DISTRIBUTED,
+
+        /** The activity realization is complete. */
         COMPLETE
     }
 }

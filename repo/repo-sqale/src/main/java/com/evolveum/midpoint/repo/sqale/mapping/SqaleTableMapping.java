@@ -43,12 +43,15 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -126,6 +129,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     @Override
     protected ItemSqlMapper<Q, R> stringMapper(
             Function<Q, StringPath> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
+    }
+
+    protected ItemSqlMapper<Q, R> binaryMapper(
+            Function<Q, ArrayPath<byte[], Byte>> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
@@ -505,6 +516,26 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
-        return toSchemaObject(result, root, options);
+        S ret = toSchemaObject(result, root, options);
+        ret = resolveNames(ret, jdbcSession, options);
+        return ret;
+
+    }
+
+    public S resolveNames(S object, JdbcSession session, Collection<SelectorOptions<GetOperationOptions>> options) {
+        // TODO: Performance: This could be transaction shared object
+        return ReferenceNameResolver.from(options).resolve(object, session);
+    }
+
+    @Override
+    public ResultListRowTransformer<S, Q, R> createRowTransformer(SqlQueryContext<S, Q, R> sqlQueryContext,
+            JdbcSession jdbcSession) {
+        return (tuple, entityPath, options) -> {
+            try {
+                return toSchemaObject(tuple, entityPath, options, jdbcSession, false);
+            } catch (SchemaException e) {
+                throw new RepositoryMappingException(e);
+            }
+        };
     }
 }

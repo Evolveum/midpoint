@@ -43,7 +43,7 @@ import java.util.List;
  */
 @PanelType(name = "childCases")
 @PanelInstance(identifier = "childCases", applicableFor = CaseType.class,
-        display = @PanelDisplay(label = "Child cases"))
+        display = @PanelDisplay(label = "PageCase.childCasesTab"))
 @Counter(provider = ChildrenCasesCounter.class)
 public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
     private static final long serialVersionUID = 1L;

@@ -53,7 +53,7 @@ import java.util.List;
 @PanelInstance(identifier = "inducedEntitlements",
         applicableFor = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
-        display = @PanelDisplay(label = "Induced entitlements", order = 70))
+        display = @PanelDisplay(label = "AbstractRoleMainPanel.inducedEntitlements", order = 70))
 public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
     private static final Trace LOGGER = TraceManager.getTrace(InducedEntitlementsPanel.class);

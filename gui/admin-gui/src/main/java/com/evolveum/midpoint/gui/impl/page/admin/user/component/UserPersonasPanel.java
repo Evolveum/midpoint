@@ -19,9 +19,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -38,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +47,8 @@ import java.util.List;
 @PanelType(name = "personas")
 @PanelInstance(identifier = "personas",
         applicableFor = UserType.class,
-        display = @PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60))
+        display = @PanelDisplay(label = "pageAdminFocus.personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60))
+@Counter(provider = PersonasCounter.class)
 public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
     private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = UserPersonasPanel.class.getName() + ".";

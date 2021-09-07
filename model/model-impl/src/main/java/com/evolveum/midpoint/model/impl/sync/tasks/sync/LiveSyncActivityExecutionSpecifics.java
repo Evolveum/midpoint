@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemCountingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -62,6 +64,8 @@ public class LiveSyncActivityExecutionSpecifics
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .defaultDetermineOverallSize(ActivityOverallItemCountingOptionType.NEVER)
+                .defaultDetermineBucketSize(ActivityItemCountingOptionType.NEVER)
                 .persistentStatistics(true)
                 .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(true);

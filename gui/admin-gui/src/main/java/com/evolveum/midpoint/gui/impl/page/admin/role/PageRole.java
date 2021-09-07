@@ -29,7 +29,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
-public class PageRole extends PageFocusDetails<RoleType> {
+public class PageRole extends PageFocusDetails<RoleType, FocusDetailsModels<RoleType>> {
 
     public PageRole(PageParameters pageParameters) {
         super(pageParameters);

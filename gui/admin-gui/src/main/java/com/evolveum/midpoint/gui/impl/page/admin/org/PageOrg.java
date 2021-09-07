@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.org;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -30,7 +31,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL,
                 label = "PageOrgUnit.auth.orgUnit.label",
                 description = "PageOrgUnit.auth.orgUnit.description") })
-public class PageOrg extends PageFocusDetails<OrgType> {
+public class PageOrg extends PageFocusDetails<OrgType, FocusDetailsModels<OrgType>> {
 
     public PageOrg(PageParameters pageParameters) {
         super(pageParameters);

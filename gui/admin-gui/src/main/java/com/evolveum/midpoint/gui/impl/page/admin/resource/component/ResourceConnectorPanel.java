@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @PanelType(name = "resourceConnector")
 @PanelInstance(identifier = "resourceConnector", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class,
-        display = @PanelDisplay(label = "Connector", order = 70))
+        display = @PanelDisplay(label = "PageResource.tab.connector", order = 70))
 public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> {
     private static final long serialVersionUID = 1L;
 

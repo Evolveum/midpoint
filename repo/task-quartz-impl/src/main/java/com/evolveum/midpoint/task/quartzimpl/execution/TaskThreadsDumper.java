@@ -157,9 +157,6 @@ public class TaskThreadsDumper {
     private void addTaskInfo(StringBuilder output, RunningTask localTask, Thread thread) {
         output.append("Execution state: ").append(localTask.getExecutionState()).append("\n");
         output.append("Progress: ").append(localTask.getProgress());
-        if (localTask.getExpectedTotal() != null) {
-            output.append(" of ").append(localTask.getExpectedTotal());
-        }
         output.append("\n");
 
         // TODO include activity iteration information

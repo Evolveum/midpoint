@@ -22,7 +22,7 @@ public class ChildrenCasesCounter extends SimpleCounter<CaseDetailsModels, CaseT
 
     @Override
     public int count(CaseDetailsModels objectDetailsModels, PageBase pageBase) {
-        CaseType parentCase = objectDetailsModels.getObjectWrapperModel().getObject().getObject().asObjectable();
+        CaseType parentCase = objectDetailsModels.getObjectType();
         ObjectQuery childrenCasesQuery = PrismContext.get().queryFor(CaseType.class)
                 .item(CaseType.F_PARENT_REF).ref(parentCase.getOid())
                 .build();

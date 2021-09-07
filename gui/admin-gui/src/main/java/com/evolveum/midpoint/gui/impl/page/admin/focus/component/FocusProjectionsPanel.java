@@ -97,7 +97,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @PanelType(name = "projections")
 @PanelInstance(identifier = "projections", applicableFor = FocusType.class,
-        display = @PanelDisplay(label = "Projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, order = 20))
+        display = @PanelDisplay(label = "pageAdminFocus.projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, order = 20))
 @Counter(provider = FocusProjectionsCounter.class)
 public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
     private static final long serialVersionUID = 1L;

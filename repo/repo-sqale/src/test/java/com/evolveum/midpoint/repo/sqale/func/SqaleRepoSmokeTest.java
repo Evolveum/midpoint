@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
 
@@ -31,16 +33,16 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Contains a few tests doing stuff all over the repository including a few lower level
@@ -252,6 +254,67 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
 
         and("operation result is fatal error");
         assertThatOperationResult(result).isFatalError();
+    }
+
+    @Test
+    public void test220PhotoPersistenceAdd()
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        when("user with photo is persisted");
+        UserType user = new UserType(prismContext)
+                .name("user" + getTestNumber())
+                .jpegPhoto(new byte[] { 0, 1, 2 });
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+        assertThatOperationResult(result).isSuccess();
+
+        then("photo is stored in row, but not in fullObject");
+        MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
+        assertThat(row.photo).isEqualTo(new byte[] { 0, 1, 2 });
+        UserType fullObjectUser = (UserType) prismContext.parseObject(
+                new String(row.fullObject, StandardCharsets.UTF_8)).asObjectable();
+        assertThat(fullObjectUser.getJpegPhoto()).isNull();
+
+        and("user obtained without special options does not have the photo");
+        UserType userWithoutPhoto =
+                repositoryService.getObject(UserType.class, userOid, null, result)
+                        .asObjectable();
+        assertThat(userWithoutPhoto.getJpegPhoto()).isNull();
+
+        and("user obtained with options to fetch photo has the photo");
+        Collection<SelectorOptions<GetOperationOptions>> photoOptions = SchemaService.get()
+                .getOperationOptionsBuilder().item(FocusType.F_JPEG_PHOTO).retrieve().build();
+        UserType userWithPhoto =
+                repositoryService.getObject(UserType.class, userOid, photoOptions, result)
+                        .asObjectable();
+        assertThat(userWithPhoto.getJpegPhoto()).isEqualTo(new byte[] { 0, 1, 2 });
+    }
+
+    @Test
+    public void test221PhotoPersistenceModify()
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        given("user without photo");
+        UserType user = new UserType(prismContext)
+                .name("user" + getTestNumber());
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        when("photo is added for the user");
+        //noinspection PrimitiveArrayArgumentToVarargsMethod
+        repositoryService.modifyObject(UserType.class, userOid,
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_JPEG_PHOTO).add(new byte[] { 0, 1, 2 })
+                        .asObjectDelta(userOid).getModifications(),
+                result);
+        assertThatOperationResult(result).isSuccess();
+
+        then("photo is stored in row, but not in fullObject");
+        MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
+        assertThat(row.photo).isEqualTo(new byte[] { 0, 1, 2 });
+        UserType fullObjectUser = (UserType) prismContext.parseObject(
+                new String(row.fullObject, StandardCharsets.UTF_8)).asObjectable();
+        assertThat(fullObjectUser.getJpegPhoto()).isNull();
     }
 
     // TODO test for getObject() with typical options (here or separate class?)

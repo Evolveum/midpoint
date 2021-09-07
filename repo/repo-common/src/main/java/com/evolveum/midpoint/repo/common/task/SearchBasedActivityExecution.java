@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -58,7 +57,8 @@ import static java.util.Objects.requireNonNull;
  *   b. customizing the spec by calling `customizeXXX` methods in the specifics object;
  *   c. narrowing the query for bucketing and error handling.
  *
- * 3. "Expected total" determination - see {@link #setExpectedTotal(OperationResult)}.
+ * 3. "Expected total" determination - see {@link #setExpectedTotal(OperationResult)} and
+ * {@link #setCurrentBucketSize(OperationResult)}.
  *
  * 4. Pre-processing of items found - see {@link #processItem(ItemProcessingRequest, RunningTask, OperationResult)}:
  *
@@ -120,13 +120,12 @@ public class SearchBasedActivityExecution<
     }
 
     @Override
-    protected void prepareItemSource(OperationResult result) throws ActivityExecutionException, CommonException {
+    protected void prepareItemSourceForCurrentBucket(OperationResult result) throws ActivityExecutionException, CommonException {
         prepareSearchSpecification(result);
     }
 
     private void prepareSearchSpecification(OperationResult result) throws CommonException, ActivityExecutionException {
-        searchSpecification = createSearchSpecification(result);
-        customizeSearchSpecification(result);
+        searchSpecification = createCustomizedSearchSpecification(result);
 
         narrowQueryForBucketingAndErrorHandling();
         searchSpecification.setQuery(
@@ -134,8 +133,15 @@ public class SearchBasedActivityExecution<
 
         applyDefinitionsToQuery(result);
 
-        LOGGER.trace("{}: will do the following search:\n{}",
-                shortName, DebugUtil.debugDumpLazily(searchSpecification));
+        LOGGER.trace("{}: will do the following search (in bucket: {}):\n{}",
+                shortName, bucket, DebugUtil.debugDumpLazily(searchSpecification));
+    }
+
+    private @NotNull SearchSpecification<O> createCustomizedSearchSpecification(OperationResult result)
+            throws CommonException, ActivityExecutionException {
+        SearchSpecification<O> searchSpecification = createSearchSpecification(result);
+        customizeSearchSpecification(searchSpecification, result);
+        return searchSpecification;
     }
 
     /**
@@ -175,18 +181,20 @@ public class SearchBasedActivityExecution<
     /**
      * Customizes the configured search specification. Almost fully delegated to the plugin.
      */
-    private void customizeSearchSpecification(OperationResult opResult) throws CommonException {
+    private void customizeSearchSpecification(SearchSpecification<O> searchSpecification, OperationResult result)
+            throws CommonException {
+
         searchSpecification.setQuery(
-                executionSpecifics.customizeQuery(searchSpecification.getQuery(), opResult));
+                executionSpecifics.customizeQuery(searchSpecification.getQuery(), result));
 
         searchSpecification.setSearchOptions(
-                executionSpecifics.customizeSearchOptions(searchSpecification.getSearchOptions(), opResult));
+                executionSpecifics.customizeSearchOptions(searchSpecification.getSearchOptions(), result));
 
         searchSpecification.setUseRepository(
-                customizeUseRepository(searchSpecification.getUseRepository(), opResult));
+                customizeUseRepository(searchSpecification.getUseRepository(), result));
     }
 
-    private Boolean customizeUseRepository(Boolean configuredValue, OperationResult opResult)
+    private Boolean customizeUseRepository(Boolean configuredValue, OperationResult result)
             throws CommonException {
         if (executionSpecifics.doesRequireDirectRepositoryAccess()) {
             if (Boolean.FALSE.equals(configuredValue)) {
@@ -196,7 +204,7 @@ public class SearchBasedActivityExecution<
         } else if (configuredValue != null) {
             // if we requested this mode explicitly we need to have appropriate authorization
             if (configuredValue) {
-                checkRawAuthorization(getRunningTask(), opResult);
+                checkRawAuthorization(getRunningTask(), result);
             }
             return configuredValue;
         } else {
@@ -214,21 +222,14 @@ public class SearchBasedActivityExecution<
 
         try {
             ObjectQuery queryFromActivity = searchSpecification.getQuery();
-
             LOGGER.trace("{}: query as defined by activity:\n{}", shortName,
                     DebugUtil.debugDumpLazily(queryFromActivity));
 
             ObjectQuery failureNarrowedQuery = narrowQueryToProcessFailedObjectsOnly(queryFromActivity); // logging is inside
-
-            ObjectQuery bucketNarrowedQuery = beans.bucketingManager.narrowQueryForWorkBucket(
-                    getObjectType(),
-                    failureNarrowedQuery,
-                    activity.getDefinition().getDistributionDefinition(),
-                    executionSpecifics.createItemDefinitionProvider(),
-                    bucket);
-
-            LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}",
-                    shortName, DebugUtil.debugDumpLazily(bucketNarrowedQuery));
+            ObjectQuery bucketNarrowedQuery =
+                    bucket != null ?
+                            narrowQueryToProcessBucket(failureNarrowedQuery) : // logging is inside
+                            failureNarrowedQuery;
 
             searchSpecification.setQuery(bucketNarrowedQuery);
 
@@ -238,6 +239,20 @@ public class SearchBasedActivityExecution<
             // before running any tasks.)
             throw new ActivityExecutionException("Couldn't create object query", FATAL_ERROR, PERMANENT_ERROR, t);
         }
+    }
+
+    private ObjectQuery narrowQueryToProcessBucket(ObjectQuery failureNarrowedQuery) throws SchemaException {
+        ObjectQuery bucketNarrowedQuery;
+        bucketNarrowedQuery = beans.bucketingManager.narrowQueryForWorkBucket(
+                getObjectType(),
+                failureNarrowedQuery,
+                activity.getDefinition().getDistributionDefinition(),
+                executionSpecifics.createItemDefinitionProvider(),
+                bucket);
+
+        LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}",
+                shortName, DebugUtil.debugDumpLazily(bucketNarrowedQuery));
+        return bucketNarrowedQuery;
     }
 
     /**
@@ -321,7 +336,7 @@ public class SearchBasedActivityExecution<
     /**
      * Evaluates expressions in query. Currently implemented only in model-impl. TODO why?
      */
-    protected ObjectQuery evaluateQueryExpressions(ObjectQuery query, OperationResult opResult)
+    protected ObjectQuery evaluateQueryExpressions(ObjectQuery query, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return query;
@@ -331,39 +346,52 @@ public class SearchBasedActivityExecution<
      * Applies definitions to query. Currently related only to provisioning-level definitions.
      * Therefore not available in repo-common.
      */
-    protected void applyDefinitionsToQuery(OperationResult opResult) throws CommonException {
+    protected void applyDefinitionsToQuery(OperationResult result) throws CommonException {
     }
 
     @Override
-    protected @Nullable Integer determineExpectedTotal(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (isBucketsAnalysis()) {
-            return countObjects(opResult);
-        } else if (!getReportingOptions().isDetermineExpectedTotal()) {
-            return null;
-        } else if (BucketingUtil.hasLimitations(bucket)) {
-            // We avoid computing expected total if we are processing a bucket: actually we could do it,
-            // but we should not display the result as 'task expected total'.
-            return null;
+    protected boolean isInRepository(OperationResult result) throws ActivityExecutionException, CommonException {
+        SearchSpecification<O> simpleSearchSpecification;
+        if (searchSpecification != null) {
+            simpleSearchSpecification = searchSpecification;
         } else {
-            return countObjects(opResult);
+            // We don't care about narrowing the query via buckets, error handling, etc.
+            // We only need "use repo" and object type.
+            simpleSearchSpecification = createCustomizedSearchSpecification(result);
         }
+        return simpleSearchSpecification.isUseRepository() ||
+                simpleSearchSpecification.isRaw() ||
+                simpleSearchSpecification.isNoFetch() ||
+                !ShadowType.class.equals(simpleSearchSpecification.getObjectType());
+    }
+
+    @Override
+    protected @Nullable Integer determineOverallSize(OperationResult result)
+            throws CommonException, ActivityExecutionException {
+        assert bucket == null;
+        prepareSearchSpecification(result);
+        return countObjects(result);
+    }
+
+    @Override
+    protected @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
+        assert bucket != null;
+        return countObjects(result);
     }
 
     /**
      * Used to count objects using model or any similar higher-level interface. Defaults to repository count.
      */
-    protected Integer countObjects(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return countObjectsInRepository(opResult);
+    protected Integer countObjects(OperationResult result) throws CommonException {
+        return countObjectsInRepository(result);
     }
 
-    protected final int countObjectsInRepository(OperationResult opResult) throws SchemaException {
+    protected final int countObjectsInRepository(OperationResult result) throws SchemaException {
         return beans.repositoryService.countObjects(
                 getObjectType(),
                 getQuery(),
                 getSearchOptions(),
-                opResult);
+                result);
     }
 
     @Override
@@ -447,18 +475,18 @@ public class SearchBasedActivityExecution<
     /**
      * Used to search using model or any similar higher-level interface. Defaults to search using repository.
      */
-    protected void searchIterative(OperationResult opResult) throws CommonException {
-        searchIterativeInRepository(opResult);
+    protected void searchIterative(OperationResult result) throws CommonException {
+        searchIterativeInRepository(result);
     }
 
-    protected final void searchIterativeInRepository(OperationResult opResult) throws SchemaException {
+    protected final void searchIterativeInRepository(OperationResult result) throws SchemaException {
         beans.repositoryService.searchObjectsIterative(
                 getObjectType(),
                 getQuery(),
                 createSearchResultHandler(),
                 getSearchOptions(),
                 true,
-                opResult);
+                result);
     }
 
     protected boolean modelProcessingAvailable() {

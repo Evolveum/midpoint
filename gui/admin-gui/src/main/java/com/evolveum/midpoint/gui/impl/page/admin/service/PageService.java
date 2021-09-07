@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.service;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -33,7 +34,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL,
                 label = "PageService.auth.role.label",
                 description = "PageService.auth.role.description") })
-public class PageService extends PageFocusDetails<ServiceType> {
+public class PageService extends PageFocusDetails<ServiceType, FocusDetailsModels<ServiceType>> {
 
     public PageService(PageParameters pageParameters) {
         super(pageParameters);

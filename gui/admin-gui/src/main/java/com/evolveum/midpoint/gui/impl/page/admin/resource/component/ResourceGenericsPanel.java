@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 @PanelType(name = "resourceGenerics")
 @PanelInstance(identifier = "resourceGenerics", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class,
-        display = @PanelDisplay(label = "Generics", order = 50))
+        display = @PanelDisplay(label = "PageResource.tab.content.generic", order = 50))
 public class ResourceGenericsPanel extends ResourceContentTabPanel {
 
     public ResourceGenericsPanel(String id, ObjectDetailsModels<ResourceType> model, ContainerPanelConfigurationType config) {

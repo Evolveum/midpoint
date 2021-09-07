@@ -18,12 +18,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -69,6 +66,13 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
     }
 
     @Override
+    public ActivityReportingOptions getDefaultReportingOptions() {
+        return super.getDefaultReportingOptions()
+                .defaultDetermineOverallSize(ActivityOverallItemCountingOptionType.ALWAYS)
+                .defaultDetermineBucketSize(ActivityItemCountingOptionType.NEVER);
+    }
+
+    @Override
     public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
         RunningTask task = getRunningTask();
         support.beforeExecution(result);
@@ -107,7 +111,7 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
     }
 
     @Override
-    public Integer determineExpectedTotal(OperationResult result) throws CommonException {
+    public Integer determineOverallSize(OperationResult result) throws CommonException {
         int expectedTotal = support.getDashboard().getWidget().size();
         for (DashboardWidgetHolder holder : mapOfWidgetsController.values()) {
             expectedTotal += support.countRecords(

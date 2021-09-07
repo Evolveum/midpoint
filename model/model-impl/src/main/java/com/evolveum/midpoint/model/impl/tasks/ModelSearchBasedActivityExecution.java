@@ -69,7 +69,7 @@ public class ModelSearchBasedActivityExecution<O extends ObjectType,
     }
 
     @Override
-    protected ObjectQuery evaluateQueryExpressions(ObjectQuery query, OperationResult opResult)
+    protected ObjectQuery evaluateQueryExpressions(ObjectQuery query, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         // TODO consider which variables should go here (there's no focus, shadow, resource - only configuration)
@@ -77,50 +77,49 @@ public class ModelSearchBasedActivityExecution<O extends ObjectType,
             return query;
         }
 
-        PrismObject<SystemConfigurationType> configuration = getModelBeans().systemObjectCache.getSystemConfiguration(opResult);
+        PrismObject<SystemConfigurationType> configuration = getModelBeans().systemObjectCache.getSystemConfiguration(result);
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, null, null,
                 configuration != null ? configuration.asObjectable() : null, getPrismContext());
         try {
-            ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(getRunningTask(), opResult);
+            ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(getRunningTask(), result);
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
             return ExpressionUtil.evaluateQueryExpressions(query, variables, getExpressionProfile(),
                     getModelBeans().expressionFactory, getPrismContext(), "evaluate query expressions",
-                    getRunningTask(), opResult);
+                    getRunningTask(), result);
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         }
     }
 
     @Override
-    protected void applyDefinitionsToQuery(OperationResult opResult) throws CommonException {
+    protected void applyDefinitionsToQuery(OperationResult result) throws CommonException {
         if (Boolean.TRUE.equals(searchSpecification.getUseRepository())) {
             return;
         }
         Class<O> objectType = searchSpecification.getObjectType();
         if (ObjectTypes.isClassManagedByProvisioning(objectType)) {
             getModelBeans().provisioningService
-                    .applyDefinition(objectType, searchSpecification.getQuery(), getRunningTask(), opResult);
+                    .applyDefinition(objectType, searchSpecification.getQuery(), getRunningTask(), result);
         }
     }
 
     @Override
-    protected final Integer countObjects(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected final Integer countObjects(OperationResult result) throws CommonException {
         if (searchSpecification.isUseRepository()) {
-            return countObjectsInRepository(opResult);
+            return countObjectsInRepository(result);
         } else {
             return getModelBeans().modelObjectResolver.countObjects(
-                    getObjectType(), getQuery(), getSearchOptions(), getRunningTask(), opResult);
+                    getObjectType(), getQuery(), getSearchOptions(), getRunningTask(), result);
         }
     }
 
     @Override
-    protected final void searchIterative(OperationResult opResult) throws CommonException {
+    protected final void searchIterative(OperationResult result) throws CommonException {
         if (searchSpecification.isUseRepository()) {
-            searchIterativeInRepository(opResult);
+            searchIterativeInRepository(result);
         } else {
             getModelBeans().modelObjectResolver.searchIterative(
-                    getObjectType(), getQuery(), getSearchOptions(), createSearchResultHandler(), getRunningTask(), opResult);
+                    getObjectType(), getQuery(), getSearchOptions(), createSearchResultHandler(), getRunningTask(), result);
         }
     }
 

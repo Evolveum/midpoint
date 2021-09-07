@@ -91,16 +91,16 @@ import java.util.*;
 @PanelInstances(instances = {
         @PanelInstance(identifier = "roleMembers",
                 applicableFor = RoleType.class,
-                display = @PanelDisplay(label = "Members", order = 80)),
+                display = @PanelDisplay(label = "pageRole.members", order = 80)),
         @PanelInstance(identifier = "roleGovernance",
                 applicableFor = RoleType.class,
-                display = @PanelDisplay(label = "Governance", order = 90)),
+                display = @PanelDisplay(label = "pageRole.governance", order = 90)),
         @PanelInstance(identifier = "serviceMembers",
                 applicableFor = ServiceType.class,
-                display = @PanelDisplay(label = "Members", order = 80)),
+                display = @PanelDisplay(label = "pageRole.members", order = 80)),
         @PanelInstance(identifier = "serviceGovernance",
                 applicableFor = ServiceType.class,
-                display = @PanelDisplay(label = "Governance", order = 90))
+                display = @PanelDisplay(label = "pageRole.governance", order = 90))
 })
 @PanelDisplay(label = "Members", order = 60)
 public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends AbstractObjectMainPanel<R, FocusDetailsModels<R>> {

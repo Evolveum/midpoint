@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
@@ -80,10 +81,30 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         }
 
         @Override
+        public ActivityReportingOptions getDefaultReportingOptions() {
+            return super.getDefaultReportingOptions()
+                    .defaultDetermineBucketSize(ActivityItemCountingOptionType.ALWAYS)
+                    .defaultDetermineOverallSize(ActivityOverallItemCountingOptionType.ALWAYS);
+        }
+
+        @Override
         public void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
             MyWorkDefinition def = getWorkDefinition();
             LOGGER.info("Execution starting; steps to be executed = {}, delay for one step = {}, step interruptibility = {}"
                             + " in task {}", def.steps, def.delay, def.stepInterruptibility, getRunningTask());
+        }
+
+        @Override
+        public @Nullable Integer determineOverallSize(OperationResult result) throws CommonException {
+            return activityExecution.getActivity().getWorkDefinition().getInterval().getSize();
+        }
+
+        @Override
+        public @Nullable Integer determineCurrentBucketSize(WorkBucketType bucket, OperationResult result) throws CommonException {
+            return NumericIntervalBucketUtil.getNarrowedInterval(
+                            bucket,
+                            activityExecution.getActivity().getWorkDefinition().getInterval())
+                    .getSize();
         }
 
         @Override

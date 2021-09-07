@@ -55,4 +55,7 @@ public class ModelPublicConstants {
     public static final String FOCUS_VALIDITY_SCAN_OBJECTS_ID = "objects";
     public static final String FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID = "assignments";
 
+    public static final ActivityPath FOCUS_VALIDITY_SCAN_FULL_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_FULL_ID);
+    public static final ActivityPath FOCUS_VALIDITY_SCAN_OBJECTS_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_OBJECTS_ID);
+    public static final ActivityPath FOCUS_VALIDITY_SCAN_ASSIGNMENTS_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID);
 }

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -17,7 +19,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List<ContainerPanelConfigurationType>> {
 
@@ -41,12 +41,13 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     private static final String ID_SUB_NAVIGATION = "subNavigation";
     private static final String ID_COUNT = "count";
     private static final String ID_NAVIGATION_DETAILS = "navLinkStyle";
+    private static final String ID_SUBMENU_LINK = "submenuLink";
 
-    private ObjectDetailsModels<O> objectDetialsModel;
+    private final ObjectDetailsModels<O> objectDetailsModel;
 
-    public DetailsNavigationPanel(String id, ObjectDetailsModels<O> objectDetialsModel, IModel<List<ContainerPanelConfigurationType>> model) {
+    public DetailsNavigationPanel(String id, ObjectDetailsModels<O> objectDetailsModel, IModel<List<ContainerPanelConfigurationType>> model) {
         super(id, model);
-        this.objectDetialsModel = objectDetialsModel;
+        this.objectDetailsModel = objectDetailsModel;
     }
 
     @Override
@@ -61,58 +62,129 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
             @Override
             protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
-                WebMarkupContainer navigationDetails = new WebMarkupContainer(ID_NAVIGATION_DETAILS);
-                navigationDetails.add(AttributeAppender.append("class", new ReadOnlyModel<>(() -> {
-                    ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectDetialsModel.getObjectWrapperModel().getObject().getCompileTimeClass().getSimpleName());
-                    ContainerPanelConfigurationType storageConfig = storage.getDefaultConfiguration();
-                    ContainerPanelConfigurationType itemModelObject = item.getModelObject();
-                    if (storageConfig.getIdentifier() != null && storageConfig.getIdentifier().equals(itemModelObject.getIdentifier())) {
-                        return "active";
-                    }
-                    return "";
-                })));
-                item.add(navigationDetails);
-                AjaxLink<Void> link = new AjaxLink<>(ID_NAV_ITEM_LINK) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        target.add(DetailsNavigationPanel.this);
-                        onClickPerformed(item.getModelObject(), target);
-                    }
-                };
-                navigationDetails.add(link);
-                WebMarkupContainer icon = new WebMarkupContainer(ID_NAV_ITEM_ICON);
-                icon.setOutputMarkupId(true);
-                icon.add(AttributeAppender.append("class", getMenuItemIconClass(item.getModelObject())));
-                link.add(icon);
-                Label buttonLabel = new Label(ID_NAV_ITEM, Model.of(createButtonLabel(item.getModelObject())));
-                link.add(buttonLabel);
-
-                IModel<String> countModel = createCountModel(item.getModel());
-                Label label = new Label(ID_COUNT, countModel);
-                label.add(new VisibleBehaviour(() -> countModel.getObject() != null));
-                link.add(label);
-
-                DetailsNavigationPanel subPanel = new DetailsNavigationPanel(ID_SUB_NAVIGATION, objectDetialsModel, new PropertyModel<>(item.getModel(), ContainerPanelConfigurationType.F_PANEL.getLocalPart())) {
-
-                    @Override
-                    protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
-                        if (config.getPath() == null) {
-                            config.setPath(item.getModelObject().getPath());
-                        }
-                        target.add(DetailsNavigationPanel.this);
-                        DetailsNavigationPanel.this.onClickPerformed(config, target);
-                    }
-                };
-                subPanel.add(new VisibleBehaviour(() -> !item.getModelObject().getPanel().isEmpty()));
-                navigationDetails.add(subPanel);
-                item.add(new VisibleBehaviour(() -> isMenuItemVisible(item.getModelObject())));
-
-//                item.add(new Label(ID_NAV_ITEM, item.getModel()));o
+                populateNavigationMenuItem(item);
             }
         };
         listView.setOutputMarkupId(true);
         add(listView);
+    }
+
+    private void populateNavigationMenuItem(ListItem<ContainerPanelConfigurationType> item) {
+        WebMarkupContainer navigationDetails = createNavigationItemParentPanel(item);
+        item.add(navigationDetails);
+
+        AjaxLink<Void> link = createNavigationLink(item);
+        navigationDetails.add(link);
+
+        DetailsNavigationPanel<O> subPanel = createDetailsSubNavigationPanel(item);
+        navigationDetails.add(subPanel);
+
+        item.add(new VisibleBehaviour(() -> isMenuItemVisible(item.getModelObject())));
+
+    }
+
+    private WebMarkupContainer createNavigationItemParentPanel(ListItem<ContainerPanelConfigurationType> item) {
+        WebMarkupContainer navigationDetails = new WebMarkupContainer(ID_NAVIGATION_DETAILS);
+        navigationDetails.add(AttributeAppender.append("class", createNavigationDetailsStyleModel(item)));
+        return navigationDetails;
+    }
+
+    private IModel<String> createNavigationDetailsStyleModel(ListItem<ContainerPanelConfigurationType> item) {
+        return new ReadOnlyModel<>(() -> {
+            ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+            ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+            if (isMenuActive(storageConfig, itemModelObject)) {
+                return "active open";
+            }
+            if (hasActiveSubmenu(storageConfig, itemModelObject)) {
+                return "open";
+            }
+            return "";
+        });
+    }
+
+    private ContainerPanelConfigurationType getConfigurationFromStorage() {
+        ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectDetailsModel.getObjectWrapperModel().getObject().getCompileTimeClass().getSimpleName());
+        return storage.getDefaultConfiguration();
+    }
+
+    private boolean isMenuActive(ContainerPanelConfigurationType storageConfig, ContainerPanelConfigurationType itemModelObject) {
+        return storageConfig.getIdentifier() != null && storageConfig.getIdentifier().equals(itemModelObject.getIdentifier());
+    }
+
+    private boolean hasActiveSubmenu(ContainerPanelConfigurationType storageConfig, ContainerPanelConfigurationType itemModelObject) {
+        for (ContainerPanelConfigurationType subPanel : itemModelObject.getPanel()) {
+            if (subPanel.getIdentifier().equals(storageConfig.getIdentifier())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private AjaxLink<Void> createNavigationLink(ListItem<ContainerPanelConfigurationType> item) {
+        AjaxLink<Void> link = new AjaxLink<>(ID_NAV_ITEM_LINK) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                target.add(DetailsNavigationPanel.this);
+                onClickPerformed(item.getModelObject(), target);
+            }
+        };
+
+        addIcon(link, item);
+        addLabel(link, item);
+        addCount(link, item);
+        addSubmenuLink(link, item);
+
+        return link;
+    }
+
+    private void addIcon(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
+        WebMarkupContainer icon = new WebMarkupContainer(ID_NAV_ITEM_ICON);
+        icon.setOutputMarkupId(true);
+        icon.add(AttributeAppender.append("class", getMenuItemIconClass(item.getModel())));
+        link.add(icon);
+    }
+
+    private void addLabel(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
+        Label buttonLabel = new Label(ID_NAV_ITEM, createButtonLabel(item.getModel()));
+        link.add(buttonLabel);
+    }
+
+    private void addCount(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
+        IModel<String> countModel = createCountModel(item.getModel());
+        Label label = new Label(ID_COUNT, countModel);
+        label.add(new VisibleBehaviour(() -> countModel.getObject() != null));
+        link.add(label);
+    }
+
+    private void addSubmenuLink(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
+        WebMarkupContainer submenuLink = new WebMarkupContainer(ID_SUBMENU_LINK);
+        submenuLink.add(new VisibleBehaviour(() -> hasSubmenu(item.getModelObject())));
+        link.add(submenuLink);
+    }
+
+    private boolean hasSubmenu(ContainerPanelConfigurationType config) {
+        if (config == null) {
+            return false;
+        }
+
+        return !config.getPanel().isEmpty();
+    }
+    private DetailsNavigationPanel<O> createDetailsSubNavigationPanel(ListItem<ContainerPanelConfigurationType> item) {
+        DetailsNavigationPanel<O> subPanel = new DetailsNavigationPanel<>(ID_SUB_NAVIGATION, objectDetailsModel, new PropertyModel<>(item.getModel(), ContainerPanelConfigurationType.F_PANEL.getLocalPart())) {
+
+            @Override
+            protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
+                if (config.getPath() == null) {
+                    config.setPath(item.getModelObject().getPath());
+                }
+                target.add(DetailsNavigationPanel.this);
+                DetailsNavigationPanel.this.onClickPerformed(config, target);
+            }
+        };
+        subPanel.add(new VisibleBehaviour(() -> !item.getModelObject().getPanel().isEmpty()));
+        return subPanel;
     }
 
     private IModel<String> createCountModel(IModel<ContainerPanelConfigurationType> panelModel) {
@@ -120,15 +192,12 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             ContainerPanelConfigurationType config = panelModel.getObject();
             String panelInstanceIdentifier = config.getIdentifier();
 
-            SimpleCounter counter = getPageBase().getCounterProvider(panelInstanceIdentifier);
+            SimpleCounter<ObjectDetailsModels<O>, O> counter = getPageBase().getCounterProvider(panelInstanceIdentifier);
             if (counter == null || counter.getClass().equals(SimpleCounter.class)) {
                 return null;
             }
 
-            int count = counter.count(objectDetialsModel, getPageBase());
-//            if (count == 0) {
-//                return null;
-//            }
+            int count = counter.count(objectDetailsModel, getPageBase());
             return String.valueOf(count);
         });
     }
@@ -138,40 +207,40 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             return true;
         }
 
-        UserInterfaceElementVisibilityType visibility = config.getVisibility();
-        if (visibility == null) {
-            return true;
-        }
-
-        if (UserInterfaceElementVisibilityType.HIDDEN == visibility) {
-            return false;
-        }
-
-        return true;
+        return WebComponentUtil.getElementVisibility(config.getVisibility());
     }
 
     protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
 
     }
 
-    private String createButtonLabel(ContainerPanelConfigurationType config) {
-        if (config.getDisplay() == null) {
-            return "N/A";
-        }
+    private IModel<String> createButtonLabel(IModel<ContainerPanelConfigurationType> model) {
 
-        if (config.getDisplay().getLabel() == null) {
-            return "N/A";
-        }
+        return new ReadOnlyModel<>(() -> {
+            ContainerPanelConfigurationType config = model.getObject();
 
-        return config.getDisplay().getLabel().getOrig();
+            if (config.getDisplay() == null) {
+                return "N/A";
+            }
+
+            if (config.getDisplay().getLabel() == null) {
+                return "N/A";
+            }
+
+            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getLabel());
+        });
     }
 
-    private String getMenuItemIconClass(ContainerPanelConfigurationType item) {
-        if (item == null || item.getDisplay() == null) {
-            return GuiStyleConstants.CLASS_CIRCLE_FULL;
-        }
-        String iconCss = WebComponentUtil.getIconCssClass(item.getDisplay());
-        return StringUtils.isNoneEmpty(iconCss) ? iconCss : GuiStyleConstants.CLASS_CIRCLE_FULL;
+    private IModel<String> getMenuItemIconClass(IModel<ContainerPanelConfigurationType> item) {
+        return new ReadOnlyModel<>(() -> {
+            ContainerPanelConfigurationType config = item.getObject();
+            if (config == null || config.getDisplay() == null) {
+                return GuiStyleConstants.CLASS_CIRCLE_FULL;
+            }
+            String iconCss = WebComponentUtil.getIconCssClass(config.getDisplay());
+            return StringUtils.isNoneEmpty(iconCss) ? iconCss : GuiStyleConstants.CLASS_CIRCLE_FULL;
+        });
+
     }
 
 }

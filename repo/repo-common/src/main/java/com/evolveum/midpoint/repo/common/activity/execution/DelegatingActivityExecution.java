@@ -9,10 +9,13 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 
 import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -61,7 +64,9 @@ public class DelegatingActivityExecution<
     private TaskType childTask;
 
     @Override
-    protected @NotNull ActivityExecutionResult executeInternal(OperationResult result) throws ActivityExecutionException {
+    protected @NotNull ActivityExecutionResult executeInternal(OperationResult result)
+            throws ActivityExecutionException, CommonException {
+
         delegationState = determineDelegationState(result);
 
         switch (delegationState) {
@@ -98,7 +103,7 @@ public class DelegatingActivityExecution<
             // We are so harsh here to debug any issues. Later on we can switch this to returning NOT_DELEGATED_YET
             // (i.e. a kind of auto-healing).
             throw new ActivityExecutionException(
-                    String.format("Activity '%s' is marked as delegated but no child task OID is present. Will create one. In: %s",
+                    String.format("Activity '%s' is marked as delegated but no child task OID is present. In: %s",
                             getActivityPath(), getRunningTask()),
                     FATAL_ERROR, PERMANENT_ERROR, null);
         }
@@ -132,15 +137,33 @@ public class DelegatingActivityExecution<
         return activityState.getWorkStateReferenceRealValue(DelegationWorkStateType.F_TASK_REF);
     }
 
-    private void delegate(OperationResult result) throws ActivityExecutionException {
-        helper.deleteRelevantSubtasksIfPossible(result);
+    private void delegate(OperationResult result) throws ActivityExecutionException, SchemaException, ObjectNotFoundException {
 
-        Task child = createSuspendedChildTask(result);
+        Task child = createOrFindTheChild(result);
+        childTask = child.getRawTaskObjectClonedIfNecessary().asObjectable();
 
         helper.switchExecutionToChildren(List.of(child), result);
 
         setTaskRef();
         activityState.markInProgressDelegated(result);
+    }
+
+    @NotNull
+    private Task createOrFindTheChild(OperationResult result)
+            throws SchemaException, ActivityExecutionException, ObjectNotFoundException {
+        List<? extends Task> children = helper.getRelevantChildren(result);
+        if (children.isEmpty()) {
+            return createSuspendedChildTask(result);
+        } else if (children.size() == 1) {
+            Task child = children.get(0);
+            stateCheck(child.isClosed(), "Child %s is not closed; its state is %s", child, child.getExecutionState());
+            // This is to allow the safe switch of root task to WAITING state
+            getBeans().taskManager.markClosedTaskSuspended(child.getOid(), result);
+            child.refresh(result);
+            return child;
+        } else {
+            throw new IllegalStateException("There is more than one child: " + children);
+        }
     }
 
     private Task createSuspendedChildTask(OperationResult result) throws ActivityExecutionException {
@@ -164,9 +187,8 @@ public class DelegatingActivityExecution<
             String childOid = getBeans().taskManager.addTask(childToCreate.asPrismObject(), result);
             LOGGER.debug("Created activity subtask {}: {}", childToCreate.getName(), childOid);
 
-            Task child = getBeans().taskManager.getTaskPlain(childOid, result); // TODO eliminate this extra read some day
-            childTask = child.getRawTaskObjectClonedIfNecessary().asObjectable();
-            return child;
+            // TODO eliminate this extra read some day
+            return getBeans().taskManager.getTaskPlain(childOid, result);
         } catch (Exception e) {
             throw new ActivityExecutionException("Couldn't create activity child task", FATAL_ERROR, PERMANENT_ERROR, e);
         }

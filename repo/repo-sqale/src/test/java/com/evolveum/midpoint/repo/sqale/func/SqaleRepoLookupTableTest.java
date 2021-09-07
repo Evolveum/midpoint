@@ -4,18 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.specific;
+package com.evolveum.midpoint.repo.sqale.func;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -33,27 +28,17 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
-    private final static String NONEXISTENT_OID = UUID.randomUUID().toString();
-
     public static final File LOOKUP_LANGUAGES_FILE = new File("src/test/resources/lookup-languages.xml");
     public static final String LOOKUP_LANGUAGES_OID = "70000000-0000-0000-1111-000000000001";
     public static final String LOOKUP_LANGUAGES_NAME = "Languages";
-
-
-    @Autowired
-    SchemaService schemaService;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -66,7 +51,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
         assertThatOperationResult(result).isSuccess();
     }
-
 
     @Test
     public void test100LookupLanguagesGet() throws Exception {
@@ -85,13 +69,12 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
     }
 
-
     @Test
     public void test102LookupLanguagesGetExclude() throws Exception {
         given();
         OperationResult result = createOperationResult();
 
-        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+        Collection<SelectorOptions<GetOperationOptions>> options = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW).dontRetrieve()
                 .build();
 
@@ -101,7 +84,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
-
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
@@ -131,7 +113,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -151,7 +133,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -172,7 +154,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -192,7 +174,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -215,7 +197,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_KEY)
@@ -240,7 +222,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_VALUE)
@@ -264,7 +246,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
         when();
         String fragment = "Eng";
-        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_LABEL)
@@ -285,7 +267,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when();
-        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
                 .item(LookupTableRowType.F_VALUE)
@@ -294,14 +276,14 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
                 .maxSize(1)
                 .desc(LookupTableRowType.F_LABEL)        // using sorting key other than the one used in search
                 .end();
-        PrismObject<LookupTableType> lookup = repositoryService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
+        PrismObject<LookupTableType> lookup = repositoryService.getObject(
+                LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
 
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" });
     }
-
 
     @Test
     public void test150LookupLanguagesAddRowFull() throws Exception {
@@ -312,8 +294,9 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         row.setKey("gi_GI");
         row.setValue("gi");
         row.setLabel(PrismTestUtil.createPolyStringType("Gibberish"));
-        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object().createModificationAddContainer(LookupTableType.class,
-                LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
+        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object()
+                .createModificationAddContainer(LookupTableType.class,
+                        LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         when();
         repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, delta.getModifications(), result);
@@ -349,11 +332,12 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_GO");
         row.setLabel(PrismTestUtil.createPolyStringType("Gobbledygook"));
-        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object().createModificationAddContainer(LookupTableType.class,
-                LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
+        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object()
+                .createModificationAddContainer(LookupTableType.class,
+                        LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         when();
-        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID,delta.getModifications(), result);
+        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, delta.getModifications(), result);
 
         then();
         result.computeStatus();
@@ -363,7 +347,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
-
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
@@ -389,12 +372,12 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_HU");
         row.setValue("gi");
-        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object().createModificationAddContainer(LookupTableType.class,
-                LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
+        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object()
+                .createModificationAddContainer(LookupTableType.class,
+                        LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         when();
-        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID,delta.getModifications(), result);
-
+        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, delta.getModifications(), result);
 
         then();
         result.computeStatus();
@@ -404,7 +387,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
-
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
@@ -420,7 +402,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
 
         assertLookupRow(tableContainer, "gi_HU", "gi", null);
-
     }
 
     @Test
@@ -432,13 +413,14 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         row.setKey("gi_HU");
         row.setValue("gi");
         row.setLabel(PrismTestUtil.createPolyStringType("Humbug"));
-        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object().createModificationAddContainer(LookupTableType.class,
-                LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
+        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object()
+                .createModificationAddContainer(LookupTableType.class,
+                        LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         when();
         boolean exception = false;
         try {
-            repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID,delta.getModifications(), result);
+            repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, delta.getModifications(), result);
         } catch (ObjectAlreadyExistsException ex) {
             exception = true;
         }
@@ -453,7 +435,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
-
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
@@ -481,11 +462,12 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         row.setKey("sk_SK");
         row.setValue("sk");
         row.setLabel(PrismTestUtil.createPolyStringType("Slovak"));
-        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(LookupTableType.class,
-                LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
+        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object()
+                .createModificationDeleteContainer(LookupTableType.class,
+                        LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         when();
-        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID,delta.getModifications(), result);
+        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, delta.getModifications(), result);
 
         then();
         result.computeStatus();
@@ -495,7 +477,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
-
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
@@ -512,7 +493,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
     }
 
-
     @Test
     public void test164LookupLanguagesDeleteRowFullId() throws Exception {
         given();
@@ -523,11 +503,12 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         row.setValue("en");
         row.setLabel(PrismTestUtil.createPolyStringType("English (US)"));
         row.setId(1L);
-        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(LookupTableType.class,
-                LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
+        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object()
+                .createModificationDeleteContainer(LookupTableType.class,
+                        LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         when();
-        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID,delta.getModifications(), result);
+        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, delta.getModifications(), result);
 
         then();
         result.computeStatus();
@@ -555,15 +536,16 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
     @Test
     public void test166LookupLanguagesDeleteRowIdOnly() throws Exception {
         given();
-        OperationResult result = createOperationResult();;
+        OperationResult result = createOperationResult();
 
         LookupTableRowType row = new LookupTableRowType();
         row.setId(2L);
-        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(LookupTableType.class,
-                LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
+        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object()
+                .createModificationDeleteContainer(LookupTableType.class,
+                        LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         when();
-        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID,delta.getModifications(), result);
+        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, delta.getModifications(), result);
 
         then();
         result.computeStatus();
@@ -573,7 +555,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
-
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
@@ -591,15 +572,16 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
     @Test
     public void test168LookupLanguagesDeleteRowByKey() throws Exception {
         given();
-        OperationResult result = createOperationResult();;
+        OperationResult result = createOperationResult();
 
         LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_GI");
-        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(LookupTableType.class,
-                LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
+        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object()
+                .createModificationDeleteContainer(LookupTableType.class,
+                        LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         when();
-        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID,delta.getModifications(), result);
+        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, delta.getModifications(), result);
 
         then();
         result.computeStatus();
@@ -625,7 +607,7 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
     @Test
     public void test170LookupLanguagesReplaceRows() throws Exception {
         given();
-        OperationResult result = createOperationResult();;
+        OperationResult result = createOperationResult();
 
         LookupTableRowType row1 = new LookupTableRowType();
         row1.setKey("ja_JA");
@@ -642,11 +624,12 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         row3.setValue("en1");
         row3.setLabel(PrismTestUtil.createPolyStringType("English (pirate1)"));
 
-        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object().createModificationReplaceContainer(LookupTableType.class,
-                LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row1, row2, row3);
+        ObjectDelta<LookupTableType> delta = prismContext.deltaFactory().object()
+                .createModificationReplaceContainer(LookupTableType.class,
+                        LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row1, row2, row3);
 
         when();
-        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID,delta.getModifications(), result);
+        repositoryService.modifyObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, delta.getModifications(), result);
 
         then();
         result.computeStatus();
@@ -656,7 +639,6 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
-
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
@@ -700,8 +682,9 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         AssertJUnit.fail("Row with key '" + key + "' was not found in lookup table");
     }
 
-    private PrismObject<LookupTableType> getLookupTableAll(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
+    private PrismObject<LookupTableType> getLookupTableAll(String oid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW).retrieve();
         return repositoryService.getObject(LookupTableType.class, oid, optionsBuilder.build(), result);
     }

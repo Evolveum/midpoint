@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -31,7 +32,7 @@ public class SqaleServiceBase {
      * Use with various `RepositoryService.OP_*` constants, not with constants without `OP_`
      * prefix because they already contain class name of the service interface.
      */
-    protected final String opNamePrefix = getClass().getSimpleName() + '.';
+    protected final String opNamePrefix = RepositoryService.class.getName() + '.';
 
     protected final SqaleRepoContext sqlRepoContext;
     protected final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;

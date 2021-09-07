@@ -23,6 +23,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * TODO
  */
@@ -42,6 +44,8 @@ class IterativeMockActivityExecutionSpecifics
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return super.getDefaultReportingOptions()
+                .defaultDetermineBucketSize(ActivityItemCountingOptionType.ALWAYS)
+                .defaultDetermineOverallSize(ActivityOverallItemCountingOptionType.ALWAYS)
                 .enableSynchronizationStatistics(true)
                 .enableActionsExecutedStatistics(true);
     }
@@ -58,6 +62,19 @@ class IterativeMockActivityExecutionSpecifics
                 break;
             }
         }
+    }
+
+    @Override
+    public @Nullable Integer determineOverallSize(OperationResult result) {
+        return activityExecution.getActivity().getWorkDefinition().getInterval().getSize();
+    }
+
+    @Override
+    public @Nullable Integer determineCurrentBucketSize(WorkBucketType bucket, OperationResult result) {
+        return NumericIntervalBucketUtil.getNarrowedInterval(
+                        bucket,
+                        activityExecution.getActivity().getWorkDefinition().getInterval())
+                .getSize();
     }
 
     @Override

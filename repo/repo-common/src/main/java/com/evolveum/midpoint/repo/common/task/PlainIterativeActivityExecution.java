@@ -51,13 +51,25 @@ public class PlainIterativeActivityExecution<
     }
 
     @Override
-    protected void prepareItemSource(OperationResult result) throws ActivityExecutionException, CommonException {
+    protected void prepareItemSourceForCurrentBucket(OperationResult result) throws ActivityExecutionException, CommonException {
         // Nothing to do here. Item source preparation can be done in iterateOverItems method.
     }
 
     @Override
-    protected @Nullable Integer determineExpectedTotal(OperationResult opResult) throws CommonException {
-        return executionSpecifics.determineExpectedTotal(opResult);
+    protected @Nullable Integer determineOverallSize(OperationResult result) throws CommonException {
+        return executionSpecifics.determineOverallSize(result);
+    }
+
+    @Override
+    protected @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
+        return executionSpecifics.determineCurrentBucketSize(bucket, result);
+    }
+
+    /** We simply do not support repository-related item-counting options in plain-iterative activity executions.
+     * @param result*/
+    @Override
+    protected boolean isInRepository(OperationResult result) {
+        return false;
     }
 
     @Override

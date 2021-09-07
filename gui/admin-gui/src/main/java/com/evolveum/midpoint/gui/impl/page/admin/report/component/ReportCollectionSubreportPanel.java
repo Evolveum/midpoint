@@ -35,7 +35,7 @@ import java.util.List;
 
 @PanelType(name = "reportCollectionSubreport")
 @PanelInstance(identifier = "reportCollectionSubreport", status = ItemStatus.NOT_CHANGED,
-        display = @PanelDisplay(label = "Subreport", order = 100))
+        display = @PanelDisplay(label = "ObjectCollectionReportEngineConfigurationType.subreport", order = 100))
 public class ReportCollectionSubreportPanel extends AbstractObjectMainPanel<ReportType, AssignmentHolderDetailsModel<ReportType>> {
 
     private static final String ID_SUBREPORTS_TABLE = "subreportsTable";

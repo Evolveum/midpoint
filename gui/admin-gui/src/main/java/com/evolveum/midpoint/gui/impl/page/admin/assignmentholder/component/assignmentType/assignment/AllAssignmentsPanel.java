@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 @PanelInstance(identifier = "allAssignments",
         applicableFor = AssignmentHolderType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
-        display = @PanelDisplay(label = "All", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 10))
+        display = @PanelDisplay(label = "AssignmentPanel.allLabel", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 10))
 public class AllAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
 
     public AllAssignmentsPanel(String id, LoadableModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {

@@ -15,10 +15,7 @@ import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -71,6 +68,13 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
     }
 
     @Override
+    public ActivityReportingOptions getDefaultReportingOptions() {
+        return super.getDefaultReportingOptions()
+                .defaultDetermineOverallSize(ActivityOverallItemCountingOptionType.ALWAYS)
+                .defaultDetermineBucketSize(ActivityItemCountingOptionType.NEVER);
+    }
+
+    @Override
     public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
         RunningTask task = getRunningTask();
         support.beforeExecution(result);
@@ -94,7 +98,7 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
     }
 
     @Override
-    public @Nullable Integer determineExpectedTotal(OperationResult result) throws CommonException {
+    public @Nullable Integer determineOverallSize(OperationResult result) throws CommonException {
         return support.countRecords(
                 searchSpecificationHolder.getType(),
                 searchSpecificationHolder.getQuery(),

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(identifier = "roleAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
-        display = @PanelDisplay(label = "Role", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 20))
+        display = @PanelDisplay(label = "ObjectType.RoleType", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 20))
 public class RoleAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel<AH> {
 
     public RoleAssignmentsPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {

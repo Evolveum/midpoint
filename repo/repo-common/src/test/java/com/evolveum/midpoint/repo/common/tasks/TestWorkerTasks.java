@@ -142,7 +142,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
                 .progressInformation() // this is for the whole tree
                     .display()
                     .assertBuckets(4, 4)
-                    .assertItems(4, null)
+                    .assertItems(4, null) // null because of workers
                 .end()
                 .assertCachingProfiles("profile1")
                 .assertSubtasks(1)
@@ -366,7 +366,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
                     .display()
                     .assertComplete()
                     .assertBuckets(20, 20)
-                    .assertItems(1000, null)
+                    .assertItems(1000, 1000)
                 .end();
         // @formatter:on
     }

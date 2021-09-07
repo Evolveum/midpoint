@@ -114,7 +114,7 @@ public class TestBucketingLive extends AbstractRepoCommonTest {
                 .progressInformation() // this is for the whole tree
                     .display()
                     .assertBuckets(4, 4)
-                    .assertItems(4, null)
+                    .assertItems(4, null) // expected is null because we have workers
                 .end()
                 .rootActivityState()
                     .bucketManagementStatistics()

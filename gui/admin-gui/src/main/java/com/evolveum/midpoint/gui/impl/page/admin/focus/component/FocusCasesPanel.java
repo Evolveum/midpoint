@@ -12,9 +12,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.util.QueryUtils;
@@ -31,7 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 @PanelInstance(identifier = "tasks",
         status = ItemStatus.NOT_CHANGED,
         applicableFor = FocusType.class,
-        display = @PanelDisplay(label = "Cases", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON, order = 50))
+        display = @PanelDisplay(label = "pageAdminFocus.cases", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON, order = 50))
+@Counter(provider = FocusCassesCounter.class)
 public class FocusCasesPanel<F extends FocusType>
         extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
     private static final long serialVersionUID = 1L;
