@@ -284,6 +284,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="useNewDesign" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            If the old or new design should be used. Temporary, will be removed in 4.5 when
+                            the old design will be fully replaced with the new one.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:displayName>AdminGuiConfigurationType.enableOldView</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -3737,6 +3751,16 @@
                             <xsd:documentation>
                                 <p>
                                     If the panel is default.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="visibleForAdd" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    TRANSIENT. Temporary used for distinguish if the panel is visible while creating new object.
+                                    Some panels should be shown only for existing objects, e.g Cases panel, Triggers panel, etc.
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>

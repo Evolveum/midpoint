@@ -69,6 +69,10 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         super(pageParameters);
     }
 
+    public PageReport(PrismObject<ReportType> report) {
+        super(report);
+    }
+
     @Override
     protected Class<ReportType> getType() {
         return ReportType.class;

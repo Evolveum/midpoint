@@ -8,8 +8,10 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -213,7 +215,15 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             return true;
         }
 
-        return WebComponentUtil.getElementVisibility(config.getVisibility());
+        return WebComponentUtil.getElementVisibility(config.getVisibility()) && isVisibleForAddApply(config);
+    }
+
+    private boolean isVisibleForAddApply(ContainerPanelConfigurationType config) {
+        ItemStatus status = objectDetailsModel.getObjectStatus();
+        if (status == ItemStatus.NOT_CHANGED) {
+            return true;
+        }
+        return ItemStatus.ADDED == status && BooleanUtils.isTrue(config.isVisibleForAdd());
     }
 
     protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {

@@ -94,6 +94,10 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, AssignmentHo
         super(pageParameters);
     }
 
+    public PageTask(PrismObject<TaskType> task) {
+        super(task);
+    }
+
     @Override
     protected Class<TaskType> getType() {
         return TaskType.class;

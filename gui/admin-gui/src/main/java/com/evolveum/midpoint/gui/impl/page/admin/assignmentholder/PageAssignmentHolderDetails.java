@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -33,7 +32,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -46,8 +44,17 @@ import java.util.stream.Collectors;
 public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderType, AHDM extends AssignmentHolderDetailsModel<AH>> extends AbstractPageObjectDetails<AH, AHDM> implements ProgressReportingAwarePage {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentHolderDetails.class);
+
+    public PageAssignmentHolderDetails() {
+        super();
+    }
+
     public PageAssignmentHolderDetails(PageParameters pageParameters) {
         super(pageParameters);
+    }
+
+    public PageAssignmentHolderDetails(PrismObject<AH> assignmentHolder) {
+        super(assignmentHolder);
     }
 
     @Override
@@ -220,8 +227,8 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         target.add(this);
     }
 
-    protected AHDM createObjectDetailsModels() {
-        return (AHDM) new AssignmentHolderDetailsModel<>(createPrismObejctModel(), this);
+    protected AHDM createObjectDetailsModels(PrismObject<AH> object) {
+        return (AHDM) new AssignmentHolderDetailsModel<>(createPrismObejctModel(object), this);
     }
 
 }

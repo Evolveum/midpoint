@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
@@ -91,15 +92,19 @@ import java.util.*;
 @PanelInstances(instances = {
         @PanelInstance(identifier = "roleMembers",
                 applicableFor = RoleType.class,
+                status = ItemStatus.NOT_CHANGED,
                 display = @PanelDisplay(label = "pageRole.members", order = 80)),
         @PanelInstance(identifier = "roleGovernance",
                 applicableFor = RoleType.class,
+                status = ItemStatus.NOT_CHANGED,
                 display = @PanelDisplay(label = "pageRole.governance", order = 90)),
         @PanelInstance(identifier = "serviceMembers",
                 applicableFor = ServiceType.class,
+                status = ItemStatus.NOT_CHANGED,
                 display = @PanelDisplay(label = "pageRole.members", order = 80)),
         @PanelInstance(identifier = "serviceGovernance",
                 applicableFor = ServiceType.class,
+                status = ItemStatus.NOT_CHANGED,
                 display = @PanelDisplay(label = "pageRole.governance", order = 90))
 })
 @PanelDisplay(label = "Members", order = 60)

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -33,6 +34,10 @@ public class PageRole extends PageFocusDetails<RoleType, FocusDetailsModels<Role
 
     public PageRole(PageParameters pageParameters) {
         super(pageParameters);
+    }
+
+    public PageRole(PrismObject<RoleType> role) {
+        super(role);
     }
 
     @Override
