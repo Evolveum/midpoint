@@ -17,9 +17,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
-public class FocusCassesCounter<F extends FocusType> extends SimpleCounter<FocusDetailsModels<F>, F> {
+public class FocusCasesCounter<F extends FocusType> extends SimpleCounter<FocusDetailsModels<F>, F> {
 
-    public FocusCassesCounter() {
+    public FocusCasesCounter() {
         super();
     }
 
@@ -30,7 +30,7 @@ public class FocusCassesCounter<F extends FocusType> extends SimpleCounter<Focus
             return 0;
         }
 
-        ObjectQuery casesQuery = QueryUtils.filterForCasesOverUser(PrismContext.get().queryFor(CaseType.class), oid)
+        ObjectQuery casesQuery = QueryUtils.filterForCasesOverObject(PrismContext.get().queryFor(CaseType.class), oid)
                 .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                 .build();
         return WebModelServiceUtils.countObjects(CaseType.class, casesQuery, pageBase);

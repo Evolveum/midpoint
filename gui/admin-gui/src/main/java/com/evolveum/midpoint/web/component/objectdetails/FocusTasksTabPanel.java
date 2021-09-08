@@ -6,11 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -56,7 +51,7 @@ public class FocusTasksTabPanel<F extends FocusType>
             @Override
             protected ObjectFilter getCasesFilter() {
                 String oid = getObjectWrapper().getOid();
-                return QueryUtils.filterForCasesOverUser(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
+                return QueryUtils.filterForCasesOverObject(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
                         .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                         .buildFilter();
             }
