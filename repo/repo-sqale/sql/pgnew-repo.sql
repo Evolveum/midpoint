@@ -754,7 +754,6 @@ BEGIN
     END IF;
 END; $$;
 -- endregion
--- endregion
 
 -- region OTHER object tables
 -- Represents ResourceType, see https://wiki.evolveum.com/display/midPoint/Resource+Configuration

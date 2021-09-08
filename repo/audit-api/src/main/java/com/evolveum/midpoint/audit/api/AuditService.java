@@ -14,9 +14,11 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
@@ -35,6 +37,8 @@ public interface AuditService {
     String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
     String OP_COUNT_OBJECTS = "countObjects";
     String OP_SEARCH_OBJECTS = "searchObjects";
+    String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
+    String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
 
     void audit(AuditEventRecord record, Task task, OperationResult result);
 
@@ -87,4 +91,20 @@ public interface AuditService {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult)
             throws SchemaException;
+
+    /**
+     * Executes iterative search using the provided `handler` to process each object.
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param options get options to use for the search
+     * @param parentResult parent OperationResult (in/out)
+     * @return summary information about the search result
+     */
+    @Experimental
+    SearchResultMetadata searchObjectsIterative(
+            @Nullable ObjectQuery query,
+            @NotNull AuditResultHandler handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException;
 }
