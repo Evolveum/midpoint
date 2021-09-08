@@ -578,4 +578,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected ProgressPanel getProgressPanel() {
         return (ProgressPanel) get(ID_PROGRESS_PANEL);
     }
+
+    @Override
+    protected void createBreadcrumb() {
+        createInstanceBreadcrumb();
+    }
 }

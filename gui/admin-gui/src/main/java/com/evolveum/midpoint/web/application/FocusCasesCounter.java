@@ -30,7 +30,7 @@ public class FocusCasesCounter<F extends FocusType> extends SimpleCounter<FocusD
             return 0;
         }
 
-        ObjectQuery casesQuery = QueryUtils.filterForCasesOverUser(PrismContext.get().queryFor(CaseType.class), oid)
+        ObjectQuery casesQuery = QueryUtils.filterForCasesOverObject(PrismContext.get().queryFor(CaseType.class), oid)
                 .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                 .build();
         return WebModelServiceUtils.countObjects(CaseType.class, casesQuery, pageBase);

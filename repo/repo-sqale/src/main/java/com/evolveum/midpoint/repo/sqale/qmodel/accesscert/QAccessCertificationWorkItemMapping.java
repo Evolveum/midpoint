@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
@@ -173,6 +174,8 @@ public class QAccessCertificationWorkItemMapping
             MAccessCertificationWorkItem row = Objects.requireNonNull(tuple.get(entityPath));
             UUID ownerOid = row.ownerOid;
             PrismObject<AccessCertificationCampaignType> owner = cache.get(ownerOid);
+            // FIXME: Should we load cases we need, instead of all cases?
+            options = SchemaService.get().getOperationOptionsBuilder().retrieve().build();
             if (owner == null) {
                 owner = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext).loadObject(jdbcSession, AccessCertificationCampaignType.class, ownerOid, options);
                 cache.put(ownerOid, owner);

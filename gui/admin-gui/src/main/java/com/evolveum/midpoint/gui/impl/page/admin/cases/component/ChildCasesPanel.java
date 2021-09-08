@@ -42,7 +42,7 @@ import java.util.List;
  * Created by honchar
  */
 @PanelType(name = "childCases")
-@PanelInstance(identifier = "childCases", applicableFor = CaseType.class,
+@PanelInstance(identifier = "childCases",
         display = @PanelDisplay(label = "PageCase.childCasesTab"))
 @Counter(provider = ChildrenCasesCounter.class)
 public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {

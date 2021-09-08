@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -30,6 +31,11 @@ public class SqaleServiceBase {
      * Class name prefix for operation names, including the dot separator.
      * Use with various `RepositoryService.OP_*` constants, not with constants without `OP_`
      * prefix because they already contain class name of the service interface.
+     *
+     * [NOTE]
+     * This distinguishes operation names for audit and repository (e.g. `searchObjects`) - both
+     * in operation results and in performance monitoring (which previously didn't include class names).
+     * To make things compact enough, simple (short) class name is used.
      */
     protected final String opNamePrefix = getClass().getSimpleName() + '.';
 
@@ -141,7 +147,9 @@ public class SqaleServiceBase {
     }
 
     protected void registerOperationFinish(long opHandle, int attempt) {
-        performanceMonitor.registerOperationFinish(opHandle, attempt);
+        if (performanceMonitor != null) {
+            performanceMonitor.registerOperationFinish(opHandle, attempt);
+        }
     }
 
     @PreDestroy

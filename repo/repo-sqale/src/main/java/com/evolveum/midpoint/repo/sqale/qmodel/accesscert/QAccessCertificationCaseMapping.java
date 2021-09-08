@@ -261,15 +261,20 @@ public class QAccessCertificationCaseMapping
                 owner = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext).loadObject(jdbcSession, AccessCertificationCampaignType.class, ownerOid, options);
                 cache.put(ownerOid, owner);
             }
-            PrismContainer<AccessCertificationCaseType> container = owner.findContainer(AccessCertificationCampaignType.F_CASE);
-            if (container == null) {
-                throw new SystemException("Campaing" + owner + " has no cases even if it should have " + tuple);
+            try {
+                // Container could be null (since it is skipItem in campain)
+                PrismContainer<AccessCertificationCaseType> container = owner.findOrCreateContainer(AccessCertificationCampaignType.F_CASE);
+                PrismContainerValue<AccessCertificationCaseType> value = container.findValue(cid);
+                if (value == null) {
+                    // value is not present, load it from full object
+                    AccessCertificationCaseType valueObj = toSchemaObject(tuple, entityPath, options);
+                    value = valueObj.asPrismContainerValue();
+                    container.add(value);
+                }
+                return value.asContainerable();
+            } catch (SchemaException e) {
+                throw new SystemException(e);
             }
-            PrismContainerValue<AccessCertificationCaseType> value = container.findValue(cid);
-            if (value == null) {
-                throw new SystemException("Campaing " + owner + " has no cases with ID " + cid);
-            }
-            return value.asContainerable();
         };
     }
 }

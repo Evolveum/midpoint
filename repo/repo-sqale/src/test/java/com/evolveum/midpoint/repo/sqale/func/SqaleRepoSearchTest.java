@@ -8,9 +8,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
@@ -30,13 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -59,6 +51,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -66,8 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
-
-    private final static String NONEXISTENT_OID = UUID.randomUUID().toString();
 
     // org structure
     private String org1Oid; // one root
@@ -640,7 +631,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test182SearchCaseWorkItemByAssignee() throws Exception {
         searchCaseWorkItemByAssignee(user1Oid, case1Oid);
         searchCaseWorkItemByAssignee(user2Oid, case1Oid);
-        searchCaseWorkItemByAssignee(NONEXISTENT_OID);
+        searchCaseWorkItemByAssignee(TestUtil.NON_EXISTENT_OID);
     }
 
     private void searchCaseWorkItemByAssignee(String assigneeOid, String... expectedCaseOids) throws Exception {
@@ -1967,12 +1958,14 @@ AND(
         ObjectQuery query = PrismContext.get().queryFor(FocusType.class).all().build();
         SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options.iterator().next());
         assertNotNull(result);
+        //noinspection rawtypes
         Visitor check = visitable -> {
             if (visitable instanceof PrismReferenceValue) {
                 assertNotNull(((PrismReferenceValue) visitable).getTargetName(), "TargetName should be set.");
             }
         };
-        for(FocusType obj : result) {
+        for (FocusType obj : result) {
+            //noinspection unchecked
             obj.asPrismObject().accept(check);
         }
     }

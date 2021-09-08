@@ -48,7 +48,7 @@ public class FocusCasesPanel<F extends FocusType>
             @Override
             protected ObjectFilter getCasesFilter() {
                 String oid = getObjectWrapper().getOid();
-                return QueryUtils.filterForCasesOverUser(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
+                return QueryUtils.filterForCasesOverObject(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
                         .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                         .buildFilter();
             }
