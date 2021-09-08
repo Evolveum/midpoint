@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.filtering.RightHandProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -95,6 +96,12 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
                 sqlQueryContext,
                 (Function<FlexibleRelationalPathBase<?>, JsonbPath>) rootToExtensionPath,
                 holderType);
+    }
+
+    @Override
+    public <T extends ValueFilter<?, ?>> @Nullable RightHandProcessor createRightHandProcessor(
+            SqlQueryContext<?, ?, ?> sqlQueryContext) {
+        return createRightHandProcessor(sqlQueryContext);
     }
 
     @Override

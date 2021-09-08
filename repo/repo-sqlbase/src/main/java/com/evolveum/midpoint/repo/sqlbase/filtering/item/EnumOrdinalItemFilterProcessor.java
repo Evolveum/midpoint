@@ -15,7 +15,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.filtering.RightHandProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
@@ -84,5 +86,13 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
     public Predicate process(PropertyValueFilter<E> filter) throws QueryException {
         return createBinaryCondition(filter, path,
                 ValueFilterValues.from(filter, conversionFunction));
+    }
+
+
+    @Override
+    public Predicate process(PropertyValueFilter<E> filter, RightHandProcessor rightPath)
+            throws RepositoryException {
+        return createBinaryCondition(filter, path,
+                ValueFilterValues.from(filter, rightPath.rightHand(filter)));
     }
 }

@@ -8,9 +8,12 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.Function;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -33,5 +36,10 @@ public abstract class SinglePathItemFilterProcessor<T, P extends Path<?>>
             SqlQueryContext<?, Q, R> context, Function<Q, P> rootToQueryItem) {
         super(context);
         this.path = rootToQueryItem.apply(context.path());
+    }
+
+    @Override
+    public Expression<?> rightHand(ValueFilter<?, ?> filter) throws RepositoryException {
+        return path;
     }
 }
