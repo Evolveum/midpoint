@@ -180,11 +180,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, AH object) {
-                detailsPerformed(object);
-            }
-
-            @Override
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<AH>> rowModel) {
                 if (rowModel == null || rowModel.getObject() == null
                         || rowModel.getObject().getValue() == null) {
@@ -1040,14 +1035,14 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 .build();
     }
 
-    protected void detailsPerformed(ObjectType object) {
-        if (WebComponentUtil.hasDetailsPage(object.getClass())) {
-            WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
-        } else {
-            error("Could not find proper response page");
-            throw new RestartResponseException(getPageBase());
-        }
-    }
+//    protected void detailsPerformed(ObjectType object) {
+//        if (WebComponentUtil.hasDetailsPage(object.getClass())) {
+//            WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
+//        } else {
+//            error("Could not find proper response page");
+//            throw new RestartResponseException(getPageBase());
+//        }
+//    }
 
     private Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
         return SelectorOptions.createCollection(GetOperationOptions.createDistinct());

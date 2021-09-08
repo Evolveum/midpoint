@@ -32,6 +32,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
 public class PageRole extends PageFocusDetails<RoleType, FocusDetailsModels<RoleType>> {
 
+    public PageRole() {
+        super();
+    }
+
     public PageRole(PageParameters pageParameters) {
         super(pageParameters);
     }

@@ -284,7 +284,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useNewDesign" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+            <xsd:element name="useNewDesign" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -294,7 +294,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4</a:since>
-                        <a:displayName>AdminGuiConfigurationType.enableOldView</a:displayName>
+                        <a:displayName>AdminGuiConfigurationType.useNewDesign</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

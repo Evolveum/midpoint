@@ -83,15 +83,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected boolean previewRequested;
 
     public AbstractPageObjectDetails() {
-        if (getObjectOidParameter() == null) {
-            ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getType());
-            Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
-            if (!applicableArchetypes.isEmpty()) {
-                PageParameters params = new PageParameters();
-                params.add("type", objectType.getRestType());
-                throw new RestartResponseException(PageCreateFromTemplate.class, params);
-            }
-        }
+        this(null, null);
     }
 
     public AbstractPageObjectDetails(PageParameters pageParameters) {
@@ -104,6 +96,16 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object) {
         super(params);
+
+        if (params == null && object == null) {
+            ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getType());
+            Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
+            if (!applicableArchetypes.isEmpty()) {
+                PageParameters templateParams = new PageParameters();
+                templateParams.add("type", objectType.getRestType());
+                throw new RestartResponseException(PageCreateFromTemplate.class, templateParams);
+            }
+        }
         objectDetailsModels = createObjectDetailsModels(object);
         initLayout();
     }

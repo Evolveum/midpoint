@@ -34,6 +34,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                 description = "PageOrgUnit.auth.orgUnit.description") })
 public class PageOrg extends PageFocusDetails<OrgType, FocusDetailsModels<OrgType>> {
 
+    public PageOrg() {
+        super();
+    }
+
     public PageOrg(PageParameters pageParameters) {
         super(pageParameters);
     }

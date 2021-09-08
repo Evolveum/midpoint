@@ -37,6 +37,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                 description = "PageService.auth.role.description") })
 public class PageService extends PageFocusDetails<ServiceType, FocusDetailsModels<ServiceType>> {
 
+    public PageService() {
+        super();
+    }
+
     public PageService(PageParameters pageParameters) {
         super(pageParameters);
     }

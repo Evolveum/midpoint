@@ -61,13 +61,6 @@ public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, Assignmen
                 CaseType.class, Collections.emptyList()) {
 
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
-                PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
-                ChildCasesPanel.this.getPageBase().navigateToNext(PageCase.class, pageParameters);
-            }
-
-            @Override
             protected List<IColumn<SelectableBean<CaseType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
 

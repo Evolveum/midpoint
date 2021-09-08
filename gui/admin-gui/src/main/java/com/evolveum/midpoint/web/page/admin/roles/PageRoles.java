@@ -83,10 +83,6 @@ public class PageRoles extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<RoleType> table = new MainObjectListPanel<RoleType>(ID_TABLE, RoleType.class) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, RoleType role) {
-                PageRoles.this.roleDetailsPerformed(target, role.getOid());
-            }
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -126,12 +122,6 @@ public class PageRoles extends PageAdmin {
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
-    }
-
-    private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageRole.class, parameters);
     }
 
     private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){

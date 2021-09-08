@@ -90,6 +90,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
         })
 public class PageTask extends PageAssignmentHolderDetails<TaskType, AssignmentHolderDetailsModel<TaskType>> {
 
+    public PageTask() {
+        super();
+    }
+
     public PageTask(PageParameters pageParameters) {
         super(pageParameters);
     }
