@@ -152,9 +152,8 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     }
 
     private void addCount(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
-        IModel<String> countModel = createCountModel(item.getModel());
-        Label label = new Label(ID_COUNT, countModel);
-        label.add(new VisibleBehaviour(() -> countModel.getObject() != null));
+        Label label = new Label(ID_COUNT, createCountModel(item.getModel()));
+        label.add(new VisibleBehaviour(() -> getCounterProvider(item.getModel()) != null));
         link.add(label);
     }
 
@@ -189,17 +188,24 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private IModel<String> createCountModel(IModel<ContainerPanelConfigurationType> panelModel) {
         return new ReadOnlyModel<>( () -> {
-            ContainerPanelConfigurationType config = panelModel.getObject();
-            String panelInstanceIdentifier = config.getIdentifier();
-
-            SimpleCounter<ObjectDetailsModels<O>, O> counter = getPageBase().getCounterProvider(panelInstanceIdentifier);
-            if (counter == null || counter.getClass().equals(SimpleCounter.class)) {
+            SimpleCounter<ObjectDetailsModels<O>, O> counter = getCounterProvider(panelModel);
+            if (counter == null) {
                 return null;
             }
-
             int count = counter.count(objectDetailsModel, getPageBase());
             return String.valueOf(count);
         });
+    }
+
+    private SimpleCounter<ObjectDetailsModels<O>, O> getCounterProvider(IModel<ContainerPanelConfigurationType> panelModel) {
+        ContainerPanelConfigurationType config = panelModel.getObject();
+        String panelInstanceIdentifier = config.getIdentifier();
+
+        SimpleCounter<ObjectDetailsModels<O>, O> counter = getPageBase().getCounterProvider(panelInstanceIdentifier);
+        if (counter == null || counter.getClass().equals(SimpleCounter.class)) {
+            return null;
+        }
+        return counter;
     }
 
     private boolean isMenuItemVisible(ContainerPanelConfigurationType config) {
