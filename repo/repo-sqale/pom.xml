@@ -151,13 +151,6 @@
             <properties>
                 <maven.test.skip>false</maven.test.skip>
             </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 </project>
