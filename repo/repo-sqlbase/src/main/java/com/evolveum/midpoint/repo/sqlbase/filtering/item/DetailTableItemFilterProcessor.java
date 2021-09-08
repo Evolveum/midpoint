@@ -110,4 +110,5 @@ public class DetailTableItemFilterProcessor
             return subquery.where(predicate).exists();
         }
     }
+
 }

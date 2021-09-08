@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.RightHandProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -86,5 +87,11 @@ public class DefaultItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
         return filterProcessorFactory
                 .apply((SqlQueryContext) sqlQueryContext);
+    }
+
+    @Override
+    public <T extends ValueFilter<?, ?>> @Nullable RightHandProcessor createRightHandProcessor(
+            SqlQueryContext<?, ?, ?> sqlQueryContext) {
+        return filterProcessorFactory.apply((SqlQueryContext) sqlQueryContext);
     }
 }

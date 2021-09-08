@@ -15,8 +15,10 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.RightHandProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -31,7 +33,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
  * See {@link ValueFilterProcessor} for details how complex paths are resolved to its last part.
  */
 public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
-        implements FilterProcessor<O> {
+        implements FilterProcessor<O>, RightHandProcessor {
 
     protected final SqlQueryContext<?, ?, ?> context;
 
@@ -113,7 +115,11 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
     protected Predicate singleValuePredicate(
             Expression<?> path, FilterOperation operation, Object value) {
         path = operation.treatPath(path);
-        value = operation.treatValue(value);
+        if (value instanceof Expression<?>) {
+            value = operation.treatPath((Expression<?>) value);
+        } else {
+            value = operation.treatValue(value);
+        }
         Predicate predicate = ExpressionUtils.predicate(operation.operator, path,
                 value instanceof Expression ? (Expression<?>) value : ConstantImpl.create(value));
         return predicateWithNotTreated(path, predicate);
@@ -128,4 +134,10 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
                 ? ExpressionUtils.and(predicate, ExpressionUtils.predicate(Ops.IS_NOT_NULL, path))
                 : predicate;
     }
+
+    @Override
+    public Expression<?> rightHand(ValueFilter<?, ?> filter) throws RepositoryException {
+        throw new RepositoryException("Path " + filter.getRightHandSidePath() + "is not supported as right hand side.");
+    }
+
 }

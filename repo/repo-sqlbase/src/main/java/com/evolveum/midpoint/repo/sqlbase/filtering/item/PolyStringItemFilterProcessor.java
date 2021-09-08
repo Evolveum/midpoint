@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 import java.util.function.Function;
 
 import com.google.common.base.Strings;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
@@ -19,7 +20,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.filtering.RightHandProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -122,6 +125,42 @@ public class PolyStringItemFilterProcessor<T>
         } else {
             throw new IllegalArgumentException(
                     "Value [" + value + "] is neither String nor PolyString(Type).");
+        }
+    }
+
+    @Override
+    public Expression<?> rightHand(ValueFilter<?, ?> filter) throws RepositoryException {
+        return origPath;
+    }
+
+    @Override
+    public Predicate process(PropertyValueFilter<T> filter, RightHandProcessor rightPath) throws RepositoryException {
+        FilterOperation operation = operation(filter);
+        if (rightPath instanceof PolyStringItemFilterProcessor) {
+            return processPoly(filter, (PolyStringItemFilterProcessor) rightPath);
+        }
+        return singleValuePredicate(this.normPath, operation, rightPath.rightHand(filter));
+    }
+
+    private Predicate processPoly(PropertyValueFilter<T> filter, PolyStringItemFilterProcessor rightPath) throws QueryException {
+        String matchingRule = filter.getMatchingRule() != null
+                ? filter.getMatchingRule().getLocalPart() : null;
+
+        if (Strings.isNullOrEmpty(matchingRule) || DEFAULT.equals(matchingRule)
+                || STRICT.equals(matchingRule) || STRICT_IGNORE_CASE.equals(matchingRule)) {
+            return ExpressionUtils.and(
+                    createBinaryCondition(filter, normPath,
+                            ValueFilterValues.from(filter, rightPath.normPath)),
+                    createBinaryCondition(filter, origPath,
+                            ValueFilterValues.from(filter, rightPath.origPath)));
+        } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
+            return createBinaryCondition(filter, origPath,
+                    ValueFilterValues.from(filter, rightPath.origPath));
+        } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
+            return createBinaryCondition(filter, normPath,
+                    ValueFilterValues.from(filter, this.normPath));
+        } else {
+            throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
         }
     }
 }

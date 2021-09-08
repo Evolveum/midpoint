@@ -274,6 +274,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         user4Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-4")
+                        .givenName("John")
+                        .fullName("John")
                         .costCenter("51")
                         .parentOrgRef(org111Oid, OrgType.COMPLEX_TYPE)
                         .subtype("workerB")
@@ -1706,6 +1708,21 @@ AND(
         */
     }
     // endregion
+
+    @Test
+    public void test800SearchUsersWithSimplePath() throws SchemaException {
+        searchUsersTest("fullName does not equals fname",
+                f -> f.item(UserType.F_FULL_NAME).eq().item(UserType.F_GIVEN_NAME),
+                user4Oid);
+    }
+
+    @Test(expectedExceptions = SystemException.class)
+    public void test820SearchUsersWithReferencedPath() throws SchemaException {
+        searchUsersTest("fullName does not equals fname",
+                f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                user1Oid, user2Oid, user3Oid, user4Oid);
+        // Should fail because right hand side nesting into multivalue container is not supported
+    }
 
     // region special cases
     @Test
