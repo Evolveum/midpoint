@@ -15,6 +15,8 @@ import java.io.File;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.objectdetails.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -160,7 +162,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test014renderPersonasTab() {
-        renderPage();
+        renderPage(USER_ADMINISTRATOR_OID);
 
         clickOnTab(6);
         String panel = "mainPanel:mainForm:tabPanel:panel";
@@ -169,7 +171,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test015renderDelegationsTab() {
-        renderPage();
+        renderPage(USER_ADMINISTRATOR_OID);
 
         clickOnTab(7);
         String panel = "mainPanel:mainForm:tabPanel:panel";
@@ -178,7 +180,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test016renderDelegatedToMeTab() {
-        renderPage();
+        renderPage(SystemObjectsType.USER_ADMINISTRATOR.value());
 
         clickOnTab(8);
         String panel = "mainPanel:mainForm:tabPanel:panel";
@@ -187,7 +189,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test017renderTriggersTab() {
-        renderPage();
+        renderPage(SystemObjectsType.USER_ADMINISTRATOR.value());
 
         clickOnTab(5);
         String panel = "mainPanel:mainForm:tabPanel:panel";
