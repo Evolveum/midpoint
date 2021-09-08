@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  *
  * Despite the class name it does not directly contain code that creates conditions based on values.
  * This is still a structural processor and the name "value filter" merely reflects the type of
- * a filter which it processes.
+ * filter which it processes.
  *
  * If the path has multiple names it creates new instance of this filter processor for each
  * step to preserve contextual information - e.g. when predicate needs to be applied to the current
@@ -65,7 +65,7 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
             ItemPath path, ValueFilter<?, ?> filter) throws RepositoryException {
         final RightHandProcessor right;
         if (filter.getRightHandSidePath() != null) {
-            right = processRight(filter.getRightHandSidePath(), filter);
+            right = processRight(filter.getRightHandSidePath());
         } else {
             right = null;
         }
@@ -73,7 +73,7 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     private <TQ extends FlexibleRelationalPathBase<TR>, TR> Predicate process(
-                ItemPath path, ValueFilter<?, ?> filter, RightHandProcessor right) throws RepositoryException {
+            ItemPath path, ValueFilter<?, ?> filter, RightHandProcessor right) throws RepositoryException {
         // isSingleName/asSingleName or firstName don't work for T_ID (OID)
         if (path.size() == 1) {
             QName itemName = path.firstToQName();
@@ -89,8 +89,9 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
             }
             return filterProcessor.process(filter);
         } else {
-            ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path);
-            ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
+            //noinspection DuplicatedCode
+            ItemRelationResolver.ResolutionResult<TQ, TR> resolution =
+                    mapping.<TQ, TR>relationResolver(path).resolve(context);
             SqlQueryContext<?, TQ, TR> subcontext = resolution.context;
             ValueFilterProcessor<TQ, TR> nestedProcessor =
                     new ValueFilterProcessor<>(subcontext, resolution.mapping);
@@ -105,8 +106,8 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
         }
     }
 
-    private <TQ extends FlexibleRelationalPathBase<TR>, TR> RightHandProcessor processRight(ItemPath path, ValueFilter<?, ?> filter) throws RepositoryException {
-        SqlQueryContext<?, Q, R> root = context;
+    private <TQ extends FlexibleRelationalPathBase<TR>, TR> RightHandProcessor processRight(ItemPath path)
+            throws RepositoryException {
         if (path.size() == 1) {
             QName itemName = path.firstToQName();
             RightHandProcessor filterProcessor =
@@ -118,15 +119,16 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
             }
             return filterProcessor;
         } else {
-            ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path);
-            ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
+            //noinspection DuplicatedCode
+            ItemRelationResolver.ResolutionResult<TQ, TR> resolution =
+                    mapping.<TQ, TR>relationResolver(path).resolve(context);
             SqlQueryContext<?, TQ, TR> subcontext = resolution.context;
             ValueFilterProcessor<TQ, TR> nestedProcessor =
                     new ValueFilterProcessor<>(subcontext, resolution.mapping);
             if (resolution.subquery) {
-                throw new RepositoryException("Righ path " +  path + "is not single value");
+                throw new RepositoryException("Right path " + path + "is not single value");
             }
-            return nestedProcessor.processRight(path.rest(), filter);
+            return nestedProcessor.processRight(path.rest());
         }
     }
 }

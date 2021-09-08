@@ -99,7 +99,7 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
-    public <T extends ValueFilter<?, ?>> @Nullable RightHandProcessor createRightHandProcessor(
+    public @Nullable RightHandProcessor createRightHandProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
         return createFilterProcessor(sqlQueryContext);
     }

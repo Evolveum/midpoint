@@ -85,12 +85,12 @@ public class DefaultItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public @Nullable <T extends ValueFilter<?, ?>> ItemValueFilterProcessor<T> createFilterProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
-        return filterProcessorFactory
-                .apply((SqlQueryContext) sqlQueryContext);
+        return filterProcessorFactory.apply((SqlQueryContext) sqlQueryContext);
     }
 
     @Override
-    public <T extends ValueFilter<?, ?>> @Nullable RightHandProcessor createRightHandProcessor(
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public @Nullable RightHandProcessor createRightHandProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
         return filterProcessorFactory.apply((SqlQueryContext) sqlQueryContext);
     }
