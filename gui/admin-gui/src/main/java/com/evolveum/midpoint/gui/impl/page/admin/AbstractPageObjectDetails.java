@@ -91,7 +91,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     }
 
-    protected ObjectDetailsModels<O> getObjectDetailsModels() {
+    public ObjectDetailsModels<O> getObjectDetailsModels() {
         return objectDetailsModels;
     }
 

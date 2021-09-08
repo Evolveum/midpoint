@@ -62,88 +62,9 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
         return null;
     }
 
-    protected IModel<AssignmentPopupDto> createAssignmentPopupModel() {
-        return new LoadableModel<>(false) {
-
-            @Override
-            protected AssignmentPopupDto load() {
-                List<AssignmentObjectRelation> assignmentObjectRelations = getAssignmentObjectRelationList();
-                return new AssignmentPopupDto(assignmentObjectRelations);
-            }
-        };
-    }
-
-    private List<AssignmentObjectRelation> getAssignmentObjectRelationList() {
-        if (AbstractAssignmentPanel.this.getContainerModel().getObject() == null) {
-            return null;
-        }
-
-        List<AssignmentObjectRelation> assignmentRelationsList =
-                WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
-        if (assignmentRelationsList == null || assignmentRelationsList.isEmpty()) {
-            return assignmentRelationsList;
-        }
-        QName assignmentType = getAssignmentType();
-        if (assignmentType == null) {
-            return assignmentRelationsList;
-        }
-        List<AssignmentObjectRelation> assignmentRelationsListFilteredByType =
-                new ArrayList<>();
-        assignmentRelationsList.forEach(assignmentRelation -> {
-            QName objectType = assignmentRelation.getObjectTypes() != null
-                    && !assignmentRelation.getObjectTypes().isEmpty()
-                    ? assignmentRelation.getObjectTypes().get(0) : null;
-            if (QNameUtil.match(assignmentType, objectType)) {
-                assignmentRelationsListFilteredByType.add(assignmentRelation);
-            }
-        });
-        return assignmentRelationsListFilteredByType;
-    }
-
     @Override
     protected String getAssignmentsTabStorageKey() {
         return SessionStorage.KEY_ASSIGNMENTS_TAB;
-    }
-
-    @NotNull
-    private <AH extends AssignmentHolderType> List<AssignmentObjectRelation> loadAssignmentTargetRelationsList() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS);
-        List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();
-        PrismObject<AH> obj = getFocusObject();
-        try {
-            AssignmentCandidatesSpecification spec = getPageBase().getModelInteractionService()
-                    .determineAssignmentTargetSpecification(obj, result);
-            assignmentTargetRelations = spec != null ? spec.getAssignmentObjectRelations() : new ArrayList<>();
-        } catch (SchemaException | ConfigurationException ex) {
-            result.recordPartialError(ex.getLocalizedMessage());
-            LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
-        }
-        return assignmentTargetRelations;
-    }
-
-    @Override
-    protected List<ObjectTypes> getObjectTypesList() {
-        QName assignmentType = getAssignmentType();
-        if (assignmentType == null) {
-            return Collections.EMPTY_LIST;
-        }
-        return Collections.singletonList(ObjectTypes.getObjectTypeFromTypeQName(assignmentType));
-    }
-
-    protected RefFilter getTargetTypeFilter() {
-        QName targetType = getAssignmentType();
-        RefFilter targetRefFilter = null;
-        if (targetType != null) {
-            ObjectReferenceType ort = new ObjectReferenceType();
-            ort.setType(targetType);
-            ort.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
-            targetRefFilter = (RefFilter) getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                    .item(AssignmentType.F_TARGET_REF)
-                    .ref(ort.asReferenceValue())
-                    .buildFilter();
-            targetRefFilter.setOidNullAsAny(true);
-        }
-        return targetRefFilter;
     }
 
     @Override
@@ -157,8 +78,6 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
                             PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
         }
     }
-
-    protected abstract QName getAssignmentType();
 
     @Override
     protected UserProfileStorage.TableId getTableId() {

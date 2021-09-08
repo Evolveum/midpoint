@@ -56,6 +56,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by honchar.
  */
@@ -77,7 +79,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
     private static final String DOT_CLASS = AssignmentPopup.class.getName() + ".";
     protected static final String OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION = DOT_CLASS + "loadAssignmentHolderSpecification";
 
-    public AssignmentPopup(String id, IModel<AssignmentPopupDto> model) {
+    public AssignmentPopup(String id, @NotNull IModel<AssignmentPopupDto> model) {
         super(id, model);
     }
 

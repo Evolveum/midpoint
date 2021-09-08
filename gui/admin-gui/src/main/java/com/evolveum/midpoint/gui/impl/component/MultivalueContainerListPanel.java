@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.web.component.*;
 
@@ -199,9 +200,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             return mainPanel.getObjectWrapper().getObject();
         }
         PageBase pageBase = getPageBase();
-        if (pageBase != null && pageBase instanceof PageUser) {
-            PageUser pageUser = (PageUser) pageBase;
-            return (PrismObject<AH>) pageUser.getPrismObject();
+        if (pageBase != null && pageBase instanceof PageAssignmentHolderDetails) {
+            PageAssignmentHolderDetails pageAssignmentHolderDetails = (PageAssignmentHolderDetails) pageBase;
+            return (PrismObject<AH>) pageAssignmentHolderDetails.getPrismObject();
         }
         return null;
     }

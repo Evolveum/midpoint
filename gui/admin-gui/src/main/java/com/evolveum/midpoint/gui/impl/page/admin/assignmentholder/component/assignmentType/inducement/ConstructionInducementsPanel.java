@@ -15,18 +15,28 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.wicket.model.IModel;
+
+import javax.xml.namespace.QName;
 
 @PanelType(name = "constructionInducements")
 @PanelInstance(identifier = "constructionInducements",
         applicableFor = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
-        display = @PanelDisplay(label = "ObjectType.ResourceType", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 50))
+        display = @PanelDisplay(label = "ObjectType.ResourceType", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, order = 50))
 public class ConstructionInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
     public ConstructionInducementsPanel(String id, IModel<PrismObjectWrapper<AR>> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
+    @Override
+    protected QName getAssignmentType() {
+        return ResourceType.COMPLEX_TYPE;
+    }
 
 }
