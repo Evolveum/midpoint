@@ -13,13 +13,18 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.page.admin.PageCreateFromTemplate;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -78,7 +83,15 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected boolean previewRequested;
 
     public AbstractPageObjectDetails() {
-        this(null, null);
+        if (getObjectOidParameter() == null) {
+            ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getType());
+            Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
+            if (!applicableArchetypes.isEmpty()) {
+                PageParameters params = new PageParameters();
+                params.add("type", objectType.getRestType());
+                throw new RestartResponseException(PageCreateFromTemplate.class, params);
+            }
+        }
     }
 
     public AbstractPageObjectDetails(PageParameters pageParameters) {
