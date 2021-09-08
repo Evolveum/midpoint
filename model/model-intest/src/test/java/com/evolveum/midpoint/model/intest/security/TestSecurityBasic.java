@@ -11,7 +11,6 @@ import static org.testng.AssertJUnit.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -94,15 +93,13 @@ public class TestSecurityBasic extends AbstractSecurityTest {
                 item(AccessCertificationCampaignType.F_CASE).retrieve().build();
         assertSearch(AccessCertificationCampaignType.class, null, withCases, new SearchAssertion<>() {
 
-            public void assertObjects(String message, List<PrismObject<AccessCertificationCampaignType>> objects) throws Exception {
+            public void assertObjects(String message, List<PrismObject<AccessCertificationCampaignType>> objects) {
                 for (PrismObject<AccessCertificationCampaignType> obj : objects) {
-                    assertTrue(!obj.asObjectable().getCase().isEmpty());
+                    assertFalse(obj.asObjectable().getCase().isEmpty());
                 }
-
             }
 
-            public void assertCount(int count) throws Exception {
-
+            public void assertCount(int count) {
             }
 
         });

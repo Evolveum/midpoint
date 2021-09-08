@@ -146,7 +146,7 @@ public class QAccessCertificationCampaignMapping
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
         AccessCertificationCampaignType base = super.toSchemaObject(result, root, options, jdbcSession, forceFull);
-        if(SelectorOptions.hasToLoadPath(F_CASE, options)) {
+        if(forceFull || SelectorOptions.hasToLoadPath(F_CASE, options)) {
             loadCases(base, options, jdbcSession, forceFull);
         }
         return base;
