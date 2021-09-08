@@ -17,9 +17,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
-public class FocusCassesCounter<F extends FocusType> extends SimpleCounter<FocusDetailsModels<F>, F> {
+public class FocusCasesCounter<F extends FocusType> extends SimpleCounter<FocusDetailsModels<F>, F> {
 
-    public FocusCassesCounter() {
+    public FocusCasesCounter() {
         super();
     }
 

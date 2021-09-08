@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
         status = ItemStatus.NOT_CHANGED,
         applicableFor = FocusType.class,
         display = @PanelDisplay(label = "pageAdminFocus.cases", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON, order = 50))
-@Counter(provider = FocusCassesCounter.class)
+@Counter(provider = FocusCasesCounter.class)
 public class FocusCasesPanel<F extends FocusType>
         extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
     private static final long serialVersionUID = 1L;
