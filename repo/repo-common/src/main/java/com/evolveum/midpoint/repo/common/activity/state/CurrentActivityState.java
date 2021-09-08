@@ -238,7 +238,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         ActivityStatePersistenceType requiredValue = activityStateDefinition.getPersistence();
         if (requiredValue != storedValue) {
             setItemRealValues(ActivityStateType.F_PERSISTENCE, requiredValue);
-            flushPendingModificationsChecked(result);
+            flushPendingTaskModificationsChecked(result);
         }
     }
 
@@ -296,7 +296,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     private void setCombined(Wrapper<ActivityRealizationStateType> realizationState, Wrapper<OperationResultStatus> resultStatus,
             OperationResult result) throws ActivityExecutionException {
         setCombinedNoCommit(realizationState, resultStatus);
-        flushPendingModificationsChecked(result);
+        flushPendingTaskModificationsChecked(result);
     }
 
     private void setCombinedNoCommit(Wrapper<ActivityRealizationStateType> realizationState,
@@ -389,10 +389,18 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     }
 
     public void updateProgressAndStatisticsNoCommit() throws ActivityExecutionException {
+        updateProgressNoCommit();
+        updateStatisticsNoCommit();
+    }
+
+    public void updateProgressNoCommit() throws ActivityExecutionException {
         if (activityExecution.doesSupportProgress()) {
             liveProgress.writeToTaskAsPendingModification();
             LegacyProgressUpdater.update(this);
         }
+    }
+
+    private void updateStatisticsNoCommit() throws ActivityExecutionException {
         if (activityExecution.doesSupportStatistics()) {
             liveStatistics.writeToTaskAsPendingModifications();
         }

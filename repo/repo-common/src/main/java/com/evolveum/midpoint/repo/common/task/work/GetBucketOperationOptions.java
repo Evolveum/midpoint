@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.repo.common.task.work;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketProgressOverviewType;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
@@ -19,38 +21,45 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 public class GetBucketOperationOptions implements DebugDumpable {
 
-    @NotNull private final ActivityDistributionDefinition distributionDefinition;
+    @Nullable private final ActivityDistributionDefinition distributionDefinition;
     @Nullable private final ImplicitSegmentationResolver implicitSegmentationResolver;
-    @NotNull private final Supplier<Boolean> canRun;
+    @Nullable private final Supplier<Boolean> canRun;
     private final boolean isScavenger;
     private final long freeBucketWaitTime;
     private final boolean executeInitialWait;
+    @Nullable private final Consumer<BucketProgressOverviewType> bucketProgressConsumer;
 
-    private GetBucketOperationOptions(@NotNull ActivityDistributionDefinition distributionDefinition,
+    private GetBucketOperationOptions(@Nullable ActivityDistributionDefinition distributionDefinition,
             @Nullable ImplicitSegmentationResolver implicitSegmentationResolver,
-            @NotNull Supplier<Boolean> canRun, boolean isScavenger,
-            long freeBucketWaitTime, boolean executeInitialWait) {
+            @Nullable Supplier<Boolean> canRun, boolean isScavenger,
+            long freeBucketWaitTime, boolean executeInitialWait,
+            @Nullable Consumer<BucketProgressOverviewType> bucketProgressConsumer) {
         this.distributionDefinition = distributionDefinition;
         this.implicitSegmentationResolver = implicitSegmentationResolver;
         this.canRun = canRun;
         this.isScavenger = isScavenger;
         this.freeBucketWaitTime = freeBucketWaitTime;
         this.executeInitialWait = executeInitialWait;
+        this.bucketProgressConsumer = bucketProgressConsumer;
     }
 
     public static GetBucketOperationOptions standard() {
         return GetBucketOperationOptionsBuilder.anOptions().build();
     }
 
-    public ActivityDistributionDefinition getDistributionDefinition() {
+    static @Nullable Consumer<BucketProgressOverviewType> getProgressConsumer(@Nullable GetBucketOperationOptions options) {
+        return options != null ? options.bucketProgressConsumer : null;
+    }
+
+    public @Nullable ActivityDistributionDefinition getDistributionDefinition() {
         return distributionDefinition;
     }
 
-    public ImplicitSegmentationResolver getImplicitSegmentationResolver() {
+    public @Nullable ImplicitSegmentationResolver getImplicitSegmentationResolver() {
         return implicitSegmentationResolver;
     }
 
-    public Supplier<Boolean> getCanRun() {
+    public @Nullable Supplier<Boolean> getCanRun() {
         return canRun;
     }
 
@@ -62,7 +71,7 @@ public class GetBucketOperationOptions implements DebugDumpable {
         return executeInitialWait;
     }
 
-    public long getFreeBucketWaitTime() {
+    long getFreeBucketWaitTime() {
         return freeBucketWaitTime;
     }
 
@@ -83,6 +92,7 @@ public class GetBucketOperationOptions implements DebugDumpable {
         private boolean isScavenger;
         private long freeBucketWaitTime;
         private boolean executeInitialWait;
+        private Consumer<BucketProgressOverviewType> bucketProgressConsumer;
 
         private GetBucketOperationOptionsBuilder() {
         }
@@ -121,9 +131,14 @@ public class GetBucketOperationOptions implements DebugDumpable {
             return this;
         }
 
+        public GetBucketOperationOptionsBuilder withBucketProgressConsumer(Consumer<BucketProgressOverviewType> value) {
+            this.bucketProgressConsumer = value;
+            return this;
+        }
+
         public GetBucketOperationOptions build() {
             return new GetBucketOperationOptions(distributionDefinition, implicitSegmentationResolver, canRun,
-                    isScavenger, freeBucketWaitTime, executeInitialWait);
+                    isScavenger, freeBucketWaitTime, executeInitialWait, bucketProgressConsumer);
         }
     }
 }

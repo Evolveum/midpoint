@@ -1041,7 +1041,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public void cleanupTasks(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult) throws SchemaException {
+    public void cleanupTasks(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
         if (policy.getMaxAge() == null) {
             return;
         }
@@ -1058,7 +1059,9 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public void cleanupNodes(DeadNodeCleanupPolicyType policy, RunningTask task, OperationResult parentResult) {
+    public void cleanupNodes(DeadNodeCleanupPolicyType policy, RunningTask task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+
         if (policy.getMaxAge() == null) {
             return;
         }

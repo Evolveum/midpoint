@@ -9,6 +9,9 @@ package com.evolveum.midpoint.repo.common.task.work;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketProgressOverviewType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
  * Responsible for managing task work state:
  *
  * 1. Obtains new buckets to be processed: {@link #getWorkBucket(String, String, ActivityPath, GetBucketOperationOptions, ActivityBucketManagementStatistics, OperationResult)}.
- * 2. Marks buckets as complete: {@link #completeWorkBucket(String, String, ActivityPath, int, ActivityBucketManagementStatistics, OperationResult)}.
+ * 2. Marks buckets as complete: {@link #completeWorkBucket(String, String, ActivityPath, int, ActivityBucketManagementStatistics, Consumer, OperationResult)}.
  * 3. Releases work buckets in case they are not going to be processed: {@link #releaseWorkBucket(String, String, ActivityPath, int, ActivityBucketManagementStatistics, OperationResult)}.
  * 4. Computes query narrowing for given work bucket: {@link #narrowQueryForWorkBucket(Class, ObjectQuery, ActivityDistributionDefinition, ItemDefinitionProvider, WorkBucketType)}.
  *
@@ -67,9 +70,12 @@ public class BucketingManager {
      */
     public void completeWorkBucket(@NotNull String coordinatorTaskOid, @Nullable String workerTaskOid,
             @NotNull ActivityPath activityPath, int sequentialNumber,
-            ActivityBucketManagementStatistics statistics, OperationResult result)
+            @Nullable ActivityBucketManagementStatistics statistics,
+            @Nullable Consumer<BucketProgressOverviewType> bucketProgressConsumer,
+            @NotNull OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        new CompleteBucketOperation(coordinatorTaskOid, workerTaskOid, activityPath, statistics, beans, sequentialNumber)
+        new CompleteBucketOperation(coordinatorTaskOid, workerTaskOid, activityPath, statistics,
+                bucketProgressConsumer, beans, sequentialNumber)
                 .execute(result);
     }
 

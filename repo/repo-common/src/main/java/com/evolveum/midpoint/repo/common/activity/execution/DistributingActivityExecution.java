@@ -74,7 +74,9 @@ public class DistributingActivityExecution<
             case DISTRIBUTED:
                 return ActivityExecutionResult.waiting();
             case COMPLETE:
-                return ActivityExecutionResult.finished(computeFinalStatus(result));
+                ActivityExecutionResult executionResult = ActivityExecutionResult.finished(computeFinalStatus(result));
+                getTreeStateOverview().recordDistributingActivityRealizationFinish(this, executionResult, result);
+                return executionResult;
             default:
                 throw new AssertionError(distributionState);
         }
@@ -127,11 +129,12 @@ public class DistributingActivityExecution<
         helper.switchExecutionToChildren(children, result);
 
         activityState.markInProgressDistributed(result);
+        getTreeStateOverview().recordDistributingActivityRealizationStart(this, result);
     }
 
     private void setProcessingRole(OperationResult result) throws ActivityExecutionException {
         activityState.setItemRealValues(BUCKETS_PROCESSING_ROLE_PATH, BucketsProcessingRoleType.COORDINATOR);
-        activityState.flushPendingModificationsChecked(result);
+        activityState.flushPendingTaskModificationsChecked(result);
     }
 
     private List<Task> createSuspendedChildren(OperationResult result) throws ActivityExecutionException {

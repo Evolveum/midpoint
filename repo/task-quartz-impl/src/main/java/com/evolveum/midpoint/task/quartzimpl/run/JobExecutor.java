@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.*;
-import com.evolveum.midpoint.task.quartzimpl.tasks.TaskRetriever;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -292,7 +291,7 @@ public class JobExecutor implements InterruptableJob {
     private void fetchTheTask(String oid, OperationResult result) throws StopJobException {
         try {
             TaskQuartzImpl taskWithResult = beans.taskRetriever.getTaskWithResult(oid, result);
-            TaskRetriever.ParentAndRoot parentAndRoot = beans.taskRetriever.getParentAndRoot(taskWithResult, result);
+            ParentAndRoot parentAndRoot = taskWithResult.getParentAndRoot(result);
             task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, parentAndRoot.root, parentAndRoot.parent);
         } catch (ObjectNotFoundException e) {
             beans.localScheduler.deleteTaskFromQuartz(oid, false, result);

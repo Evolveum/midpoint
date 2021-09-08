@@ -138,7 +138,7 @@ public class ReconciliationActivityHandler
         if (reconState.getWorkStatePropertyRealValue(F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP, XMLGregorianCalendar.class) == null) {
             XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
             reconState.setWorkStateItemRealValues(F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP, now);
-            reconState.flushPendingModifications(result);
+            reconState.flushPendingTaskModifications(result);
             LOGGER.info("Set recon start timestamp to {}", now);
         }
     }

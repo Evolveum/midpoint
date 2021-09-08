@@ -93,7 +93,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                     }
                 } catch (ScriptExecutionException e) {
                     //noinspection ThrowableNotThrown
-                    processActionException(e, NAME, value, context);        // TODO better message
+                    processActionException(e, NAME, value, context); // TODO better message
                 }
             } else {
                 //noinspection ThrowableNotThrown
@@ -101,7 +101,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             }
             operationsHelper.trimAndCloneResult(result, item.getResult());
         }
-        return output;      // TODO configurable output (either connector hosts or discovered connectors)
+        return output; // TODO configurable output (either connector hosts or discovered connectors)
     }
 
     private void rebindConnectors(Set<ConnectorType> newConnectors, ExecutionContext context, OperationResult result) throws ScriptExecutionException {

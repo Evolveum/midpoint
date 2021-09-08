@@ -13,6 +13,7 @@ import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -65,7 +67,15 @@ public class AbstractRepoCommonTest extends AbstractIntegrationTest {
     protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid, String message)
             throws SchemaException, ObjectNotFoundException {
         return assertProgress(
-                activityManager.getProgressInformation(rootOid, getTestOperationResult()),
+                activityManager.getProgressInformationFromTaskTree(rootOid, getTestOperationResult()),
+                message);
+    }
+
+    protected ActivityProgressInformationAsserter<Void> assertProgress(@NotNull String rootOid,
+            @NotNull InformationSource source, String message)
+            throws SchemaException, ObjectNotFoundException {
+        return assertProgress(
+                activityManager.getProgressInformation(rootOid, source, getTestOperationResult()),
                 message);
     }
 

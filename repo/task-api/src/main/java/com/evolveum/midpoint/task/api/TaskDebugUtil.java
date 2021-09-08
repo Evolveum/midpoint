@@ -50,7 +50,7 @@ public class TaskDebugUtil {
                 .append(" [es:").append(task.getExecutionState())
                 .append(", ss:").append(task.getSchedulingState())
                 .append(", rs:").append(task.getResultStatus())
-                .append(", p:").append(task.getProgress())
+                .append(", p:").append(task.getLegacyProgress())
                 .append(", n:").append(task.getNode())
                 .append("]").append("\n");
     }

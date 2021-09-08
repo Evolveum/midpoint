@@ -18,6 +18,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateTyp
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 /**
  * TODO
  */
@@ -59,6 +61,18 @@ public class TaskActivityStateAsserter<RA> extends AbstractAsserter<RA> {
     public ActivityStateAsserter<TaskActivityStateAsserter<RA>> rootActivity() {
         ActivityStateAsserter<TaskActivityStateAsserter<RA>> asserter =
                 new ActivityStateAsserter<>(activityState.getActivity(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ActivityStateOverviewAsserter<TaskActivityStateAsserter<RA>> rootActivityOverview() {
+        var overview =
+                Objects.requireNonNull(
+                        Objects.requireNonNull(activityState.getTree(), "no tree")
+                                .getActivity(), "no root activity overview");
+
+        ActivityStateOverviewAsserter<TaskActivityStateAsserter<RA>> asserter =
+                new ActivityStateOverviewAsserter<>(overview, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }

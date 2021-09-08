@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.UNCOMMITTED;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 import java.util.Collection;
 import java.util.Map;
@@ -52,8 +54,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcess
  *
  * 1. During execution - see {@link #execute(OperationResult)}:
  *    a. initializes activity state (if needed),
- *    b. skips execution of the activity if the realization state is `complete`,
- *    c. executes "before execution" and the real code
+ *    b. skips execution of the activity if the activity realization is complete,
+ *    c. executes "before execution" and the real code,
  *    d. handles exceptions thrown by the execution code, converting them into {@link ActivityExecutionResult}
  *       (such conversion is done at various other levels, btw),
  *    e. logs the start/end,
@@ -223,7 +225,13 @@ public abstract class AbstractActivityExecution<
             activityState.setResultStatusNoCommit(currentResultStatus);
         }
 
-        activityState.flushPendingModificationsChecked(result); // if not flushed above
+        try {
+            getRunningTask()
+                    .updateAndStoreStatisticsIntoRepository(true, result); // Contains implicit task flush
+        } catch (CommonException e) {
+            throw new ActivityExecutionException("Couldn't update task when updating and closing activity state",
+                    FATAL_ERROR, PERMANENT_ERROR, e);
+        }
 
         activityState.close();
     }
@@ -325,7 +333,7 @@ public abstract class AbstractActivityExecution<
         return activityStateDefinition.getWorkStateTypeName();
     }
 
-    @NotNull ActivityTreeStateOverview getTreeStateOverview() {
+    protected @NotNull ActivityTreeStateOverview getTreeStateOverview() {
         return activity.getTree().getTreeStateOverview();
     }
 

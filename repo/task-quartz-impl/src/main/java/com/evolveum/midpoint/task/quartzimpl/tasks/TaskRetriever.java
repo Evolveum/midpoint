@@ -7,21 +7,38 @@
 
 package com.evolveum.midpoint.task.quartzimpl.tasks;
 
+import static java.util.Collections.emptyList;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.*;
+import com.evolveum.midpoint.task.quartzimpl.LightweightTaskManager;
+import com.evolveum.midpoint.task.quartzimpl.LocalNodeState;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformationRetriever;
-import com.evolveum.midpoint.task.quartzimpl.execution.*;
+import com.evolveum.midpoint.task.quartzimpl.execution.StalledTasksWatcher;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.quartz.NextStartTimes;
 import com.evolveum.midpoint.util.Holder;
@@ -30,20 +47,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.ws.rs.core.Response;
-import java.util.*;
-import java.util.Objects;
-
-import static java.util.Collections.emptyList;
 
 @Component
 public class TaskRetriever {
@@ -187,7 +191,7 @@ public class TaskRetriever {
             operationStats.setLiveInformation(true);
         }
         task.setOperationStatsTransient(operationStats);
-        task.setProgressTransient(taskInMemory.getProgress());
+        task.setProgressTransient(taskInMemory.getLegacyProgress());
 
         // We intentionally do not try to get operation result from the task. OperationResult class is not thread-safe,
         // so it cannot be safely accessed from a different thread. It is not a big problem, because the result should be
@@ -261,7 +265,7 @@ public class TaskRetriever {
         }
     }
 
-    public List<PrismObject<TaskType>> listPersistentSubtasksForTask(String taskIdentifier, OperationResult result)
+    private List<PrismObject<TaskType>> listPersistentSubtasksForTask(String taskIdentifier, OperationResult result)
             throws SchemaException {
         if (StringUtils.isEmpty(taskIdentifier)) {
             return new ArrayList<>();
@@ -404,7 +408,7 @@ public class TaskRetriever {
         }
     }
 
-    public List<TaskQuartzImpl> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result)
+    private List<TaskQuartzImpl> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result)
             throws SchemaException {
         List<TaskQuartzImpl> tasks = new ArrayList<>(taskPrisms.size());
         for (PrismObject<TaskType> taskPrism : taskPrisms) {
@@ -428,58 +432,6 @@ public class TaskRetriever {
             }
         }
         return tasks;
-    }
-
-    /**
-     * Looks for OID of the root of the task tree of the specified task.
-     * PRE: task is either persistent or is a RunningTask
-     */
-    @NotNull
-    public ParentAndRoot getParentAndRoot(TaskQuartzImpl task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
-        if (task instanceof RunningTask) {
-            return new ParentAndRoot(
-                    ((RunningTask) task).getParentTask(),
-                    ((RunningTask) task).getRootTask());
-        }
-
-        List<Task> pathToRoot = new ArrayList<>();
-
-        OperationResult result = parentResult.subresult(OP_GET_PARENT_AND_ROOT)
-                .setMinor()
-                .build();
-        try {
-            Task current = task;
-            for (;;) {
-                checkNoCycle(pathToRoot, current, task);
-                pathToRoot.add(current);
-
-                String parentIdentifier = current.getParent();
-                if (parentIdentifier == null) {
-                    // Found the root!
-                    if (current.getOid() == null) {
-                        throw new IllegalStateException("Asked to find a root for a non-persistent task tree");
-                    }
-                    return ParentAndRoot.fromPath(pathToRoot);
-                }
-                current = getTaskByIdentifier(parentIdentifier, result);
-            }
-
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
-
-    private void checkNoCycle(List<Task> pathToRoot, Task current, Task task) {
-        boolean alreadyExists = pathToRoot.stream()
-                .anyMatch(taskOnPath -> Objects.equals(taskOnPath.getTaskIdentifier(), current.getTaskIdentifier()));
-        if (alreadyExists) {
-            throw new IllegalStateException("Couldn't find root for " + task + " because there's a cycle. Path to root: " +
-                    pathToRoot);
-        }
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -518,7 +470,7 @@ public class TaskRetriever {
         return repositoryService.getObject(TaskType.class, oid, options, result);
     }
 
-    public List<PrismObject<TaskType>> listPrerequisiteTasksRaw(TaskQuartzImpl task, OperationResult result) throws SchemaException {
+    private List<PrismObject<TaskType>> listPrerequisiteTasksRaw(TaskQuartzImpl task, OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(TaskType.class)
                 .item(TaskType.F_DEPENDENT).eq(task.getTaskIdentifier())
                 .build();
@@ -546,7 +498,7 @@ public class TaskRetriever {
         return subtasks;
     }
 
-    public List<PrismObject<TaskType>> listPersistentSubtasksRaw(TaskQuartzImpl task, OperationResult result) throws SchemaException {
+    private List<PrismObject<TaskType>> listPersistentSubtasksRaw(TaskQuartzImpl task, OperationResult result) throws SchemaException {
         if (task.isPersistent()) {
             return listPersistentSubtasksForTask(task.getTaskIdentifier(), result);
         } else {
@@ -608,20 +560,4 @@ public class TaskRetriever {
         }
     }
 
-    public static class ParentAndRoot {
-        @Nullable public final Task parent;
-        @NotNull public final Task root;
-
-        ParentAndRoot(@Nullable Task parent, @NotNull Task root) {
-            this.parent = parent;
-            this.root = root;
-        }
-
-        public static ParentAndRoot fromPath(List<Task> pathToRoot) {
-            assert !pathToRoot.isEmpty();
-            return new ParentAndRoot(
-                    pathToRoot.size() > 1 ? pathToRoot.get(1) : null,
-                    pathToRoot.get(pathToRoot.size() - 1));
-        }
-    }
 }

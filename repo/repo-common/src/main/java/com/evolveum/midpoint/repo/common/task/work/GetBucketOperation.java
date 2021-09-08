@@ -74,7 +74,8 @@ public class GetBucketOperation extends BucketOperation {
     GetBucketOperation(@NotNull String coordinatorTaskOid, @Nullable String workerTaskOid, @NotNull ActivityPath activityPath,
             ActivityBucketManagementStatistics statisticsCollector,
             @Nullable GetBucketOperationOptions options, CommonTaskBeans beans) {
-        super(coordinatorTaskOid, workerTaskOid, activityPath, statisticsCollector, beans);
+        super(coordinatorTaskOid, workerTaskOid, activityPath, statisticsCollector,
+                GetBucketOperationOptions.getProgressConsumer(options), beans);
         this.options = requireNonNullElseGet(options, GetBucketOperationOptions::standard);
     }
 
@@ -112,9 +113,11 @@ public class GetBucketOperation extends BucketOperation {
                 .asObjectable();
 
         GetBucketOperationAttempt attempt =
-                new GetBucketOperationAttempt(coordinatorTask, workerTaskOid, activityPath, bucketFactory, bucketsToGet);
+                new GetBucketOperationAttempt(coordinatorTask, workerTaskOid, activityPath, bucketFactory,
+                        bucketsToGet, bucketProgressHolder);
 
         attempt.execute();
+        bucketProgressHolder.passValue();
 
         if (!attempt.getModifications().isEmpty()) {
             plainRepositoryService.modifyObject(TaskType.class, coordinatorTaskOid, attempt.getModifications(), result);
@@ -144,11 +147,13 @@ public class GetBucketOperation extends BucketOperation {
                     coordinatorTask -> {
                         GetBucketOperationAttempt attempt =
                                 new GetBucketOperationAttempt(coordinatorTask, workerTaskOid, activityPath,
-                                        bucketFactory, bucketsToGet);
+                                        bucketFactory, bucketsToGet, bucketProgressHolder);
                         lastAttemptHolder.setValue(attempt);
                         attempt.execute();
                         return attempt.getModifications();
                     }, null, result);
+
+            bucketProgressHolder.passValue();
 
             // Let us record the conflicts encountered. Note that we ignore conflicts encountered in previous iterations
             // of the outer "for" cycle, i.e. when a scavenger hits "no more buckets" situation.
@@ -201,10 +206,10 @@ public class GetBucketOperation extends BucketOperation {
                 recordFoundDelegated(attempt);
                 break;
             case FOUND_READY:
-                recordFoundReady();
+                recordFoundReady(attempt);
                 break;
             case CREATED_NEW:
-                recordCreatedNew();
+                recordCreatedNew(attempt);
                 break;
             default:
                 throw new AssertionError(situation);
@@ -222,13 +227,17 @@ public class GetBucketOperation extends BucketOperation {
     }
 
     private long getInitialDelay() {
-        WorkAllocationConfigurationType ac = options.getDistributionDefinition().getBuckets().getAllocation();
+        ActivityDistributionDefinition distributionDefinition = options.getDistributionDefinition();
+        WorkAllocationConfigurationType ac = distributionDefinition != null ?
+                distributionDefinition.getBuckets().getAllocation() : null;
         return ac != null && ac.getWorkAllocationInitialDelay() != null ?
                 ac.getWorkAllocationInitialDelay() : 0; // TODO workStateManager.getConfiguration().getWorkAllocationInitialDelay();
     }
 
     private void sleep(long toWait) throws InterruptedException {
-        WorkBucketsManagementType bucketingConfig = options.getDistributionDefinition().getBuckets();
+        WorkBucketsManagementType bucketingConfig =
+                options.getDistributionDefinition() != null ?
+                        options.getDistributionDefinition().getBuckets() : null;
         long waitStart = System.currentTimeMillis();
         long sleepFor = Math.min(toWait, getFreeBucketWaitInterval(bucketingConfig));
         CONTENTION_LOGGER.trace("Entering waiting for free bucket (waiting for {}) - after {} ms (conflicts: {}) in {}",
@@ -273,15 +282,17 @@ public class GetBucketOperation extends BucketOperation {
         statisticsKeeper.register(GET_WORK_BUCKET_FOUND_DELEGATED);
     }
 
-    private void recordFoundReady() {
-        CONTENTION_LOGGER.trace("Existing bucket acquired after {} ms (conflicts: {}) in {}",
-                System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
+    private void recordFoundReady(@NotNull GetBucketOperationAttempt attempt) {
+        CONTENTION_LOGGER.trace("Existing bucket acquired after {} ms (conflicts: {}) in {}: {}",
+                System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid,
+                attempt.getBucketToUse());
         statisticsKeeper.register(GET_WORK_BUCKET_FOUND_READY);
     }
 
-    private void recordCreatedNew() {
-        CONTENTION_LOGGER.info("New bucket(s) acquired after {} ms (retries: {}) in {}",
-                System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid);
+    private void recordCreatedNew(@NotNull GetBucketOperationAttempt attempt) {
+        CONTENTION_LOGGER.info("New bucket(s) acquired after {} ms (retries: {}) in {}: {}",
+                System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid,
+                attempt.getBucketToUse());
         statisticsKeeper.register(GET_WORK_BUCKET_CREATED_NEW);
     }
 

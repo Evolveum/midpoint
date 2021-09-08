@@ -144,7 +144,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         TaskQuartzImpl task = getTaskWithResult(TASK_WITHOUT_PROGRESS.oid, result);
 
         then();
-        assertEquals(0, task.getProgress());
+        assertEquals(0, task.getLegacyProgress());
     }
 
     /**
@@ -248,7 +248,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
             fail("Auto cleanup timestamp was not computed correctly. Delta should be 10000, is " + delta);
         }
 
-        assertTrue("Task reported no progress", task.getProgress() > 0);
+        assertTrue("Task reported no progress", task.getLegacyProgress() > 0);
         assertSuccess(task);
 
         assertNotNull("Handler is gone", task.getHandlerUri());
@@ -296,7 +296,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertNotNull("LastRunFinishTimestamp is null", task.getLastRunFinishTimestamp());
         assertFalse("LastRunFinishTimestamp is 0", task.getLastRunFinishTimestamp() == 0);
 
-        assertTrue("Task progress is too small (should be at least 1)", task.getProgress() >= 1);
+        assertTrue("Task progress is too small (should be at least 1)", task.getLegacyProgress() >= 1);
         assertSuccessOrInProgress(task);
 
         boolean stopped = taskStateManager.suspendTaskNoException(task, 2000, result);
@@ -351,8 +351,8 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertNotNull(task.getLastRunFinishTimestamp());
         assertFalse(task.getLastRunFinishTimestamp() == 0);
 
-        assertTrue("Progress is none or too small", task.getProgress() >= 1);
-        assertTrue("Progress is too big (fault in scheduling?)", task.getProgress() <= 7);
+        assertTrue("Progress is none or too small", task.getLegacyProgress() >= 1);
+        assertTrue("Progress is too big (fault in scheduling?)", task.getLegacyProgress() <= 7);
 
         assertSuccessOrInProgress(task);
 
@@ -388,7 +388,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertNotNull(task.getLastRunFinishTimestamp());
         assertFalse(task.getLastRunFinishTimestamp() == 0);
 
-        assertTrue("Task has not been executed at least twice", task.getProgress() >= 2);
+        assertTrue("Task has not been executed at least twice", task.getLegacyProgress() >= 2);
         assertSuccessOrInProgress(task);
 
         taskStateManager.suspendTaskNoException(task, 100, result);
@@ -424,7 +424,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertNotNull("Task last start time is null", task.getLastRunStartTimestamp());
         assertFalse("Task last start time is 0", task.getLastRunStartTimestamp() == 0);
 
-        assertTrue("Task has not reported any progress", task.getProgress() > 0);
+        assertTrue("Task has not reported any progress", task.getLegacyProgress() > 0);
     }
 
     private void assertDelayExtensionProperty(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -458,7 +458,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
         assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
         assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp() == 0);
-        assertTrue(task.getProgress() > 0);
+        assertTrue(task.getLegacyProgress() > 0);
 
         when("suspend");
 
@@ -476,7 +476,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertFalse(task.getLastRunStartTimestamp() == 0);
         assertNotNull(task.getLastRunFinishTimestamp());
         assertFalse(task.getLastRunFinishTimestamp() == 0);
-        assertTrue(task.getProgress() > 0);
+        assertTrue(task.getLegacyProgress() > 0);
     }
 
     @Test
@@ -506,7 +506,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertNotNull(task.getLastRunStartTimestamp());
         assertFalse(task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNull(task.getLastRunFinishTimestamp());
-        assertEquals("There should be no progress reported", 0, task.getProgress());
+        assertEquals("There should be no progress reported", 0, task.getLegacyProgress());
 
         when("Suspend long wait");
 
@@ -524,7 +524,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertFalse("Last run finish time is zero", task.getLastRunStartTimestamp() == 0);
 
         // The task is not interruptible. It finishes the first run, not taking care of !canRun nor the interrupt signal.
-        assertTrue("Progress is not reported", task.getProgress() > 0);
+        assertTrue("Progress is not reported", task.getLegacyProgress() > 0);
     }
 
     @Test
@@ -721,7 +721,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
         assertEquals("task is not READY", TaskSchedulingStateType.READY, task.getSchedulingState());
         assertNull("task was started", task.getLastRunStartTimestamp());
-        assertEquals("task was achieved some progress", 0L, task.getProgress());
+        assertEquals("task was achieved some progress", 0L, task.getLegacyProgress());
 
         when();
 
@@ -735,7 +735,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertEquals(TaskSchedulingStateType.READY, task.getSchedulingState());
         assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
         assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp() == 0);
-        assertTrue("no progress", task.getProgress() > 0);
+        assertTrue("no progress", task.getLegacyProgress() > 0);
 
         // cleaning up
         boolean stopped = taskManager.suspendTask(task, 10000L, result);

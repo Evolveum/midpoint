@@ -104,7 +104,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         SearchFilterType filterType = finishedTask.getObjectRefOrClone().getFilter();
         displayDumpable("Propagation task filter", filterType);
 
-        assertEquals("Unexpected propagation task progress", 1, finishedTask.getProgress());
+        assertEquals("Unexpected propagation task progress", 1, finishedTask.getLegacyProgress());
     }
 
     /**

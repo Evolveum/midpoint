@@ -19,12 +19,12 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
 import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -43,13 +43,10 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType.F_TREE;
-
 @Experimental
 @Component
 public class TaskActivityManager {
 
-    private static final String OP_CLEAR_FAILED_ACTIVITY_STATE = TaskActivityManager.class.getName() + ".clearFailedActivityState";
     private static final String OP_RECONCILE_WORKERS = TaskActivityManager.class.getName() + ".reconcileWorkers";
     private static final String OP_RECONCILE_WORKERS_FOR_ACTIVITY = TaskActivityManager.class.getName() + ".reconcileWorkersForActivity";
     private static final String OP_DELETE_ACTIVITY_STATE_AND_WORKERS = TaskActivityManager.class.getName() + ".deleteActivityStateAndWorkers";
@@ -62,43 +59,22 @@ public class TaskActivityManager {
     @Autowired private TaskManager taskManager;
     @Autowired private CommonTaskBeans beans;
 
-    // TODO reconsider this
-    //  How should we clear the "not executed" flag in the tree overview when using e.g. the tests?
-    //  In production the flag is updated automatically when the task/activities start.
-    public void clearFailedActivityState(String taskOid, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        OperationResult result = parentResult.subresult(OP_CLEAR_FAILED_ACTIVITY_STATE)
-                .addParam("taskOid", taskOid)
-                .build();
-        try {
-            plainRepositoryService.modifyObjectDynamically(TaskType.class, taskOid, null,
-                    taskBean -> {
-                        ActivityStateOverviewType stateOverview = ActivityStateOverviewUtil.getStateOverview(taskBean);
-                        if (stateOverview != null) {
-                            ActivityStateOverviewType updatedStateOverview = stateOverview.clone();
-                            ActivityStateOverviewUtil.clearFailedState(updatedStateOverview);
-                            return prismContext.deltaFor(TaskType.class)
-                                    .item(TaskType.F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY)
-                                    .replace(updatedStateOverview)
-                                    .asItemDeltas();
-                        } else {
-                            return List.of();
-                        }
-                    }, null, result);
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
-
     // TODO reconsider the concept of resolver (as it is useless now - we have to fetch the subtasks manually!)
-    public ActivityProgressInformation getProgressInformation(String rootTaskOid, OperationResult result)
+    public ActivityProgressInformation getProgressInformationFromTaskTree(String rootTaskOid, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return ActivityProgressInformation.fromRootTask(
                 getTaskWithSubtasks(rootTaskOid, result),
                 createTaskResolver(result));
+    }
+
+    public ActivityProgressInformation getProgressInformation(@NotNull String rootTaskOid, @NotNull InformationSource source,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return ActivityProgressInformation.fromRootTask(
+                source == InformationSource.FULL_STATE_ONLY ?
+                        getTaskWithSubtasks(rootTaskOid, result) :
+                        getTaskWithoutSubtasks(rootTaskOid, result),
+                source);
     }
 
     public TreeNode<ActivityPerformanceInformation> getPerformanceInformation(String rootTaskOid, OperationResult result)
@@ -136,6 +112,13 @@ public class TaskActivityManager {
                 .build();
 
         return taskManager.getTask(oid, withChildren, result)
+                .getUpdatedTaskObject()
+                .asObjectable();
+    }
+
+    @NotNull
+    private TaskType getTaskWithoutSubtasks(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        return taskManager.getTask(oid, null, result)
                 .getUpdatedTaskObject()
                 .asObjectable();
     }

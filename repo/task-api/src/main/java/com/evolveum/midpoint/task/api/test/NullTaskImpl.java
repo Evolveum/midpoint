@@ -297,17 +297,17 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public long getProgress() {
+    public long getLegacyProgress() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setProgress(Long value) {
+    public void setLegacyProgress(Long value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void incrementProgressTransient() {
+    public void incrementLegacyProgressTransient() {
     }
 
     @Override
@@ -649,12 +649,6 @@ public class NullTaskImpl implements Task {
         return emptyMap();
     }
 
-    @NotNull
-    @Override
-    public List<String> getLastFailures() {
-        return Collections.emptyList();
-    }
-
     @Override
     public WorkDistributionType getWorkManagement() {
         return null;
@@ -688,6 +682,11 @@ public class NullTaskImpl implements Task {
     @Override
     public TaskKindType getKind() {
         return null;
+    }
+
+    @Override
+    public @NotNull ParentAndRoot getParentAndRoot(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        throw new UnsupportedOperationException();
     }
 
     @Override

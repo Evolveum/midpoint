@@ -7,7 +7,17 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.search;
 
+import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.task.*;
+
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +42,8 @@ class SearchBasedMockActivityExecutionSpecifics
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchBasedMockActivityExecutionSpecifics.class);
 
+    @NotNull private final Lazy<ObjectFilter> failOnFilter = Lazy.from(this::parseFailOnFilter);
+
     SearchBasedMockActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ObjectType,
             SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler, ?> activityExecution) {
         super(activityExecution);
@@ -46,14 +58,60 @@ class SearchBasedMockActivityExecutionSpecifics
 
     @Override
     public boolean processObject(@NotNull PrismObject<ObjectType> object,
-            @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result) {
+            @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
+            throws SchemaException, ThresholdPolicyViolationException {
+
         String message = emptyIfNull(getWorkDefinition().getMessage()) + object.getName().getOrig();
         LOGGER.info("Message: {}", message);
         getRecorder().recordExecution(message);
 
+        checkFailOn(object);
+        checkFreezeIfScavenger();
+
         provideSomeMockStatistics(request, workerTask);
         return true;
     }
+
+    private void checkFreezeIfScavenger() {
+        if (!getWorkDefinition().isFreezeIfScavenger()) {
+            return;
+        }
+
+        boolean scavenger = activityExecution.isWorker() && !activityExecution.isNonScavengingWorker();
+        if (scavenger) {
+            LOGGER.warn("Freezing because we are a scavenger");
+            MiscUtil.sleepWatchfully(Long.MAX_VALUE, 100, () -> getRunningTask().canRun());
+        }
+    }
+
+    private void checkFailOn(PrismObject<ObjectType> object) throws SchemaException, ThresholdPolicyViolationException {
+        if (getWorkDefinition().getFailOn() == null) {
+            return;
+        }
+
+        boolean matches = failOnFilter.get().match(
+                object.asObjectable().asPrismContainerValue(),
+                SchemaService.get().matchingRuleRegistry());
+        if (matches) {
+            // To stop the processing immediately.
+            throw new ThresholdPolicyViolationException("Object matches a filter: " + object);
+        }
+    }
+
+    private ObjectFilter parseFailOnFilter() {
+        SearchFilterType failOnBean = getWorkDefinition().getFailOn();
+        if (failOnBean != null) {
+            try {
+                return PrismContext.get().getQueryConverter()
+                        .parseFilter(failOnBean, activityExecution.getSearchSpecificationRequired().getObjectType());
+            } catch (SchemaException e) {
+                throw new SystemException(e);
+            }
+        } else {
+            return null;
+        }
+    }
+
 
     private void provideSomeMockStatistics(ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask) {
         PrismObject<ObjectType> object = request.getItem();

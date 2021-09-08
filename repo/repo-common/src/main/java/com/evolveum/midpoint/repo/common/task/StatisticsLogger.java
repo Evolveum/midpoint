@@ -65,7 +65,7 @@ class StatisticsLogger {
         log(ActivityReportingOptions::getItemCompletionLogging, mainMessage, mainMessageAddition, fullStats);
     }
 
-    void logBucketCompletion() {
+    void logBucketCompletion(boolean complete) {
 
         TransientActivityExecutionStatistics current = activityExecution.getTransientExecutionStatistics();
         long end = System.currentTimeMillis();
@@ -73,9 +73,11 @@ class StatisticsLogger {
 
         RunningTask task = activityExecution.getRunningTask();
         String mainMessage =
-                String.format("Finished a bucket for %s (%s in %s).%s",
+                String.format("%s bucket #%d for %s (%s in %s).%s",
+                        complete ? "Completed" : "Partially processed",
+                        activityExecution.bucket.getSequentialNumber(),
                         activityExecution.getShortNameUncapitalized(), activityExecution.getActivityPath().toDebugName(), task,
-                        task.canRun() ? "" : " Task was interrupted during processing.");
+                        complete ? "" : " Bucket processing was interrupted.");
 
 
         String currentBrief = String.format(Locale.US, "Current execution: processed %,d objects in %.1f seconds, got %,d errors.",
@@ -99,7 +101,7 @@ class StatisticsLogger {
         String mainMessageAddition = "\n" + currentBrief + "\n" + overallBrief;
         String fullStats = getFullStatMessage(overall, end);
 
-        log(ActivityReportingOptions::getItemCompletionLogging, mainMessage, mainMessageAddition, fullStats);
+        log(ActivityReportingOptions::getBucketCompletionLogging, mainMessage, mainMessageAddition, fullStats);
     }
 
     private void log(Function<ActivityReportingOptions, ActivityEventLoggingOptionType> loggingExtractor, String mainMessage,

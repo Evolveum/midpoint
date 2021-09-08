@@ -41,9 +41,9 @@ public interface TaskHandler {
         return null;
     }
 
-    @NotNull
-    default StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy();
+    default @NotNull StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy()
+                .fromZero();
     }
 
     /**

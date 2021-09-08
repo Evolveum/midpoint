@@ -528,7 +528,7 @@ public class SearchBasedActivityExecution<
     }
 
     @NotNull
-    protected SearchSpecification<O> getSearchSpecificationRequired() {
+    public SearchSpecification<O> getSearchSpecificationRequired() {
         return requireNonNull(searchSpecification, "no search specification");
     }
 

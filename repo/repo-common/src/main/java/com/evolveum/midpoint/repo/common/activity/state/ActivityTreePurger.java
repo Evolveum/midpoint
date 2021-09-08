@@ -42,12 +42,20 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 /**
  * Responsible for purging detailed state of the activities, including worker and delegator tasks.
  *
- * We include the task deletion here because we need to know which subtasks to purge and which not:
- * and the distinction is similar to distinction when purging the state itself (the state persistence).
+ * This also includes:
+ *
+ * 1. Deletion of eligible subtasks. This is done here (and not elsewhere) because we need to know which
+ * subtasks to purge and which not: and the distinction is similar to distinction when purging the state
+ * itself (the state persistence).
+ *
+ * 2. Deletion of the task-level statistics. The reason is similar: we need to know which
+ * activities are "persistent" and which are not. (The distinction is only approximate, because the task
+ * statistics are common for all activities in the task. So we keep them if at least one of the activities
+ * is persistent.)
  */
-public class TreeStatePurger {
+public class ActivityTreePurger {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TreeStatePurger.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ActivityTreePurger.class);
 
     @NotNull private final GenericTaskExecution taskExecution;
     @NotNull private final CommonTaskBeans beans;
@@ -57,21 +65,25 @@ public class TreeStatePurger {
      */
     @NotNull private final Set<ActivityPath> pathsToKeep = new HashSet<>();
 
-    public TreeStatePurger(@NotNull GenericTaskExecution taskExecution,
+    public ActivityTreePurger(@NotNull GenericTaskExecution taskExecution,
             @NotNull CommonTaskBeans beans) {
         this.taskExecution = taskExecution;
         this.beans = beans;
     }
 
     /**
-     * Purges state from current task and its subtasks. Deletes subtasks if possible.
+     * Purges state (including task-level stats) from current task and its subtasks. Deletes subtasks if possible.
      *
      * * Pre: task is an execution root
      * * Post: task is refreshed
      */
     public void purge(OperationResult result) throws ActivityExecutionException {
         try {
-            purgeInTaskRecursively(ActivityPath.empty(), taskExecution.getRunningTask(), result);
+            boolean canDeleteRoot = purgeInTasksRecursively(ActivityPath.empty(), taskExecution.getRunningTask(), result);
+            if (canDeleteRoot) {
+                taskExecution.getRunningTask().restartCollectingStatisticsFromZero();
+                taskExecution.getRunningTask().updateAndStoreStatisticsIntoRepository(true, result);
+            }
         } catch (CommonException e) {
             throw new ActivityExecutionException("Couldn't purge activity tree state", FATAL_ERROR, PERMANENT_ERROR, e);
         }
@@ -83,9 +95,10 @@ public class TreeStatePurger {
      * Returns true if nothing of any relevance did remain in the task nor in the subtasks, so the task itself can be deleted
      * if needed.
      */
-    private boolean purgeInTaskRecursively(ActivityPath activityPath, Task task, OperationResult result) throws CommonException {
-        boolean noSubtasksLeft = purgeInSubtasks(task, result);
-        boolean canDeleteThisTask = purgeInTaskLocally(activityPath, task, result);
+    private boolean purgeInTasksRecursively(ActivityPath activityPath, Task currentRootTask, OperationResult result)
+            throws CommonException {
+        boolean noSubtasksLeft = purgeInSubtasks(currentRootTask, result);
+        boolean canDeleteThisTask = purgeInTaskLocally(activityPath, currentRootTask, result);
         return noSubtasksLeft && canDeleteThisTask;
     }
 
@@ -108,7 +121,7 @@ public class TreeStatePurger {
                 LOGGER.error("Non-activity related subtask {} of {}. Please resolve manually.", subtask, parent);
                 continue;
             }
-            boolean canDeleteSubtask = purgeInTaskRecursively(
+            boolean canDeleteSubtask = purgeInTasksRecursively(
                     ActivityPath.fromBean(taskActivityState.getLocalRoot()),
                     subtask,
                     result);

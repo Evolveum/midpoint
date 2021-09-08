@@ -49,7 +49,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
     @Override
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy()
-                .fromStoredValues();
+                .fromStoredValues(); // Why from stored values?
     }
 
     @Override
@@ -91,7 +91,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             op.succeeded();
             opResult.computeStatus();
             runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-            runResult.setProgress(task.getProgress()+1);
+            runResult.setProgress(task.getLegacyProgress()+1);
             return runResult;
 
         } catch (CommonException | RuntimeException e) {

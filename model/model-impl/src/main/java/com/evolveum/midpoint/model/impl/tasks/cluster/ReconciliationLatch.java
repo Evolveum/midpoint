@@ -159,7 +159,7 @@ class ReconciliationLatch {
             }
         }
 
-        activityState.flushPendingModifications(result);
+        activityState.flushPendingTaskModifications(result);
 
         LOGGER.trace("Updating activity state was updated.");
     }

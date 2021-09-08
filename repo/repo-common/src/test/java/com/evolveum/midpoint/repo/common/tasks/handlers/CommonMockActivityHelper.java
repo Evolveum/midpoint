@@ -40,7 +40,7 @@ public class CommonMockActivityHelper {
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         int count = or0(activityState.getWorkStatePropertyRealValue(EXECUTION_COUNT_PATH, Integer.class));
         activityState.setWorkStateItemRealValues(EXECUTION_COUNT_PATH, count + 1);
-        activityState.flushPendingModifications(result);
+        activityState.flushPendingTaskModifications(result);
     }
 
     public void failIfNeeded(@NotNull AbstractActivityExecution<?, ?, ?> activityExecution, int initialFailures) {
@@ -60,7 +60,7 @@ public class CommonMockActivityHelper {
     public void setLastMessage(@NotNull ActivityState activityState, String message, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         activityState.setWorkStateItemRealValues(LAST_MESSAGE_PATH, message);
-        activityState.flushPendingModifications(result);
+        activityState.flushPendingTaskModifications(result);
     }
     //endregion
 }

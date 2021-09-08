@@ -30,6 +30,8 @@ import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -176,7 +178,7 @@ class ItemProcessingGatekeeper<I> {
 
             return canContinue;
 
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | CommonException e) {
 
             result.recordFatalError(e);
 
@@ -496,7 +498,8 @@ class ItemProcessingGatekeeper<I> {
         return recordIterativeOperationStart();
     }
 
-    private void updateStatisticsOnEnd(OperationResult result) {
+    private void updateStatisticsOnEnd(OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
         recordIterativeOperationEnd(operation);
         ActivityStatistics liveStats = activityExecution.getActivityState().getLiveStatistics();
         if (getReportingOptions().isEnableSynchronizationStatistics()) {
@@ -513,7 +516,7 @@ class ItemProcessingGatekeeper<I> {
     /**
      * Increments the progress and gives a task a chance to update its statistics.
      */
-    private void updateStatisticsInTasks(OperationResult result) {
+    private void updateStatisticsInTasks(OperationResult result) throws SchemaException, ObjectNotFoundException {
         // The structured progress is maintained only in the coordinator task
         activityExecution.incrementProgress(processingResult.outcome);
         //coordinatorTask.incrementStructuredProgress(activityExecution.activityIdentifier, processingResult.outcome);
@@ -521,9 +524,9 @@ class ItemProcessingGatekeeper<I> {
         if (activityExecution.isMultithreaded()) {
             assert workerTask.isTransient();
 
-            // In lightweight subtasks we store progress and operational statistics.
-            // We DO NOT store "new" progress there.
-            workerTask.incrementProgressTransient();
+            // In lightweight subtasks we store legacy progress and operational statistics.
+            // We DO NOT store activity progress there.
+            workerTask.incrementLegacyProgressTransient();
             workerTask.updateStatisticsInTaskPrism(true);
 
             // In coordinator we have to update the statistics in prism:
@@ -539,7 +542,10 @@ class ItemProcessingGatekeeper<I> {
 
         // If needed, let us write current statistics into the repository.
         // There is no need to do this for worker task, because it is either the same as the coordinator, or it's a LAT.
-        coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(getActivityStatUpdater(), result);
+        boolean updated = coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(getActivityStatUpdater(), result);
+        if (updated) {
+            activityExecution.updateItemProgressInTreeOverviewIfTimePassed(result);
+        }
     }
 
     private Runnable getActivityStatUpdater() {

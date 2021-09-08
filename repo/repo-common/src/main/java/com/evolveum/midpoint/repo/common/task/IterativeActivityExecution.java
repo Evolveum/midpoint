@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
-import static com.evolveum.midpoint.repo.common.activity.state.ActivityState.EXPECTED_IN_CURRENT_PROGRESS_PATH;
-import static com.evolveum.midpoint.repo.common.activity.state.ActivityState.EXPECTED_TOTAL_PATH;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.PARTIAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil.*;
@@ -28,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -168,6 +167,11 @@ public abstract class IterativeActivityExecution<
      */
     @NotNull private final ConnIdOperationsListener globalConnIdOperationsListener;
 
+    /**
+     * Number of buckets announced to the activity tree state overview. Kept here to eliminate redundant updates.
+     */
+    private Integer numberOfBucketsAnnounced;
+
     public IterativeActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
             @NotNull String shortName,
             @NotNull SpecificsSupplier<AE, AES> specificsSupplier) {
@@ -282,8 +286,12 @@ public abstract class IterativeActivityExecution<
         return activityState.getLiveStatistics().getLiveItemProcessing();
     }
 
-    private WorkBucketType getWorkBucket(boolean initialExecution, OperationResult result) {
+    private WorkBucketType getWorkBucket(boolean initialExecution, OperationResult result)
+            throws ActivityExecutionException {
+
         RunningTask task = taskExecution.getRunningTask();
+
+        Holder<BucketProgressOverviewType> bucketProgressHolder = new Holder<>();
 
         WorkBucketType bucket;
         try {
@@ -294,6 +302,7 @@ public abstract class IterativeActivityExecution<
                     .withExecuteInitialWait(initialExecution)
                     .withImplicitSegmentationResolver(executionSpecifics)
                     .withIsScavenger(isScavenger(task))
+                    .withBucketProgressConsumer(bucketProgressHolder)
                     .build();
             bucket = beans.bucketingManager.getWorkBucket(bucketingSituation.coordinatorTaskOid,
                     bucketingSituation.workerTaskOid, activity.getPath(), options, getLiveBucketManagementStatistics(), result);
@@ -310,7 +319,17 @@ public abstract class IterativeActivityExecution<
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {}", t, task);
             throw new SystemException("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
         }
+
+        announceNumberOfBuckets(bucketProgressHolder.getValue(), result);
         return bucket;
+    }
+
+    private void announceNumberOfBuckets(BucketProgressOverviewType bucketProgress, OperationResult result)
+            throws ActivityExecutionException {
+        if (bucketProgress != null && !Objects.equals(bucketProgress.getTotalBuckets(), numberOfBucketsAnnounced)) {
+            getTreeStateOverview().updateBucketAndItemProgress(this, bucketProgress, result);
+            numberOfBucketsAnnounced = bucketProgress.getTotalBuckets();
+        }
     }
 
     private boolean isScavenger(RunningTask task) {
@@ -324,18 +343,25 @@ public abstract class IterativeActivityExecution<
         }
     }
 
-    private void completeWorkBucketAndCommitProgress(OperationResult result) throws ActivityExecutionException {
+    private void completeWorkBucketAndUpdateStatistics(OperationResult result) throws ActivityExecutionException {
         try {
 
+            Holder<BucketProgressOverviewType> bucketProgressHolder = new Holder<>();
             beans.bucketingManager.completeWorkBucket(bucketingSituation.coordinatorTaskOid, bucketingSituation.workerTaskOid,
-                    getActivityPath(), bucket.getSequentialNumber(), getLiveBucketManagementStatistics(), result);
+                    getActivityPath(), bucket.getSequentialNumber(), getLiveBucketManagementStatistics(),
+                    bucketProgressHolder, result);
 
             activityState.getLiveProgress().onCommitPoint();
             activityState.updateProgressAndStatisticsNoCommit();
 
-            // TODO update also the task-level statistics
+            // Note that we do not need to call the following method when bucket is not complete:
+            // in such cases the activity finishes, so the task stats are updated on activity execution end.
+            getRunningTask()
+                    .updateAndStoreStatisticsIntoRepository(true, result); // Contains implicit task flush
 
-            activityState.flushPendingModificationsChecked(result);
+            getTreeStateOverview()
+                    .updateBucketAndItemProgress(this, bucketProgressHolder.getValue(), result);
+
         } catch (CommonException e) {
             throw new ActivityExecutionException("Couldn't complete work bucket", FATAL_ERROR, PERMANENT_ERROR, e);
         }
@@ -367,7 +393,7 @@ public abstract class IterativeActivityExecution<
     private boolean skipSingleBucket(OperationResult result) throws ActivityExecutionException {
         LOGGER.debug("Skipping bucket {} because bucket processing condition evaluated to false", bucket);
         // Actually we could go without committing progress, but it does no harm, so we keep it here.
-        completeWorkBucketAndCommitProgress(result);
+        completeWorkBucketAndUpdateStatistics(result);
         return true;
     }
 
@@ -382,7 +408,7 @@ public abstract class IterativeActivityExecution<
         reportBucketAnalyzed(bucketSize, result);
 
         // Actually we could go without committing progress, but it does no harm, so we keep it here.
-        completeWorkBucketAndCommitProgress(result);
+        completeWorkBucketAndUpdateStatistics(result);
 
         return true;
     }
@@ -396,7 +422,7 @@ public abstract class IterativeActivityExecution<
 
         executionSpecifics.beforeBucketExecution(result);
 
-        setCurrentBucketSize(result);
+        setExpectedInCurrentBucket(result);
 
         coordinator = setupCoordinatorAndWorkerThreads();
         try {
@@ -411,19 +437,15 @@ public abstract class IterativeActivityExecution<
 
         executionSpecifics.afterBucketExecution(result);
 
-        // TODO reconsider this: why do we update in-memory representation only?
-        getRunningTask()
-                .updateStatisticsInTaskPrism(true);
+        boolean complete = canRun() && !errorState.wasStoppingExceptionEncountered();
 
         new StatisticsLogger(this)
-                .logBucketCompletion();
-
-        boolean complete = canRun() && !errorState.wasStoppingExceptionEncountered();
+                .logBucketCompletion(complete);
 
         if (complete) {
             record.end(getLiveItemProcessing());
 
-            completeWorkBucketAndCommitProgress(result);
+            completeWorkBucketAndUpdateStatistics(result);
 
             // We want to report bucket as completed only after it's really marked as completed.
             reportBucketCompleted(record, result);
@@ -458,7 +480,7 @@ public abstract class IterativeActivityExecution<
     }
 
     private void setExpectedTotal(OperationResult result) throws CommonException, ActivityExecutionException {
-        Integer knownExpectedTotal = activityState.getPropertyRealValue(EXPECTED_TOTAL_PATH, Integer.class);
+        Integer knownExpectedTotal = activityState.getLiveProgress().getExpectedTotal();
 
         Integer expectedTotal;
         if (isWorker()) {
@@ -478,8 +500,9 @@ public abstract class IterativeActivityExecution<
         }
 
         if (!Objects.equals(expectedTotal, knownExpectedTotal)) {
-            activityState.setItemRealValues(EXPECTED_TOTAL_PATH, expectedTotal);
-            activityState.flushPendingModificationsChecked(result);
+            activityState.getLiveProgress().setExpectedTotal(expectedTotal);
+            activityState.updateProgressNoCommit();
+            activityState.flushPendingTaskModificationsChecked(result);
         }
     }
 
@@ -497,7 +520,7 @@ public abstract class IterativeActivityExecution<
         }
     }
 
-    private void setCurrentBucketSize(OperationResult result) throws CommonException, ActivityExecutionException {
+    private void setExpectedInCurrentBucket(OperationResult result) throws CommonException, ActivityExecutionException {
         Integer bucketSize;
         if (expectedTotal != null && isNotBucketed()) {
             bucketSize = expectedTotal;
@@ -509,8 +532,9 @@ public abstract class IterativeActivityExecution<
             bucketSize = null;
         }
 
-        activityState.setItemRealValues(EXPECTED_IN_CURRENT_PROGRESS_PATH, bucketSize);
-        activityState.flushPendingModificationsChecked(result);
+        activityState.getLiveProgress().setExpectedInCurrentBucket(bucketSize);
+        activityState.updateProgressNoCommit();
+        activityState.flushPendingTaskModificationsChecked(result);
     }
 
     private boolean shouldDetermineBucketSize(OperationResult result) throws ActivityExecutionException, CommonException {
@@ -575,7 +599,7 @@ public abstract class IterativeActivityExecution<
      */
     private ProcessingCoordinator<I> setupCoordinatorAndWorkerThreads() {
         ProcessingCoordinator<I> coordinator = new ProcessingCoordinator<>(getWorkerThreadsCount(), getRunningTask(), beans.taskManager);
-        coordinator.createWorkerThreads(getReportingOptions());
+        coordinator.createWorkerThreads();
         return coordinator;
     }
 

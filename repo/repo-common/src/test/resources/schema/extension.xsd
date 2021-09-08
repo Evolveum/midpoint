@@ -15,9 +15,11 @@
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
@@ -87,6 +89,8 @@
                 <xsd:sequence>
                     <xsd:element name="objectSet" type="c:ObjectSetType" minOccurs="0"/>
                     <xsd:element name="message" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="failOn" type="q:SearchFilterType" minOccurs="0"/>
+                    <xsd:element name="freezeIfScavenger" type="xsd:boolean" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

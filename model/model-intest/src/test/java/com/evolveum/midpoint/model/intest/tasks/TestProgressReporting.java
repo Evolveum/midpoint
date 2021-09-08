@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.FULL_STATE_PREFERRED;
+
+import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.TREE_OVERVIEW_PREFERRED;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertTrue;
 
 import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
@@ -319,6 +324,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
         assertTask(rootAfterSuspension1.asObjectable(), "after 1st run")
+                .display()
                 .subtaskForPath(RECONCILIATION_OPERATION_COMPLETION_PATH)
                     .display()
                 .end()
@@ -379,7 +385,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .child(RECONCILIATION_RESOURCE_OBJECTS_ID)
                     .assertExpectedBuckets(100)
-                    .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
+                    .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompleteBuckets())
                     .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress())
                     .assertBucketsItemsConsistency(bucketSize, workers)
                     .items().display().end()
@@ -451,7 +457,10 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
         assertTask(rootAfterSuspension1.asObjectable(), "1st")
-                .display();
+                .display()
+                .rootActivityStateOverview()
+                    .display()
+                .end();
 
         ActivityProgressInformation info1 = assertProgress(recomputationTask.oid, "1st")
                 .display()
@@ -483,17 +492,29 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
         assertTask(rootAfterSuspension2.asObjectable(), "2nd")
-                .display();
+                .display()
+                .rootActivityStateOverview()
+                    .display()
+                .end();
 
-        assertProgress(recomputationTask.oid, "1st")
+        var treePreferred = assertProgress(recomputationTask.oid, TREE_OVERVIEW_PREFERRED, "2nd-tree-preferred")
                 .display()
                 .assertChildren(0)
                 .assertExpectedBuckets(100)
                 .assertBucketsItemsConsistency(bucketSize, workers)
-                .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
-                .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress());
+                .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompleteBuckets())
+                .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress())
+                .get();
 
-        assertTask(rootAfterSuspension2.asObjectable(), "2nd")
-                .display();
+        var fullPreferred = assertProgress(recomputationTask.oid, FULL_STATE_PREFERRED, "2nd-full-preferred")
+                .display()
+                .get();
+
+        assertThat(treePreferred.getBucketsProgress())
+                .as("bucket progress in tree-preferred")
+                .isEqualTo(fullPreferred.getBucketsProgress());
+        assertThat(treePreferred.getItemsProgress())
+                .as("items progress in tree-preferred")
+                .isEqualTo(fullPreferred.getItemsProgress());
     }
 }

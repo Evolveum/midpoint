@@ -169,14 +169,22 @@ public abstract class ActivityState implements DebugDumpable {
                                 .asItemDelta()));
     }
 
-    public void flushPendingModifications(OperationResult result)
+    /**
+     * Flushes pending task modifications.
+     * Note for implementers: this method should be equivalent to a direct call to {@link Task#flushPendingModifications(OperationResult)}.
+     */
+    public void flushPendingTaskModifications(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         getTask().flushPendingModifications(result);
     }
 
-    public void flushPendingModificationsChecked(OperationResult result) throws ActivityExecutionException {
+    /**
+     * Flushes pending task modifications.
+     * Note for implementers: this method should be equivalent to a direct call to {@link Task#flushPendingModifications(OperationResult)}.
+     */
+    public void flushPendingTaskModificationsChecked(OperationResult result) throws ActivityExecutionException {
         convertException("Couldn't update the task",
-                () -> flushPendingModifications(result));
+                () -> flushPendingTaskModifications(result));
     }
     //endregion
 

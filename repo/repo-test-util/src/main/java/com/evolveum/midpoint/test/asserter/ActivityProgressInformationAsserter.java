@@ -102,7 +102,7 @@ public class ActivityProgressInformationAsserter<RA> extends AbstractAsserter<RA
     }
 
     private int getCompletedBuckets() {
-        return information.getBucketsProgress() != null ? information.getBucketsProgress().getCompletedBuckets() : 0;
+        return information.getBucketsProgress() != null ? information.getBucketsProgress().getCompleteBuckets() : 0;
     }
 
     private int getCompletedItems() {

@@ -44,7 +44,7 @@ public class ReleaseBucketsOperation extends BucketOperation {
     ReleaseBucketsOperation(@NotNull String coordinatorTaskOid, @NotNull String workerTaskOid,
             @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, CommonTaskBeans beans,
             Integer sequentialNumber) {
-        super(coordinatorTaskOid, workerTaskOid, activityPath, collector, beans);
+        super(coordinatorTaskOid, workerTaskOid, activityPath, collector, null, beans);
         this.sequentialNumber = sequentialNumber;
     }
 

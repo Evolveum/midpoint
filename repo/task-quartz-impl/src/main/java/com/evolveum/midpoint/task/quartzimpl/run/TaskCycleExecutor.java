@@ -179,7 +179,7 @@ class TaskCycleExecutor {
         beans.listenerRegistry.notifyTaskFinish(task, runResult, result);
         try {
             if (runResult.getProgress() != null) {
-                task.setProgress(runResult.getProgress());
+                task.setLegacyProgress(runResult.getProgress());
             }
             if (runResult.getOperationResult() != null) {
                 try {

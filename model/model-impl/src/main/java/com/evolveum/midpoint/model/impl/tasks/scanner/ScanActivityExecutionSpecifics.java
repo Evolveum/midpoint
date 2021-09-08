@@ -75,7 +75,7 @@ public abstract class ScanActivityExecutionSpecifics<
              *     not requested by any scanner task handlers."
              */
             getActivityState().setWorkStateItemRealValues(ScanWorkStateType.F_LAST_SCAN_TIMESTAMP, thisScanTimestamp);
-            getActivityState().flushPendingModificationsChecked(opResult);
+            getActivityState().flushPendingTaskModificationsChecked(opResult);
         }
     }
 
