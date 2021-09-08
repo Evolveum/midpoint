@@ -45,6 +45,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -254,5 +255,10 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
     @Override
     protected String getAssignmentsTabStorageKey() {
         return SessionStorage.KEY_INDUCED_ENTITLEMENTS_TAB;
+    }
+
+    @Override
+    protected QName getAssignmentType() {
+        return ResourceType.COMPLEX_TYPE;
     }
 }

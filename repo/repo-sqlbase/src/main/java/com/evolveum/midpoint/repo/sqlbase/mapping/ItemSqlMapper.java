@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.filtering.RightHandProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -45,4 +46,8 @@ public interface ItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R> {
      */
     @Nullable <T extends ValueFilter<?, ?>> ItemValueFilterProcessor<T> createFilterProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext);
+
+    @Nullable <T extends ValueFilter<?, ?>> RightHandProcessor createRightHandProcessor(
+            SqlQueryContext<?, ?, ?> sqlQueryContext);
+
 }

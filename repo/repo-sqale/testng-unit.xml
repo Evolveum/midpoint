@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<suite name="Suite" parallel="none">
+    <test name="Test" parallel="none">
+        <classes>
+            <class name="com.evolveum.midpoint.repo.sqale.func.AuditCleanupTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.AuditSearchTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SequenceTestFunctional"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoAddDeleteObjectTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoLookupTableTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoModifyObjectTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoSearchIterativeTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoSearchTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoSmokeTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.UriCacheTest"/>
+        </classes>
+    </test>
+</suite>

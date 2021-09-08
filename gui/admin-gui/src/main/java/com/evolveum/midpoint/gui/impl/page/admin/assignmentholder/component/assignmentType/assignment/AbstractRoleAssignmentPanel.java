@@ -62,12 +62,14 @@ public abstract class AbstractRoleAssignmentPanel<AH extends AssignmentHolderTyp
             return Model.of("");
         }
         PrismObject<AR> targetObject = loadTargetObject(assignmentContainer.getRealValue());
-        AR targetRefObject = targetObject.asObjectable();
-        if (StringUtils.isNotEmpty(targetRefObject.getIdentifier())) {
-            return Model.of(targetRefObject.getIdentifier());
-        }
-        if (targetRefObject.getDisplayName() != null && !targetRefObject.getName().getOrig().equals(targetRefObject.getDisplayName().getOrig())) {
-            return Model.of(targetRefObject.getName().getOrig());
+        if (targetObject != null) {
+            AR targetRefObject = targetObject.asObjectable();
+            if (StringUtils.isNotEmpty(targetRefObject.getIdentifier())) {
+                return Model.of(targetRefObject.getIdentifier());
+            }
+            if (targetRefObject.getDisplayName() != null && !targetRefObject.getName().getOrig().equals(targetRefObject.getDisplayName().getOrig())) {
+                return Model.of(targetRefObject.getName().getOrig());
+            }
         }
         return Model.of("");
     }
