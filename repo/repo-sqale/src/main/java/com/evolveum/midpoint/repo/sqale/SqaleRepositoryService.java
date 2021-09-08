@@ -978,7 +978,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                         prismContext()));
 
                 // we don't call public searchObject to avoid subresults and query simplification
-                logSearchInputParameters(type, pagedQuery, "Search object iterative page ");
+                logSearchInputParameters(type, pagedQuery, "Search object iterative page");
                 List<PrismObject<T>> objects = executeSearchObject(
                         type, pagedQuery, options, OP_SEARCH_OBJECTS_ITERATIVE_PAGE);
 
@@ -1200,33 +1200,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } finally {
             registerOperationFinish(opHandle, 1);
         }
-    }
-
-    private <T> void logSearchInputParameters(Class<T> type, ObjectQuery query, String operation) {
-        ObjectPaging paging = query != null ? query.getPaging() : null;
-        logger.debug(
-                "{} of type '{}', query on trace level, offset {}, limit {}.",
-                operation, type.getSimpleName(),
-                paging != null ? paging.getOffset() : "undefined",
-                paging != null ? paging.getMaxSize() : "undefined");
-
-        logger.trace("Full query\n{}",
-                query == null ? "undefined" : query.debugDumpLazily());
-    }
-
-    private ObjectQuery simplifyQuery(ObjectQuery query) {
-        if (query != null) {
-            // simplify() creates new filter instance which can be modified
-            ObjectFilter filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext());
-            query = query.cloneWithoutFilter();
-            query.setFilter(filter instanceof AllFilter ? null : filter);
-        }
-
-        return query;
-    }
-
-    private boolean isNoneQuery(ObjectQuery query) {
-        return query != null && query.getFilter() instanceof NoneFilter;
     }
     // endregion
 
@@ -1909,9 +1882,5 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     @Override
     public SqlPerformanceMonitorImpl getPerformanceMonitor() {
         return performanceMonitor;
-    }
-
-    private PrismContext prismContext() {
-        return sqlRepoContext.prismContext();
     }
 }

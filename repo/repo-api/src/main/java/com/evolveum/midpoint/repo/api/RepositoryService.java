@@ -390,24 +390,29 @@ public interface RepositoryService {
             OperationResult parentResult) throws SchemaException;
 
     /**
-     * <p>Search for objects in the repository in an iterative fashion.</p>
-     * <p>Searches through all object types. Calls a specified handler for each object found.
-     * If no search criteria specified, list of all objects of specified type is returned.</p>
-     * <p>
+     * Search for objects in the repository in an iterative fashion.
+     *
+     * Searches through all object types. Calls a specified handler for each object found.
+     * If no search criteria specified, list of all objects of specified type is returned.
+     *
      * Searches through all object types.
      * Returns a list of objects that match search criteria.
-     * </p><p>
+     *
      * Returns empty list if object type is correct but there are no objects of
      * that type. The ordering of the results is not significant and may be arbitrary
      * unless sorting in the paging is used.
-     * </p><p>
+     *
      * Should fail if object type is wrong. Should fail if unknown property is
      * specified in the query.
-     * </p>
-     * <p>
-     * A note related to iteration method:
-     * <p>
-     * There are three iteration methods (see IterationMethodType):
+     *
+     * [NOTE]
+     * ====
+     * New repository uses single reliable iteration method similar to strictly sequential paging
+     * and supports custom ordering (currently only one).
+     * New repository ignores strictlySequential parameter and related get options completely.
+     *
+     * In old repository there are three iteration methods (see IterationMethodType):
+     *
      * - SINGLE_TRANSACTION: Fetches objects in single DB transaction. Not supported for all DBMSs.
      * - SIMPLE_PAGING: Uses the "simple paging" method: takes objects (e.g.) numbered 0 to 49, then 50 to 99,
      * then 100 to 149, and so on. The disadvantage is that if the order of objects is changed
@@ -416,15 +421,16 @@ public interface RepositoryService {
      * - STRICTLY_SEQUENTIAL_PAGING: Uses the "strictly sequential paging" method: sorting returned objects by OID. This
      * is (almost) reliable in such a way that no object would be skipped. However, custom
      * paging cannot be used in this mode.
-     * <p>
+     *
      * If GetOperationOptions.iterationMethod is specified, it is used without any further considerations.
      * Otherwise, the repository configuration determines whether to use SINGLE_TRANSACTION or a paging. In the latter case,
      * strictlySequential flag determines between SIMPLE_PAGING (if false) and STRICTLY_SEQUENTIAL_PAGING (if true).
-     * <p>
+     *
      * If explicit GetOperationOptions.iterationMethod is not provided, and paging is prescribed, and strictlySequential flag
      * is true and client-provided paging conflicts with the paging used by the iteration method, a warning is issued, and
      * iteration method is switched to SIMPLE_PAGING.
-     * <p>
+     * ====
+     *
      * Sources of conflicts:
      * - ordering is specified
      * - offset is specified
@@ -432,9 +438,9 @@ public interface RepositoryService {
      *
      * @param query search query
      * @param handler result handler
-     * @param strictlySequential takes care not to skip any object nor to process objects more than once; see below
+     * @param strictlySequential takes care not to skip any object nor to process objects more than once
      * @param parentResult parent OperationResult (in/out)
-     * @return all objects of specified type that match search criteria (subject to paging)
+     * @return summary information about the search result
      * @throws IllegalArgumentException wrong object type
      * @throws SchemaException unknown property used in search query
      */
