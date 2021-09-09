@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -644,23 +645,46 @@ public class ExpressionUtil {
             ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
 
             try {
-                PrismValue expressionResult = evaluateExpression(variables, prismContext, valueExpression, expressionProfile,
-                        filter, expressionFactory, shortDesc, task, result);
+                ItemDefinition outputDefinition = ((ValueFilter) filter).getDefinition();
+                if (outputDefinition == null) {
+                    outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+                            DOMUtil.XSD_STRING);
+                }
+                Collection<PrismValue> expressionResults = evaluateExpressionNative(null, variables, outputDefinition,
+                        valueExpression, expressionProfile, expressionFactory, shortDesc, task, result);
 
-                if (expressionResult == null || expressionResult.isEmpty()) {
+                List<PrismValue> nonEmptyResults = expressionResults.stream().filter(
+                        expressionResult -> expressionResult != null && !expressionResult.isEmpty()).collect(Collectors.toList());
+
+                if (nonEmptyResults.isEmpty()) {
                     LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
                             valueExpression);
 
                     return createFilterForNoValue(valueFilter, valueExpression, prismContext);
                 }
+
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
-                        shortDesc, expressionResult);
+                        shortDesc, nonEmptyResults);
 
-                ValueFilter evaluatedFilter = valueFilter.clone();
-                evaluatedFilter.setValue(expressionResult);
-                evaluatedFilter.setExpression(null);
-                // }
+                ObjectFilter evaluatedFilter;
+
+                if (nonEmptyResults.size() == 1) {
+                    ValueFilter evaluatedValueFilter = valueFilter.clone();
+                    evaluatedValueFilter.setValue(nonEmptyResults.iterator().next());
+                    evaluatedValueFilter.setExpression(null);
+                    evaluatedFilter = evaluatedValueFilter;
+                } else {
+                    evaluatedFilter = prismContext.queryFactory().createOr(
+                            nonEmptyResults.stream().map(expressionResult -> {
+                                ValueFilter evaluatedValueFilter = valueFilter.clone();
+                                evaluatedValueFilter.setValue(expressionResult);
+                                evaluatedValueFilter.setExpression(null);
+                                return evaluatedValueFilter;
+                            }).collect(Collectors.toList())
+                    );
+                }
+
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Transformed filter to:\n{}", evaluatedFilter.debugDump());
                 }

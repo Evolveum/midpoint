@@ -12,6 +12,13 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -22,10 +29,6 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrimitiveType;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -152,6 +155,24 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         PrismAsserts.assertValues("Wrong values in filter", equalFilter.getValues(), "CAPTAIN");
 
         executeFilter(filter, 1, task, result);
+    }
+
+    @Test
+    public void test160EvaluateExpressionNameMultivalueFilter() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectFilter filter = evaluateExpressionAssertFilter("expression-name-multivalue-filter.xml",
+                null, OrFilter.class, task, result);
+
+        OrFilter orFilter = (OrFilter) filter;
+        List actualValues = orFilter.getConditions().stream().map(
+                equalFilter -> ((EqualFilter) equalFilter).getSingleValue()).collect(Collectors.toList());
+        PrismAsserts.assertValues("Wrong values in filter", actualValues,
+                new PolyString("jack", "jack"), new PolyString("barbossa", "barbossa"));
+
+        executeFilter(filter, 2, task, result);
     }
 
     @Test
