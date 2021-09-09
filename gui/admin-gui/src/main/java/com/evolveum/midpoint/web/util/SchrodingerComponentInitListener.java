@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.util;
 import java.io.Serializable;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.captcha.CaptchaPanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -18,7 +18,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.application.IComponentInitializationListener;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;
@@ -100,11 +100,14 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
             return;
         }
 
-        StringResourceModel model = null;
+        IModel model = null;
         if (component.getDefaultModel() instanceof StringResourceModel) {
-            model = (StringResourceModel) component.getDefaultModel();
+            model = component.getDefaultModel();
         } else if (component.getInnermostModel() instanceof StringResourceModel) {
-            model = (StringResourceModel) component.getInnermostModel();
+            model = component.getInnermostModel();
+        } else if (component.getDefaultModel() instanceof ReadOnlyModel &&
+                component.getDefaultModelObject() instanceof String) {
+            model = component.getDefaultModel();
         }
 
         if (model == null) {
@@ -112,7 +115,9 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
         }
 
         try {
-            String key = (String) FieldUtils.readField(model, "resourceKey", true);
+            String key = model instanceof StringResourceModel ?
+                    (String) FieldUtils.readField(model, "resourceKey", true)
+                    : (String) model.getObject();
             if (key.startsWith("${")) {
                 String expression = key.substring(2, key.length() - 1);
                 key = new PropertyModel<String>(FieldUtils.readField(model, "model", true), expression).getObject();
