@@ -113,32 +113,14 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
                         return UserProfileStorage.TableId.PAGE_RESOURCE_TASKS_PANEL;
                     }
 
-//                    @Override
-//                    protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
-//                        return new SelectableListDataProvider<>(pageBase, tasks);
-//                    }
-
                     @Override
                     protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
                         return createSelectableBeanObjectDataProvider(() -> createResourceTasksQuery(), null);
                     }
 
-//                    @Override
-//                    protected ObjectQuery getCustomizeContentQuery() {
-//                        return
-//
-//                    }
-
                     @Override
                     protected List<InlineMenuItem> createInlineMenu() {
                         return null;
-                    }
-
-                    @Override
-                    public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
-                        getPageBase().navigateToNext(PageTask.class, parameters);
                     }
 
                     @Override

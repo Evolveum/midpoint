@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sqlbase.mapping;
 
 import com.querydsl.core.types.Expression;
-
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -47,7 +46,7 @@ public interface ItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R> {
     @Nullable <T extends ValueFilter<?, ?>> ItemValueFilterProcessor<T> createFilterProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext);
 
-    @Nullable <T extends ValueFilter<?, ?>> RightHandProcessor createRightHandProcessor(
+    @Nullable RightHandProcessor createRightHandProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext);
 
 }

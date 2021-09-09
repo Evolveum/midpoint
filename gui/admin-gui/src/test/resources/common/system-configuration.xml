@@ -113,6 +113,7 @@
         </closedTasks>
     </cleanupPolicy>
     <adminGuiConfiguration>
+        <useNewDesign>false</useNewDesign>
         <userDashboardLink>
             <targetUrl>/self/profile</targetUrl>
             <label>Profile</label>

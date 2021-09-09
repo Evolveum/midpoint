@@ -82,9 +82,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
                 }
             }
         };
-        navigateToObject.add(new VisibleBehaviour(() -> DisplayNamePanel.this.getModelObject() instanceof ObjectType &&
-                StringUtils.isNotEmpty(((ObjectType) DisplayNamePanel.this.getModelObject()).getOid()) &&
-                WebComponentUtil.getObjectDetailsPage(((ObjectType) DisplayNamePanel.this.getModelObject()).getClass()) != null));
+        navigateToObject.add(new VisibleBehaviour(() ->  hasDetailsPage()));
         navigateToObject.setOutputMarkupId(true);
         add(navigateToObject);
 
@@ -110,9 +108,17 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
         };
 
         add(descriptionLabels);
+    }
 
-//        add(new Label(ID_DESCRIPTION, getDescriptionLabelsModel()));
-//        add(new Label(ID_PENDING_OPERATION, getPendingOperationLabelModel()));
+    private boolean hasDetailsPage() {
+        C containerable = getModelObject();
+        if (!(containerable instanceof ObjectType)) {
+            return false;
+        }
+        if (((ObjectType) containerable).getOid().isBlank()) {
+            return false;
+        }
+        return WebComponentUtil.hasDetailsPage(containerable.getClass());
     }
 
     protected WebMarkupContainer createTypeImagePanel(String idTypeImage) {

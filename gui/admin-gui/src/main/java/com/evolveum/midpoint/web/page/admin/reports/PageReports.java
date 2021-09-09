@@ -78,13 +78,7 @@ public class PageReports extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<ReportType> table = new MainObjectListPanel<ReportType>(ID_TABLE, ReportType.class) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ReportType reportType) {
-                PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, reportType.getOid());
-                navigateToNext(PageReport.class, pageParameters);
-            }
-
+            
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.PAGE_REPORTS;

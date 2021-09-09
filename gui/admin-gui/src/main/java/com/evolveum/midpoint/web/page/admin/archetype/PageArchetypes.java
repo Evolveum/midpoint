@@ -69,22 +69,11 @@ public class PageArchetypes extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<ArchetypeType> table = new MainObjectListPanel<ArchetypeType>(ID_TABLE, ArchetypeType.class) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ArchetypeType archetype) {
-                PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, archetype.getOid());
-                navigateToNext(PageArchetype.class, pageParameters);
-            }
 
             @Override
             protected TableId getTableId() {
                 return UserProfileStorage.TableId.TABLE_ARCHETYPES;
             }
-
-//            @Override
-//            protected List<IColumn<SelectableBean<ArchetypeType>, String>> createDefaultColumns() {
-//                return ColumnUtils.getDefaultArchetypeColumns();
-//            }
 
             @Override
             protected IColumn<SelectableBean<ArchetypeType>, String> createCheckboxColumn() {

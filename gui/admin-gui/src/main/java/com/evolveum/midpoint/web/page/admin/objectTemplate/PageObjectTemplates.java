@@ -79,12 +79,6 @@ public class PageObjectTemplates extends PageAdmin{
         add(mainForm);
 
         MainObjectListPanel<ObjectTemplateType> table = new MainObjectListPanel<ObjectTemplateType>(ID_TABLE, ObjectTemplateType.class) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectTemplateType template) {
-                PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, template.getOid());
-                navigateToNext(PageObjectTemplate.class, pageParameters);
-            }
 
             @Override
             protected UserProfileStorage.TableId getTableId() {

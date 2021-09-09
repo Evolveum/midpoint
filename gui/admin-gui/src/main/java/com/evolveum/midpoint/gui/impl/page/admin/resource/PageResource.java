@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -46,6 +47,10 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Assi
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
+    }
+
+    public PageResource(PrismObject<ResourceType> resource) {
+        super(resource);
     }
 
     @Override

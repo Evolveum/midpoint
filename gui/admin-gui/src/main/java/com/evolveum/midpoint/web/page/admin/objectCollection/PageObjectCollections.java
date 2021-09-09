@@ -77,12 +77,6 @@ public class PageObjectCollections extends PageAdmin{
         add(mainForm);
 
         MainObjectListPanel<ObjectCollectionType> table = new MainObjectListPanel<ObjectCollectionType>(ID_TABLE, ObjectCollectionType.class) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectCollectionType collection) {
-                PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, collection.getOid());
-                navigateToNext(PageObjectCollection.class, pageParameters);
-            }
 
             @Override
             protected UserProfileStorage.TableId getTableId() {

@@ -9,31 +9,32 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.time.Duration;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
-
-import com.evolveum.midpoint.util.MiscUtil;
-
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.midpoint.web.page.admin.PageCreateFromTemplate;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
@@ -82,13 +82,32 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private ProgressPanel progressPanel;
     protected boolean previewRequested;
 
+    public AbstractPageObjectDetails() {
+        this(null, null);
+    }
+
     public AbstractPageObjectDetails(PageParameters pageParameters) {
-        super(pageParameters);
+        this(pageParameters, null);
+    }
 
-        objectDetailsModels = createObjectDetailsModels();
+    public AbstractPageObjectDetails(PrismObject<O> object) {
+        this(null, object);
+    }
 
+    private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object) {
+        super(params);
+
+        if (params == null && object == null) {
+            ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getType());
+            Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
+            if (!applicableArchetypes.isEmpty()) {
+                PageParameters templateParams = new PageParameters();
+                templateParams.add("type", objectType.getRestType());
+                throw new RestartResponseException(PageCreateFromTemplate.class, templateParams);
+            }
+        }
+        objectDetailsModels = createObjectDetailsModels(object);
         initLayout();
-
     }
 
     public ObjectDetailsModels<O> getObjectDetailsModels() {
@@ -96,15 +115,18 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     //TODO should be abstract??
-    protected ODM createObjectDetailsModels() {
-        return (ODM) new ObjectDetailsModels<>(createPrismObejctModel(), this);
+    protected ODM createObjectDetailsModels(PrismObject<O> object) {
+        return (ODM) new ObjectDetailsModels<>(createPrismObejctModel(object), this);
     }
 
-    protected LoadableModel<PrismObject<O>> createPrismObejctModel() {
+    protected LoadableModel<PrismObject<O>> createPrismObejctModel(PrismObject<O> object) {
         return new LoadableModel<>(false) {
 
             @Override
             protected PrismObject<O> load() {
+                if (object != null) {
+                    return object;
+                }
                 return loadPrismObject();
             }
         };
@@ -136,7 +158,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private Panel initSummaryPanel() {
         LoadableModel<O> summaryModel = objectDetailsModels.getSummaryModel();
-        return createSummaryPanel(ID_SUMMARY, summaryModel);
+        Panel summaryPanel = createSummaryPanel(ID_SUMMARY, summaryModel);
+        summaryPanel.add(new VisibleBehaviour(() -> objectDetailsModels.getObjectStatus() != ItemStatus.ADDED));
+        return summaryPanel;
     }
 
     private void initButtons(MidpointForm form) {

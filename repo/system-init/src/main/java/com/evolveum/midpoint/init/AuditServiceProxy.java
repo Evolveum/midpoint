@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -235,17 +236,28 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult)
             throws SchemaException {
-        // does it even make sense to merge multiple results for audit?
-        SearchResultList<AuditEventRecordType> result = new SearchResultList<>();
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {
-                SearchResultList<AuditEventRecordType> oneResult =
-                        service.searchObjects(query, options, parentResult);
-                if (!oneResult.isEmpty()) {
-                    result.addAll(oneResult);
-                }
+                return service.searchObjects(query, options, parentResult);
             }
         }
-        return result;
+
+        return new SearchResultList<>();
+    }
+
+    @Override
+    @NotNull
+    public SearchResultMetadata searchObjectsIterative(
+            @Nullable ObjectQuery query,
+            @NotNull AuditResultHandler handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        for (AuditService service : services) {
+            if (service.supportsRetrieval()) {
+                return service.searchObjectsIterative(query, handler, options, parentResult);
+            }
+        }
+
+        return new SearchResultMetadata();
     }
 }

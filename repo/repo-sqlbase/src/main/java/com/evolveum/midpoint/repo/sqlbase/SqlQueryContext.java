@@ -236,7 +236,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 throw new QueryException("Item path '" + orderByItemPath
                         + "' cannot be used for ordering because subquery is used to resolve it.");
             }
-            // CQ/CR for the next loop may be actually different then before, but that's OK
+            // CQ/CR for the next loop may be actually different than before, but that's OK
             mapping = (QueryModelMapping<?, CQ, CR>) resolution.mapping;
             context = (SqlQueryContext<?, CQ, CR>) resolution.context;
             containerDefinition = containerDefinition.findLocalItemDefinition(

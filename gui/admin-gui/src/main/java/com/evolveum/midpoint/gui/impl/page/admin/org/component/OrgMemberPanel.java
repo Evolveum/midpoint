@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelInstances;
@@ -32,8 +33,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "orgMembers")
 @PanelInstances(instances = {
         @PanelInstance(identifier = "orgMembers", applicableFor = OrgType.class,
+                status = ItemStatus.NOT_CHANGED,
                 display = @PanelDisplay(label = "pageRole.members", order = 60)),
         @PanelInstance(identifier = "orgGovernance", applicableFor = OrgType.class,
+                status = ItemStatus.NOT_CHANGED,
                 display = @PanelDisplay(label = "pageRole.governance", order = 60))
 })
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
