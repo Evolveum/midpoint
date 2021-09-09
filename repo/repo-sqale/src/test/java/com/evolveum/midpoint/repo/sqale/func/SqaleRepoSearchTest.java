@@ -417,10 +417,24 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
      * * String value is normalized as configured for norm matching (as demonstrated in this test).
      */
     @Test
-    public void test110SearchUserByNameNormalized() throws Exception {
+    public void test111SearchUserByNameNormalized() throws Exception {
         searchUsersTest("with normalized name matching provided value",
                 f -> f.item(UserType.F_NAME).eq("UseR--2").matchingNorm(),
                 user2Oid);
+    }
+
+    /**
+     * Multi-value EQ filter (multiple values on the right-hand side) works like `IN`,
+     * that is if any of the values matches, the object matches and is returned.
+     */
+    @Test
+    public void test115SearchUserByAnyOfName() throws Exception {
+        searchUsersTest("with name matching any of provided values (multi-value EQ filter)",
+                f -> f.item(UserType.F_NAME).eq(
+                        PolyString.fromOrig("user-1"),
+                        PolyString.fromOrig("user-2"),
+                        PolyString.fromOrig("user-wrong")), // bad value is of no consequence
+                user1Oid, user2Oid);
     }
 
     @Test
@@ -1737,9 +1751,10 @@ AND(
     @Test(expectedExceptions = SystemException.class)
     public void test820SearchUsersWithReferencedPath() throws SchemaException {
         searchUsersTest("fullName does not equals fname",
-                f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                        .eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
                 user1Oid, user2Oid, user3Oid, user4Oid);
-        // Should fail because right hand side nesting into multivalue container is not supported
+        // Should fail because right-hand side nesting into multivalue container is not supported
     }
 
     // region special cases
