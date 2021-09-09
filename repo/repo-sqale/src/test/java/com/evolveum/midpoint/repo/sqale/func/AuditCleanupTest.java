@@ -116,7 +116,7 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
     }
 
     private long selectMinMaxId(QAuditEventRecord qae, NumberExpression<Long> minMaxPath) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             return jdbcSession.newQuery()
                     .select(minMaxPath)
                     .from(qae)

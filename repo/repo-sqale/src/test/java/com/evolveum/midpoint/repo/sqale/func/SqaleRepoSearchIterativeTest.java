@@ -228,7 +228,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
         and("all objects were processed in proper order");
         QUser u = aliasFor(QUser.class);
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             List<String> result = jdbcSession.newQuery()
                     .from(u)
                     .orderBy(u.costCenter.asc(), u.oid.asc())
