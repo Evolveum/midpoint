@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.org;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -33,8 +34,16 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                 description = "PageOrgUnit.auth.orgUnit.description") })
 public class PageOrg extends PageFocusDetails<OrgType, FocusDetailsModels<OrgType>> {
 
+    public PageOrg() {
+        super();
+    }
+
     public PageOrg(PageParameters pageParameters) {
         super(pageParameters);
+    }
+
+    public PageOrg(PrismObject<OrgType> org) {
+        super(org);
     }
 
     @Override

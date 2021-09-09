@@ -46,43 +46,12 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
     }
 
     @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType object) {
-        PageParameters pageParameters = new PageParameters();
-        pageParameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
-        getPageBase().navigateToNext(PageCase.class, pageParameters);
-    }
-
-    @Override
     protected List<IColumn<SelectableBean<CaseType>, String>> createDefaultColumns() {
         return ColumnUtils.getDefaultCaseColumns(getPageBase(), isDashboard());
     }
 
     @Override
     protected ISelectableDataProvider<CaseType, SelectableBean<CaseType>> createProvider() {
-//        PageStorage storage = getPageStorage();
-//        SelectableBeanObjectDataProvider<CaseType> provider = new SelectableBeanObjectDataProvider<CaseType>(
-//                getPageBase(), getSearchModel(), null) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected PageStorage getPageStorage() {
-//                return storage;
-//            }
-//
-//            @NotNull
-//            @Override
-//            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-//                return WebComponentUtil.createMetadataOrdering(sortParam, "createTimestamp", getPrismContext());
-//            }
-//
-//            @Override
-//            protected ObjectQuery getCustomizeContentQuery() {
-//                return CasesTablePanel.this.getCustomizeContentQuery();
-//            }
-//        };
-//        provider.setCompiledObjectCollectionView(getObjectCollectionView());
-//        provider.setOptions(createOptions());
-
         SelectableBeanObjectDataProvider<CaseType> provider = createSelectableBeanObjectDataProvider(() -> getCustomizeContentQuery(),
                 (sortParam) -> WebComponentUtil.createMetadataOrdering(sortParam, "createTimestamp", getPrismContext()));
         provider.setSort(MetadataType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);

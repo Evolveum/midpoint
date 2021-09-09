@@ -8,11 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -20,8 +20,16 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDetailsModels<F>> extends PageAssignmentHolderDetails<F, FDM> {
 
+    public PageFocusDetails() {
+        super();
+    }
+
     public PageFocusDetails(PageParameters pageParameters) {
         super(pageParameters);
+    }
+
+    public PageFocusDetails(PrismObject<F> focus) {
+        super(focus);
     }
 
     @Override
@@ -42,7 +50,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     }
 
     @Override
-    protected FDM createObjectDetailsModels() {
-        return (FDM) new FocusDetailsModels<>(createPrismObejctModel(), this);
+    protected FDM createObjectDetailsModels(PrismObject<F> object) {
+        return (FDM) new FocusDetailsModels<>(createPrismObejctModel(object), this);
     }
 }

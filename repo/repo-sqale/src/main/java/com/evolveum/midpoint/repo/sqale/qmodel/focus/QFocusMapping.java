@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -65,8 +64,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
         addItemMapping(F_COST_CENTER, stringMapper(q -> q.costCenter));
         addItemMapping(F_EMAIL_ADDRESS, stringMapper(q -> q.emailAddress));
-        // TODO byte[] mapping for F_JPEG_PHOTO -> q.photo
-
+        // photo is not filterable, obviously
         addItemMapping(F_JPEG_PHOTO, binaryMapper(q -> q.photo));
         addItemMapping(F_LOCALE, stringMapper(q -> q.locale));
         addItemMapping(F_LOCALITY, polyStringMapper(

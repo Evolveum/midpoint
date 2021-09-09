@@ -23,16 +23,22 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrappe
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment.AbstractAssignmentPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -66,8 +72,11 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractAssignmentTypePanel extends MultivalueContainerListPanelWithDetailsPanel<AssignmentType> {
@@ -118,12 +127,6 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         columns.add(createAssignmentNameColumn());
         columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), AssignmentType.F_ACTIVATION, getPageBase()));
 
-//
-//
-//        if (getAssignmentType() == null) {
-//            columns.add(createAssignmentMoreDataColumn());
-//        }
-
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> additionalColumns = initColumns();
         if (additionalColumns != null) {
             columns.addAll(additionalColumns);
@@ -132,6 +135,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return columns;
     }
 
+    @NotNull
     protected abstract List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns();
 
     private IColumn<PrismContainerValueWrapper<AssignmentType>, String> createAssignmentActionColumn() {
@@ -411,7 +415,27 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected List<ObjectTypes> getObjectTypesList() {
-        return WebComponentUtil.createAssignableTypesList();
+        QName assignmentType = getAssignmentType();
+        if (assignmentType == null) {
+            return Collections.EMPTY_LIST;
+        }
+        return Collections.singletonList(ObjectTypes.getObjectTypeFromTypeQName(assignmentType));
+    }
+
+    protected RefFilter getTargetTypeFilter() {
+        QName targetType = getAssignmentType();
+        RefFilter targetRefFilter = null;
+        if (targetType != null) {
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setType(targetType);
+            ort.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
+            targetRefFilter = (RefFilter) getPageBase().getPrismContext().queryFor(AssignmentType.class)
+                    .item(AssignmentType.F_TARGET_REF)
+                    .ref(ort.asReferenceValue())
+                    .buildFilter();
+            targetRefFilter.setOidNullAsAny(true);
+        }
+        return targetRefFilter;
     }
 
     protected ObjectFilter getSubtypeFilter() {
@@ -419,6 +443,8 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected abstract IModel<AssignmentPopupDto> createAssignmentPopupModel();
+
+    protected abstract QName getAssignmentType();
 
     protected void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
         if (CollectionUtils.isEmpty(newAssignmentsList)) {

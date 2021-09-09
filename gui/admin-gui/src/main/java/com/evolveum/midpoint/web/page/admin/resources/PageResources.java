@@ -107,10 +107,6 @@ public class PageResources extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<ResourceType> table = new MainObjectListPanel<ResourceType>(ID_TABLE, ResourceType.class, getQueryOptions()) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType resource) {
-                PageResources.this.resourceDetailsPerformed(target, resource.getOid());
-            }
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -121,11 +117,6 @@ public class PageResources extends PageAdmin {
             protected List<IColumn<SelectableBean<ResourceType>, String>> createDefaultColumns() {
                 return PageResources.this.initResourceColumns();
             }
-
-//            @Override
-//            protected IColumn<SelectableBean<ResourceType>, String> createCheckboxColumn() {
-//                return null;
-//            }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
@@ -333,14 +324,6 @@ public class PageResources extends PageAdmin {
                 SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorVersion"));
 
         return columns;
-    }
-
-    private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
-        clearSessionStorageForResourcePage();
-
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageResource.class, parameters);
     }
 
     private List<ResourceType> isAnyResourceSelected(AjaxRequestTarget target, ResourceType single) {

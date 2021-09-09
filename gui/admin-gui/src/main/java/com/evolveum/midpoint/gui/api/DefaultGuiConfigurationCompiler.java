@@ -11,8 +11,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -191,6 +193,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             }
         }
 
+        MiscSchemaUtil.sortDetailsPanels(panels);
         return panels;
     }
 
@@ -239,6 +242,10 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         if (panelInstance.defaultPanel()) {
             config.setDefault(true);
         }
+        if (Arrays.stream(panelInstance.status()).filter(s -> ItemStatus.ADDED == s).count() == 1) {
+            config.setVisibleForAdd(true);
+        }
+
         return config;
     }
 
@@ -302,7 +309,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             ContainerPanelConfigurationType config = compileContainerPanelConfiguration(clazz, objectType, classes, panelInstance);
             configs.add(config);
         }
-
+        MiscSchemaUtil.sortDetailsPanels(configs);
         return configs;
     }
 

@@ -116,12 +116,13 @@ public class PageUsers extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<UserType> table = new MainObjectListPanel<>(ID_TABLE, UserType.class) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, UserType user) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, user.getOid());
-                navigateToNext(PageUser.class, parameters);
-            }
+//            @Override
+//            protected void objectDetailsPerformed(AjaxRequestTarget target, UserType user) {
+//                WebComponentUtil.dispatchToObjectDetailsPage(UserType.class, user.getOid(), this, false);
+//                PageParameters parameters = new PageParameters();
+//                parameters.add(OnePageParameterEncoder.PARAMETER, user.getOid());
+//                navigateToNext(PageUser.class, parameters);
+//            }
 
             @Override
             protected UserProfileStorage.TableId getTableId() {

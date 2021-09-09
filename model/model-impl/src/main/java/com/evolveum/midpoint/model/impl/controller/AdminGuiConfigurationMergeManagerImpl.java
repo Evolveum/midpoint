@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -48,17 +49,8 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         for (ContainerPanelConfigurationType configuredPanel : configuredPanels) {
             mergePanelConfigurations(configuredPanel, defaultPanels, mergedPanels);
         }
-        sort(mergedPanels);
+        MiscSchemaUtil.sortDetailsPanels(mergedPanels);
         return mergedPanels;
-    }
-
-    private void sort(List<ContainerPanelConfigurationType> panels) {
-        panels.sort((p1, p2) -> {
-            int displayOrder1 = (p1 == null || p1.getDisplayOrder() == null) ? Integer.MAX_VALUE : p1.getDisplayOrder();
-            int displayOrder2 = (p2 == null || p2.getDisplayOrder() == null) ? Integer.MAX_VALUE : p2.getDisplayOrder();
-
-            return Integer.compare(displayOrder1, displayOrder2);
-        });
     }
 
     @Override
@@ -87,6 +79,7 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
     @Override
     public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, GuiObjectDetailsPageType compiledPageType) {
         if (compiledPageType == null) {
+            //just to be sure that everything is correctly sorted
             return defaultPageConfiguration;
         }
 

@@ -26,6 +26,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -220,6 +222,9 @@ public final class WebComponentUtil {
     private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
     private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
 
+
+    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP_NEW;
+
     static {
         OBJECT_DETAILS_PAGE_MAP = new HashMap<>();
         OBJECT_DETAILS_PAGE_MAP.put(UserType.class, PageUser.class);
@@ -235,6 +240,23 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(ShadowType.class, PageAccount.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectCollectionType.class, PageObjectCollection.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectTemplateType.class, PageObjectTemplate.class);
+    }
+
+    static {
+        OBJECT_DETAILS_PAGE_MAP_NEW = new HashMap<>();
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(UserType.class, com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(OrgType.class, PageOrg.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(RoleType.class, com.evolveum.midpoint.gui.impl.page.admin.role.PageRole.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ServiceType.class, com.evolveum.midpoint.gui.impl.page.admin.service.PageService.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ResourceType.class, com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(TaskType.class, com.evolveum.midpoint.gui.impl.page.admin.task.PageTask.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ReportType.class, com.evolveum.midpoint.gui.impl.page.admin.report.PageReport.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ValuePolicyType.class, PageValuePolicy.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(CaseType.class, com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ArchetypeType.class, PageArchetype.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageAccount.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, PageObjectCollection.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, PageObjectTemplate.class);
     }
 
     static {
@@ -818,7 +840,7 @@ public final class WebComponentUtil {
     }
 
     public static boolean isAuthorized(Class<? extends ObjectType> clazz) {
-        Class<? extends PageBase> detailsPage = WebComponentUtil.getObjectDetailsPage(clazz);
+        Class<? extends PageBase> detailsPage = getObjectDetailsPage(clazz);
         if (detailsPage == null) {
             return false;
         }
@@ -2476,6 +2498,21 @@ public final class WebComponentUtil {
         dispatchToObjectDetailsPage(obj, false, component);
     }
 
+    private static boolean isNewDesignEnabled() {
+        MidPointApplication app = MidPointApplication.get();
+        ModelInteractionService service = app.getModelInteractionService();
+        Task task = app.createSimpleTask("get compiledGui profile");
+        OperationResult result = task.getResult();
+        try {
+            CompiledGuiProfile compiledGuiProfile = service.getCompiledGuiProfile(task, result);
+            return compiledGuiProfile.isUseNewDesign();
+        } catch (Throwable e) {
+            LOGGER.error("Cannot get compiled gui profile, {}", e.getMessage(), e);
+        }
+        //if somthing happen just return true, by default we want new design
+        return true;
+    }
+
     // shows the actual object that is passed via parameter (not its state in repository)
     public static void dispatchToObjectDetailsPage(PrismObject obj, boolean isNewObject, Component component) {
         Class newObjectPageClass = isNewObject ? getNewlyCreatedObjectPage(obj.getCompileTimeClass()) : getObjectDetailsPage(obj.getCompileTimeClass());
@@ -2490,8 +2527,13 @@ public final class WebComponentUtil {
                 constructor = newObjectPageClass.getConstructor(PageParameters.class);
                 page = (PageBase) constructor.newInstance(new PageParameters());
             } else {
-                constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
-                page = (PageBase) constructor.newInstance(obj, isNewObject);
+                if (isNewDesignEnabled()) {
+                    constructor = newObjectPageClass.getConstructor(PrismObject.class);
+                    page = (PageBase) constructor.newInstance(obj);
+                } else {
+                    constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+                    page = (PageBase) constructor.newInstance(obj, isNewObject);
+                }
 
             }
             if (component.getPage() instanceof PageBase) {
@@ -2531,11 +2573,10 @@ public final class WebComponentUtil {
         return OBJECT_DETAILS_PAGE_MAP.containsKey(clazz);
     }
 
-    public static String getStorageKeyForTableId(TableId tableId) {
-        return STORAGE_TABLE_ID_MAP.get(tableId);
-    }
-
     public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {
+        if (isNewDesignEnabled()) {
+            return OBJECT_DETAILS_PAGE_MAP_NEW.get(type);
+        }
         return OBJECT_DETAILS_PAGE_MAP.get(type);
     }
 
@@ -2543,6 +2584,9 @@ public final class WebComponentUtil {
         if (ResourceType.class.equals(type)) {
             return CREATE_NEW_OBJECT_PAGE_MAP.get(type);
         } else {
+            if (isNewDesignEnabled()) {
+                return OBJECT_DETAILS_PAGE_MAP_NEW.get(type);
+            }
             return OBJECT_DETAILS_PAGE_MAP.get(type);
         }
     }

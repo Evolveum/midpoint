@@ -7,28 +7,44 @@
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.AssignmentValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.context.EvaluatedResourceObjectConstruction;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,9 +59,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lskublik
@@ -58,33 +72,38 @@ import java.util.List;
 public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
     private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(DirectAndIndirectAssignmentPanel.class);
+
+    private static final String DOT_CLASS = DirectAndIndirectAssignmentPanel.class.getName() + ".";
+    private static final String OPERATION_RECOMPUTE_ASSIGNMENTS = DOT_CLASS + "recomputeAssignments";
+
     private LoadableModel<List<PrismContainerValueWrapper<AssignmentType>>> allAssignmentModel = null;
 
-    public DirectAndIndirectAssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
-        super(id, assignmentContainerWrapperModel, config);
+    public DirectAndIndirectAssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> objectModel, ContainerPanelConfigurationType config) {
+        super(id, objectModel, config);
     }
 
     @Override
     protected IModel<List<PrismContainerValueWrapper<AssignmentType>>> loadValuesModel() {
-        PageBase pageBase = getPageBase();
-        if (pageBase instanceof PageAdminFocus) {
             if (allAssignmentModel == null) {
                 allAssignmentModel = new LoadableModel<>() {
 
                     @Override
                     protected List<PrismContainerValueWrapper<AssignmentType>> load() {
-                        return (List) ((PageAdminFocus<?>) pageBase).showAllAssignmentsPerformed(getContainerModel());
+                        try {
+                            return loadEvaluatedAssignments(getContainerModel());
+                        } catch (CommonException e) {
+                            LOGGER.error("Couldn't load all assignments", e);
+                        }
+                        return getContainerModel().getObject().getValues();
                     }
                 };
             }
             return allAssignmentModel;
-        } else {
-            return super.loadValuesModel();
-        }
     }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
         columns.add(new IconColumn<>(Model.of("")) {
@@ -216,6 +235,84 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
             allAssignmentModel.reset();
         }
         super.refreshTable(ajaxRequestTarget);
+
+    }
+
+    private List<PrismContainerValueWrapper<AssignmentType>> loadEvaluatedAssignments(IModel<PrismContainerWrapper<AssignmentType>> parent)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        if (!(getPageBase() instanceof PageAssignmentHolderDetails)) {
+            return parent.getObject().getValues();
+        }
+        Task task = getPageBase().createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
+        OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
+        Set<AssignmentValueWrapper> assignmentValueWrapperSet = new LinkedHashSet<>();
+
+        ((PageAssignmentHolderDetails) getPageBase()).getObjectDetailsModels().collectDeltas(result);
+        ObjectDelta<AH> delta = ((PageAssignmentHolderDetails<AH, ?>) getPageBase()).getObjectDetailsModels().getDelta();
+        ModelExecuteOptions options = getPageBase().executeOptions().evaluateAllAssignmentRelationsOnRecompute();
+        ModelContext<AH> modelContext = getPageBase().getModelInteractionService().previewChanges(
+                Collections.singleton(delta), options, task, result);
+        Collection<? extends EvaluatedAssignment<?>> evaluatedAssignments = modelContext.getNonNegativeEvaluatedAssignments();
+
+            for (EvaluatedAssignment<?> evaluatedAssignment : evaluatedAssignments) {
+                if (!evaluatedAssignment.isValid()) {
+                    continue;
+                }
+                // roles and orgs
+                DeltaSetTriple<? extends EvaluatedAssignmentTarget> targetsTriple = evaluatedAssignment.getRoles();
+                Collection<? extends EvaluatedAssignmentTarget> targets = targetsTriple.getNonNegativeValues();
+                for (EvaluatedAssignmentTarget target : targets) {
+                    target.getTarget();
+                    if (ArchetypeType.class.equals(target.getTarget().getCompileTimeClass())) {
+                        continue;
+                    }
+                    if (target.appliesToFocusWithAnyRelation(getPageBase().getRelationRegistry())) {
+                        AssignmentType assignmentType = target.getAssignment().clone();
+                        assignmentType.setDescription(target.getTarget().asObjectable().getDescription());
+                        assignmentType.getTargetRef().setOid(target.getTarget().getOid());
+                        assignmentType.getTargetRef().setTargetName(new PolyStringType(target.getTarget().getName()));
+                        assignmentType.getTargetRef().setType(target.getTarget().getComplexTypeDefinition().getTypeName());
+                        ValueStatus status = evaluatedAssignment.getAssignment(true) == null ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED;
+                        AssignmentValueWrapper assignmentValueWrapper = WebPrismUtil.createNewValueWrapper(parent.getObject(),
+                                assignmentType.asPrismContainerValue(), status, getPageBase());
+                        assignmentValueWrapper.setDirectAssignment(target.isDirectlyAssigned());
+                        assignmentValueWrapper.setAssignmentParent(target.getAssignmentPath());
+                        assignmentValueWrapperSet.add(assignmentValueWrapper);
+                    }
+                }
+
+                // all resources
+                DeltaSetTriple<EvaluatedResourceObjectConstruction> evaluatedConstructionsTriple = evaluatedAssignment
+                        .getEvaluatedConstructions(task, result);
+                Collection<EvaluatedResourceObjectConstruction> evaluatedConstructions = evaluatedConstructionsTriple
+                        .getNonNegativeValues();
+                for (EvaluatedResourceObjectConstruction construction : evaluatedConstructions) {
+                    if (!construction.isWeak()) {
+                        PrismContainerDefinition<AssignmentType> assignmentDef = getPrismContext().getSchemaRegistry()
+                                .findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+                        AssignmentType assignmentType = assignmentDef.instantiate().createNewValue().asContainerable();
+                        ObjectReferenceType targetRef = new ObjectReferenceType();
+                        targetRef.setOid(construction.getResource().getOid());
+                        targetRef.setType(ResourceType.COMPLEX_TYPE);
+                        targetRef.setTargetName(new PolyStringType(construction.getResource().getName()));
+                        assignmentType.setTargetRef(targetRef);
+                        ConstructionType constructionType = new ConstructionType();
+                        constructionType.setResourceRef(targetRef);
+                        constructionType.setKind(construction.getKind());
+                        constructionType.setIntent(construction.getIntent());
+                        assignmentType.setConstruction(constructionType);
+                        assignmentType.setDescription(construction.getResource().asObjectable().getDescription());
+                        ValueStatus status = evaluatedAssignment.getAssignment(true) == null ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED;
+                        AssignmentValueWrapper assignmentValueWrapper = WebPrismUtil.createNewValueWrapper(parent.getObject(),
+                                assignmentType.asPrismContainerValue(), status, getPageBase());
+                        assignmentValueWrapper.setDirectAssignment(construction.isDirectlyAssigned());
+                        assignmentValueWrapper.setAssignmentParent(construction.getAssignmentPath());
+                        assignmentValueWrapperSet.add(assignmentValueWrapper);
+                    }
+                }
+            }
+
+            return new ArrayList<>(assignmentValueWrapperSet);
 
     }
 

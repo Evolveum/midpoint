@@ -25,7 +25,6 @@ import javax.xml.namespace.QName;
 
 /**
  * @author skublik
- *
  */
 public class AssignmentValueWrapperImpl extends PrismContainerValueWrapperImpl<AssignmentType> implements AssignmentValueWrapper, Comparable<AssignmentValueWrapper> {
 

@@ -16,7 +16,9 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -49,6 +51,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
 
     private final Class<S> schemaType;
     private final Class<Q> queryType;
+    private final ItemDefinition<?> itemDefinition;
 
     private final Map<QName, ItemSqlMapper<Q, R>> itemMappings = new LinkedHashMap<>();
     private final Map<QName, ItemRelationResolver<Q, R, ?, ?>> itemRelationResolvers = new HashMap<>();
@@ -58,6 +61,8 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
             @NotNull Class<Q> queryType) {
         this.schemaType = schemaType;
         this.queryType = queryType;
+        this.itemDefinition = PrismContext.get().getSchemaRegistry()
+                .findItemDefinitionByCompileTimeClass(schemaType, ItemDefinition.class);
     }
 
     /** Returns schema type as class - refers to midPoint schema, not DB schema. */
@@ -178,5 +183,9 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     /** Returns copy of the map of the item mappings. */
     public final @NotNull Map<QName, ItemSqlMapper<Q, R>> getItemMappings() {
         return new LinkedHashMap<>(itemMappings);
+    }
+
+    public Object itemDefinition() {
+        return itemDefinition;
     }
 }

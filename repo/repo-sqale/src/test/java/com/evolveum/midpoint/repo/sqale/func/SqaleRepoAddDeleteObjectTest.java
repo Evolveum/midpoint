@@ -1484,7 +1484,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(7L))
                         .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L))
                         .lockoutStatus(LockoutStatusType.NORMAL))
-                // this is the only additional persisted field for GenericObject
+                // this is the only additionally persisted field for GenericObject
                 .objectType("some-custom-object-type-uri");
 
         when("adding it to the repository");

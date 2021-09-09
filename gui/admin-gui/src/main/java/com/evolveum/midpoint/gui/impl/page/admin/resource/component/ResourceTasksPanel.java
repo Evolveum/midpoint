@@ -126,13 +126,6 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Ob
                     }
 
                     @Override
-                    public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
-                        getPageBase().navigateToNext(PageTask.class, parameters);
-                    }
-
-                    @Override
                     protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
                         if (collectionView == null) {
                             collectionView = getObjectCollectionView();

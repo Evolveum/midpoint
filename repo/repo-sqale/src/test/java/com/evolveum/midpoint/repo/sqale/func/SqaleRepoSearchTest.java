@@ -8,9 +8,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
@@ -30,13 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -59,6 +51,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -66,8 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
-
-    private final static String NONEXISTENT_OID = UUID.randomUUID().toString();
 
     // org structure
     private String org1Oid; // one root
@@ -283,6 +274,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         user4Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-4")
+                        .givenName("John")
+                        .fullName("John")
                         .costCenter("51")
                         .parentOrgRef(org111Oid, OrgType.COMPLEX_TYPE)
                         .subtype("workerB")
@@ -424,10 +417,24 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
      * * String value is normalized as configured for norm matching (as demonstrated in this test).
      */
     @Test
-    public void test110SearchUserByNameNormalized() throws Exception {
+    public void test111SearchUserByNameNormalized() throws Exception {
         searchUsersTest("with normalized name matching provided value",
                 f -> f.item(UserType.F_NAME).eq("UseR--2").matchingNorm(),
                 user2Oid);
+    }
+
+    /**
+     * Multi-value EQ filter (multiple values on the right-hand side) works like `IN`,
+     * that is if any of the values matches, the object matches and is returned.
+     */
+    @Test
+    public void test115SearchUserByAnyOfName() throws Exception {
+        searchUsersTest("with name matching any of provided values (multi-value EQ filter)",
+                f -> f.item(UserType.F_NAME).eq(
+                        PolyString.fromOrig("user-1"),
+                        PolyString.fromOrig("user-2"),
+                        PolyString.fromOrig("user-wrong")), // bad value is of no consequence
+                user1Oid, user2Oid);
     }
 
     @Test
@@ -640,7 +647,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test182SearchCaseWorkItemByAssignee() throws Exception {
         searchCaseWorkItemByAssignee(user1Oid, case1Oid);
         searchCaseWorkItemByAssignee(user2Oid, case1Oid);
-        searchCaseWorkItemByAssignee(NONEXISTENT_OID);
+        searchCaseWorkItemByAssignee(TestUtil.NON_EXISTENT_OID);
     }
 
     private void searchCaseWorkItemByAssignee(String assigneeOid, String... expectedCaseOids) throws Exception {
@@ -930,6 +937,24 @@ AND(
       EQUAL: output/outcome, )))
 , null paging}
 */
+
+    @Test
+    public void test350ExistsWithEmbeddedContainer() {
+        // TODO this does not work currently, because implementation creates query sub-contexts
+        //  only for table mapping, not embedded ones. It needs multiple changes and perhaps
+        //  multi-type hierarchy like update context uses. Possible approach:
+        //  a) like in update, having simpler common context type that can support non-table mappings;
+        //  b) support non-table mappings with current types, but that is less clean and probably more problematic.
+        assertThatThrownBy(() ->
+                searchUsersTest("matching the exists filter for metadata (embedded mapping)",
+                        f -> f.exists(UserType.F_METADATA)
+                                .item(MetadataType.F_CREATOR_REF).isNull(),
+                        user1Oid))
+                // At least we say it clearly with the exception instead of confusing "mapper not found" deeper.
+                .isInstanceOf(SystemException.class)
+                .hasMessage("Repository supports exists only for multi-value containers (for now)");
+    }
+
     // endregion
 
     // region refs and dereferencing
@@ -1716,6 +1741,22 @@ AND(
     }
     // endregion
 
+    @Test
+    public void test800SearchUsersWithSimplePath() throws SchemaException {
+        searchUsersTest("fullName does not equals fname",
+                f -> f.item(UserType.F_FULL_NAME).eq().item(UserType.F_GIVEN_NAME),
+                user4Oid);
+    }
+
+    @Test(expectedExceptions = SystemException.class)
+    public void test820SearchUsersWithReferencedPath() throws SchemaException {
+        searchUsersTest("fullName does not equals fname",
+                f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                        .eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                user1Oid, user2Oid, user3Oid, user4Oid);
+        // Should fail because right-hand side nesting into multivalue container is not supported
+    }
+
     // region special cases
     @Test
     public void test900SearchByWholeContainerIsNotPossible() {
@@ -1967,12 +2008,14 @@ AND(
         ObjectQuery query = PrismContext.get().queryFor(FocusType.class).all().build();
         SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options.iterator().next());
         assertNotNull(result);
+        //noinspection rawtypes
         Visitor check = visitable -> {
             if (visitable instanceof PrismReferenceValue) {
                 assertNotNull(((PrismReferenceValue) visitable).getTargetName(), "TargetName should be set.");
             }
         };
-        for(FocusType obj : result) {
+        for (FocusType obj : result) {
+            //noinspection unchecked
             obj.asPrismObject().accept(check);
         }
     }

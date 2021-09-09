@@ -65,7 +65,7 @@ public class TestUtil {
      * Obviously, don't create objects with this OID.
      * This is not random so it can be used also in XMLs, e.g. for refs to nonexistent objects.
      */
-    public static final String NON_EXISTENT_OID = "8dbaca35-6b64-4d1b-a476-6572726f7221";
+    public static final String NON_EXISTENT_OID = "4e4f4e5f-4558-4953-5445-4e545f4f4944";
 
     public static boolean checkResults = true;
 

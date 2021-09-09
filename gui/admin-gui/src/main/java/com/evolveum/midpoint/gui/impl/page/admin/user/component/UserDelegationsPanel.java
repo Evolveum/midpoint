@@ -44,7 +44,7 @@ import java.util.List;
  * Created by honchar
  */
 @PanelType(name = "userDelegations")
-@PanelInstance(identifier = "userDelegations", status = ItemStatus.NOT_CHANGED, applicableFor = UserType.class,
+@PanelInstance(identifier = "userDelegations", applicableFor = UserType.class,
         display = @PanelDisplay(label = "FocusType.delegations", order = 70))
 @Counter(provider = UserDelegationsCounter.class)
 public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {

@@ -42,7 +42,7 @@ import java.util.List;
  * Created by honchar
  */
 @PanelType(name = "childCases")
-@PanelInstance(identifier = "childCases", applicableFor = CaseType.class,
+@PanelInstance(identifier = "childCases",
         display = @PanelDisplay(label = "PageCase.childCasesTab"))
 @Counter(provider = ChildrenCasesCounter.class)
 public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
@@ -59,13 +59,6 @@ public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, Assignmen
 
         MainObjectListPanel<CaseType> table = new MainObjectListPanel<CaseType>(ID_CHILD_CASES_PANEL,
                 CaseType.class, Collections.emptyList()) {
-
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
-                PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
-                ChildCasesPanel.this.getPageBase().navigateToNext(PageCase.class, pageParameters);
-            }
 
             @Override
             protected List<IColumn<SelectableBean<CaseType>, String>> createDefaultColumns() {

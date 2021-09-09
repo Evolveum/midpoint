@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -575,4 +576,15 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
     }
+
+    @Override
+    protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
+        if (WebComponentUtil.hasDetailsPage(object.getClass())) {
+            WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
+        } else {
+            error("Could not find proper response page");
+            throw new RestartResponseException(getPageBase());
+        }
+    }
+
 }

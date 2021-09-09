@@ -667,7 +667,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                         continue;
                     }
                     if (target.appliesToFocusWithAnyRelation(getRelationRegistry())) {
-                        AssignmentType assignmentType = target.getAssignment();
+                        AssignmentType assignmentType = target.getAssignment().clone();
                         assignmentType.setDescription(target.getTarget().asObjectable().getDescription());
                         assignmentType.getTargetRef().setTargetName(new PolyStringType(target.getTarget().getName()));
                         assignmentType.getTargetRef().setType(target.getTarget().getComplexTypeDefinition().getTypeName());

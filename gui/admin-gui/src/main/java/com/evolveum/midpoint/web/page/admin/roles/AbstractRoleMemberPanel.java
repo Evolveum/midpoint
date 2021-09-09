@@ -156,11 +156,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, AH object) {
-                detailsPerformed(object);
-            }
-
-            @Override
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<AH>> rowModel) {
                 if (rowModel == null || rowModel.getObject() == null
                         || rowModel.getObject().getValue() == null) {
@@ -992,15 +987,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return getPrismContext().queryFor(FocusType.class)
                 .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), relations))
                 .build();
-    }
-
-    protected void detailsPerformed(ObjectType object) {
-        if (WebComponentUtil.hasDetailsPage(object.getClass())) {
-            WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
-        } else {
-            error("Could not find proper response page");
-            throw new RestartResponseException(getPageBase());
-        }
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
