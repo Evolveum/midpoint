@@ -114,4 +114,59 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
         }
         return query;
     }
+
+    @NotNull
+    protected IModel<AssignmentPopupDto> createAssignmentPopupModel() {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected AssignmentPopupDto load() {
+                List<AssignmentObjectRelation> assignmentObjectRelations = getAssignmentObjectRelationList();
+                return new AssignmentPopupDto(assignmentObjectRelations);
+            }
+        };
+    }
+
+    private List<AssignmentObjectRelation> getAssignmentObjectRelationList() {
+        if (AbstractAssignmentPanel.this.getContainerModel().getObject() == null) {
+            return null;
+        }
+
+        List<AssignmentObjectRelation> assignmentRelationsList =
+                WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+        if (assignmentRelationsList == null || assignmentRelationsList.isEmpty()) {
+            return assignmentRelationsList;
+        }
+        QName assignmentType = getAssignmentType();
+        if (assignmentType == null) {
+            return assignmentRelationsList;
+        }
+        List<AssignmentObjectRelation> assignmentRelationsListFilteredByType =
+                new ArrayList<>();
+        assignmentRelationsList.forEach(assignmentRelation -> {
+            QName objectType = assignmentRelation.getObjectTypes() != null
+                    && !assignmentRelation.getObjectTypes().isEmpty()
+                    ? assignmentRelation.getObjectTypes().get(0) : null;
+            if (QNameUtil.match(assignmentType, objectType)) {
+                assignmentRelationsListFilteredByType.add(assignmentRelation);
+            }
+        });
+        return assignmentRelationsListFilteredByType;
+    }
+
+    @NotNull
+    private <AH extends AssignmentHolderType> List<AssignmentObjectRelation> loadAssignmentTargetRelationsList() {
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS);
+        List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();
+        PrismObject<AH> obj = getFocusObject();
+        try {
+            AssignmentCandidatesSpecification spec = getPageBase().getModelInteractionService()
+                    .determineAssignmentTargetSpecification(obj, result);
+            assignmentTargetRelations = spec != null ? spec.getAssignmentObjectRelations() : new ArrayList<>();
+        } catch (SchemaException | ConfigurationException ex) {
+            result.recordPartialError(ex.getLocalizedMessage());
+            LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+        }
+        return assignmentTargetRelations;
+    }
 }
