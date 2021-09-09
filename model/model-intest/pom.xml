@@ -364,9 +364,6 @@
     <profiles>
         <profile>
             <id>dbtest</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -425,17 +422,11 @@
         </profile>
         <profile>
             <id>sqale</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
-                            <systemPropertyVariables>
-                                <test.config.file>test-config-new-repo.xml</test.config.file>
-                            </systemPropertyVariables>
                             <suiteXmlFiles>
                                 <suiteXmlFile>testng-integration-sqale.xml</suiteXmlFile>
                             </suiteXmlFiles>
