@@ -667,23 +667,11 @@ public class ExpressionUtil {
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
                         shortDesc, nonEmptyResults);
 
-                ObjectFilter evaluatedFilter;
-
-                if (nonEmptyResults.size() == 1) {
-                    ValueFilter evaluatedValueFilter = valueFilter.clone();
-                    evaluatedValueFilter.setValue(nonEmptyResults.iterator().next());
-                    evaluatedValueFilter.setExpression(null);
-                    evaluatedFilter = evaluatedValueFilter;
-                } else {
-                    evaluatedFilter = prismContext.queryFactory().createOr(
-                            nonEmptyResults.stream().map(expressionResult -> {
-                                ValueFilter evaluatedValueFilter = valueFilter.clone();
-                                evaluatedValueFilter.setValue(expressionResult);
-                                evaluatedValueFilter.setExpression(null);
-                                return evaluatedValueFilter;
-                            }).collect(Collectors.toList())
-                    );
-                }
+                ValueFilter evaluatedFilter = valueFilter.clone();
+                nonEmptyResults.forEach(expressionResult -> expressionResult.setParent(evaluatedFilter));
+                evaluatedFilter.setValue(null); //set fakeValue because of creating empty list
+                evaluatedFilter.getValues().addAll(nonEmptyResults);
+                evaluatedFilter.setExpression(null);
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Transformed filter to:\n{}", evaluatedFilter.debugDump());
