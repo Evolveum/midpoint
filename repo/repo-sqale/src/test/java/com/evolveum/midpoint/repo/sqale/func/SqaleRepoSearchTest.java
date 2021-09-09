@@ -274,6 +274,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         user4Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-4")
+                        .givenName("John")
+                        .fullName("John")
                         .costCenter("51")
                         .parentOrgRef(org111Oid, OrgType.COMPLEX_TYPE)
                         .subtype("workerB")
@@ -921,6 +923,24 @@ AND(
       EQUAL: output/outcome, )))
 , null paging}
 */
+
+    @Test
+    public void test350ExistsWithEmbeddedContainer() {
+        // TODO this does not work currently, because implementation creates query sub-contexts
+        //  only for table mapping, not embedded ones. It needs multiple changes and perhaps
+        //  multi-type hierarchy like update context uses. Possible approach:
+        //  a) like in update, having simpler common context type that can support non-table mappings;
+        //  b) support non-table mappings with current types, but that is less clean and probably more problematic.
+        assertThatThrownBy(() ->
+                searchUsersTest("matching the exists filter for metadata (embedded mapping)",
+                        f -> f.exists(UserType.F_METADATA)
+                                .item(MetadataType.F_CREATOR_REF).isNull(),
+                        user1Oid))
+                // At least we say it clearly with the exception instead of confusing "mapper not found" deeper.
+                .isInstanceOf(SystemException.class)
+                .hasMessage("Repository supports exists only for multi-value containers (for now)");
+    }
+
     // endregion
 
     // region refs and dereferencing
@@ -1706,6 +1726,21 @@ AND(
         */
     }
     // endregion
+
+    @Test
+    public void test800SearchUsersWithSimplePath() throws SchemaException {
+        searchUsersTest("fullName does not equals fname",
+                f -> f.item(UserType.F_FULL_NAME).eq().item(UserType.F_GIVEN_NAME),
+                user4Oid);
+    }
+
+    @Test(expectedExceptions = SystemException.class)
+    public void test820SearchUsersWithReferencedPath() throws SchemaException {
+        searchUsersTest("fullName does not equals fname",
+                f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                user1Oid, user2Oid, user3Oid, user4Oid);
+        // Should fail because right hand side nesting into multivalue container is not supported
+    }
 
     // region special cases
     @Test

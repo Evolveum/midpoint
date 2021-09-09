@@ -35,6 +35,11 @@ public @interface PageDescriptor {
      */
     boolean loginPage() default false;
 
+    /**
+     * If set to true, page is available only if the experimental features are turned on.
+     * Also, the link in the sidebar panel (on the left) is visible for experimental pages only
+     * if the experimental featires are on.
+     */
     boolean experimental() default false;
 
 }

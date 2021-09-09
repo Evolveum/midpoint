@@ -255,5 +255,19 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <!-- New repo testing - skip all tests from this module -->
+            <id>sqale</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <!--
+                Skips test execution but still compiles them.
+                Without this dependency plugin complains.
+                -->
+                <maven.test.skip.exec>true</maven.test.skip.exec>
+            </properties>
+        </profile>
     </profiles>
 </project>

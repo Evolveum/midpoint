@@ -41,7 +41,7 @@ import java.util.List;
  * @author shood
  */
 @PanelType(name = "delegatedToMe")
-@PanelInstance(identifier = "delegatedToMe", status = ItemStatus.NOT_CHANGED, applicableFor = UserType.class,
+@PanelInstance(identifier = "delegatedToMe", applicableFor = UserType.class,
         display = @PanelDisplay(label = "FocusType.delegatedToMe", order = 80))
 @Counter(provider = DelegatedToMeCounter.class)
 public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {

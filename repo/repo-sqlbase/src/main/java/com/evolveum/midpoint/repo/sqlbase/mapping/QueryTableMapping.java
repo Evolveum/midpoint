@@ -22,11 +22,9 @@ import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
@@ -36,7 +34,6 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -68,7 +65,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     private final String tableName;
     private final String defaultAliasName;
     private final SqlRepoContext repositoryContext;
-    private final ItemDefinition<?> itemDefinition;
 
     /**
      * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
@@ -99,8 +95,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
         this.repositoryContext = repositoryContext;
-        this.itemDefinition = repositoryContext.prismContext().getSchemaRegistry()
-                .findItemDefinitionByCompileTimeClass(schemaType, ItemDefinition.class);
     }
 
     /**
@@ -255,21 +249,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Returns {@link SqlDetailFetchMapper} registered for the specified {@link ItemName}.
-     * TODO remove in 2022 if not used
-     */
-    public final SqlDetailFetchMapper<R, ?, ?, ?> detailFetchMapper(ItemName itemName)
-            throws QueryException {
-        SqlDetailFetchMapper<R, ?, ?, ?> mapper =
-                QNameUtil.getByQName(detailFetchMappers, itemName);
-        if (mapper == null) {
-            throw new QueryException("Missing detail fetch mapping for " + itemName
-                    + " in mapping " + getClass().getSimpleName());
-        }
-        return mapper;
-    }
-
-    /**
      * Registers extension columns. At this moment all are treated as strings.
      */
     public synchronized void addExtensionColumn(
@@ -284,8 +263,8 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * By default uses {@link #selectExpressionsWithCustomColumns} and does not use options.
-     * Can be overridden to fulfil other needs, e.g. to select just full object..
+     * By default, uses {@link #selectExpressionsWithCustomColumns} and does not use options.
+     * Can be overridden to fulfil other needs, e.g. to select just full object.
      */
     public @NotNull Path<?>[] selectExpressions(
             Q entity,
@@ -349,10 +328,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     public void processResult(List<Tuple> data, Q entityPath, JdbcSession jdbcSession,
             Collection<SelectorOptions<GetOperationOptions>> options) {
         // nothing by default
-    }
-
-    public Object itemDefinition() {
-        return itemDefinition;
     }
 
     @Override

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.audit;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
 
 import java.io.ByteArrayInputStream;
@@ -21,18 +23,20 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqale.*;
@@ -46,6 +50,7 @@ import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -472,7 +477,14 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 .build();
 
         try {
-            return executeSearchObjects(query, options);
+            logSearchInputParameters(AuditEventRecordType.class, query, "Search audit");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return new SearchResultList<>();
+            }
+
+            return executeSearchObjects(query, options, OP_SEARCH_OBJECTS);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -485,9 +497,11 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
     private SearchResultList<AuditEventRecordType> executeSearchObjects(
             @Nullable ObjectQuery query,
-            @Nullable Collection<SelectorOptions<GetOperationOptions>> options)
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            String operationKind)
             throws RepositoryException, SchemaException {
-        long opHandle = registerOperationStart(OP_SEARCH_OBJECTS);
+
+        long opHandle = registerOperationStart(operationKind);
         try {
             return sqlQueryExecutor.list(
                     SqaleQueryContext.from(AuditEventRecordType.class, sqlRepoContext),
@@ -495,6 +509,242 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } finally {
             registerOperationFinish(opHandle, 1);
         }
+    }
+
+    @Override
+    public SearchResultMetadata searchObjectsIterative(
+            @Nullable ObjectQuery query,
+            @NotNull AuditResultHandler handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        Validate.notNull(handler, "Result handler must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_OBJECTS_ITERATIVE)
+                .addParam("type", AuditEventRecordType.class.getName())
+                .addParam("query", query)
+                .build();
+
+        try {
+            logSearchInputParameters(AuditEventRecordType.class, query, "Iterative search audit");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return new SearchResultMetadata().approxNumberOfAllResults(0);
+            }
+
+            return executeSearchObjectsIterative(query, handler, options, operationResult);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private SearchResultMetadata executeSearchObjectsIterative(
+            ObjectQuery originalQuery,
+            AuditResultHandler handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult operationResult) throws SchemaException, RepositoryException {
+
+        try {
+            ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
+            // this is total requested size of the search
+            Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
+
+            IterativeSearchOrdering ordering = new IterativeSearchOrdering(originalPaging);
+
+            ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
+            ObjectPaging paging = prismContext().queryFactory().createPaging();
+            if (originalPaging != null && originalPaging.getOrderingInstructions() != null) {
+                originalPaging.getOrderingInstructions().forEach(o ->
+                        paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
+            }
+            paging.addOrderingInstruction(AuditEventRecordType.F_REPO_ID, OrderDirection.ASCENDING);
+            pagedQuery.setPaging(paging);
+
+            int pageSize = Math.min(
+                    repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
+                    defaultIfNull(maxSize, Integer.MAX_VALUE));
+            pagedQuery.getPaging().setMaxSize(pageSize);
+
+            AuditEventRecordType lastProcessedObject = null;
+            int handledObjectsTotal = 0;
+
+            while (true) {
+                if (maxSize != null && maxSize - handledObjectsTotal < pageSize) {
+                    // relevant only for the last page
+                    pagedQuery.getPaging().setMaxSize(maxSize - handledObjectsTotal);
+                }
+
+                // filterAnd() is quite null safe, even for both nulls
+                pagedQuery.setFilter(ObjectQueryUtil.filterAnd(
+                        originalQuery != null ? originalQuery.getFilter() : null,
+                        lastOidCondition(lastProcessedObject, ordering),
+                        prismContext()));
+
+                // we don't call public searchObject to avoid subresults and query simplification
+                logSearchInputParameters(AuditEventRecordType.class, pagedQuery, "Search audit iterative page");
+                List<AuditEventRecordType> resultPage = executeSearchObjects(
+                        pagedQuery, options, OP_SEARCH_OBJECTS_ITERATIVE_PAGE);
+
+                // process page results
+                for (AuditEventRecordType auditEvent : resultPage) {
+                    lastProcessedObject = auditEvent;
+                    if (!handler.handle(auditEvent, operationResult)) {
+                        return new SearchResultMetadata()
+                                .approxNumberOfAllResults(handledObjectsTotal + 1)
+                                .pagingCookie(lastProcessedObject.getRepoId().toString())
+                                .partialResults(true);
+                    }
+                    handledObjectsTotal += 1;
+
+                    if (maxSize != null && handledObjectsTotal >= maxSize) {
+                        return new SearchResultMetadata()
+                                .approxNumberOfAllResults(handledObjectsTotal)
+                                .pagingCookie(lastProcessedObject.getRepoId().toString());
+                    }
+                }
+
+                if (resultPage.isEmpty() || resultPage.size() < pageSize) {
+                    return new SearchResultMetadata()
+                            .approxNumberOfAllResults(handledObjectsTotal)
+                            .pagingCookie(lastProcessedObject != null
+                                    ? lastProcessedObject.getRepoId().toString() : null);
+                }
+            }
+        } finally {
+            // This just counts the operation and adds zero/minimal time not to confuse user
+            // with what could be possibly very long duration.
+            registerOperationFinish(registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE), 1);
+        }
+    }
+
+    private void checkProvidedOrdering(List<? extends ObjectOrdering> providedOrdering) throws RepositoryException {
+        if (providedOrdering != null && providedOrdering.size() > 1) {
+            throw new RepositoryException("searchObjectsIterative() does not support ordering"
+                    + " by multiple paths (yet): " + providedOrdering);
+        }
+    }
+
+    private class IterativeSearchOrdering {
+
+        private final List<? extends ObjectOrdering> providedOrdering;
+
+        private IterativeSearchOrdering(ObjectPaging originalPaging) throws RepositoryException {
+            providedOrdering = originalPaging != null
+                    ? originalPaging.getOrderingInstructions()
+                    : null;
+
+//            if (providedOrdering != null) {
+//                 TODO
+//                if (providedOrdering.stream().anyMatch(o -> QNameUtil.equals()o.getOrderBy()))
+//                checkProvidedOrdering(providedOrdering);
+//            }
+        }
+    }
+
+    /**
+     * Without requested ordering, this is easy: `WHERE id > lastId AND timestamp > lastTimestamp`.
+     * Timestamp is used to help with partition pruning and is part of the PK anyway.
+     *
+     * But with outside ordering we need to respect it and for ordering by X, Y, Z use:
+     *
+     * ----
+     * -- the first part of WHERE with original conditions is taken care of outside of this method
+     * ... WHERE original conditions AND (
+     * X > last.X
+     * OR (X = last.X AND Y > last.Y)
+     * OR (X = last.X AND Y = last.Y AND Z > last.Z)
+     * OR (X = last.X AND Y = last.Y ...if all equal
+     * AND id > lastId AND timestamp > lastTimestamp) -- only here is ID + timestamp
+     * ----
+     *
+     * This can be further complicated by the fact that both ID (F_REPO_ID) and timestamp
+     * (F_TIMESTAMP) can be part of custom ordering, in which case it must be omitted
+     * from the internally added conditions and ordering.
+     *
+     * This is suddenly much more fun, isn't it?
+     * Of course the condition `>` or `<` depends on `ASC` vs `DESC`.
+     *
+     * TODO: Currently, single path ordering is supported. Finish multi-path too.
+     * TODO: What about nullable columns?
+     */
+    @Nullable
+    private <T extends ObjectType> ObjectFilter lastOidCondition(
+            AuditEventRecordType lastProcessedObject, IterativeSearchOrdering providedOrdering) {
+        /*
+        if (lastProcessedObject == null) {
+            return null;
+        }
+
+        String lastProcessedOid = lastProcessedObject.getOid();
+        if (providedOrdering == null || providedOrdering.isEmpty()) {
+            return prismContext()
+                    .queryFor(lastProcessedObject.getCompileTimeClass())
+                    .item(OID_PATH).gt(lastProcessedOid).buildFilter();
+        }
+
+        if (providedOrdering.size() == 1) {
+            ObjectOrdering objectOrdering = providedOrdering.get(0);
+            ItemPath orderByPath = objectOrdering.getOrderBy();
+            boolean asc = objectOrdering.getDirection() == OrderDirection.ASCENDING;
+            S_ConditionEntry filter = prismContext()
+                    .queryFor(lastProcessedObject.getCompileTimeClass())
+                    .item(orderByPath);
+            //noinspection rawtypes
+            Item<PrismValue, ItemDefinition> item = lastProcessedObject.findItem(orderByPath);
+            if (item.size() > 1) {
+                throw new IllegalArgumentException(
+                        "Multi-value property for ordering is forbidden - item: " + item);
+            } else if (item.isEmpty()) {
+                // TODO what if it's nullable? is it null-first or last?
+                // See: https://www.postgresql.org/docs/13/queries-order.html
+                // "By default, null values sort as if larger than any non-null value; that is,
+                // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
+            } else {
+                S_MatchingRuleEntry matchingRuleEntry =
+                        asc ? filter.gt(item.getRealValue()) : filter.lt(item.getRealValue());
+                filter = matchingRuleEntry.or()
+                        .block()
+                        .item(orderByPath).eq(item.getRealValue())
+                        .and()
+                        .item(OID_PATH);
+                return (asc ? filter.gt(lastProcessedOid) : filter.lt(lastProcessedOid))
+                        .endBlock()
+                        .buildFilter();
+            }
+        }
+        */
+
+        throw new IllegalArgumentException(
+                "Shouldn't get here with check in executeSearchObjectsIterative()");
+        /*
+        TODO: Unfinished - this is painful with fluent API. Should I call
+         prismContext().queryFor(lastProcessedObject.getCompileTimeClass()) for each component
+         and then use ObjectQueryUtil.filterAnd/Or?
+        // we need to handle the complicated case with externally provided ordering
+        S_FilterEntryOrEmpty orBlock = prismContext()
+                .queryFor(lastProcessedObject.getCompileTimeClass()).block();
+        orLoop:
+        for (ObjectOrdering orMasterOrdering : providedOrdering) {
+            Iterator<? extends ObjectOrdering> iterator = providedOrdering.iterator();
+            while (iterator.hasNext()) {
+                S_FilterEntryOrEmpty andBlock = orBlock.block();
+                ObjectOrdering ordering = iterator.next();
+                if (ordering.equals(orMasterOrdering)) {
+                    // ...
+                    continue orLoop;
+                }
+                orBlock = andBlock.endBlock();
+            }
+
+        }
+        return orBlock.endBlock().buildFilter();
+       */
     }
 
     protected long registerOperationStart(String kind) {

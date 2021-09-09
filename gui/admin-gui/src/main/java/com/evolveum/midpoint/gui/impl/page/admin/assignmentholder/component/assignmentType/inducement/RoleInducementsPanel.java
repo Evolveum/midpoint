@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 
 @PanelType(name = "roleInducements")
@@ -40,6 +41,11 @@ public class RoleInducementsPanel<AR extends AbstractRoleType> extends AbstractI
         columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getContainerModel(), AssignmentType.F_TENANT_REF, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
         columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getContainerModel(), AssignmentType.F_ORG_REF, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
         return columns;
+    }
+
+    @Override
+    protected QName getAssignmentType() {
+        return RoleType.COMPLEX_TYPE;
     }
 
 }

@@ -7,9 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement;
 
 import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
@@ -23,7 +25,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AbstractInducementPanel<AR extends AbstractRoleType> extends AbstractAssignmentTypePanel {
@@ -34,11 +39,22 @@ public class AbstractInducementPanel<AR extends AbstractRoleType> extends Abstra
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        return null;
+        return new ArrayList<>();
+    }
+
+    @NotNull
+    protected IModel<AssignmentPopupDto> createAssignmentPopupModel() {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected AssignmentPopupDto load() {
+                return new AssignmentPopupDto(null);
+            }
+        };
     }
 
     @Override
-    protected IModel<AssignmentPopupDto> createAssignmentPopupModel() {
+    protected QName getAssignmentType() {
         return null;
     }
 

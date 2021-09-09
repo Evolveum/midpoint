@@ -273,4 +273,8 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
     protected boolean isReadonly() {
         return false;
     }
+
+    public ItemStatus getObjectStatus() {
+        return objectWrapperModel.getObject().getStatus();
+    }
 }

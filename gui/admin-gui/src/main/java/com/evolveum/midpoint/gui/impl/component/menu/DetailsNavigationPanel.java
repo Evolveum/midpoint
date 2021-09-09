@@ -8,8 +8,10 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -152,9 +154,8 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     }
 
     private void addCount(AjaxLink<Void> link, ListItem<ContainerPanelConfigurationType> item) {
-        IModel<String> countModel = createCountModel(item.getModel());
-        Label label = new Label(ID_COUNT, countModel);
-        label.add(new VisibleBehaviour(() -> countModel.getObject() != null));
+        Label label = new Label(ID_COUNT, createCountModel(item.getModel()));
+        label.add(new VisibleBehaviour(() -> getCounterProvider(item.getModel()) != null));
         link.add(label);
     }
 
@@ -189,17 +190,24 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private IModel<String> createCountModel(IModel<ContainerPanelConfigurationType> panelModel) {
         return new ReadOnlyModel<>( () -> {
-            ContainerPanelConfigurationType config = panelModel.getObject();
-            String panelInstanceIdentifier = config.getIdentifier();
-
-            SimpleCounter<ObjectDetailsModels<O>, O> counter = getPageBase().getCounterProvider(panelInstanceIdentifier);
-            if (counter == null || counter.getClass().equals(SimpleCounter.class)) {
+            SimpleCounter<ObjectDetailsModels<O>, O> counter = getCounterProvider(panelModel);
+            if (counter == null) {
                 return null;
             }
-
             int count = counter.count(objectDetailsModel, getPageBase());
             return String.valueOf(count);
         });
+    }
+
+    private SimpleCounter<ObjectDetailsModels<O>, O> getCounterProvider(IModel<ContainerPanelConfigurationType> panelModel) {
+        ContainerPanelConfigurationType config = panelModel.getObject();
+        String panelInstanceIdentifier = config.getIdentifier();
+
+        SimpleCounter<ObjectDetailsModels<O>, O> counter = getPageBase().getCounterProvider(panelInstanceIdentifier);
+        if (counter == null || counter.getClass().equals(SimpleCounter.class)) {
+            return null;
+        }
+        return counter;
     }
 
     private boolean isMenuItemVisible(ContainerPanelConfigurationType config) {
@@ -207,7 +215,15 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             return true;
         }
 
-        return WebComponentUtil.getElementVisibility(config.getVisibility());
+        return WebComponentUtil.getElementVisibility(config.getVisibility()) && isVisibleForAddApply(config);
+    }
+
+    private boolean isVisibleForAddApply(ContainerPanelConfigurationType config) {
+        ItemStatus status = objectDetailsModel.getObjectStatus();
+        if (status == ItemStatus.NOT_CHANGED) {
+            return true;
+        }
+        return ItemStatus.ADDED == status && BooleanUtils.isTrue(config.isVisibleForAdd());
     }
 
     protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {

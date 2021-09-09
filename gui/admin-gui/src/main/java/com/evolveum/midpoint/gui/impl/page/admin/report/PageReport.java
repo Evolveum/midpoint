@@ -65,8 +65,16 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
 
     private Boolean runReport = false;
 
+    public PageReport() {
+        super();
+    }
+
     public PageReport(PageParameters pageParameters) {
         super(pageParameters);
+    }
+
+    public PageReport(PrismObject<ReportType> report) {
+        super(report);
     }
 
     @Override

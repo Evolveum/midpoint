@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
@@ -728,5 +729,14 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } finally {
             operationResult.computeStatusIfUnknown();
         }
+    }
+
+    @Override
+    public SearchResultMetadata searchObjectsIterative(
+            @Nullable ObjectQuery query,
+            @NotNull AuditResultHandler handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        throw new UnsupportedOperationException("searchObjectsIterative not supported in old repository audit");
     }
 }

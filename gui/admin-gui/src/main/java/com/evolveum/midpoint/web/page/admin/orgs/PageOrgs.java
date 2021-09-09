@@ -84,10 +84,6 @@ public class PageOrgs extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<OrgType> table = new MainObjectListPanel<OrgType>(ID_TABLE, OrgType.class, getQueryOptions()) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, OrgType org) {
-                PageOrgs.this.orgDetailsPerformed(target, org.getOid());
-            }
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -133,12 +129,6 @@ public class PageOrgs extends PageAdmin {
         return getOperationOptionsBuilder()
                 .item(ObjectType.F_PARENT_ORG_REF).resolve()
                 .build();
-    }
-
-    private void orgDetailsPerformed(AjaxRequestTarget target, String oid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageOrg.class, parameters);
     }
 
     private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){

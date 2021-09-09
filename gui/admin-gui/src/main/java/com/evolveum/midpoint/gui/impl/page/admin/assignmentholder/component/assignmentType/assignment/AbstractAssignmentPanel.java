@@ -62,6 +62,60 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
         return null;
     }
 
+    @Override
+    protected String getAssignmentsTabStorageKey() {
+        return SessionStorage.KEY_ASSIGNMENTS_TAB;
+    }
+
+    @Override
+    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs) {
+        if (getAssignmentType() == null) {
+            SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+            SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+            SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
+            SearchFactory.addSearchRefDef(containerDef,
+                    ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
+                            PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+        }
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId() {
+        return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
+    }
+
+    @Override
+    protected ObjectQuery getCustomizeQuery() {
+        Collection<QName> delegationRelations = getPageBase().getRelationRegistry()
+                .getAllRelationsFor(RelationKindType.DELEGATION);
+
+        //do not show archetype assignments
+        ObjectReferenceType archetypeRef = new ObjectReferenceType();
+        archetypeRef.setType(ArchetypeType.COMPLEX_TYPE);
+        archetypeRef.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
+        RefFilter archetypeFilter = (RefFilter) getPageBase().getPrismContext().queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(archetypeRef.asReferenceValue())
+                .buildFilter();
+        archetypeFilter.setOidNullAsAny(true);
+
+        ObjectFilter relationFilter = getPageBase().getPrismContext().queryFor(AssignmentType.class)
+                .not()
+                .item(AssignmentType.F_TARGET_REF)
+                .refRelation(delegationRelations.toArray(new QName[0]))
+                .buildFilter();
+
+        ObjectQuery query = getPrismContext().queryFactory().createQuery(relationFilter);
+        query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
+
+        RefFilter targetRefFilter = getTargetTypeFilter();
+        if (targetRefFilter != null) {
+            query.addFilter(targetRefFilter);
+        }
+        return query;
+    }
+
+    @NotNull
     protected IModel<AssignmentPopupDto> createAssignmentPopupModel() {
         return new LoadableModel<>(false) {
 
@@ -100,11 +154,6 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
         return assignmentRelationsListFilteredByType;
     }
 
-    @Override
-    protected String getAssignmentsTabStorageKey() {
-        return SessionStorage.KEY_ASSIGNMENTS_TAB;
-    }
-
     @NotNull
     private <AH extends AssignmentHolderType> List<AssignmentObjectRelation> loadAssignmentTargetRelationsList() {
         OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS);
@@ -119,80 +168,5 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
             LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
         }
         return assignmentTargetRelations;
-    }
-
-    @Override
-    protected List<ObjectTypes> getObjectTypesList() {
-        QName assignmentType = getAssignmentType();
-        if (assignmentType == null) {
-            return Collections.EMPTY_LIST;
-        }
-        return Collections.singletonList(ObjectTypes.getObjectTypeFromTypeQName(assignmentType));
-    }
-
-    protected RefFilter getTargetTypeFilter() {
-        QName targetType = getAssignmentType();
-        RefFilter targetRefFilter = null;
-        if (targetType != null) {
-            ObjectReferenceType ort = new ObjectReferenceType();
-            ort.setType(targetType);
-            ort.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
-            targetRefFilter = (RefFilter) getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                    .item(AssignmentType.F_TARGET_REF)
-                    .ref(ort.asReferenceValue())
-                    .buildFilter();
-            targetRefFilter.setOidNullAsAny(true);
-        }
-        return targetRefFilter;
-    }
-
-    @Override
-    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs) {
-        if (getAssignmentType() == null) {
-            SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-            SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-            SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
-            SearchFactory.addSearchRefDef(containerDef,
-                    ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
-                            PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
-        }
-    }
-
-    protected abstract QName getAssignmentType();
-
-    @Override
-    protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
-    }
-
-    @Override
-    protected ObjectQuery getCustomizeQuery() {
-        Collection<QName> delegationRelations = getPageBase().getRelationRegistry()
-                .getAllRelationsFor(RelationKindType.DELEGATION);
-
-        //do not show archetype assignments
-        ObjectReferenceType archetypeRef = new ObjectReferenceType();
-        archetypeRef.setType(ArchetypeType.COMPLEX_TYPE);
-        archetypeRef.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
-        RefFilter archetypeFilter = (RefFilter) getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                .item(AssignmentType.F_TARGET_REF)
-                .ref(archetypeRef.asReferenceValue())
-                .buildFilter();
-        archetypeFilter.setOidNullAsAny(true);
-
-        ObjectFilter relationFilter = getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                .not()
-                .item(AssignmentType.F_TARGET_REF)
-                .refRelation(delegationRelations.toArray(new QName[0]))
-                .buildFilter();
-
-        ObjectQuery query = getPrismContext().queryFactory().createQuery(relationFilter);
-        query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
-
-        RefFilter targetRefFilter = getTargetTypeFilter();
-        if (targetRefFilter != null) {
-            query.addFilter(targetRefFilter);
-        }
-        return query;
     }
 }

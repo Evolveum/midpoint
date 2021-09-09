@@ -13,10 +13,12 @@ import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -68,6 +70,10 @@ public class ExistsFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
         ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
         //noinspection unchecked
         SqaleQueryContext<?, TQ, TR> subcontext = (SqaleQueryContext<?, TQ, TR>) resolution.context;
+        if (!(resolution.mapping instanceof QueryTableMapping)) {
+            throw new QueryException("Repository supports exists only for multi-value containers (for now)");
+        }
+
         ExistsFilterProcessor<TQ, TR> nestedProcessor =
                 new ExistsFilterProcessor<>(subcontext, resolution.mapping);
         Predicate predicate = nestedProcessor.process(path.rest(), filter);

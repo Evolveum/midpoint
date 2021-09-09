@@ -189,6 +189,9 @@ public class GuiProfileCompiler {
         if (adminGuiConfiguration.isEnableExperimentalFeatures() != null) {
             composite.setEnableExperimentalFeatures(adminGuiConfiguration.isEnableExperimentalFeatures());
         }
+        if (adminGuiConfiguration.isUseNewDesign() != null) {
+            composite.setUseNewDesign(adminGuiConfiguration.isUseNewDesign());
+        }
         if (adminGuiConfiguration.getDefaultExportSettings() != null) {
             composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
         }

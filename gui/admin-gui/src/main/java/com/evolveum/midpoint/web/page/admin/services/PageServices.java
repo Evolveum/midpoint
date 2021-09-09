@@ -89,10 +89,6 @@ public class PageServices extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<ServiceType> table = new MainObjectListPanel<ServiceType>(ID_TABLE, ServiceType.class) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
-                serviceDetailsPerformed(target, service);
-            }
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -115,11 +111,6 @@ public class PageServices extends PageAdmin {
                 return listInlineMenuHelper.createRowActions(getType());
             }
 
-//            @Override
-//            protected List<IColumn<SelectableBean<ServiceType>, String>> createDefaultColumns() {
-//                return ColumnUtils.getDefaultServiceColumns();
-//            }
-
             @Override
             protected List<ItemPath> getFixedSearchItems() {
                 List<ItemPath> fixedSearchItems = new ArrayList<>();
@@ -131,12 +122,6 @@ public class PageServices extends PageAdmin {
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
-    }
-
-    protected void serviceDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, service.getOid());
-        navigateToNext(PageService.class, parameters);
     }
 
      private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){

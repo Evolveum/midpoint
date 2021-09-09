@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.user;
 
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.prism.PrismObject;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -41,11 +41,16 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
     public PageUser() {
-        this(null);
+        super();
     }
 
     public PageUser(PageParameters params) {
         super(params);
+    }
+
+    public PageUser(PrismObject<UserType> user) {
+        super(user);
+
     }
 
     @Override
@@ -59,8 +64,8 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     @Override
-    protected UserDetailsModel createObjectDetailsModels() {
-        return new UserDetailsModel(createPrismObejctModel(), this);
+    protected UserDetailsModel createObjectDetailsModels(PrismObject<UserType> object) {
+        return new UserDetailsModel(createPrismObejctModel(object), this);
     }
 
 

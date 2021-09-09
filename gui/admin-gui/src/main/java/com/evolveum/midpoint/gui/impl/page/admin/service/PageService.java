@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.service;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -36,8 +37,16 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                 description = "PageService.auth.role.description") })
 public class PageService extends PageFocusDetails<ServiceType, FocusDetailsModels<ServiceType>> {
 
+    public PageService() {
+        super();
+    }
+
     public PageService(PageParameters pageParameters) {
         super(pageParameters);
+    }
+
+    public PageService(PrismObject<ServiceType> service) {
+        super(service);
     }
 
     @Override
