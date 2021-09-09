@@ -70,7 +70,7 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
 
         CompositedIcon icon = this.icon;
         if (icon.hasBasicIcon()) {
-            sb.append("<i class=\"").append(icon.getBasicIcon()).append("\"");
+            sb.append("<i class=\"").append(icon.getBasicIcon() != null ? icon.getBasicIcon().trim() : "").append("\"");
             if (icon.hasBasicIconHtmlColor()) {
                 sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
             }
