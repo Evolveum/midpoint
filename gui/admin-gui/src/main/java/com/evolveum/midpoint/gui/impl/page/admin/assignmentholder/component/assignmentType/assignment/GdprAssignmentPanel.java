@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PanelType(name = "gdprAssignments", experimental = true)
 @PanelInstance(identifier = "gdprAssignments",
-        applicableFor = UserType.class,
+        applicableForType = UserType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
         display = @PanelDisplay(label = "FocusType.consents"))
 public class GdprAssignmentPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel {

@@ -32,11 +32,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "orgMembers")
 @PanelInstances(instances = {
-        @PanelInstance(identifier = "orgMembers", applicableFor = OrgType.class,
-                status = ItemStatus.NOT_CHANGED,
+        @PanelInstance(identifier = "orgMembers", applicableForType = OrgType.class,
+                applicableForOperation = OperationTypeType.MODIFY,
                 display = @PanelDisplay(label = "pageRole.members", order = 60)),
-        @PanelInstance(identifier = "orgGovernance", applicableFor = OrgType.class,
-                status = ItemStatus.NOT_CHANGED,
+        @PanelInstance(identifier = "orgGovernance", applicableForType = OrgType.class,
+                applicableForOperation = OperationTypeType.MODIFY,
                 display = @PanelDisplay(label = "pageRole.governance", order = 60))
 })
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {

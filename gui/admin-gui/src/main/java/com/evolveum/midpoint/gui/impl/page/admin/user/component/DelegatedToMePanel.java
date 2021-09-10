@@ -10,7 +10,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
@@ -41,7 +40,7 @@ import java.util.List;
  * @author shood
  */
 @PanelType(name = "delegatedToMe")
-@PanelInstance(identifier = "delegatedToMe", applicableFor = UserType.class,
+@PanelInstance(identifier = "delegatedToMe", applicableForType = UserType.class,
         display = @PanelDisplay(label = "FocusType.delegatedToMe", order = 80))
 @Counter(provider = DelegatedToMeCounter.class)
 public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {

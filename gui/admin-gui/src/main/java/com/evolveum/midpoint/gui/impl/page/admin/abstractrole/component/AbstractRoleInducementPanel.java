@@ -10,12 +10,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.web.application.*;
 
 //@PanelType(name = "inducements", defaultContainerPath = "inducement")
-@PanelInstance(identifier = "inducements", applicableFor = AbstractRoleType.class,
+@PanelInstance(identifier = "inducements", applicableForType = AbstractRoleType.class,
         display = @PanelDisplay(label = "FocusType.inducement", order = 70))
 public class AbstractRoleInducementPanel<AR extends AbstractRoleType> extends AbstractObjectMainPanel<AR, ObjectDetailsModels<AR>> {
 

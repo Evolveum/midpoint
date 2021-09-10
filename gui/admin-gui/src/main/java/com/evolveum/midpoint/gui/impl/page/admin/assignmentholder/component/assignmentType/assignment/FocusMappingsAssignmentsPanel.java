@@ -28,7 +28,7 @@ import java.util.List;
 
 @PanelType(name = "focusMappingsAssignments")
 @PanelInstance(identifier = "focusMappingsAssignments",
-        applicableFor = AbstractRoleType.class,
+        applicableForType = AbstractRoleType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
         display = @PanelDisplay(label = "AssignmentType.focusMappings", order = 70))
 public class FocusMappingsAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {

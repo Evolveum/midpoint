@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +44,7 @@ import java.util.List;
  */
 @PanelType(name = "personas")
 @PanelInstance(identifier = "personas",
-        applicableFor = UserType.class,
+        applicableForType = UserType.class,
         display = @PanelDisplay(label = "pageAdminFocus.personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60))
 @Counter(provider = PersonasCounter.class)
 public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {

@@ -66,7 +66,7 @@ import java.util.*;
  */
 @PanelType(name = "indirectAssignments")
 @PanelInstance(identifier = "indirectAssignments",
-        applicableFor = AssignmentHolderType.class,
+        applicableForType = AssignmentHolderType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
         display = @PanelDisplay(label = "AssignmentTablePanel.menu.showAllAssignments"))
 public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {

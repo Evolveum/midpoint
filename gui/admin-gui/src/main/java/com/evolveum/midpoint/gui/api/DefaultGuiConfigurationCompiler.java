@@ -24,7 +24,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfileCompilable;
@@ -210,11 +209,11 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         if (panelInstance == null) {
             return true;
         }
-        if (panelInstance.applicableFor() == null) {
+        if (panelInstance.applicableForType() == null) {
             return true;
         }
 
-        if (ObjectType.class.equals(panelInstance.applicableFor())) {
+        if (ObjectType.class.equals(panelInstance.applicableForType())) {
             return true;
         }
 
@@ -222,7 +221,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             return panelInstance.notApplicableFor().isAssignableFrom(objectType);
         }
 
-        return !panelInstance.applicableFor().isAssignableFrom(objectType);
+        return !panelInstance.applicableForType().isAssignableFrom(objectType);
     }
 
     private boolean isSubPanel(PanelInstance panelInstance) {
@@ -242,8 +241,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         if (panelInstance.defaultPanel()) {
             config.setDefault(true);
         }
-        if (Arrays.stream(panelInstance.status()).filter(s -> ItemStatus.ADDED == s).count() == 1) {
-            config.setVisibleForAdd(true);
+
+        if (panelInstance.applicableForOperation().length == 1) {
+            config.setApplicableForOperation(panelInstance.applicableForOperation()[0]);
         }
 
         return config;

@@ -23,7 +23,7 @@ import javax.xml.namespace.QName;
 
 @PanelType(name = "orgInducements")
 @PanelInstance(identifier = "orgInducements",
-        applicableFor = AbstractRoleType.class,
+        applicableForType = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
         display = @PanelDisplay(label = "ObjectType.OrgType", icon = GuiStyleConstants.CLASS_OBJECT_ORG_ICON, order = 30))
 public class OrgInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {

@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -21,7 +19,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "monitoring", defaultContainerPath = "activity/monitoring", defaultType = ActivityMonitoringDefinitionType.class)
-@PanelInstance(identifier = "monitoring", applicableFor = TaskType.class, childOf = TaskActivityPanel.class,
+@PanelInstance(identifier = "monitoring", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
         display = @PanelDisplay(label = "ActivityDefinitionType.monitoring", order = 40))
 public class TaskMonitoringPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 
