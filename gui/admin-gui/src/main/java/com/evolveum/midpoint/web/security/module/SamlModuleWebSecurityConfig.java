@@ -7,11 +7,8 @@
 
 package com.evolveum.midpoint.web.security.module;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.web.security.saml.MidpointMetadataRelyingPartyRegistrationResolver;
 
 import com.evolveum.midpoint.web.security.saml.MidpointSaml2LoginConfigurer;
@@ -25,10 +22,6 @@ import org.springframework.security.saml2.provider.service.metadata.OpenSamlMeta
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
-import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
-import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -82,17 +75,6 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
                 new OpenSamlMetadataResolver());
         filter.setRequestMatcher(new AntPathRequestMatcher( getConfiguration().getPrefix() + "/metadata"));
         http.addFilterAfter(filter, Saml2WebSsoAuthenticationFilter.class);
-
-        http.logout(logout -> {
-            List<LogoutHandler> handlers = new ArrayList<LogoutHandler>();
-            handlers.add(new SecurityContextLogoutHandler());
-            handlers.add(new CookieClearingLogoutHandler("JSESSIONID"));
-//            handlers.add(new MidpointSamlLogoutHandler());
-            logout.logoutSuccessHandler(createLogoutHandler())
-                    .addLogoutHandler(new CompositeLogoutHandler(handlers))
-//                    .logoutRequestMatcher(new SamlLogoutMatcher(getConfiguration().getPrefix() + "/logout"));
-                    .logoutRequestMatcher(new AntPathRequestMatcher(getConfiguration().getPrefix() + "/logout"));
-        });
     }
 
     private InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrations() {

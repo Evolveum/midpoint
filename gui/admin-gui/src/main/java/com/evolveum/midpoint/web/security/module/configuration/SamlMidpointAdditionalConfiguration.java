@@ -6,16 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.module.configuration;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
-
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author skublik
@@ -23,19 +14,12 @@ import static org.springframework.util.StringUtils.hasText;
 
 public class SamlMidpointAdditionalConfiguration implements Serializable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SamlMidpointAdditionalConfiguration.class);
-
     private final String nameOfUsernameAttribute;
     private final String linkText;
-    private final String logoutDestination;
-    private final Saml2MessageBinding logoutBinding;
 
-    private SamlMidpointAdditionalConfiguration(String nameOfUsernameAttribute, String linkText,
-            String logoutDestination, Saml2MessageBinding logoutBinding) {
+    private SamlMidpointAdditionalConfiguration(String nameOfUsernameAttribute, String linkText) {
         this.nameOfUsernameAttribute = nameOfUsernameAttribute;
         this.linkText = linkText;
-        this.logoutDestination = logoutDestination;
-        this.logoutBinding = logoutBinding;
     }
 
     public String getNameOfUsernameAttribute() {
@@ -46,14 +30,6 @@ public class SamlMidpointAdditionalConfiguration implements Serializable {
         return linkText;
     }
 
-    public String getLogoutDestination() {
-        return logoutDestination;
-    }
-
-    public Saml2MessageBinding getLogoutBinding() {
-        return logoutBinding;
-    }
-
     public static Builder builder() {
         return new Builder();
     }
@@ -62,8 +38,6 @@ public class SamlMidpointAdditionalConfiguration implements Serializable {
 
         private String nameOfUsernameAttribute;
         private String linkText;
-        private String logoutDestination;
-        private Saml2MessageBinding logoutBinding;
 
         private Builder() {
         }
@@ -78,19 +52,8 @@ public class SamlMidpointAdditionalConfiguration implements Serializable {
             return this;
         }
 
-        public Builder logoutDestination(String logoutDestination) {
-            this.logoutDestination = logoutDestination;
-            return this;
-        }
-
-        public Builder logoutBinding(Saml2MessageBinding logoutBinding) {
-            this.logoutBinding = logoutBinding;
-            return this;
-        }
-
         public SamlMidpointAdditionalConfiguration build(){
-            return new SamlMidpointAdditionalConfiguration(this.nameOfUsernameAttribute, this.linkText,
-            this.logoutDestination, this.logoutBinding);
+            return new SamlMidpointAdditionalConfiguration(this.nameOfUsernameAttribute, this.linkText);
         }
     }
 }
