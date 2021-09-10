@@ -1009,10 +1009,10 @@
                         <groupId>org.opensaml</groupId>
                         <artifactId>opensaml-saml-api</artifactId>
                     </exclusion>
-                    <exclusion>
-                        <groupId>org.opensaml</groupId>
-                        <artifactId>opensaml-saml-impl</artifactId>
-                    </exclusion>
+                    <!--<exclusion>-->
+                    <!--    <groupId>org.opensaml</groupId>-->
+                    <!--    <artifactId>opensaml-saml-impl</artifactId>-->
+                    <!--</exclusion>-->
                 </exclusions>
             </dependency>
             <dependency>
@@ -1022,18 +1022,28 @@
             </dependency>
             <dependency>
                 <groupId>org.opensaml</groupId>
-                <artifactId>opensaml-saml-api</artifactId>
-                <version>${opensaml.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.opensaml</groupId>
-                <artifactId>opensaml-saml-api</artifactId>
-                <version>4.1.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.opensaml</groupId>
                 <artifactId>opensaml-saml-impl</artifactId>
                 <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-security-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-xmlsec-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.shibboleth.utilities</groupId>
+                <artifactId>java-support</artifactId>
+                <version>8.0.0</version>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>

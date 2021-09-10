@@ -113,23 +113,24 @@ public class MidpointAssertingPartyMetadataConverter {
             throw new Saml2Exception(
                     "Metadata response is missing a SingleSignOnService, necessary for sending AuthnRequests");
         }
-        for (SingleLogoutService singleLogoutService : idpssoDescriptor.getSingleLogoutServices()) {
-            Saml2MessageBinding binding;
-            if (singleLogoutService.getBinding().equals(Saml2MessageBinding.POST.getUrn())) {
-                binding = Saml2MessageBinding.POST;
-            }
-            else if (singleLogoutService.getBinding().equals(Saml2MessageBinding.REDIRECT.getUrn())) {
-                binding = Saml2MessageBinding.REDIRECT;
-            }
-            else {
-                continue;
-            }
-
-            additionalConfigurationBuilder.logoutBinding(binding).logoutDestination(singleLogoutService.getLocation());
-            return builder;
-        }
-        throw new Saml2Exception(
-                "Metadata response is missing a SingleLogoutService, necessary for sending LogoutRequests");
+//        for (SingleLogoutService singleLogoutService : idpssoDescriptor.getSingleLogoutServices()) {
+//            Saml2MessageBinding binding;
+//            if (singleLogoutService.getBinding().equals(Saml2MessageBinding.POST.getUrn())) {
+//                binding = Saml2MessageBinding.POST;
+//            }
+//            else if (singleLogoutService.getBinding().equals(Saml2MessageBinding.REDIRECT.getUrn())) {
+//                binding = Saml2MessageBinding.REDIRECT;
+//            }
+//            else {
+//                continue;
+//            }
+//
+//            additionalConfigurationBuilder.logoutBinding(binding).logoutDestination(singleLogoutService.getLocation());
+//            return builder;
+//        }
+//        throw new Saml2Exception(
+//                "Metadata response is missing a SingleLogoutService, necessary for sending LogoutRequests");
+        return builder;
     }
 
     private List<X509Certificate> certificates(KeyDescriptor keyDescriptor) {

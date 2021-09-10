@@ -61,8 +61,8 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
     public static final String REQUEST_PROCESSING_URL_SUFFIX = "/authenticate/{registrationId}";
 
     private static Protector protector;
-    private static final ResourceLoader resourceLoader = new DefaultResourceLoader();
-    private static final MidpointAssertingPartyMetadataConverter assertingPartyMetadataConverter = new MidpointAssertingPartyMetadataConverter();
+    private static final ResourceLoader RESOURCE_LOADER = new DefaultResourceLoader();
+    private static final MidpointAssertingPartyMetadataConverter ASSERTING_PARTY_METADATA_CONVERTER = new MidpointAssertingPartyMetadataConverter();
 
     private InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
     private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration = new HashMap<String, SamlMidpointAdditionalConfiguration>();
@@ -119,13 +119,11 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                                 providerType.getVerificationKeys().forEach(verKey -> {
                                     byte[] certbytes = new byte[0];
                                     try {
-                                        certbytes = protector.decryptString(verKey).getBytes();;
-//                                        certbytes = X509Certificate. X509Utilities.getDER(protector.decryptString(verKey));
+                                        certbytes = protector.decryptString(verKey).getBytes();
                                     } catch (EncryptionException e) {
                                         LOGGER.error("Couldn't obtain clear string for provider verification key");
                                     }
                                     try {
-//                                        X509Certificate certificate = X509Utilities.getCertificate(certbytes);
                                         X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certbytes));
                                         c.add(new Saml2X509Credential(certificate, Saml2X509Credential.Saml2X509CredentialType.VERIFICATION));
                                     } catch (CertificateException e) {
@@ -231,11 +229,11 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 } catch (IOException e) {
                     LOGGER.error("Couldn't obtain metadata as string from " + metadata);
                 }
-                builder = assertingPartyMetadataConverter.convert(new ByteArrayInputStream(metadataAsString.getBytes()), additionalConfigurationBuilder);
+                builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(new ByteArrayInputStream(metadataAsString.getBytes()), additionalConfigurationBuilder);
             }
             if (metadata.getMetadataUrl() != null) {
-                try (InputStream source = resourceLoader.getResource(metadata.getMetadataUrl()).getInputStream()) {
-                    builder = assertingPartyMetadataConverter.convert(source, additionalConfigurationBuilder);
+                try (InputStream source = RESOURCE_LOADER.getResource(metadata.getMetadataUrl()).getInputStream()) {
+                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(source, additionalConfigurationBuilder);
                 }
                 catch (IOException ex) {
                     if (ex.getCause() instanceof Saml2Exception) {

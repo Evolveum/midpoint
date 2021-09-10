@@ -90,7 +90,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
                 ((Saml2WebSsoAuthenticationRequestFilter) f).setRedirectMatcher(new AntPathRequestMatcher(module.getPrefix() + SamlModuleWebSecurityConfiguration.REQUEST_PROCESSING_URL_SUFFIX));
                 break;
             }
-        };
+        }
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 

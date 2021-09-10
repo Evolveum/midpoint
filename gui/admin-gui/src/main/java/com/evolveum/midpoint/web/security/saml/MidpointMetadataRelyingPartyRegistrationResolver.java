@@ -29,32 +29,32 @@ public class MidpointMetadataRelyingPartyRegistrationResolver implements Convert
 
     private static final char PATH_DELIMITER = '/';
 
-	private final InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
+    private final InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
 
-	public MidpointMetadataRelyingPartyRegistrationResolver(
+    public MidpointMetadataRelyingPartyRegistrationResolver(
             InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
-		Assert.notNull(relyingPartyRegistrationRepository, "relyingPartyRegistrationRepository cannot be null");
-		this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
-	}
+        Assert.notNull(relyingPartyRegistrationRepository, "relyingPartyRegistrationRepository cannot be null");
+        this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
+    }
 
-	@Override
-	public RelyingPartyRegistration convert(HttpServletRequest request) {
+    @Override
+    public RelyingPartyRegistration convert(HttpServletRequest request) {
         if (!this.relyingPartyRegistrationRepository.iterator().hasNext()) {
             return null;
         }
-		RelyingPartyRegistration relyingPartyRegistration = this.relyingPartyRegistrationRepository.iterator().next();
-		if (relyingPartyRegistration == null) {
-			return null;
-		}
-		String applicationUri = getApplicationUri(request);
-		Function<String, String> templateResolver = templateResolver(applicationUri, relyingPartyRegistration);
-		String relyingPartyEntityId = templateResolver.apply(relyingPartyRegistration.getEntityId());
-		String assertionConsumerServiceLocation = templateResolver
-				.apply(relyingPartyRegistration.getAssertionConsumerServiceLocation());
-		return RelyingPartyRegistration.withRelyingPartyRegistration(relyingPartyRegistration)
-				.entityId(relyingPartyEntityId).assertionConsumerServiceLocation(assertionConsumerServiceLocation)
-				.build();
-	}
+        RelyingPartyRegistration relyingPartyRegistration = this.relyingPartyRegistrationRepository.iterator().next();
+        if (relyingPartyRegistration == null) {
+            return null;
+        }
+        String applicationUri = getApplicationUri(request);
+        Function<String, String> templateResolver = templateResolver(applicationUri, relyingPartyRegistration);
+        String relyingPartyEntityId = templateResolver.apply(relyingPartyRegistration.getEntityId());
+        String assertionConsumerServiceLocation = templateResolver
+                .apply(relyingPartyRegistration.getAssertionConsumerServiceLocation());
+        return RelyingPartyRegistration.withRelyingPartyRegistration(relyingPartyRegistration)
+                .entityId(relyingPartyEntityId).assertionConsumerServiceLocation(assertionConsumerServiceLocation)
+                .build();
+    }
 
     protected Function<String, String> templateResolver(String applicationUri, RelyingPartyRegistration relyingParty) {
         return (template) -> resolveUrlTemplate(template, applicationUri, relyingParty);
