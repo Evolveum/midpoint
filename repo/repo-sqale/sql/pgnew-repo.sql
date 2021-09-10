@@ -450,6 +450,8 @@ CREATE TABLE m_focus (
 )
     INHERITS (m_assignment_holder);
 
+-- for each concrete sub-table indexes must be added, validFrom, validTo, etc.
+
 -- stores FocusType/personaRef
 CREATE TABLE m_ref_persona (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -496,6 +498,8 @@ CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
 ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_nameNorm_key UNIQUE (nameNorm);
 -- TODO No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtypes);
+CREATE INDEX m_generic_object_validFrom_idx ON m_generic_object (validFrom);
+CREATE INDEX m_generic_object_validTo_idx ON m_generic_object (validTo);
 -- endregion
 
 -- region USER related tables
@@ -544,6 +548,8 @@ CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
 CREATE INDEX m_user_organizations_idx ON m_user USING gin(organizations);
 CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits);
+CREATE INDEX m_user_validFrom_idx ON m_user (validFrom);
+CREATE INDEX m_user_validTo_idx ON m_user (validTo);
 -- endregion
 
 -- region ROLE related tables
@@ -562,7 +568,9 @@ CREATE TABLE m_abstract_role (
 )
     INHERITS (m_focus);
 
-/* TODO: add for sub-tables, role, org... all? how many services?
+/*
+TODO: add for sub-tables, role, org... all? how many services?
+ identifier is OK (TEXT), but booleans are useless unless used in WHERE
 CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
@@ -587,6 +595,9 @@ CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
 CREATE INDEX m_role_nameOrig_idx ON m_role (nameOrig);
 ALTER TABLE m_role ADD CONSTRAINT m_role_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_role_subtypes_idx ON m_role USING gin(subtypes);
+CREATE INDEX m_role_identifier_idx ON m_role (identifier);
+CREATE INDEX m_role_validFrom_idx ON m_role (validFrom);
+CREATE INDEX m_role_validTo_idx ON m_role (validTo);
 
 -- Represents ServiceType, see https://wiki.evolveum.com/display/midPoint/Service+Account+Management
 CREATE TABLE m_service (
@@ -606,6 +617,10 @@ CREATE TRIGGER m_service_oid_delete_tr AFTER DELETE ON m_service
 
 CREATE INDEX m_service_nameOrig_idx ON m_service (nameOrig);
 ALTER TABLE m_service ADD CONSTRAINT m_service_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_service_subtypes_idx ON m_service USING gin(subtypes);
+CREATE INDEX m_service_identifier_idx ON m_service (identifier);
+CREATE INDEX m_service_validFrom_idx ON m_service (validFrom);
+CREATE INDEX m_service_validTo_idx ON m_service (validTo);
 
 -- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
 CREATE TABLE m_archetype (
@@ -625,6 +640,9 @@ CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
 CREATE INDEX m_archetype_nameOrig_idx ON m_archetype (nameOrig);
 ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_archetype_subtypes_idx ON m_archetype USING gin(subtypes);
+CREATE INDEX m_archetype_identifier_idx ON m_archetype (identifier);
+CREATE INDEX m_archetype_validFrom_idx ON m_archetype (validFrom);
+CREATE INDEX m_archetype_validTo_idx ON m_archetype (validTo);
 -- endregion
 
 -- region Organization hierarchy support
@@ -649,6 +667,9 @@ CREATE INDEX m_org_nameOrig_idx ON m_org (nameOrig);
 ALTER TABLE m_org ADD CONSTRAINT m_org_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_org_displayOrder_idx ON m_org (displayOrder);
 CREATE INDEX m_org_subtypes_idx ON m_org USING gin(subtypes);
+CREATE INDEX m_org_identifier_idx ON m_org (identifier);
+CREATE INDEX m_org_validFrom_idx ON m_org (validFrom);
+CREATE INDEX m_org_validTo_idx ON m_org (validTo);
 
 -- stores ObjectType/parentOrgRef
 CREATE TABLE m_ref_object_parent_org (
