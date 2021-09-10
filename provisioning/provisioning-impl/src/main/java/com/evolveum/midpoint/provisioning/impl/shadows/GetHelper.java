@@ -15,6 +15,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 
+import com.evolveum.midpoint.schema.*;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,10 +35,6 @@ import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.PointInTimeType;
-import com.evolveum.midpoint.schema.RefreshShadowOperation;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;

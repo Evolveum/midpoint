@@ -6,12 +6,21 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME;
+
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,7 +44,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -70,6 +78,14 @@ public class TestDummyCaching extends TestDummy {
     @Override
     protected ItemComparisonResult getExpectedPasswordComparisonResultMismatch() {
         return ItemComparisonResult.MISMATCH;
+    }
+
+    protected boolean isWeaponIndexOnly() {
+        return false;
+    }
+
+    private boolean isIndexOnly(String attrName) {
+        return isWeaponIndexOnly() && DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME.equals(attrName);
     }
 
     /**
@@ -113,7 +129,7 @@ public class TestDummyCaching extends TestDummy {
 
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
-        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
+        assertRepoShadowCachedAttributeValue(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
         assertEquals("Unexpected number of attributes", 7, attributes.size());
@@ -123,7 +139,7 @@ public class TestDummyCaching extends TestDummy {
 
         assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
         assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
+        assertRepoShadowCachedAttributeValue(shadowRepo, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
         assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
         assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 
@@ -174,7 +190,7 @@ public class TestDummyCaching extends TestDummy {
 
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
-        assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
+        assertRepoShadowCachedAttributeValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
         assertEquals("Unexpected number of attributes", 7, attributes.size());
@@ -184,7 +200,7 @@ public class TestDummyCaching extends TestDummy {
 
         assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
         assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
+        assertRepoShadowCachedAttributeValue(shadowRepo, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
         assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
         assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 
@@ -243,7 +259,7 @@ public class TestDummyCaching extends TestDummy {
                     "Very Nice Pirate");
             assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME,
                     "Black Pearl");
-            assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword",
+            assertRepoShadowCachedAttributeValue(shadowRepo, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword",
                     "love");
             assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
             assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.ENABLED);
@@ -319,6 +335,64 @@ public class TestDummyCaching extends TestDummy {
         assertSteadyResource();
     }
 
+    /**
+     * Checks whether multivalued attributes are correctly cached, especially when deleting values.
+     * See MID-7162.
+     */
+    @Test
+    public void test910CacheMultivaluedAttribute() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        DummyAccount will = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+
+        updateAndCheckMultivaluedAttribute(will, false, "initial values", Arrays.asList("sword", "love"), task, result);
+        updateAndCheckMultivaluedAttribute(will, false, "replacing by w1-w3", Arrays.asList("w1", "w2", "w3"), task, result);
+        updateAndCheckMultivaluedAttribute(will, false, "adding w4", Arrays.asList("w1", "w2", "w3", "w4"), task, result);
+        updateAndCheckMultivaluedAttribute(will, false, "removing w1", Arrays.asList("w2", "w3", "w4"), task, result);
+        updateAndCheckMultivaluedAttribute(will, false, "removing all", Collections.emptyList(), task, result);
+
+        updateAndCheckMultivaluedAttribute(will, true, "adding w1-w3", Arrays.asList("w1", "w2", "w3"), task, result);
+        updateAndCheckMultivaluedAttribute(will, true, "adding w4", Arrays.asList("w1", "w2", "w3", "w4"), task, result);
+        updateAndCheckMultivaluedAttribute(will, true, "removing w1", Arrays.asList("w2", "w3", "w4"), task, result);
+        updateAndCheckMultivaluedAttribute(will, true, "removing all", Collections.emptyList(), task, result);
+    }
+
+    private void updateAndCheckMultivaluedAttribute(DummyAccount account, boolean useSearch, String messagePrefix,
+            Collection<Object> values, Task task, OperationResult result) throws Exception {
+
+        String message = messagePrefix + (useSearch ? " (using search)" : " (using get)");
+        when(message);
+
+        account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, values);
+
+        if (useSearch) {
+            ResourceAttributeDefinition<?> nameDef = getAccountAttrDef(SchemaConstants.ICFS_NAME);
+
+            // @formatter:off
+            ObjectQuery query = prismContext.queryFor(ShadowType.class)
+                    .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(dummyResourceCtl.getAccountObjectClass())
+                    .and().itemWithDef(nameDef, ShadowType.F_ATTRIBUTES, nameDef.getItemName())
+                        .eq(transformNameFromResource(ACCOUNT_WILL_USERNAME))
+                    .build();
+            // @formatter:on
+
+            SearchResultList<PrismObject<ShadowType>> objects
+                    = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+            assertThat(objects).as("accounts matching will").hasSize(1);
+
+        } else {
+            provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        }
+
+        then(message);
+
+        PrismObject<ShadowType> shadow = getShadowRepoRetrieveAllAttributes(ACCOUNT_WILL_OID, result);
+        assertAttribute(shadow, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, values.toArray());
+    }
+
     @Override
     protected void checkRepoAccountShadowWill(PrismObject<ShadowType> shadowRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
         // Sometimes there are 6 and sometimes 7 attributes. Treasure is not returned by default. It is not normally in the cache.
@@ -326,8 +400,12 @@ public class TestDummyCaching extends TestDummy {
         checkRepoAccountShadowWillBasic(shadowRepo, start, end, null);
 
         assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
-        // this is shadow, values are normalized
-        assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
+        if (isWeaponIndexOnly()) {
+            assertRepoShadowCachedAttributeValue(shadowRepo, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
+        } else {
+            // this is shadow, values are normalized
+            assertRepoShadowCachedAttributeValue(shadowRepo, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
+        }
         assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 
         assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.ENABLED);
@@ -392,9 +470,10 @@ public class TestDummyCaching extends TestDummy {
     }
 
     @Override
-    protected <T> void assertRepoShadowCachedAttributeValue(
-            PrismObject<ShadowType> shadowRepo, String attrName, T... attrValues) {
-        assertAttribute(shadowRepo, attrName, attrValues);
+    protected void assertRepoShadowCachedAttributeValue(
+            PrismObject<ShadowType> shadowRepo, String attrName, Object... attrValues) {
+        Object[] reallyExpectedValue = isIndexOnly(attrName) ? new Object[0] : attrValues;
+        assertAttribute(shadowRepo, attrName, reallyExpectedValue);
     }
 
     @Override
