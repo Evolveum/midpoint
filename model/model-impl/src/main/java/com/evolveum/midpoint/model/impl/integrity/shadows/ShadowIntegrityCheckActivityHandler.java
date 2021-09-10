@@ -10,8 +10,6 @@ package com.evolveum.midpoint.model.impl.integrity.shadows;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
-
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +59,7 @@ public class ShadowIntegrityCheckActivityHandler
     public AbstractActivityExecution<ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler> context,
             @NotNull OperationResult result) {
-        return new ModelSearchBasedActivityExecution<>(context, "Shadow integrity check", ShadowIntegrityCheckActivityExecutionSpecifics::new);
+        return new ShadowIntegrityCheckActivityExecution(context);
     }
 
     @Override

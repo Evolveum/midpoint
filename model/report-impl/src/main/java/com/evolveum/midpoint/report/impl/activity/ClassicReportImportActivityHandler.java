@@ -58,7 +58,7 @@ public class ClassicReportImportActivityHandler
     public AbstractActivityExecution<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PlainIterativeActivityExecution<>(context, "Report import", ClassicReportImportActivityExecutionSpecifics::new);
+        return new ClassicReportImportActivityExecution(context);
     }
 
     @Override

@@ -13,7 +13,10 @@ import java.util.Collections;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -28,7 +31,6 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,10 +43,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ChangeExecutionWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -76,8 +74,8 @@ public class ChangeExecutionActivityHandler
     }
 
     @Override
-    protected @NotNull SearchBasedSpecificsSupplier<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler> getSpecificSupplier() {
-        return MyExecutionSpecifics::new;
+    protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler> getExecutionSupplier() {
+        return MyExecution::new;
     }
 
     @Override
@@ -100,11 +98,12 @@ public class ChangeExecutionActivityHandler
         return "change-execution";
     }
 
-    static class MyExecutionSpecifics extends
-            BaseSearchBasedExecutionSpecificsImpl<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler> {
+    static class MyExecution extends
+            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler, AbstractActivityWorkStateType> {
 
-        MyExecutionSpecifics(@NotNull SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler, ?> activityExecution) {
-            super(activityExecution);
+        MyExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ChangeExecutionActivityHandler> context,
+                String shortName) {
+            super(context, shortName);
         }
 
         @Override
@@ -119,7 +118,7 @@ public class ChangeExecutionActivityHandler
                 throws CommonException, ActivityExecutionException {
             LOGGER.trace("Executing change on object {}", object);
 
-            IterativeActivityExecution<PrismObject<ObjectType>, ?, ?, ?, ?, ?> activityExecution = request.getActivityExecution();
+            IterativeActivityExecution<PrismObject<ObjectType>, ?, ?, ?> activityExecution = request.getActivityExecution();
             MyWorkDefinition workDefinition =
                     (MyWorkDefinition) activityExecution.getActivity().getWorkDefinition();
 

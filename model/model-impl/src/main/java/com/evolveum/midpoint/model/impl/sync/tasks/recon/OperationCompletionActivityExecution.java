@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -26,12 +27,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Scans shadows for unfinished operations and tries to finish them.
  */
-class OperationCompletionActivityExecutionSpecifics
-        extends PartialReconciliationActivityExecutionSpecifics {
+class OperationCompletionActivityExecution
+        extends PartialReconciliationActivityExecution {
 
-    OperationCompletionActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType,
-            ReconciliationWorkDefinition, ReconciliationActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    OperationCompletionActivityExecution(
+            @NotNull ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> activityExecution,
+            String shortNameCapitalized) {
+        super(activityExecution, shortNameCapitalized);
     }
 
     @Override
@@ -70,6 +72,6 @@ class OperationCompletionActivityExecutionSpecifics
 
     @VisibleForTesting
     long getUnOpsCount() {
-        return activityExecution.getTransientExecutionStatistics().getItemsProcessed();
+        return transientExecutionStatistics.getItemsProcessed();
     }
 }

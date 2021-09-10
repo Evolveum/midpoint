@@ -14,7 +14,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -90,16 +89,14 @@ public class DistributedReportExportActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new SearchBasedActivityExecution<>(
-                        context, "Data creation", ReportDataCreationExecutionSpecifics::new),
+                (context, result) -> new ReportDataCreationActivityExecution(context),
                 this::createEmptyAggregatedDataObject,
                 (i) -> "data-creation",
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new SearchBasedActivityExecution<>(
-                        context, "Report data aggregation", ReportDataAggregationExecutionSpecifics::new),
+                (context, result) -> new ReportDataAggregationActivityExecution(context),
                 null,
                 (i) -> "data-aggregation",
                 ActivityStateDefinition.normal(),

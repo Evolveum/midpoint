@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExec
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
-import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -77,10 +76,10 @@ public class ClassicReportExportActivityHandler
         }
 
         if (report.getDashboard() != null) {
-            return new PlainIterativeActivityExecution<>(context, "Dashboard report export", ClassicDashboardReportExportActivityExecutionSpecifics::new);
+            return new ClassicDashboardReportExportActivityExecution(context);
         }
         if (report.getObjectCollection() != null) {
-            return new PlainIterativeActivityExecution<>(context, "Collection report export", ClassicCollectionReportExportActivityExecutionSpecifics::new);
+            return new ClassicCollectionReportExportActivityExecution(context);
         }
         LOGGER.error("Report don't contains engine");
         throw new IllegalArgumentException("Report don't contains engine");

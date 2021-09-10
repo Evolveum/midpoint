@@ -15,6 +15,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.SchemaService;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.repo.common.task.work.ItemDefinitionProvider;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -48,14 +48,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Scans shadows for unfinished operations and tries to finish them.
  */
-class RemainingShadowsActivityExecutionSpecifics
-        extends PartialReconciliationActivityExecutionSpecifics {
+class RemainingShadowsActivityExecution
+        extends PartialReconciliationActivityExecution {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RemainingShadowsActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RemainingShadowsActivityExecution.class);
 
-    RemainingShadowsActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType, ReconciliationWorkDefinition,
-            ReconciliationActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    RemainingShadowsActivityExecution(
+            @NotNull ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context,
+            String shortNameCapitalized) {
+        super(context, shortNameCapitalized);
     }
 
     @Override
@@ -89,7 +90,7 @@ class RemainingShadowsActivityExecutionSpecifics
         // simulation sets synchronization timestamps, keeping full sync timestamps intact. So this one can be used in
         // the execution activities to distinguish between shadows seen and not seen.
         ItemName syncTimestampItem =
-                activityExecution.isFullExecution() ?
+                isFullExecution() ?
                         ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP :
                         ShadowType.F_SYNCHRONIZATION_TIMESTAMP;
 
@@ -157,7 +158,7 @@ class RemainingShadowsActivityExecutionSpecifics
                     SchemaService.get().getOperationOptionsBuilder()
                             .doNotDiscovery() // We are doing "discovery" ourselves
                             .errorReportingMethod(FetchErrorReportingMethodType.FORCED_EXCEPTION) // As well as complete handling!
-                            .forceRefresh(!activityExecution.isDryRun())
+                            .forceRefresh(!isDryRun())
                             .build();
             getModelBeans().provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, result);
         } catch (ObjectNotFoundException e) {
@@ -200,7 +201,7 @@ class RemainingShadowsActivityExecutionSpecifics
         change.setResource(objectClassSpec.getResource().asPrismObject());
         change.setObjectDelta(shadow.createDeleteDelta());
         change.setShadowedResourceObject(shadow);
-        change.setSimulate(activityExecution.isPreview());
+        change.setSimulate(isPreview());
         ModelImplUtils.clearRequestee(task);
         getModelBeans().eventDispatcher.notifyChange(change, task, result);
     }
@@ -222,6 +223,6 @@ class RemainingShadowsActivityExecutionSpecifics
 
     @VisibleForTesting
     public long getShadowReconCount() {
-        return activityExecution.getTransientExecutionStatistics().getItemsProcessed();
+        return transientExecutionStatistics.getItemsProcessed();
     }
 }

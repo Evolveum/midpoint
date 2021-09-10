@@ -12,8 +12,6 @@ import static com.evolveum.midpoint.model.impl.integrity.shadows.ShadowIntegrity
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -26,7 +24,10 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.task.*;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -41,19 +42,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ShadowIntegrityCheckActivityExecutionSpecifics
-        extends BaseSearchBasedExecutionSpecificsImpl
-        <ShadowType, ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler> {
+public class ShadowIntegrityCheckActivityExecution
+        extends SearchBasedActivityExecution
+        <ShadowType, ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler, AbstractActivityWorkStateType> {
 
     private ShadowCheckConfiguration configuration;
     private WorkingState workingState;
     private ShadowIntegrityCheckItemProcessor itemProcessor;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckActivityExecution.class);
 
-    ShadowIntegrityCheckActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType,
-            ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    ShadowIntegrityCheckActivityExecution(
+            @NotNull ExecutionInstantiationContext<ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler> context) {
+        super(context, "Shadow integrity check");
     }
 
     @Override
@@ -70,9 +71,9 @@ public class ShadowIntegrityCheckActivityExecutionSpecifics
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult)
+    public void beforeExecution(OperationResult result)
             throws CommonException {
-        activityExecution.ensureNoWorkerThreads();
+        ensureNoWorkerThreads();
 
         ExecutionModeType executionMode = getActivityDefinition().getExecutionMode();
         configuration = new ShadowCheckConfiguration(LOGGER, getWorkDefinition(), executionMode);
@@ -101,11 +102,11 @@ public class ShadowIntegrityCheckActivityExecutionSpecifics
     }
 
     @Override
-    public void afterExecution(OperationResult opResult) throws SchemaException {
+    public void afterExecution(OperationResult result) throws SchemaException {
 
         String uniquenessReport;
         if (configuration.checkUniqueness) {
-            uniquenessReport = reportOrFixUniqueness(opResult);
+            uniquenessReport = reportOrFixUniqueness(result);
         } else {
             uniquenessReport = null;
         }
@@ -323,7 +324,7 @@ public class ShadowIntegrityCheckActivityExecutionSpecifics
         }
     }
 
-    public void duplicateShadowDetected(String oid) {
+    void duplicateShadowDetected(String oid) {
         workingState.duplicateShadowsDetected.add(oid);
     }
 
@@ -333,9 +334,5 @@ public class ShadowIntegrityCheckActivityExecutionSpecifics
 
     public void putObjectTypeContext(ContextMapKey key, ObjectTypeContext context) {
         workingState.contextMap.put(key, context);
-    }
-
-    @NotNull ModelBeans getModelBeans() {
-        return getActivityHandler().getModelBeans();
     }
 }

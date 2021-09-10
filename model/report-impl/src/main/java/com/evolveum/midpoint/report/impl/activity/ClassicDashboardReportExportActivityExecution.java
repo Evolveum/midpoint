@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.report.impl.activity.ExportDashboardActivitySupport.DashboardWidgetHolder;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
@@ -30,11 +31,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Activity execution specifics for classical report export.
  */
-public class ClassicDashboardReportExportActivityExecutionSpecifics
-        extends BasePlainIterativeExecutionSpecificsImpl
+public class ClassicDashboardReportExportActivityExecution
+        extends PlainIterativeActivityExecution
         <ExportDashboardReportLine<Containerable>,
                 ClassicReportExportWorkDefinition,
-                ClassicReportExportActivityHandler> {
+                ClassicReportExportActivityHandler,
+                ReportExportWorkStateType> {
 
     @NotNull private final ExportDashboardActivitySupport support;
 
@@ -56,13 +58,12 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
      */
     private DashboardWidgetExportController basicWidgetController;
 
-    ClassicDashboardReportExportActivityExecutionSpecifics(
-            @NotNull PlainIterativeActivityExecution<ExportDashboardReportLine<Containerable>, ClassicReportExportWorkDefinition,
-                    ClassicReportExportActivityHandler, ?> activityExecution) {
-        super(activityExecution);
-        reportService = activityExecution.getActivity().getHandler().reportService;
-        support = new ExportDashboardActivitySupport(activityExecution, activityExecution.getActivityHandler().reportService,
-                activityExecution.getActivityHandler().objectResolver, activityExecution.getActivity().getWorkDefinition());
+    ClassicDashboardReportExportActivityExecution(
+            ExecutionInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context) {
+        super(context, "Dashboard report export");
+        reportService = context.getActivity().getHandler().reportService;
+        support = new ExportDashboardActivitySupport(this, reportService,
+                getActivityHandler().objectResolver, getWorkDefinition());
     }
 
     @Override
@@ -124,7 +125,7 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
     }
 
     @Override
-    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) throws CommonException {
+    public void iterateOverItemsInBucket(OperationResult result) throws CommonException {
         // Issue the search to audit or model/repository
         // And use the following handler to handle the results
 
@@ -134,8 +135,8 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
 
             ExportDashboardReportLine<Containerable> widgetLine = new ExportDashboardReportLine<>(widgetSequence.getAndIncrement(), widget);
             ItemProcessingRequest<ExportDashboardReportLine<Containerable>> widgetRequest = new ExportDashboardReportLineProcessingRequest(
-                    widgetLine, activityExecution);
-            getProcessingCoordinator().submit(widgetRequest, result);
+                    widgetLine, this);
+            coordinator.submit(widgetRequest, result);
 
             if (support.isWidgetTableVisible()) {
                 AtomicInteger sequence = new AtomicInteger(1);
@@ -144,8 +145,8 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
                             record,
                             widget.getIdentifier());
                     ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request = new ExportDashboardReportLineProcessingRequest(
-                            line, activityExecution);
-                    getProcessingCoordinator().submit(request, result);
+                            line, this);
+                    coordinator.submit(request, result);
                     return true;
                 };
 
@@ -157,19 +158,23 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
     }
 
     @Override
-    public boolean processItem(ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request,
+            @NotNull RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
-        Containerable record = request.getItem().getContainer();
 
-        getController(request).handleDataRecord(request.getSequentialNumber(), record, workerTask, result);
+        ExportDashboardReportLine<Containerable> item = request.getItem();
+        getController(item)
+                .handleDataRecord(request.getSequentialNumber(), item.getContainer(), workerTask, result);
         return true;
     }
 
-    private <C extends Containerable> ExportController<C> getController(ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request) {
-        if (request.getItem().isBasicWidgetRow()) {
+    private <C extends Containerable> ExportController<C> getController(@NotNull ExportDashboardReportLine<Containerable> item) {
+        if (item.isBasicWidgetRow()) {
+            //noinspection unchecked
             return (ExportController<C>) basicWidgetController;
         }
-        DashboardWidgetHolder holder = mapOfWidgetsController.get(request.getItem().getWidgetIdentifier());
+        DashboardWidgetHolder holder = mapOfWidgetsController.get(item.getWidgetIdentifier());
+        //noinspection unchecked
         return (ExportController<C>) holder.getController();
     }
 

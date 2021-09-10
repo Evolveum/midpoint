@@ -25,7 +25,7 @@ public class InputReportLineProcessingRequest
         implements CorrelatableProcessingRequest {
 
     InputReportLineProcessingRequest(@NotNull InputReportLine item,
-            @NotNull IterativeActivityExecution<InputReportLine, ?, ?, ?, ?, ?> activityExecution) {
+            @NotNull IterativeActivityExecution<InputReportLine, ?, ?, ?> activityExecution) {
         super(item.getLineNumber(), item, activityExecution);
     }
 

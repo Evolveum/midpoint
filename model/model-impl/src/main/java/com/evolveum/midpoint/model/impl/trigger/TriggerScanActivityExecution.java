@@ -11,14 +11,14 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecutionSpecifics;
+import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecution;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -30,21 +30,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Single execution of a trigger scanner task part.
  */
-class TriggerScanActivityExecutionSpecifics
-        extends ScanActivityExecutionSpecifics<ObjectType, TriggerScanWorkDefinition, TriggerScanActivityHandler> {
+class TriggerScanActivityExecution
+        extends ScanActivityExecution<ObjectType, TriggerScanWorkDefinition, TriggerScanActivityHandler> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TriggerScanActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TriggerScanActivityExecution.class);
 
     private TriggerScanItemProcessor itemProcessor;
 
-    TriggerScanActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ObjectType, TriggerScanWorkDefinition,
-            TriggerScanActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    TriggerScanActivityExecution(
+            @NotNull ExecutionInstantiationContext<TriggerScanWorkDefinition, TriggerScanActivityHandler> context) {
+        super(context, "Trigger scan");
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult) {
-        super.beforeExecution(opResult);
+    public void beforeExecution(OperationResult result) {
+        super.beforeExecution(result);
         itemProcessor = new TriggerScanItemProcessor(this);
     }
 

@@ -15,9 +15,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.repo.common.task.work.ItemDefinitionProvider;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -31,19 +31,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Execution of resource objects reconciliation (the main part of reconciliation).
  */
-public class ResourceObjectsReconciliationActivityExecutionSpecifics
-        extends PartialReconciliationActivityExecutionSpecifics {
+public class ResourceObjectsReconciliationActivityExecution
+        extends PartialReconciliationActivityExecution {
 
     private Synchronizer synchronizer;
 
-    ResourceObjectsReconciliationActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType,
-            ReconciliationWorkDefinition, ReconciliationActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    ResourceObjectsReconciliationActivityExecution(
+            @NotNull ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context,
+            String shortNameCapitalized) {
+        super(context, shortNameCapitalized);
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult) throws CommonException, ActivityExecutionException {
-        super.beforeExecution(opResult);
+    public void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+        super.beforeExecution(result);
         synchronizer = createSynchronizer();
     }
 
@@ -61,7 +62,7 @@ public class ResourceObjectsReconciliationActivityExecutionSpecifics
                 objectsFilter,
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_RECON,
-                activityExecution.isPreview(),
+                isPreview(),
                 false);
     }
 
@@ -91,11 +92,11 @@ public class ResourceObjectsReconciliationActivityExecutionSpecifics
 
     @VisibleForTesting
     public long getResourceReconCount() {
-        return activityExecution.getTransientExecutionStatistics().getItemsProcessed();
+        return transientExecutionStatistics.getItemsProcessed();
     }
 
     @VisibleForTesting
     public long getResourceReconErrors() {
-        return activityExecution.getTransientExecutionStatistics().getErrors();
+        return transientExecutionStatistics.getErrors();
     }
 }

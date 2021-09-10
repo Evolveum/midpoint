@@ -56,7 +56,7 @@ public class MultiPropagationActivityHandler implements ActivityHandler<MultiPro
     public AbstractActivityExecution<MultiPropagationWorkDefinition, MultiPropagationActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<MultiPropagationWorkDefinition, MultiPropagationActivityHandler> context,
             @NotNull OperationResult result) {
-        return new SearchBasedActivityExecution<>(context, "Multi-propagation", MultiPropagationActivityExecutionSpecifics::new);
+        return new MultiPropagationActivityExecution(context);
     }
 
     @Override

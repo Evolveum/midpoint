@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
-
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.jetbrains.annotations.NotNull;
@@ -67,38 +64,32 @@ class ReconciliationActivityExecution
         }
     }
 
-    @Nullable OperationCompletionActivityExecutionSpecifics getOperationCompletionExecution() {
-        return getChildExecutionSpecifics(RECONCILIATION_OPERATION_COMPLETION_ID);
+    @Nullable OperationCompletionActivityExecution getOperationCompletionExecution() {
+        return getChildExecution(RECONCILIATION_OPERATION_COMPLETION_ID);
     }
 
-    @Nullable ResourceObjectsReconciliationActivityExecutionSpecifics getResourceReconciliationExecution() {
-        return getChildExecutionSpecifics(RECONCILIATION_RESOURCE_OBJECTS_ID);
+    @Nullable ResourceObjectsReconciliationActivityExecution getResourceReconciliationExecution() {
+        return getChildExecution(RECONCILIATION_RESOURCE_OBJECTS_ID);
     }
 
-    @Nullable RemainingShadowsActivityExecutionSpecifics getRemainingShadowsExecution() {
-        return getChildExecutionSpecifics(RECONCILIATION_REMAINING_SHADOWS_ID);
+    @Nullable RemainingShadowsActivityExecution getRemainingShadowsExecution() {
+        return getChildExecution(RECONCILIATION_REMAINING_SHADOWS_ID);
     }
 
-    @Nullable private <T> T getChildExecutionSpecifics(String id) {
+    @Nullable private <T> T getChildExecution(String id) {
         try {
-            AbstractActivityExecution<?, ?, ?> execution = activity.getChild(id).getExecution();
-            if (execution != null) {
-                //noinspection unchecked
-                return (T) ((ModelSearchBasedActivityExecution<?, ?, ?, ?>) execution).getExecutionSpecifics();
-            } else {
-                return null;
-            }
+            //noinspection unchecked
+            return (T) activity.getChild(id).getExecution();
         } catch (SchemaException e) {
             throw new SystemException(e); // Occurs only during children map initialization
         }
     }
 
-    @NotNull List<PartialReconciliationActivityExecutionSpecifics> getPartialActivityExecutionSpecificsList() {
+    @NotNull List<PartialReconciliationActivityExecution> getPartialActivityExecutionsList() {
         return activity.getChildrenCopy().stream()
                 .map(Activity::getExecution)
+                .map(e -> (PartialReconciliationActivityExecution) e)
                 .filter(Objects::nonNull)
-                .map(childExec -> (PartialReconciliationActivityExecutionSpecifics)
-                        ((ModelSearchBasedActivityExecution<?, ?, ?, ?>) childExec).getExecutionSpecifics())
                 .collect(Collectors.toList());
     }
 }

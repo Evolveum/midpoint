@@ -49,7 +49,7 @@ class ItemProcessingMonitor<I> {
     @NotNull private final RunningTask workerTask;
 
     /** Execution of the related activity. */
-    @NotNull private final IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution;
+    @NotNull private final IterativeActivityExecution<I, ?, ?, ?> activityExecution;
 
     /** Definition of the monitoring (e.g. intervals, profile, points, etc). */
     @NotNull private final ActivityReportingDefinition reportingDefinition;

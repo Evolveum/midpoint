@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil.Interval;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -26,19 +27,20 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * TODO
+ * Execution for iterative mock activity.
  */
-class IterativeMockActivityExecutionSpecifics
-        extends BasePlainIterativeExecutionSpecificsImpl<
-                        Integer,
-                        IterativeMockWorkDefinition,
-                        IterativeMockActivityHandler> implements DebugDumpable {
+class IterativeMockActivityExecution
+        extends PlainIterativeActivityExecution
+        <Integer,
+                IterativeMockWorkDefinition,
+                IterativeMockActivityHandler,
+                AbstractActivityWorkStateType> implements DebugDumpable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(IterativeMockActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(IterativeMockActivityExecution.class);
 
-    IterativeMockActivityExecutionSpecifics(@NotNull PlainIterativeActivityExecution<Integer, IterativeMockWorkDefinition,
-            IterativeMockActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    IterativeMockActivityExecution(
+            @NotNull ExecutionInstantiationContext<IterativeMockWorkDefinition, IterativeMockActivityHandler> context) {
+        super(context, "Iterative mock activity");
     }
 
     @Override
@@ -51,14 +53,14 @@ class IterativeMockActivityExecutionSpecifics
     }
 
     @Override
-    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) {
-        IterativeMockWorkDefinition workDef = activityExecution.getActivity().getWorkDefinition();
+    public void iterateOverItemsInBucket(OperationResult result) {
+        IterativeMockWorkDefinition workDef = getWorkDefinition();
 
         Interval narrowed = NumericIntervalBucketUtil.getNarrowedInterval(bucket, workDef.getInterval());
 
         for (int item = narrowed.from; item < narrowed.to; item++) {
-            ItemProcessingRequest<Integer> request = new IterativeMockProcessingRequest(item, activityExecution);
-            if (!activityExecution.getCoordinator().submit(request, result)) {
+            ItemProcessingRequest<Integer> request = new IterativeMockProcessingRequest(item, this);
+            if (!coordinator.submit(request, result)) {
                 break;
             }
         }
@@ -66,19 +68,20 @@ class IterativeMockActivityExecutionSpecifics
 
     @Override
     public @Nullable Integer determineOverallSize(OperationResult result) {
-        return activityExecution.getActivity().getWorkDefinition().getInterval().getSize();
+        return getWorkDefinition().getInterval().getSize();
     }
 
     @Override
-    public @Nullable Integer determineCurrentBucketSize(WorkBucketType bucket, OperationResult result) {
+    public @Nullable Integer determineCurrentBucketSize(OperationResult result) {
         return NumericIntervalBucketUtil.getNarrowedInterval(
                         bucket,
-                        activityExecution.getActivity().getWorkDefinition().getInterval())
+                        getWorkDefinition().getInterval())
                 .getSize();
     }
 
     @Override
-    public boolean processItem(ItemProcessingRequest<Integer> request, RunningTask workerTask, OperationResult parentResult) {
+    public boolean processItem(@NotNull ItemProcessingRequest<Integer> request, @NotNull RunningTask workerTask,
+            @NotNull OperationResult parentResult) {
         Integer item = request.getItem();
         String message = getActivity().getWorkDefinition().getMessage() + item;
         LOGGER.info("Message: {}", message);
@@ -122,6 +125,6 @@ class IterativeMockActivityExecutionSpecifics
     public AbstractWorkSegmentationType resolveImplicitSegmentation(@NotNull ImplicitWorkSegmentationType segmentation) {
         return NumericIntervalBucketUtil.resolveImplicitSegmentation(
                 segmentation,
-                activityExecution.getActivity().getWorkDefinition().getInterval());
+                getWorkDefinition().getInterval());
     }
 }

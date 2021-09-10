@@ -57,7 +57,7 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     public AbstractActivityExecution<PropagationWorkDefinition, PropagationActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<PropagationWorkDefinition, PropagationActivityHandler> context,
             @NotNull OperationResult result) {
-        return new SearchBasedActivityExecution<>(context, "Propagation", PropagationActivityExecutionSpecifics::new);
+        return new PropagationActivityExecution(context);
     }
 
     @Override

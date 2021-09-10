@@ -7,10 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemCountingOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -21,20 +17,31 @@ import com.evolveum.midpoint.provisioning.api.AsyncUpdateEvent;
 import com.evolveum.midpoint.provisioning.api.AsyncUpdateEventHandler;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.task.*;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
+import com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemCountingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
-public class AsyncUpdateActivityExecutionSpecifics
-        extends BasePlainIterativeExecutionSpecificsImpl<AsyncUpdateEvent, AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler> {
+public class AsyncUpdateActivityExecution
+        extends PlainIterativeActivityExecution
+        <AsyncUpdateEvent,
+                AsyncUpdateWorkDefinition,
+                AsyncUpdateActivityHandler,
+                AbstractActivityWorkStateType> {
 
     private ResourceObjectClassSpecification objectClassSpecification;
 
-    AsyncUpdateActivityExecutionSpecifics(
-            @NotNull PlainIterativeActivityExecution<AsyncUpdateEvent, AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    AsyncUpdateActivityExecution(
+            @NotNull ExecutionInstantiationContext<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler> context) {
+        super(context, "Async update");
     }
 
     @Override
@@ -44,45 +51,46 @@ public class AsyncUpdateActivityExecutionSpecifics
                 .defaultDetermineOverallSize(ActivityOverallItemCountingOptionType.NEVER)
                 .persistentStatistics(true)
                 .enableActionsExecutedStatistics(true)
-                .enableSynchronizationStatistics(true); // TODO ok?
+                .enableSynchronizationStatistics(true);
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult) throws ActivityExecutionException, CommonException {
-        RunningTask runningTask = activityExecution.getRunningTask();
+    public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
+        RunningTask runningTask = getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
         objectClassSpecification = getModelBeans().syncTaskHelper
-                .createObjectClassSpec(resourceObjectSet, runningTask, opResult);
+                .createObjectClassSpec(resourceObjectSet, runningTask, result);
 
         objectClassSpecification.checkNotInMaintenance();
     }
 
     @Override
-    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult opResult)
+    public void iterateOverItemsInBucket(OperationResult opResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
             ConfigurationException, ExpressionEvaluationException {
 
         AsyncUpdateEventHandler handler = (event, hResult) -> {
             SyncItemProcessingRequest<AsyncUpdateEvent> request =
-                    new SyncItemProcessingRequest<>(event, activityExecution);
-            return getProcessingCoordinator().submit(request, hResult);
+                    new SyncItemProcessingRequest<>(event, this);
+            return coordinator.submit(request, hResult);
         };
 
-        RunningTask runningTask = activityExecution.getRunningTask();
+        RunningTask runningTask = getRunningTask();
         ModelImplUtils.clearRequestee(runningTask);
         getModelBeans().provisioningService
                 .processAsynchronousUpdates(objectClassSpecification.getCoords(), handler, runningTask, opResult);
     }
 
     @Override
-    public boolean processItem(ItemProcessingRequest<AsyncUpdateEvent> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ItemProcessingRequest<AsyncUpdateEvent> request,
+            @NotNull RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
         AsyncUpdateEvent event = request.getItem();
         if (event.isComplete()) {
             ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
             changeDescription.setItemProcessingIdentifier(request.getIdentifier());
-            changeDescription.setSimulate(activityExecution.isPreview());
+            changeDescription.setSimulate(isPreview());
             getModelBeans().eventDispatcher.notifyChange(changeDescription, workerTask, result);
         } else if (event.isNotApplicable()) {
             result.recordNotApplicable();

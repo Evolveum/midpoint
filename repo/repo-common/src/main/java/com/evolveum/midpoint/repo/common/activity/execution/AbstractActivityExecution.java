@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -447,5 +449,13 @@ public abstract class AbstractActivityExecution<
 
     public boolean isWorker() {
         return activityState.isWorker();
+    }
+
+    public @NotNull WD getWorkDefinition() {
+        return activity.getWorkDefinition();
+    }
+
+    public @NotNull ActivityDefinition<WD> getActivityDefinition() {
+        return activity.getDefinition();
     }
 }

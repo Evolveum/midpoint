@@ -14,8 +14,8 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,23 +25,25 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Execution of a multi-propagation task.
  */
-public class MultiPropagationActivityExecutionSpecifics
-        extends BaseSearchBasedExecutionSpecificsImpl
+public class MultiPropagationActivityExecution
+        extends SearchBasedActivityExecution
         <ResourceType,
                 MultiPropagationWorkDefinition,
-                MultiPropagationActivityHandler> {
+                MultiPropagationActivityHandler,
+                AbstractActivityWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MultiPropagationActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MultiPropagationActivityExecution.class);
 
-    MultiPropagationActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ResourceType,
-            MultiPropagationWorkDefinition, MultiPropagationActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    MultiPropagationActivityExecution(
+            @NotNull ExecutionInstantiationContext<MultiPropagationWorkDefinition, MultiPropagationActivityHandler> context) {
+        super(context, "Multi-propagation");
     }
 
     @Override

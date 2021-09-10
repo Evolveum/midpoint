@@ -10,7 +10,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -34,7 +34,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -43,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Implementing class for simple model-level search-based activity handlers.
  *
  * It makes writing non-composite activities a little bit easier. Generally the implementation should contain
- * an implementation of {@link WorkDefinition}, a subclass of {@link BaseSearchBasedExecutionSpecificsImpl}, and
+ * an implementation of {@link WorkDefinition}, a subclass of {@link SearchBasedActivityExecution}, and
  * a configuration code like {@link #getWorkDefinitionSupplier()}, {@link #getLegacyHandlerUri()}, and so on.
  */
 @Component
@@ -81,7 +80,7 @@ public abstract class SimpleActivityHandler<
     public AbstractActivityExecution<WD, SAH, ?> createExecution(
             @NotNull ExecutionInstantiationContext<WD, SAH> context,
             @NotNull OperationResult result) {
-        return new ModelSearchBasedActivityExecution<>(context, getShortName(), getSpecificSupplier());
+        return getExecutionSupplier().supply(context, getShortName());
     }
 
     protected abstract @NotNull QName getWorkDefinitionTypeName();
@@ -90,11 +89,19 @@ public abstract class SimpleActivityHandler<
 
     protected abstract @NotNull WorkDefinitionSupplier getWorkDefinitionSupplier();
 
-    protected abstract @NotNull SearchBasedSpecificsSupplier<O, WD, SAH> getSpecificSupplier();
+    protected abstract @NotNull ExecutionSupplier<O, WD, SAH> getExecutionSupplier();
 
     protected String getLegacyHandlerUri() {
         return null;
     }
 
     protected abstract @NotNull String getShortName();
+
+    public interface ExecutionSupplier<
+            O extends ObjectType,
+            WD extends WorkDefinition,
+            SAH extends SimpleActivityHandler<O, WD, SAH>> {
+        @NotNull SearchBasedActivityExecution<O, WD, SAH, AbstractActivityWorkStateType> supply(
+                ExecutionInstantiationContext<WD, SAH> context, String shortNameCapitalized);
+    }
 }

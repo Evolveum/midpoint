@@ -15,11 +15,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +24,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedTimeValidityTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -35,31 +32,41 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityPolicyConstraintType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Execution of a single focus validity scanner task part.
  */
-public class FocusValidityScanPartialExecutionSpecifics
-        extends ScanActivityExecutionSpecifics<FocusType, FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> {
+public class FocusValidityScanPartialExecution
+        extends ScanActivityExecution
+        <FocusType,
+                FocusValidityScanWorkDefinition,
+                FocusValidityScanActivityHandler> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(FocusValidityScanPartialExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FocusValidityScanPartialExecution.class);
 
     /** Determines whether we want to search for objects, assignments, or both at once. */
     @NotNull private final ScanScope scanScope;
 
-    FocusValidityScanPartialExecutionSpecifics(@NotNull SearchBasedActivityExecution<FocusType,
-            FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler, ?> activityExecution,
+    FocusValidityScanPartialExecution(
+            @NotNull ExecutionInstantiationContext<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> context,
             @NotNull ScanScope scanScope) {
-        super(activityExecution);
+        super(context, String.format("Validity scan (%s)", scanScope));
         this.scanScope = scanScope;
     }
 
@@ -146,11 +153,11 @@ public class FocusValidityScanPartialExecutionSpecifics
     private ObjectFilter createFilterForItemTimestamp(ItemPath path,
             XMLGregorianCalendar lowerBound, XMLGregorianCalendar upperBound) {
         if (lowerBound == null) {
-            return PrismContext.get().queryFor(activityExecution.getObjectType())
+            return PrismContext.get().queryFor(getObjectType())
                     .item(path).le(upperBound)
                     .buildFilter();
         } else {
-            return PrismContext.get().queryFor(activityExecution.getObjectType())
+            return PrismContext.get().queryFor(getObjectType())
                     .item(path).gt(lowerBound)
                     .and().item(path).le(upperBound)
                     .buildFilter();

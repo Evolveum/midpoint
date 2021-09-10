@@ -30,9 +30,9 @@ class StatisticsLogger {
 
     private static final Trace LOGGER = TraceManager.getTrace(StatisticsLogger.class);
 
-    @NotNull private final IterativeActivityExecution<?, ?, ?, ?, ?, ?> activityExecution;
+    @NotNull private final IterativeActivityExecution<?, ?, ?, ?> activityExecution;
 
-    StatisticsLogger(@NotNull IterativeActivityExecution<?, ?, ?, ?, ?, ?> activityExecution) {
+    StatisticsLogger(@NotNull IterativeActivityExecution<?, ?, ?, ?> activityExecution) {
         this.activityExecution = activityExecution;
     }
 
