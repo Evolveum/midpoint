@@ -12,5 +12,5 @@
     <assignment>
         <targetRef oid="d20aefe6-3ecf-11e7-8068-5f346db1cc00" type="RoleType"/> <!-- Controlling metarole -->
     </assignment>
-    <roleType>controlling</roleType>
+    <subtype>controlling</subtype>
 </role>

@@ -16,8 +16,12 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,7 +36,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -64,7 +67,6 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
     @Autowired private PrismContext prismContext;
-    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private RelationRegistry relationRegistry;
 
     @Override
@@ -113,8 +115,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
                                 + " Path={}, constraints={}", targetB, targetB.getAssignmentPath(), targetOrderConstraints);
                         continue;
                     }
-                    if (!oidMatches(constraint.getValue().getTargetRef(), targetB, prismContext, matchingRuleRegistry,
-                            "exclusion constraint")) {
+                    if (!refMatchesTarget(constraint.getValue().getTargetRef(), targetB.getTarget(), "exclusion constraint")) {
                         LOGGER.trace("Target {} OID does not match exclusion filter", targetB);
                         continue;
                     }
@@ -220,31 +221,40 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
         return Collections.singletonList(new OrderConstraintsType(prismContext).order(1));
     }
 
-    static boolean oidMatches(ObjectReferenceType constraintTargetRef, EvaluatedAssignmentTargetImpl assignmentTarget,
-            PrismContext prismContext, MatchingRuleRegistry matchingRuleRegistry, String context) throws SchemaException {
-        if (constraintTargetRef == null) {
-            return true; // this means we rely on comparing relations
+    /**
+     * @param reference Reference defined in the exclusion (or other) constraint. We match it against the object.
+     * @param object Object we want to match against the reference.
+     */
+    static boolean refMatchesTarget(ObjectReferenceType reference, PrismObject<?> object, String context)
+            throws SchemaException {
+        if (reference == null) {
+            return true; // this means we rely on comparing relations (represented by order constraints in exclusion case)
         }
-        if (assignmentTarget.getOid() == null) {
-            return false; // shouldn't occur
+        if (object.getOid() == null) {
+            LOGGER.warn("OID-less object to be matched against reference in a constraint: {}", object);
+            return false;
         }
-        if (constraintTargetRef.getOid() != null) {
-            return assignmentTarget.getOid().equals(constraintTargetRef.getOid());
+        if (reference.getOid() != null) {
+            return object.getOid().equals(reference.getOid());
         }
-        if (constraintTargetRef.getResolutionTime() == EvaluationTimeType.RUN) {
-            SearchFilterType filterType = constraintTargetRef.getFilter();
-            if (filterType == null) {
-                throw new SchemaException("No filter in " + context);
-            }
-            QName typeQName = constraintTargetRef.getType();
-            @SuppressWarnings("rawtypes")
-            PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(typeQName);
-            ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterType, objDef);
-            PrismObject<? extends AssignmentHolderType> target = assignmentTarget.getTarget();
-            return filter.match(target.getValue(), matchingRuleRegistry); // TODO check the type
-        } else {
-            throw new SchemaException("No OID in " + context);
+        if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
+            return filterMatches(reference, object, context);
         }
+        throw new SchemaException("Neither OID nor filter in " + context);
+    }
+
+    private static boolean filterMatches(@NotNull ObjectReferenceType reference, PrismObject<?> object, String context)
+            throws SchemaException {
+        QName typeNameLookingFor = MoreObjects.firstNonNull(reference.getType(), ObjectType.COMPLEX_TYPE);
+        @SuppressWarnings("rawtypes")
+        PrismObjectDefinition objectDefLookingFor = PrismContext.get().getSchemaRegistry()
+                .findObjectDefinitionByType(typeNameLookingFor);
+        if (!object.canRepresent(objectDefLookingFor.getCompileTimeClass())) {
+            return false;
+        }
+        SearchFilterType filterBean = MiscUtil.requireNonNull(reference.getFilter(), () -> "No filter in " + context);
+        ObjectFilter filter = PrismContext.get().getQueryConverter().parseFilter(filterBean, objectDefLookingFor);
+        return filter.match(object.getValue(), SchemaService.get().matchingRuleRegistry());
     }
 
     private <AH extends AssignmentHolderType> EvaluatedExclusionTrigger createTrigger(EvaluatedAssignmentImpl<AH> assignmentA,
