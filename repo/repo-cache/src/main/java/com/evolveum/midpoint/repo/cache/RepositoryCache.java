@@ -15,6 +15,7 @@ import java.util.List;
 import javax.annotation.PreDestroy;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -186,6 +187,20 @@ public class RepositoryCache implements RepositoryService, Cache {
             RepoModifyOptions options, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
         return modificationOpHandler.modifyObject(type, oid, modifications, precondition, options, parentResult);
+    }
+
+    @Override
+    public @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions,
+            @NotNull ModificationsSupplier<T> modificationsSupplier,
+            @Nullable RepoModifyOptions modifyOptions,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        // TODO implement properly, currently only to support tests, probably not used via cache in normal code
+        return repositoryService.modifyObjectDynamically(
+                type, oid, getOptions, modificationsSupplier, modifyOptions, parentResult);
     }
 
     @NotNull

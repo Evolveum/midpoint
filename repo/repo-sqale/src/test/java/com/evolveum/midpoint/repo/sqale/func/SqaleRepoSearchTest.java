@@ -15,6 +15,10 @@ import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -22,6 +26,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -897,23 +902,40 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test323ActivationOrAssignmentActivationBeforeDate() throws SchemaException {
-        // this is close to real-life validity query
+        XMLGregorianCalendar scanDate = createXMLGregorianCalendar("2022-01-01T00:00:00Z");
         searchUsersTest("having activation/valid* or assignment/activation/valid* before",
-                f -> f.item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM)
-                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                f -> f.item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(scanDate)
                         .or()
-                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)
-                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).le(scanDate)
                         .or()
                         .exists(UserType.F_ASSIGNMENT)
                         .block() // block necessary, otherwise the second item goes from User
-                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM)
-                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(scanDate)
                         .or()
-                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)
-                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).le(scanDate)
                         .endBlock(),
                 user1Oid, user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test324ActivationOrAssignmentActivationBetweenDates() throws SchemaException {
+        // taken from FocusValidityScanPartialExecutionSpecifics.createStandardFilter
+        XMLGregorianCalendar lastScanTimestamp = createXMLGregorianCalendar("2021-01-01T00:00:00Z");
+        XMLGregorianCalendar thisScanTimestamp = createXMLGregorianCalendar("2021-06-01T00:00:00Z");
+        searchUsersTest("having activation/valid* or assignment/activation/valid* between dates",
+                f -> f.item(F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
+                        .and().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+                        .or().item(F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
+                        .and().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+                        .or().exists(F_ASSIGNMENT)
+                        .block()
+                        .item(AssignmentType.F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
+                        .and().item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+                        .or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
+                        .and().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+                        .endBlock(),
+                user1Oid, user2Oid);
+        // user3 barely misses it, it has validFrom = lastSCanTimestamp, but the condition > is exclusive
     }
 
     @Test

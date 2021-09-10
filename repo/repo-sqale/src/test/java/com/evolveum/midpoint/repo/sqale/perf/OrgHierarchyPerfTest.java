@@ -45,7 +45,7 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
 
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = startTransaction()) {
             jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
             jdbcSession.commit();
         }

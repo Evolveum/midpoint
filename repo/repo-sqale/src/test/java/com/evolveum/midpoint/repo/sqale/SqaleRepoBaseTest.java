@@ -59,7 +59,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     @BeforeClass
     public void clearDatabase() {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
 
             jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
@@ -78,7 +78,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
         // this is "suite" scope code, but @BeforeSuite can't use injected fields
         if (!cacheTablesCleared) {
-            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            try (JdbcSession jdbcSession = startTransaction()) {
                 // We could skip default relation ID with .where(u.id.gt(0)), but it must work.
                 jdbcSession.newDelete(QUri.DEFAULT).execute();
                 jdbcSession.newDelete(QExtItem.DEFAULT).execute();
@@ -97,7 +97,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     // Called on demand
     public void clearAudit() {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = startTransaction()) {
             jdbcSession.executeStatement("TRUNCATE ma_audit_event CASCADE;");
             jdbcSession.commit();
             display("AUDIT tables cleared");
@@ -141,7 +141,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> long count(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             SQLQuery<?> query = jdbcSession.newQuery()
                     .from(path)
                     .where(conditions);
@@ -156,7 +156,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> List<R> select(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             return jdbcSession.newQuery()
                     .from(path)
                     .where(conditions)
@@ -174,7 +174,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> @Nullable R selectOneNullable(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             return jdbcSession.newQuery()
                     .from(path)
                     .where(conditions)
@@ -335,7 +335,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
         MExtItem.Key key = MExtItem.keyFrom(def, holder);
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             QExtItem ei = QExtItem.DEFAULT;
             return jdbcSession.newQuery()
                     .from(ei)
@@ -418,4 +418,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
     // endregion
+
+    protected JdbcSession startTransaction() {
+        return sqlRepoContext.newJdbcSession().startTransaction();
+    }
+
+    protected JdbcSession startReadOnlyTransaction() {
+        return sqlRepoContext.newJdbcSession().startReadOnlyTransaction();
+    }
 }
