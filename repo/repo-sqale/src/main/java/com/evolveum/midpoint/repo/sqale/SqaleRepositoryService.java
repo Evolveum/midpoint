@@ -97,6 +97,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private static final Collection<SelectorOptions<GetOperationOptions>> GET_FOR_UPDATE_OPTIONS =
             SchemaService.get().getOperationOptionsBuilder().retrieve().build();
 
+    public static final String REPOSITORY_IMPL_NAME = "SQaLe";
+
     private final SqlQueryExecutor sqlQueryExecutor;
 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
@@ -1461,7 +1463,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         logger.debug("Getting repository diagnostics.");
 
         RepositoryDiag diag = new RepositoryDiag();
-        diag.setImplementationShortName("SQaLe");
+        diag.setImplementationShortName(REPOSITORY_IMPL_NAME);
         diag.setImplementationDescription(
                 "Implementation that stores data in PostgreSQL database using JDBC with Querydsl.");
 
