@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -62,6 +64,9 @@ public class TestRbac extends AbstractRbacTest {
 
     private static final String LOCALITY_TORTUGA = "Tortuga";
 
+    private static final TestResource ROLE_NON_UNASSIGNABLE = new TestResource(TEST_DIR, "role-non-unassignable.xml", "26081889-83e2-461f-a8cc-4c9ef415a4ff");
+    private static final File GLOBAL_POLICY_RULES_ASSIGNMENT_DELETION = new File(TEST_DIR, "global-policy-rules-assignment-deletion.xml");
+
     private String userLemonheadOid;
     private String userSharptoothOid;
     private String userRedskullOid;
@@ -75,6 +80,8 @@ public class TestRbac extends AbstractRbacTest {
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
+
+        repoAdd(ROLE_NON_UNASSIGNABLE, initResult);
     }
 
     @Test
@@ -4795,7 +4802,41 @@ public class TestRbac extends AbstractRbacTest {
                 roleAfter.getDescription() != null && roleAfter.getDescription().startsWith("Modified by administrator on "));
     }
 
-    protected boolean testMultiplicityConstraintsForNonDefaultRelations() {
+    /**
+     * MID-7093
+     */
+    @Test
+    public void test930NonUnassignableRole() throws Exception {
+        final String TEST_NAME = "test930NonUnassignableRole";
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test930")
+                .beginAssignment()
+                    .targetRef(ROLE_NON_UNASSIGNABLE.oid, RoleType.COMPLEX_TYPE)
+                .end();
+        repoAddObject(user.asPrismObject(), result);
+
+        transplantGlobalPolicyRulesAdd(GLOBAL_POLICY_RULES_ASSIGNMENT_DELETION, task, result);
+
+        // WHEN
+        displayWhen();
+
+        try {
+            unassignRole(user.getOid(), ROLE_NON_UNASSIGNABLE.oid, task, result);
+            fail("unexpected success");
+        } catch (PolicyViolationException e) {
+            displayThen();
+            System.out.println("Got expected exception: " + e.getMessage());
+        } catch (Exception e) {
+            displayThen();
+            throw new AssertionError("Unexpected exception: " + e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean testMultiplicityConstraintsForNonDefaultRelations() {
         return true;
     }
 }

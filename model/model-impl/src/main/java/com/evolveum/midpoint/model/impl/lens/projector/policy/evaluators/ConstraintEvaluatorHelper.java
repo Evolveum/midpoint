@@ -69,7 +69,7 @@ public class ConstraintEvaluatorHelper {
                     LocalizationUtil.createLocalizableMessageType(createDisplayInformation(target, false)), LocalizableMessageType.class);
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
             AssignmentType assignmentType = actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE);
-            var.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentType, assignmentType.asPrismContainerValue().getDefinition());
+            var.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentType, AssignmentType.class);
         } else {
             PrismObjectDefinition<ObjectType> targetDef = rctx.lensContext.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
             var.put(ExpressionConstants.VAR_TARGET, null, targetDef);
