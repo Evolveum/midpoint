@@ -89,10 +89,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("reset closure");
-        try (JdbcSession jdbcSession = startTransaction()) {
-            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
-            jdbcSession.commit();
-        }
+        refreshOrgClosureForce();
         long baseCount = count(new QOrgClosure());
 
         and("user belonging to org hierarchy");
@@ -126,10 +123,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("reset closure");
-        try (JdbcSession jdbcSession = startTransaction()) {
-            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
-            jdbcSession.commit();
-        }
+        refreshOrgClosureForce();
         long baseCount = count(new QOrgClosure());
 
         given("user belonging to org hierarchy");

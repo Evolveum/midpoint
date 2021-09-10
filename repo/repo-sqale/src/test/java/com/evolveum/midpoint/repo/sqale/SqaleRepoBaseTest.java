@@ -355,6 +355,13 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
     }
 
+    protected void refreshOrgClosureForce() {
+        try (JdbcSession jdbcSession = startTransaction()) {
+            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
+            jdbcSession.commit();
+        }
+    }
+
     /**
      * Helper to make setting shadow attributes easier.
      *
