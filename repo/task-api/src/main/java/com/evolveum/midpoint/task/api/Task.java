@@ -59,7 +59,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  * @author Radovan Semancik
  * @author Pavol Mederly
  */
-public interface Task extends DebugDumpable, StatisticsCollector {
+public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
@@ -292,7 +292,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     /** Sets task execution constraints. */
     void setExecutionConstraints(TaskExecutionConstraintsType value);
 
-    /** Sets the execution group name (i.e. executionConstraints/group). */
+    /** Gets the execution group name (i.e. executionConstraints/group). */
     String getGroup();
 
     /** Returns names of all groups (primary plus all secondary ones). */
@@ -634,20 +634,20 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     /**
      * Returns task progress, as reported by task handler.
      */
-    long getProgress();
+    long getLegacyProgress();
 
     /**
      * Records _legacy_ progress of the task, storing it persistently if needed.
      */
-    void setProgress(Long value);
+    void setLegacyProgress(Long value);
 
     /**
      * Increments legacy progress without creating a pending modification.
      */
-    void incrementProgressTransient();
+    void incrementLegacyProgressTransient();
 
     /**
-     * "Immediate" version of {@link #setProgress(Long)}.
+     * "Immediate" version of {@link #setLegacyProgress(Long)}.
      *
      * BEWARE: this method can take quite a long time to execute, if invoked in a cycle.
      */
@@ -867,6 +867,14 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     //region Task tree related methods
     /**
+     * Looks for OID of the parent and the root of the task tree for this task.
+     *
+     * PRE: task is either persistent or is a {@link RunningTask}.
+     */
+    @NotNull ParentAndRoot getParentAndRoot(OperationResult result)
+            throws SchemaException, ObjectNotFoundException;
+
+    /**
      * Returns the path from this task to the task tree root. (Starts with this task, ends with the root.)
      */
     List<Task> getPathToRootTask(OperationResult result) throws SchemaException;
@@ -894,6 +902,19 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     /** Sets the profile to be used for future tracing within this task. */
     @Experimental
     void setTracingProfile(TracingProfileType tracingProfile);
+
+    //endregion
+
+    //region Reporting
+
+    /** Registers a {@link ConnIdOperationsListener}. */
+    @Experimental
+    void registerConnIdOperationsListener(@NotNull ConnIdOperationsListener listener);
+
+    /** Unregisters a {@link ConnIdOperationsListener}. */
+
+    @Experimental
+    void unregisterConnIdOperationsListener(@NotNull ConnIdOperationsListener listener);
 
     //endregion
 

@@ -33,4 +33,8 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcesso
 public interface FilterProcessor<O extends ObjectFilter> {
 
     Predicate process(O filter) throws RepositoryException;
+
+    default Predicate process(O filter, RightHandProcessor rightPath) throws RepositoryException {
+        throw new RepositoryException("Right hand side filter is not supported for " + filter.toString());
+    }
 }

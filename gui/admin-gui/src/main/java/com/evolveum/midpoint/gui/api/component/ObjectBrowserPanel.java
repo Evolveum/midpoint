@@ -49,6 +49,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     private static final String ID_WARNING_MESSAGE = "warningMessage";
 
     private static final String ID_BUTTON_ADD = "addButton";
+    private static final String ID_BUTTON_CANCEL = "cancelButton";
 
     private IModel<ObjectTypes> typeModel;
 
@@ -190,6 +191,15 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         });
 
         add(addButton);
+
+        AjaxButton cancelButton = new AjaxButton(ID_BUTTON_CANCEL,
+                createStringResource("Button.cancel")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                getPageBase().hideMainPopup(ajaxRequestTarget);
+            }
+        };
+        add(cancelButton);
     }
 
     protected void onClick(AjaxRequestTarget target, O focus) {
@@ -276,11 +286,6 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     @Override
     public String getHeightUnit(){
         return "px";
-    }
-
-    @Override
-    public StringResourceModel getTitle() {
-        return parentPage.createStringResource("ObjectBrowserPanel.chooseObject");
     }
 
     @Override

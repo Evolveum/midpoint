@@ -35,6 +35,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
 
     private ObjectFilter filter;
     private Set<Function<Search, SearchItem>> specialItemFunctions = Collections.emptySet();
+    private boolean onlyForDeltaComputation;
 
     public PrismReferenceWrapperImpl(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status) {
         super(parent, item, status);
@@ -150,5 +151,13 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     @Override
     public Optional<ComplexTypeDefinition> structuredType() {
         return getItemDefinition().structuredType();
+    }
+
+    public void setOnlyForDeltaComputation(boolean onlyForDeltaComputation) {
+        this.onlyForDeltaComputation = onlyForDeltaComputation;
+    }
+
+    public boolean isOnlyForDeltaComputation() {
+        return onlyForDeltaComputation;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,12 +17,11 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
  */
 public class ModelPublicConstants {
 
-    private static final String NS_SYNCHRONIZATION_PREFIX = SchemaConstants.NS_MODEL +"/synchronization";
+    private static final String NS_SYNCHRONIZATION_PREFIX = SchemaConstants.NS_MODEL + "/synchronization";
     public static final String NS_SYNCHRONIZATION_TASK_PREFIX = NS_SYNCHRONIZATION_PREFIX + "/task";
 
     public static final String DELETE_TASK_HANDLER_URI = NS_SYNCHRONIZATION_TASK_PREFIX + "/delete/handler-3"; // TODO why "synchronization"?
     public static final String REINDEX_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/reindex/handler-3";
-    public static final String AUDIT_REINDEX_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/auditReindex/handler-3";
     public static final String CLEANUP_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/cleanup/handler-3";
     public static final String SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/shadow-integrity-check/handler-3";
     public static final String OBJECT_INTEGRITY_CHECK_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/object-integrity-check/handler-3";
@@ -56,4 +55,7 @@ public class ModelPublicConstants {
     public static final String FOCUS_VALIDITY_SCAN_OBJECTS_ID = "objects";
     public static final String FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID = "assignments";
 
+    public static final ActivityPath FOCUS_VALIDITY_SCAN_FULL_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_FULL_ID);
+    public static final ActivityPath FOCUS_VALIDITY_SCAN_OBJECTS_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_OBJECTS_ID);
+    public static final ActivityPath FOCUS_VALIDITY_SCAN_ASSIGNMENTS_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID);
 }

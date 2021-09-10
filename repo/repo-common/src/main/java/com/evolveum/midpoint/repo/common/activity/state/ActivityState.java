@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,12 +45,16 @@ public abstract class ActivityState implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityState.class);
 
+    public static final @NotNull ItemPath PROGRESS_COMMITTED_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_COMMITTED);
+    public static final @NotNull ItemPath PROGRESS_UNCOMMITTED_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_UNCOMMITTED);
+    public static final @NotNull ItemPath EXPECTED_IN_CURRENT_PROGRESS_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_EXPECTED_IN_CURRENT_BUCKET);
+    public static final @NotNull ItemPath EXPECTED_TOTAL_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_EXPECTED_TOTAL);
     private static final @NotNull ItemPath BUCKETING_ROLE_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKETS_PROCESSING_ROLE);
     private static final @NotNull ItemPath SCAVENGER_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
 
     private static final int MAX_TREE_DEPTH = 30;
 
-    @NotNull private final CommonTaskBeans beans;
+    @NotNull protected final CommonTaskBeans beans;
 
     /**
      * Path to the work state container value related to this execution. Can be null if the state was not
@@ -76,7 +81,7 @@ public abstract class ActivityState implements DebugDumpable {
         return getRealizationState() == ActivityRealizationStateType.COMPLETE;
     }
 
-    public OperationResultStatusType getResultStatusRaw() {
+    OperationResultStatusType getResultStatusRaw() {
         return getTask().getPropertyRealValue(getResultStatusItemPath(), OperationResultStatusType.class);
     }
 
@@ -109,7 +114,7 @@ public abstract class ActivityState implements DebugDumpable {
                 .getPropertyRealValue(stateItemPath.append(path), expectedType);
     }
 
-    public <T> T getItemRealValueClone(ItemPath path, Class<T> expectedType) {
+    <T> T getItemRealValueClone(ItemPath path, Class<T> expectedType) {
         return getTask()
                 .getItemRealValueOrClone(stateItemPath.append(path), expectedType);
     }
@@ -120,15 +125,23 @@ public abstract class ActivityState implements DebugDumpable {
      */
     public void setItemRealValues(ItemPath path, Object... values) throws ActivityExecutionException {
         convertException(
-                () -> setItemRealValues(path, isSingleNull(values) ? List.of() : Arrays.asList(values)));
+                () -> setItemRealValuesInternal(path, isSingleNull(values) ? List.of() : Arrays.asList(values)));
     }
 
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
      */
-    public void setItemRealValues(ItemPath path, Collection<?> values) throws SchemaException {
+    public void setItemRealValuesCollection(ItemPath path, Collection<?> values) throws ActivityExecutionException {
+        convertException(
+                () -> setItemRealValuesInternal(path, values));
+    }
+
+    /**
+     * DO NOT use for setting work state items because of dynamic typing of the work state container value.
+     */
+    private void setItemRealValuesInternal(ItemPath path, Collection<?> values) throws SchemaException {
         Task task = getTask();
-        LOGGER.trace("setItemRealValues: path={}, values={} in {}", path, values, task);
+        LOGGER.trace("setItemRealValuesInternal: path={}, values={} in {}", path, values, task);
 
         task.modify(
                 PrismContext.get().deltaFor(TaskType.class)
@@ -137,14 +150,41 @@ public abstract class ActivityState implements DebugDumpable {
                         .asItemDelta());
     }
 
-    public void flushPendingModifications(OperationResult result)
+    /**
+     * DO NOT use for setting work state items because of dynamic typing of the work state container value.
+     */
+     public void addDeleteItemRealValues(@NotNull ItemPath path, @NotNull Collection<?> valuesToAdd,
+             @NotNull Collection<?> valuesToDelete)
+             throws ActivityExecutionException {
+        Task task = getTask();
+        LOGGER.trace("addDeleteItemRealValues: path={}, valuesToAdd={}, valuesToDelete={} in {}",
+                path, valuesToAdd, valuesToDelete, task);
+
+        convertException(
+                () -> task.modify(
+                        PrismContext.get().deltaFor(TaskType.class)
+                                .item(stateItemPath.append(path))
+                                .deleteRealValues(valuesToDelete)
+                                .addRealValues(valuesToAdd)
+                                .asItemDelta()));
+    }
+
+    /**
+     * Flushes pending task modifications.
+     * Note for implementers: this method should be equivalent to a direct call to {@link Task#flushPendingModifications(OperationResult)}.
+     */
+    public void flushPendingTaskModifications(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         getTask().flushPendingModifications(result);
     }
 
-    public void flushPendingModificationsChecked(OperationResult result) throws ActivityExecutionException {
+    /**
+     * Flushes pending task modifications.
+     * Note for implementers: this method should be equivalent to a direct call to {@link Task#flushPendingModifications(OperationResult)}.
+     */
+    public void flushPendingTaskModificationsChecked(OperationResult result) throws ActivityExecutionException {
         convertException("Couldn't update the task",
-                () -> flushPendingModifications(result));
+                () -> flushPendingTaskModifications(result));
     }
     //endregion
 
@@ -194,7 +234,7 @@ public abstract class ActivityState implements DebugDumpable {
     /**
      * @param explicitDefinition If present, we do not try to derive the definition from work state CTD.
      */
-    public void setWorkStateItemRealValues(ItemPath path, ItemDefinition<?> explicitDefinition, Collection<?> values)
+    private void setWorkStateItemRealValues(ItemPath path, ItemDefinition<?> explicitDefinition, Collection<?> values)
             throws SchemaException {
         Task task = getTask();
         LOGGER.trace("setWorkStateItemRealValues: path={}, values={} in {}", path, values, task);
@@ -272,9 +312,17 @@ public abstract class ActivityState implements DebugDumpable {
             throws SchemaException, ObjectNotFoundException {
         ActivityPath activityPath = getActivityPath();
         argCheck(!activityPath.isEmpty(), "Root activity has no parent");
-        return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, 0, beans, result);
+        return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, beans, result);
     }
 
+    /**
+     * Returns activity state for given path, crawling from the current task upwards.
+     *
+     * @param activityPath Path to activity for which to obtain activity state.
+     * @param task Task where to start searching.
+     * @param workStateTypeName Expected type of the work state.
+     */
+    @Experimental
     public static @NotNull ActivityState getActivityStateUpwards(@NotNull ActivityPath activityPath, @NotNull Task task,
             @NotNull QName workStateTypeName, @NotNull CommonTaskBeans beans, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
@@ -346,7 +394,7 @@ public abstract class ActivityState implements DebugDumpable {
     //endregion
 
     //region Counters (thresholds)
-    public Map<String, Integer> incrementCounters(ExecutionSupport.@NotNull CountersGroup counterGroup,
+    public Map<String, Integer> incrementCounters(@NotNull ExecutionSupport.CountersGroup counterGroup,
             @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         ItemPath counterGroupItemPath = stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());

@@ -7,21 +7,38 @@
 
 package com.evolveum.midpoint.task.quartzimpl.tasks;
 
+import static java.util.Collections.emptyList;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.*;
+import com.evolveum.midpoint.task.quartzimpl.LightweightTaskManager;
+import com.evolveum.midpoint.task.quartzimpl.LocalNodeState;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformationRetriever;
-import com.evolveum.midpoint.task.quartzimpl.execution.*;
+import com.evolveum.midpoint.task.quartzimpl.execution.StalledTasksWatcher;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.quartz.NextStartTimes;
 import com.evolveum.midpoint.util.Holder;
@@ -30,26 +47,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.ws.rs.core.Response;
-import java.util.*;
-
-import static java.util.Collections.emptyList;
 
 @Component
 public class TaskRetriever {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskRetriever.class);
     private static final String CLASS_DOT = TaskRetriever.class.getName() + ".";
-    private static final String OP_GET_ROOT_TASK_OID = CLASS_DOT + "getRootTaskOid";
-    public static final String OP_GET_TASK_SAFELY = CLASS_DOT + ".getTaskSafely";
+    private static final String OP_GET_PARENT_AND_ROOT = CLASS_DOT + "getParentAndRoot";
+    private static final String OP_GET_TASK_SAFELY = CLASS_DOT + ".getTaskSafely";
 
     @Autowired private LocalScheduler localScheduler;
     @Autowired private ClusterManager clusterManager;
@@ -185,7 +191,7 @@ public class TaskRetriever {
             operationStats.setLiveInformation(true);
         }
         task.setOperationStatsTransient(operationStats);
-        task.setProgressTransient(taskInMemory.getProgress());
+        task.setProgressTransient(taskInMemory.getLegacyProgress());
 
         // We intentionally do not try to get operation result from the task. OperationResult class is not thread-safe,
         // so it cannot be safely accessed from a different thread. It is not a big problem, because the result should be
@@ -259,7 +265,7 @@ public class TaskRetriever {
         }
     }
 
-    public List<PrismObject<TaskType>> listPersistentSubtasksForTask(String taskIdentifier, OperationResult result)
+    private List<PrismObject<TaskType>> listPersistentSubtasksForTask(String taskIdentifier, OperationResult result)
             throws SchemaException {
         if (StringUtils.isEmpty(taskIdentifier)) {
             return new ArrayList<>();
@@ -309,7 +315,6 @@ public class TaskRetriever {
             }
             tasks.add(taskInRepository);
         }
-        result.computeStatus();
         return new SearchResultList<>(tasks);
     }
 
@@ -403,7 +408,7 @@ public class TaskRetriever {
         }
     }
 
-    public List<TaskQuartzImpl> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result)
+    private List<TaskQuartzImpl> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result)
             throws SchemaException {
         List<TaskQuartzImpl> tasks = new ArrayList<>(taskPrisms.size());
         for (PrismObject<TaskType> taskPrism : taskPrisms) {
@@ -427,45 +432,6 @@ public class TaskRetriever {
             }
         }
         return tasks;
-    }
-
-    /**
-     * Looks for OID of the root of the task tree of the specified task.
-     * PRE: task is either persistent or is a RunningTask
-     */
-    @NotNull
-    public Task getRootTask(TaskQuartzImpl task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        if (task instanceof RunningTask) {
-            return ((RunningTask) task).getRootTask();
-        }
-
-        OperationResult result = parentResult.subresult(OP_GET_ROOT_TASK_OID)
-                .setMinor()
-                .build();
-        try {
-            Set<String> visited = new HashSet<>();
-            Task current = task;
-            for (;;) {
-                if (!visited.add(current.getTaskIdentifier())) {
-                    throw new IllegalStateException("Couldn't find root for " + task + " because there's a cycle");
-                }
-                String parentIdentifier = current.getParent();
-                if (parentIdentifier == null) {
-                    // Found the root!
-                    if (current.getOid() == null) {
-                        throw new IllegalStateException("Called getRootTaskOid for non-persistent task");
-                    }
-                    return current;
-                }
-                current = getTaskByIdentifier(parentIdentifier, result);
-            }
-
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -504,7 +470,7 @@ public class TaskRetriever {
         return repositoryService.getObject(TaskType.class, oid, options, result);
     }
 
-    public List<PrismObject<TaskType>> listPrerequisiteTasksRaw(TaskQuartzImpl task, OperationResult result) throws SchemaException {
+    private List<PrismObject<TaskType>> listPrerequisiteTasksRaw(TaskQuartzImpl task, OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(TaskType.class)
                 .item(TaskType.F_DEPENDENT).eq(task.getTaskIdentifier())
                 .build();
@@ -532,7 +498,7 @@ public class TaskRetriever {
         return subtasks;
     }
 
-    public List<PrismObject<TaskType>> listPersistentSubtasksRaw(TaskQuartzImpl task, OperationResult result) throws SchemaException {
+    private List<PrismObject<TaskType>> listPersistentSubtasksRaw(TaskQuartzImpl task, OperationResult result) throws SchemaException {
         if (task.isPersistent()) {
             return listPersistentSubtasksForTask(task.getTaskIdentifier(), result);
         } else {
@@ -593,4 +559,5 @@ public class TaskRetriever {
             result.computeStatusIfUnknown();
         }
     }
+
 }

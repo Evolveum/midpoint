@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 public class ItemPanelSettingsBuilder {
 
@@ -35,6 +36,11 @@ public class ItemPanelSettingsBuilder {
 
     public ItemPanelSettingsBuilder headerVisibility(boolean headerVisibility) {
         settings.setHeaderVisible(headerVisibility);
+        return this;
+    }
+
+    public ItemPanelSettingsBuilder panelConfiguration(ContainerPanelConfigurationType config) {
+        settings.setConfig(config);
         return this;
     }
 

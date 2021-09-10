@@ -40,15 +40,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by honchar.
  */
-public class AbstractRoleAssignmentPanel extends AssignmentPanel {
+public class AbstractRoleAssignmentPanel<AR extends FocusType> extends AssignmentPanel<AR> {
 
     private static final long serialVersionUID = 1L;
 
     protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
 
+    private ContainerPanelConfigurationType containerPanelConfigurationType;
+
     public AbstractRoleAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
         super(id, assignmentContainerWrapperModel);
+    }
+
+    public AbstractRoleAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, assignmentContainerWrapperModel, config);
     }
 
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
@@ -124,7 +130,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         if (assignment.getTargetRef() == null) {
             return Model.of("");
         }
-
         PrismObject<O> object = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(),
                 getPageBase().createSimpleTask(OPERATION_LOAD_TARGET_REF_OBJECT), new OperationResult(OPERATION_LOAD_TARGET_REF_OBJECT));
         if (object == null || !(object.asObjectable() instanceof AbstractRoleType)) {

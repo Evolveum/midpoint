@@ -8,9 +8,9 @@ package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.*;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.Url;
 
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -157,12 +157,13 @@ public class PageAuditLogDetails extends PageBase {
                         .item(AuditEventRecordType.F_REPO_ID)
                         .eq(eventIdentifier);
                 ObjectQuery query = filter.build();
-                OperationResult result = new OperationResult(OPERATION_LOAD_AUDIT_RECORD);
+                Task task = createSimpleTask(OPERATION_LOAD_AUDIT_RECORD);
+                OperationResult result = task.getResult();
                 SearchResultList<AuditEventRecordType> records = null;
                 try {
-                    records = getAuditService().searchObjects(query, null, result);
+                    records = getModelAuditService().searchObjects(query, null, task, result);
                     result.computeStatusIfUnknown();
-                } catch (SchemaException e) {
+                } catch (CommonException e) {
                     LOGGER.error("Cannot get audit record, reason: {}", e.getMessage(), e);
                     result.recordFatalError("Cannot get audit record, reason: " + e.getMessage(), e);
                 }

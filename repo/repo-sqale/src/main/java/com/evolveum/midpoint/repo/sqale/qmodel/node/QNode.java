@@ -8,10 +8,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.node;
 
 import java.sql.Types;
 
+import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
@@ -25,10 +27,14 @@ public class QNode extends QAssignmentHolder<MNode> {
 
     public static final ColumnMetadata NODE_IDENTIFIER =
             ColumnMetadata.named("nodeIdentifier").ofType(Types.VARCHAR);
+    public static final ColumnMetadata OPERATIONAL_STATE =
+            ColumnMetadata.named("operationalState").ofType(Types.OTHER);
 
     // columns and relations
 
     public final StringPath nodeIdentifier = createString("nodeIdentifier", NODE_IDENTIFIER);
+    public final EnumPath<NodeOperationalStateType> operationalState =
+            createEnum("operationalState", NodeOperationalStateType.class, OPERATIONAL_STATE);
 
     public QNode(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

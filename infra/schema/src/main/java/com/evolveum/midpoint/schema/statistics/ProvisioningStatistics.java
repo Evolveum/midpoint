@@ -11,10 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -55,27 +54,23 @@ public class ProvisioningStatistics {
         return value.clone();
     }
 
-    public synchronized void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
-            ProvisioningOperation operation, boolean success, int count, long duration) {
+    public synchronized void recordProvisioningOperation(@NotNull ConnIdOperation operation) {
 
-        LOGGER.trace("Recording provisioning operation {} on {}/{}", operation, resourceName, resourceOid);
+        LOGGER.trace("Recording provisioning operation {}", operation);
 
-        ObjectReferenceType resourceRef = new ObjectReferenceType();
-        resourceRef.setOid(resourceOid);
-        resourceRef.setType(ResourceType.COMPLEX_TYPE);
-        resourceRef.setTargetName(PolyStringType.fromOrig(resourceName));
+        ObjectReferenceType resourceRef = operation.getResourceRef();
 
         ProvisioningStatisticsType delta = new ProvisioningStatisticsType();
         delta.beginEntry()
                 .resourceRef(resourceRef)
-                .objectClass(objectClassName)
+                .objectClass(operation.getObjectClassDefName())
                 .beginOperation()
-                .operation(operation.getName())
-                   .status(success ? OperationResultStatusType.SUCCESS : OperationResultStatusType.FATAL_ERROR)
-                    .count(count)
-                    .totalTime(duration)
-                    .minTime(duration)
-                    .maxTime(duration);
+                .operation(operation.getOperation().getName())
+                   .status(operation.getStatusBean())
+                    .count(1)
+                    .totalTime(operation.getNetRunningTime())
+                    .minTime(operation.getNetRunningTime())
+                    .maxTime(operation.getNetRunningTime());
 
         addTo(this.value, delta);
     }

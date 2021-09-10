@@ -28,6 +28,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by honchar
  */
@@ -50,8 +54,12 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
 
     private String activeButtonId = ID_ALL_ASSIGNMENTS;
 
-    public SwitchAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
+    private ContainerPanelConfigurationType config;
+
+    public SwitchAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel,
+            ContainerPanelConfigurationType config) {
         super(id, assignmentContainerWrapperModel);
+        this.config = config;
     }
 
     @Override
@@ -71,13 +79,19 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                 getButtonsContainerVisibilityModel().getObject()));
         add(buttonsContainer);
 
+        List<ContainerPanelConfigurationType> subPanels = config.getPanel();
+        Map<String, ContainerPanelConfigurationType> panelsMap = new HashMap<>();
+        for (ContainerPanelConfigurationType subPanel : subPanels) {
+            panelsMap.put(subPanel.getIdentifier(), subPanel);
+        }
+
         AjaxButton allAssignmentsButton = new AjaxButton(ID_ALL_ASSIGNMENTS, createStringResource("AssignmentPanel.allLabel")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AssignmentPanel assignmentPanel =
-                        new AssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) {
+                        new AssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel(), panelsMap.get("allAssignments")) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -107,6 +121,18 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
         allAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ALL_ASSIGNMENTS)));
         allAssignmentsButton.setOutputMarkupId(true);
         allAssignmentsButton.setOutputMarkupPlaceholderTag(true);
+        allAssignmentsButton.add(new VisibleBehaviour(() -> {
+            ContainerPanelConfigurationType allAssignmentsConfig = panelsMap.get("allAssignments");
+            if (allAssignmentsConfig == null) {
+                return true;
+            }
+
+            UserInterfaceElementVisibilityType visibility = allAssignmentsConfig.getVisibility();
+            if (UserInterfaceElementVisibilityType.HIDDEN == visibility) {
+                return false;
+            }
+            return true;
+        }));
         buttonsContainer.add(allAssignmentsButton);
 
         AjaxButton roleTypeAssignmentsButton = new AjaxButton(ID_ROLE_TYPE_ASSIGNMENTS, createStringResource("ObjectType.RoleType")) {
@@ -115,7 +141,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AbstractRoleAssignmentPanel assignmentPanel =
-                        new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) {
+                        new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel(), panelsMap.get("roleAssignments")) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -158,7 +184,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AbstractRoleAssignmentPanel assignmentPanel =
-                        new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) {
+                        new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel(), panelsMap.get("orgAssignments")) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -200,7 +226,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AbstractRoleAssignmentPanel assignmentPanel =
-                        new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) {
+                        new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel(), panelsMap.get("serviceAssignments")) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -243,7 +269,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
             @Override
             public void onClick(AjaxRequestTarget target) {
                 ConstructionAssignmentPanel constructionsPanel =
-                        new ConstructionAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()){
+                        new ConstructionAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel(), panelsMap.get("resourceAssignments")){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -280,7 +306,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
             @Override
             public void onClick(AjaxRequestTarget target) {
                 PolicyRulesPanel policyRulesPanel =
-                        new PolicyRulesPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()){
+                        new PolicyRulesPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel(), panelsMap.get("policyRuleAssignments")){
                             private static final long serialVersionUID = 1L;
 
                             @Override

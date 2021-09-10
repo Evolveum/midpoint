@@ -10,11 +10,6 @@
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-         xmlns:my="http://myself.me/schemas/whatever"
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
@@ -25,7 +20,7 @@
     </user>
 
 
-    <task oid="1238546">
+    <task oid="20b4c5cd-d561-4e49-9634-515da8e47306">
         <name>Synchronization: Embedded Test OpenDJ1</name>
         <description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes
@@ -43,7 +38,7 @@
         </schedule>
     </task>
 
-    <task oid="1238546-1">
+    <task oid="20b4c5cd-d561-4e49-9634-515da8e47307">
         <name>OpenDJ1 child 1</name>
         <taskIdentifier>1238546-1</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
@@ -52,7 +47,7 @@
         <completionTimestamp>2013-05-07T10:38:21.350+02:00</completionTimestamp>
     </task>
 
-    <task oid="1238546-2">
+    <task oid="20b4c5cd-d561-4e49-9634-515da8e47308">
         <name>OpenDJ1 child 2</name>
         <taskIdentifier>1238546-2</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
@@ -62,7 +57,7 @@
     </task>
 
 
-    <task oid="1238547">
+    <task oid="20b4c5cd-d561-4e49-9634-515da8e47309">
         <name>Synchronization: Embedded Test OpenDJ2</name>
         <description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes
@@ -80,7 +75,7 @@
         </schedule>
     </task>
 
-    <task oid="1238548">
+    <task oid="20b4c5cd-d561-4e49-9634-515da8e47310">
         <name>Synchronization: Embedded Test OpenDJ3</name>
         <description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes

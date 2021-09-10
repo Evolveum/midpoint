@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.web.component;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxChannel;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -45,4 +47,12 @@ public abstract class AjaxButton extends AjaxLink<String> {
             tag.setType(XmlTag.TagType.OPEN);
         }
     }
+
+    @Override
+    protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+        super.updateAjaxAttributes(attributes);
+        attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
+        attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+    }
+
 }

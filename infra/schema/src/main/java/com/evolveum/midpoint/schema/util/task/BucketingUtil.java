@@ -7,16 +7,19 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.math.BigInteger;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.math.BigInteger;
-import java.util.Comparator;
-import java.util.List;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Methods related to bucketing part of an activity state and activity distribution definition.
@@ -27,6 +30,13 @@ public class BucketingUtil {
         return buckets.stream()
                 .filter(b -> b.getSequentialNumber() == sequentialNumber)
                 .findFirst().orElse(null);
+    }
+
+    public static @NotNull WorkBucketType findBucketByNumberRequired(List<WorkBucketType> buckets, int sequentialNumber) {
+        return buckets.stream()
+                .filter(b -> b.getSequentialNumber() == sequentialNumber)
+                .findFirst().orElseThrow(
+                        () -> new IllegalStateException("No bucket #" + sequentialNumber + " found"));
     }
 
     // beware: do not call this on prism structure directly (it does not support setting values)
@@ -42,6 +52,7 @@ public class BucketingUtil {
                     buckets.getStringSegmentation(),
                     buckets.getOidSegmentation(),
                     buckets.getExplicitSegmentation(),
+                    buckets.getImplicitSegmentation(),
                     buckets.getSegmentation());
         } else {
             return null;
@@ -49,12 +60,18 @@ public class BucketingUtil {
     }
 
     static int getCompleteBucketsNumber(ActivityBucketingStateType bucketing) {
-        if (bucketing == null) {
+        if (bucketing != null) {
+            return getCompleteBucketsNumber(bucketing.getBucket());
+        } else {
             return 0;
         }
+    }
+
+    /** Returns the number of buckets that are marked as COMPLETE. They may be implicitly present. */
+    public static int getCompleteBucketsNumber(@NotNull List<WorkBucketType> buckets) {
         Integer max = null;
         int notComplete = 0;
-        for (WorkBucketType bucket : bucketing.getBucket()) {
+        for (WorkBucketType bucket : buckets) {
             if (max == null || bucket.getSequentialNumber() > max) {
                 max = bucket.getSequentialNumber();
             }
@@ -108,10 +125,12 @@ public class BucketingUtil {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static boolean isCoordinator(ActivityStateType state) {
-        return state != null &&
-                state.getBucketing() != null &&
-                state.getBucketing().getBucketsProcessingRole() == BucketsProcessingRoleType.COORDINATOR;
+    public static boolean isCoordinator(@Nullable ActivityStateType state) {
+        return getBucketsProcessingRole(state) == BucketsProcessingRoleType.COORDINATOR;
+    }
+
+    public static boolean isStandalone(@Nullable ActivityStateType state) {
+        return getBucketsProcessingRole(state) == BucketsProcessingRoleType.STANDALONE;
     }
 
     public static @NotNull List<WorkBucketType> getBuckets(@NotNull TaskActivityStateType taskState,
@@ -130,15 +149,31 @@ public class BucketingUtil {
         return bucketing != null ? bucketing.getNumberOfBuckets() : null;
     }
 
-    public static BucketsProcessingRoleType getBucketsProcessingRole(TaskActivityStateType taskState, ItemPath stateItemPath) {
-        ActivityBucketingStateType bucketing = ActivityStateUtil.getActivityStateRequired(taskState, stateItemPath)
-                .getBucketing();
-        return bucketing != null ? bucketing.getBucketsProcessingRole() : null;
+    /** A little guesswork for now. */
+    @SuppressWarnings("unused") // Expected to be used later.
+    public static boolean hasNonTrivialBuckets(@NotNull ActivityStateType state) {
+        ActivityBucketingStateType bucketing = state.getBucketing();
+        if (bucketing == null) {
+            return false;
+        }
+        if (bucketing.getNumberOfBuckets() != null && bucketing.getNumberOfBuckets() > 1) {
+            return true;
+        }
+        List<WorkBucketType> buckets = bucketing.getBucket();
+        if (buckets.size() > 1) {
+            return true;
+        } else {
+            return buckets.size() == 1 &&
+                    buckets.get(0).getContent() != null &&
+                    !(buckets.get(0).getContent() instanceof NullWorkBucketContentType);
+        }
     }
 
-    public static boolean isStandalone(TaskActivityStateType taskState, ItemPath stateItemPath) {
-        BucketsProcessingRoleType bucketsProcessingRole = getBucketsProcessingRole(taskState, stateItemPath);
-        return bucketsProcessingRole == null || bucketsProcessingRole == BucketsProcessingRoleType.STANDALONE;
+    private static @NotNull BucketsProcessingRoleType getBucketsProcessingRole(@Nullable ActivityStateType state) {
+        ActivityBucketingStateType bucketing = state != null ? state.getBucketing() : null;
+        return MoreObjects.firstNonNull(
+                bucketing != null ? bucketing.getBucketsProcessingRole() : null,
+                BucketsProcessingRoleType.STANDALONE);
     }
 
     public static boolean isScavenger(TaskActivityStateType taskState, ActivityPath activityPath) {
@@ -146,7 +181,26 @@ public class BucketingUtil {
         return bucketing != null && Boolean.TRUE.equals(bucketing.isScavenger());
     }
 
+    public static boolean isInScavengingPhase(TaskActivityStateType taskState, ActivityPath activityPath) {
+        ActivityBucketingStateType bucketing = ActivityStateUtil.getActivityStateRequired(taskState, activityPath).getBucketing();
+        return bucketing != null && Boolean.TRUE.equals(bucketing.isScavenging());
+    }
+
     public static boolean isWorkComplete(ActivityStateType state) {
         return state != null && state.getBucketing() != null && Boolean.TRUE.equals(state.getBucketing().isWorkComplete());
+    }
+
+    public static @Nullable String getWorkerOid(@NotNull WorkBucketType bucket) {
+        return bucket.getWorkerRef() != null ? bucket.getWorkerRef().getOid() : null;
+    }
+
+    public static boolean isDelegatedTo(@NotNull WorkBucketType bucket, @NotNull String workerOid) {
+        return bucket.getState() == WorkBucketStateType.DELEGATED && workerOid.equals(getWorkerOid(bucket));
+    }
+
+    public static @NotNull Set<Integer> getSequentialNumbers(@NotNull Collection<WorkBucketType> buckets) {
+        return buckets.stream()
+                .map(WorkBucketType::getSequentialNumber)
+                .collect(Collectors.toSet());
     }
 }

@@ -378,10 +378,11 @@ public class ContextLoader implements ProjectorProcessor {
                 return;
             }
 
-            if (focusContext.getObjectCurrent() != null && ObjectDelta.isDelete(objectDelta)) {
-                // do not reload if the delta is delete. the reload will most likely fail anyway
-                // but DO NOT set the fresh flag in this case, it may be misleading
-                result.addReturnComment("Not loading as delta is DELETE");
+            if (focusContext.isDeleted()) {
+                focusContext.setObjectCurrent(null);
+                focusContext.setObjectNew(null);
+                focusContext.setFresh(true);
+                result.addReturnComment("Not loading as the focus was deleted");
                 return;
             }
 
@@ -533,8 +534,8 @@ public class ContextLoader implements ProjectorProcessor {
             return null;
         }
         PrismObject<F> object = context.getFocusContext().getObjectAny();
-        String explicitArchetypeOid = LensUtil.determineExplicitArchetypeOid(object);
-        return archetypeManager.determineArchetypePolicy(object, explicitArchetypeOid, result);
+//        String explicitArchetypeOid = LensUtil.determineExplicitArchetypeOid(object);
+        return archetypeManager.determineArchetypePolicy(object, result);
     }
 
     private <O extends ObjectType> boolean canProcessArchetype(LensContext<O> context) {
@@ -555,14 +556,8 @@ public class ContextLoader implements ProjectorProcessor {
 
         PrismObject<F> object = context.getFocusContext().getObjectAny();
 
-        String explicitArchetypeOid = LensUtil.determineExplicitArchetypeOid(object);
-        PrismObject<ArchetypeType> archetype = archetypeManager.determineArchetype(object, explicitArchetypeOid, result);
-
-        if (archetype == null) {
-            return;
-        }
-
-        context.getFocusContext().setArchetype(archetype.asObjectable());
+        List<PrismObject<ArchetypeType>> archetypes = archetypeManager.determineArchetypes(object, result);
+        context.getFocusContext().setArchetypes(PrismObject.asObjectableList(archetypes));
     }
 
     public <F extends ObjectType> void updateArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {

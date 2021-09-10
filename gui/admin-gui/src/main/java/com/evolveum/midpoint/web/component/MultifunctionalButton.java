@@ -60,8 +60,8 @@ public abstract class MultifunctionalButton extends BasePanel<MultiFunctinalButt
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
-                MultifunctionalButton.this.buttonClickPerformed(target, relationSepc, collectionViews);
+            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+                MultifunctionalButton.this.buttonClickPerformed(target, relationSpec, collectionViews);
             }
 
         };

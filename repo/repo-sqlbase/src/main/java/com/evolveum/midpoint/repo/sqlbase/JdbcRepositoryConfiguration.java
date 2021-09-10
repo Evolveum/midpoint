@@ -36,6 +36,9 @@ public interface JdbcRepositoryConfiguration {
     String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
     String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
 
+    String PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE = "iterativeSearchByPagingBatchSize";
+    String PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS = "createMissingCustomColumns";
+
     SupportedDatabase getDatabaseType();
     String getDataSource();
     String getDriverClassName();
@@ -102,8 +105,7 @@ public interface JdbcRepositoryConfiguration {
         return isUsing(SupportedDatabase.SQLSERVER);
     }
 
-    /**
-     * Returns true if the exception should cause transaction rollback.
-     */
-    boolean isFatalException(Throwable ex);
+    int getIterativeSearchByPagingBatchSize();
+
+    boolean isCreateMissingCustomColumns();
 }

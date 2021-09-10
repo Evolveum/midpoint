@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.*;
 import com.evolveum.midpoint.repo.common.activity.execution.DelegatingActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.DistributingActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
@@ -26,8 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
-import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -110,6 +108,14 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     public @NotNull ActivityDistributionDefinition getDistributionDefinition() {
         return definition.getDistributionDefinition();
+    }
+
+    public @NotNull ActivityReportingDefinition getReportingDefinition() {
+        return definition.getReportingDefinition();
+    }
+
+    public @NotNull ActivityControlFlowDefinition getControlFlowDefinition() {
+        return definition.getControlFlowDefinition();
     }
 
     @NotNull

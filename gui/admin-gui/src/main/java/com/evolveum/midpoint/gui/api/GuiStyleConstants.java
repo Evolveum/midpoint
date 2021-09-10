@@ -199,6 +199,8 @@ public class GuiStyleConstants {
     public static final String CLASS_PLAY = "fa fa-play";
     public static final String CLASS_PAUSE = "fa fa-pause";
 
+    public static final String ARROW_LEFT = "fa fa-arrow-left";
+
     public static final String EVO_CROW_ICON = "fe fe-crown-object";
     public static final String EVO_RIGHT_TOP_ARROW_ICON = "fe fe-arrow";
     public static final String EVO_ASSIGNMENT_ICON = "fe fe-assignment";
@@ -237,5 +239,9 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_TASK_RESULTS = "fa fa-list-alt";
 
     public static final String CLASS_ICON_SEARCH = "fa fa-search flip-icon";
+
+    public static final String CLASS_ICON_SAVE = "fa fa-save";
+    public static final String CLASS_ICON_PREVIEW = "fa fa-eye";
+    public static final String CLASS_ICON_REMOVE = "fa fa-remove";
 
 }

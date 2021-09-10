@@ -19,7 +19,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.Objects;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -88,8 +87,6 @@ public class OperationResult
     private static final ThreadLocal<OperationResultHandlingStrategyType> LOCAL_HANDLING_STRATEGY =
             new ThreadLocal<>();
 
-    private static final AtomicInteger LOG_SEQUENCE_COUNTER = new AtomicInteger(0);
-
     public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
     public static final String CONTEXT_PROGRESS = "progress";
     public static final String CONTEXT_OID = "oid";
@@ -125,7 +122,7 @@ public class OperationResult
     private Map<String, Collection<String>> params;
     private Map<String, Collection<String>> context;
     private Map<String, Collection<String>> returns;
-    private final List<String> qualifiers = new ArrayList<>();
+    @NotNull private final List<String> qualifiers = new ArrayList<>();
 
     private long token;
     private String messageCode;
@@ -152,9 +149,29 @@ public class OperationResult
 
     private final List<LogSegmentType> logSegments = new ArrayList<>();
 
-    private CompiledTracingProfile tracingProfile;      // NOT SERIALIZED
-    private boolean collectingLogEntries;               // NOT SERIALIZED
-    private boolean startedLoggingOverride;             // NOT SERIALIZED
+    // The following properties are NOT SERIALIZED
+    private CompiledTracingProfile tracingProfile;
+
+    /** Whether we should preserve the content of the result e.g. for the sake of reporting. */
+    private boolean preserve;
+
+    /**
+     * True if we collect log entries.
+     * Maybe it could be replaced by checking {@link #logRecorder} being not null and open?
+     */
+    private boolean collectingLogEntries;
+
+    /**
+     * Collects log entries for the current operation result. Directly updates {@link #logSegments}.
+     */
+    private transient LogRecorder logRecorder;
+
+    /**
+     * Log recorder for the parent operation result. Kept for safety check reasons.
+     */
+    private transient LogRecorder parentLogRecorder;
+
+    private boolean startedLoggingOverride;
 
     /**
      * After a trace rooted at this operation result is stored, the dictionary that was extracted is stored here.
@@ -239,6 +256,8 @@ public class OperationResult
         subresult.building = true;
         subresult.futureParent = this;
         subresult.tracingProfile = tracingProfile;
+        subresult.preserve = preserve;
+        subresult.parentLogRecorder = logRecorder;
         return subresult;
     }
 
@@ -277,7 +296,7 @@ public class OperationResult
                 LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
                 startedLoggingOverride = true;
             }
-            TracingAppender.openSink(this::appendLoggedEvents);
+            logRecorder = LogRecorder.open(logSegments, parentLogRecorder, this);
         }
         // TODO for very minor operation results (e.g. those dealing with mapping and script execution)
         //  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
@@ -287,18 +306,6 @@ public class OperationResult
         invocationRecord = OperationInvocationRecord.create(operation, arguments, measureCpuTime);
         invocationId = invocationRecord.getInvocationId();
         start = System.currentTimeMillis();
-    }
-
-    private void appendLoggedEvents(LoggingEventSink loggingEventSink) {
-        if (!loggingEventSink.getEvents().isEmpty()) {
-            LogSegmentType segment = new LogSegmentType();
-            segment.setSequenceNumber(LOG_SEQUENCE_COUNTER.getAndIncrement());
-            for (LoggedEvent event : loggingEventSink.getEvents()) {
-                segment.getEntry().add(event.getText());
-            }
-            logSegments.add(segment);
-            loggingEventSink.clearEvents();
-        }
     }
 
     private Object[] createArguments() {
@@ -320,8 +327,9 @@ public class OperationResult
         OperationResult subresult = new OperationResult(operation);
         subresult.recordCallerReason(this);
         addSubresult(subresult);
-        subresult.recordStart(operation, arguments);
+        subresult.parentLogRecorder = logRecorder;
         subresult.importance = minor ? MINOR : NORMAL;
+        subresult.recordStart(operation, arguments);
         return subresult;
     }
 
@@ -335,7 +343,7 @@ public class OperationResult
             microseconds = invocationRecord.getElapsedTimeMicros();
             cpuMicroseconds = invocationRecord.getCpuTimeMicros();
             if (collectingLogEntries) {
-                TracingAppender.closeCurrentSink();
+                logRecorder.close();
                 collectingLogEntries = false;
             }
             invocationRecord = null;
@@ -345,6 +353,16 @@ public class OperationResult
             LevelOverrideTurboFilter.cancelLoggingOverride();
             startedLoggingOverride = false;
         }
+    }
+
+    /**
+     * Checks if the recorder was correctly flushed. Used before writing the trace file.
+     */
+    public void checkLogRecorderFlushed() {
+        if (logRecorder != null) {
+            logRecorder.checkFlushed();
+        }
+        getSubresults().forEach(OperationResult::checkLogRecorderFlushed);
     }
 
     /**
@@ -460,10 +478,7 @@ public class OperationResult
     }
 
     /**
-     * Method returns list of operation subresults @{link
-     * {@link OperationResult}.
-     *
-     * @return never returns null
+     * Method returns list of operation subresults {@link OperationResult}.
      */
     @NotNull
     public List<OperationResult> getSubresults() {
@@ -503,6 +518,7 @@ public class OperationResult
         if (subresult.tracingProfile == null) {
             subresult.tracingProfile = tracingProfile;
         }
+        subresult.preserve = preserve;
     }
 
     public OperationResult findSubresult(String operation) {
@@ -553,6 +569,13 @@ public class OperationResult
         return status;
     }
 
+    public OperationResultStatusType getStatusBean() {
+        return OperationResultStatus.createStatusType(status);
+    }
+
+    /**
+     * Sets the status _without_ recording operation end.
+     */
     public void setStatus(OperationResultStatus status) {
         this.status = status;
     }
@@ -1007,6 +1030,10 @@ public class OperationResult
         return computePreview().status;
     }
 
+    public void close() {
+        computeStatusIfUnknown();
+    }
+
     public void computeStatusIfUnknown() {
         recordEnd();
         if (isUnknown()) {
@@ -1082,6 +1109,10 @@ public class OperationResult
             params = new HashMap<>();
         }
         return params;
+    }
+
+    public @Nullable ParamsType getParamsBean() {
+        return ParamsTypeUtil.toParamsType(getParams());
     }
 
     public Collection<String> getParam(String name) {
@@ -1204,6 +1235,10 @@ public class OperationResult
         return context;
     }
 
+    public @Nullable ParamsType getContextBean() {
+        return ParamsTypeUtil.toParamsType(getContext());
+    }
+
     @Override
     public OperationResult addContext(String name, String value) {
         getContext().put(name, collectionize(value));
@@ -1299,6 +1334,10 @@ public class OperationResult
             returns = new HashMap<>();
         }
         return returns;
+    }
+
+    public @Nullable ParamsType getReturnsBean() {
+        return ParamsTypeUtil.toParamsType(getReturns());
     }
 
     public Collection<String> getReturn(String name) {
@@ -1462,15 +1501,24 @@ public class OperationResult
 
     public void recordSuccess() {
         recordEnd();
+        setSuccess();
+    }
+
+    public void setSuccess() {
         // Success, no message or other explanation is needed.
         status = OperationResultStatus.SUCCESS;
     }
 
     public void recordInProgress() {
+        recordEnd();
+        setInProgress();
+    }
+
+    public void setInProgress() {
         status = OperationResultStatus.IN_PROGRESS;
     }
 
-    public void recordUnknown() {
+    public void setUnknown() {
         status = OperationResultStatus.UNKNOWN;
     }
 
@@ -1492,6 +1540,10 @@ public class OperationResult
 
     public void recordFatalErrorNotFinish(Throwable cause) {
         recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
+    }
+
+    public void recordFatalErrorNotFinish(String message, Throwable cause) {
+        recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, message, cause);
     }
 
     /**
@@ -1564,7 +1616,7 @@ public class OperationResult
         recordStatusNotFinish(status, message, cause);
     }
 
-    public void recordStatusNotFinish(OperationResultStatus status, String message, Throwable cause) {
+    private void recordStatusNotFinish(OperationResultStatus status, String message, Throwable cause) {
         this.status = status;
         this.message = message;
         this.cause = cause;
@@ -1599,6 +1651,10 @@ public class OperationResult
         // TODO: switch to a localized message later
         // Exception is a fatal error in this context
         recordFatalError(exception.getErrorTypeMessage(), exception);
+    }
+
+    public void recordStatus(OperationResultStatus status) {
+        recordStatus(status, (String) null);
     }
 
     public void recordStatus(OperationResultStatus status, String message) {
@@ -1744,9 +1800,9 @@ public class OperationResult
             resultType.setUserFriendlyMessage(msg);
         }
 
-        resultType.setParams(ParamsTypeUtil.toParamsType(opResult.getParams()));
-        resultType.setContext(ParamsTypeUtil.toParamsType(opResult.getContext()));
-        resultType.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
+        resultType.setParams(opResult.getParamsBean());
+        resultType.setContext(opResult.getContextBean());
+        resultType.setReturns(opResult.getReturnsBean());
 
         for (OperationResult subResult : opResult.getSubresults()) {
             resultType.getPartialResults().add(createOperationResultType(subResult, resolveKeys));
@@ -1770,7 +1826,7 @@ public class OperationResult
 
     public void summarize(boolean alsoSubresults) {
 
-        if (isTraced()) {
+        if (!canBeCleanedUp()) {
             return;
         }
 
@@ -1784,8 +1840,7 @@ public class OperationResult
                 // Already summarized
                 continue;
             }
-            if (subresult.isTraced()) {
-                // We don't want to summarize traced subresults.
+            if (!subresult.canBeCleanedUp()) {
                 continue;
             }
             if (subresult.isError() && summarizeErrors) {
@@ -1947,8 +2002,8 @@ public class OperationResult
      */
     public void cleanupResult(Throwable e) {
 
-        if (isTraced()) {
-            return;         // TEMPORARY fixme
+        if (!canBeCleanedUp()) {
+            return; // TEMPORARY fixme
         }
 
         OperationResultImportanceType preserveDuringCleanup = getPreserveDuringCleanup();
@@ -1981,6 +2036,11 @@ public class OperationResult
 
     private boolean canCleanup(OperationResultImportanceType preserveDuringCleanup) {
         return isLesserThan(importance, preserveDuringCleanup) && (status == OperationResultStatus.SUCCESS || status == OperationResultStatus.NOT_APPLICABLE);
+    }
+
+    // TODO better name
+    public boolean canBeCleanedUp() {
+        return !isTraced() && !preserve;
     }
 
     /**
@@ -2166,6 +2226,16 @@ public class OperationResult
 
     public OperationKindType getOperationKind() {
         return operationKind;
+    }
+
+    @Override
+    public OperationResultBuilder preserve() {
+        this.preserve = true;
+        return this;
+    }
+
+    public boolean isPreserve() {
+        return preserve;
     }
 
     @Override
@@ -2468,7 +2538,7 @@ public class OperationResult
         return traces;
     }
 
-    public List<String> getQualifiers() {
+    public @NotNull List<String> getQualifiers() {
         return qualifiers;
     }
 

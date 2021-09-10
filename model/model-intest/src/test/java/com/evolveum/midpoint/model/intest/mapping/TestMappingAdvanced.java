@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-21 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,20 +9,16 @@ package com.evolveum.midpoint.model.intest.mapping;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyGroup;
-
-import com.evolveum.midpoint.prism.polystring.PolyString;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -30,14 +26,13 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Various advanced tests related to mappings.
  *
  * NOT a subclass of AbstractMappingTest.
- *
- * TEMPORARILY DISABLED.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -170,9 +165,9 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
      *
      * The expected output is J. S. Bach. The mapping is "plus" because the assignment is being added.
      * The complication is that wave 0 is repeated twice:
-     *  - first execution fails on the conflict
-     *  - so we restart the wave -- but this time the assignment is not considered to be "plus",
-     *    because the primary delta is gone, and the assignment is part of the current focus object!
+     * - first execution fails on the conflict
+     * - so we restart the wave -- but this time the assignment is not considered to be "plus",
+     * because the primary delta is gone, and the assignment is part of the current focus object!
      */
     @Test
     public void test210AssignAlphaToJohannWithConflict() throws Exception {
@@ -289,7 +284,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
-                    .replace(PolyString.fromOrig("Magnus Carlsen"))
+                .replace(PolyString.fromOrig("Magnus Carlsen"))
                 .asObjectDelta(USER_MAGNUS.oid);
 
         when();
@@ -404,7 +399,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
-                    .replace(PolyString.fromOrig("Vladimir Kramnik"))
+                .replace(PolyString.fromOrig("Vladimir Kramnik"))
                 .asObjectDelta(USER_VLADIMIR.oid);
 
         when();

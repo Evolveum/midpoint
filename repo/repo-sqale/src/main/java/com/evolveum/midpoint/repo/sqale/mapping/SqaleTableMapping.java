@@ -18,19 +18,21 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
-import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.JsonbPolysPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.UuidItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -41,18 +43,19 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -62,7 +65,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Mapping superclass with common functions for {@link QObject} and non-objects (e.g. containers).
  * See javadoc in {@link QueryTableMapping} for more.
  *
- * Mappings are often initialized using static `init*(repositoryContext)` methods, various
+ * Mappings are typically initialized using static `init*(repositoryContext)` methods, various
  * suffixes are used for these reasons:
  *
  * * To differentiate various instances for the same mapping type, e.g. various references
@@ -72,10 +75,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * * And finally, to avoid accidental use of static method from the superclass (this should not
  * be even a thing!).
  *
- * Some subclasses (typically containers and refs) track their instances and avoid unnecessary
- * instance creation for the same init method; the instance is available via matching `get*()`.
- * Other subclasses (most objects) don't have `get*()` methods but can be obtained using
- * {@link QueryModelMappingRegistry#getByQueryType(Class)}, or by schema type (e.g. in tests).
+ * For object mappings the reuse is not that important and mapping is simply reinitialized.
+ * For container and ref mappings the same instance can be reused from various subclasses
+ * of object mapping and reuse is desired.
+ * Initialization method does not check only `null` but also forces reinitialization if different
+ * `repositoryContext` is provided; this is only used for testing purposes.
+ * Mappings are not built to be run with multiple repository contexts in the same runtime.
  *
  * [IMPORTANT]
  * ====
@@ -105,6 +110,12 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull Class<Q> queryType,
             @NotNull SqaleRepoContext repositoryContext) {
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
+
+    }
+
+    protected static boolean needsInitialization(
+            SqaleTableMapping<?, ?, ?> instance, SqaleRepoContext repositoryContext) {
+        return instance == null || instance.repositoryContext() != repositoryContext;
     }
 
     @Override
@@ -120,7 +131,15 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, StringPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
+    }
+
+    protected ItemSqlMapper<Q, R> binaryMapper(
+            Function<Q, ArrayPath<byte[], Byte>> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -132,7 +151,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, NumberPath<Integer>> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -144,7 +163,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, BooleanPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -154,8 +173,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     @Override
     protected ItemSqlMapper<Q, R> uuidMapper(Function<Q, UuidPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
-                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new UuidItemFilterProcessor(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -179,7 +198,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull Function<Q, StringPath> origMapping,
             @NotNull Function<Q, StringPath> normMapping) {
         return new SqaleItemSqlMapper<>(
-                ctx -> new PolyStringItemFilterProcessor(ctx, origMapping, normMapping),
+                ctx -> new PolyStringItemFilterProcessor<>(ctx, origMapping, normMapping),
                 ctx -> new PolyStringItemDeltaProcessor(ctx, origMapping, normMapping),
                 origMapping);
     }
@@ -206,18 +225,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Returns the mapper creating string multi-value filter/delta processors from context.
-     */
-    protected ItemSqlMapper<Q, R> multiStringMapper(
-            Function<Q, ArrayPath<String[], String>> rootToQueryItem) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new ArrayPathItemFilterProcessor<String, String>(
-                        ctx, rootToQueryItem, "TEXT", String.class, null),
-                ctx -> new ArrayItemDeltaProcessor<String, String>(
-                        ctx, rootToQueryItem, String.class, null));
-    }
-
-    /**
      * Returns the mapper creating poly-string multi-value filter/delta processors from context.
      */
     protected ItemSqlMapper<Q, R> multiPolyStringMapper(
@@ -228,24 +235,48 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
+     * Returns the mapper creating string multi-value filter/delta processors from context.
+     */
+    protected ItemSqlMapper<Q, R> multiStringMapper(
+            Function<Q, ArrayPath<String[], String>> rootToQueryItem) {
+        return multiValueMapper(rootToQueryItem, String.class, "TEXT", null, null);
+    }
+
+    /**
      * Returns the mapper creating cached URI multi-value filter/delta processors from context.
      */
     protected ItemSqlMapper<Q, R> multiUriMapper(
             Function<Q, ArrayPath<Integer[], Integer>> rootToQueryItem) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new ArrayPathItemFilterProcessor<>(
-                        ctx, rootToQueryItem, "INTEGER", Integer.class,
-                        ((SqaleRepoContext) ctx.repositoryContext())::searchCachedUriId),
-                ctx -> new ArrayItemDeltaProcessor<>(ctx, rootToQueryItem, Integer.class,
-                        ((SqaleRepoContext) ctx.repositoryContext())::processCacheableUri));
+        return multiValueMapper(rootToQueryItem, Integer.class, "INTEGER",
+                repositoryContext()::searchCachedUriId,
+                repositoryContext()::processCacheableUri);
     }
 
     /**
-     * Implemented for searchable containers that do not use fullObject for their recreation.
+     * Returns the mapper creating general array-stored multi-value filter/delta processors.
+     *
+     * @param <VT> real-value type from schema
+     * @param <ST> stored type (e.g. String for TEXT[])
+     * @param dbType name of the type for element in DB (without []) for the cast part of the condition
+     * @param elementType class necessary for array creation; must be a class convertable to {@code dbType} by PG JDBC driver
      */
+    protected <VT, ST> ItemSqlMapper<Q, R> multiValueMapper(
+            Function<Q, ArrayPath<ST[], ST>> rootToQueryItem,
+            Class<ST> elementType,
+            String dbType,
+            @Nullable Function<VT, ST> queryConversionFunction,
+            @Nullable Function<VT, ST> updateConversionFunction) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new ArrayPathItemFilterProcessor<>(
+                        ctx, rootToQueryItem, dbType, elementType, queryConversionFunction),
+                ctx -> new ArrayItemDeltaProcessor<>(
+                        ctx, rootToQueryItem, elementType, updateConversionFunction));
+    }
+
     @Override
-    public S toSchemaObject(R row) {
-        throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
+    public S toSchemaObject(R row) throws SchemaException {
+        throw new UnsupportedOperationException(
+                "Not implemented for " + getClass() + ". Perhaps use toSchemaObject(Tuple,...)?");
     }
 
     /**
@@ -262,6 +293,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     // TODO reconsider, if not necessary in 2023 DELETE (originally meant for ext item per column,
     //  but can this be used for adding index-only exts to schema object even from JSON?)
+
     @SuppressWarnings("unused")
     protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
         // empty by default, can be overridden
@@ -286,20 +318,36 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid.toString())
-                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(objectTypeToQName(repoObjectType))
                 .relation(resolveUriIdToQName(relationId));
     }
 
     /**
-     * Trimming the value to the column size from column metadata (must be specified).
+     * Object reference with target name.
      */
-    protected @Nullable String trim(
-            @Nullable String value, @NotNull ColumnMetadata columnMetadata) {
-        if (!columnMetadata.hasSize()) {
-            throw new IllegalArgumentException(
-                    "trimString with column metadata without specified size: " + columnMetadata);
+    @Nullable
+    protected ObjectReferenceType objectReference(
+            @Nullable UUID oid, MObjectType repoObjectType, String targetName) {
+        if (oid == null) {
+            return null;
         }
-        return MiscUtil.trimString(value, columnMetadata.getSize());
+        if (repoObjectType == null) {
+            throw new IllegalArgumentException(
+                    "NULL object type provided for object reference with OID " + oid);
+        }
+
+        return new ObjectReferenceType()
+                .oid(oid.toString())
+                .type(objectTypeToQName(repoObjectType))
+                .description(targetName)
+                .targetName(targetName);
+    }
+
+    @Nullable
+    protected QName objectTypeToQName(MObjectType objectType) {
+        return objectType != null
+                ? repositoryContext().schemaClassToQName(objectType.getSchemaType())
+                : null;
     }
 
     /**
@@ -346,10 +394,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return repositoryContext().resolveUriIdToQName(uriId);
     }
 
-    protected @Nullable UUID oidToUUid(@Nullable String oid) {
-        return oid != null ? UUID.fromString(oid) : null;
-    }
-
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
         return schemaType == null ? null :
                 MObjectType.fromSchemaType(repositoryContext().qNameToSchemaClass(schemaType));
@@ -363,11 +407,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected void setReference(ObjectReferenceType ref,
+    protected void setReference(Referencable ref,
             Consumer<UUID> targetOidConsumer, Consumer<MObjectType> targetTypeConsumer,
             Consumer<Integer> relationIdConsumer) {
         if (ref != null) {
-            targetOidConsumer.accept(oidToUUid(ref.getOid()));
+            if (ref.getType() == null) {
+                ref = SqaleUtils.referenceWithTypeFixed(ref);
+            }
+            targetOidConsumer.accept(SqaleUtils.oidToUUid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
             relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
         }
@@ -381,7 +428,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected String[] stringsToArray(List<String> strings) {
+    protected String[] stringsToArray(Collection<String> strings) {
         if (strings == null || strings.isEmpty()) {
             return null;
         }
@@ -403,7 +450,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull MExtItemHolderType holderType,
             @NotNull Function<Q, JsonbPath> rootToPath) {
         ExtensionMapping<Q, R> mapping =
-                new ExtensionMapping<>(holderType, queryType(), rootToPath);
+                new ExtensionMapping<>(holderType, queryType(), rootToPath, repositoryContext());
         addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, rootToPath));
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new ExtensionContainerDeltaProcessor<>(ctx, mapping, rootToPath)));
@@ -420,11 +467,15 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected S parseSchemaObject(byte[] fullObject, String identifier) throws SchemaException {
+        return parseSchemaObject(fullObject, identifier, schemaType());
+    }
+
+    protected <T> T parseSchemaObject(byte[] fullObject, String identifier, Class<T> clazz) throws SchemaException {
         String serializedForm = new String(fullObject, StandardCharsets.UTF_8);
         try {
-            RepositoryObjectParseResult<S> result =
-                    repositoryContext().parsePrismObject(serializedForm, schemaType());
-            S schemaObject = result.prismObject;
+            RepositoryObjectParseResult<T> result =
+                    repositoryContext().parsePrismObject(serializedForm, clazz);
+            T schemaObject = result.prismValue;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
                         schemaObject.toString(),
@@ -435,7 +486,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             // This is a serious thing. We have corrupted XML in the repo. This may happen even
             // during system init. We want really loud and detailed error here.
             logger.error("Couldn't parse object {} {}: {}: {}\n{}",
-                    schemaType().getSimpleName(), identifier,
+                    clazz.getSimpleName(), identifier,
                     e.getClass().getName(), e.getMessage(), serializedForm, e);
             throw e;
         }
@@ -443,6 +494,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Creates serialized (byte array) form of an object or a container. */
     public <C extends Containerable> byte[] createFullObject(C container) throws SchemaException {
+        repositoryContext().normalizeAllRelations(container.asPrismContainerValue());
         return repositoryContext().createStringSerializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
@@ -456,5 +508,34 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     protected Collection<? extends QName> fullObjectItemsToSkip() {
         // TODO extend later, things like FocusType.F_JPEG_PHOTO, see ObjectUpdater#updateFullObject
         return Collections.emptyList();
+    }
+
+    public S toSchemaObject(
+            Tuple result,
+            Q root,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull JdbcSession jdbcSession,
+            boolean forceFull) throws SchemaException {
+        S ret = toSchemaObject(result, root, options);
+        ret = resolveNames(ret, jdbcSession, options);
+        return ret;
+
+    }
+
+    protected S resolveNames(S object, JdbcSession session, Collection<SelectorOptions<GetOperationOptions>> options) {
+        // TODO: Performance: This could be transaction shared object
+        return ReferenceNameResolver.from(options).resolve(object, session);
+    }
+
+    @Override
+    public ResultListRowTransformer<S, Q, R> createRowTransformer(SqlQueryContext<S, Q, R> sqlQueryContext,
+            JdbcSession jdbcSession) {
+        return (tuple, entityPath, options) -> {
+            try {
+                return toSchemaObject(tuple, entityPath, options, jdbcSession, false);
+            } catch (SchemaException e) {
+                throw new RepositoryMappingException(e);
+            }
+        };
     }
 }

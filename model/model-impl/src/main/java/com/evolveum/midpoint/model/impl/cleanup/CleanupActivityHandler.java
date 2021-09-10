@@ -12,6 +12,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -59,10 +61,10 @@ public class CleanupActivityHandler
     }
 
     @Override
-    public @NotNull CleanupActivityExecution createExecution(
+    public @NotNull CompositeActivityExecution<CleanupWorkDefinition, CleanupActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<CleanupWorkDefinition, CleanupActivityHandler> context,
             @NotNull OperationResult result) {
-        return new CleanupActivityExecution(context);
+        return new CompositeActivityExecution<>(context);
     }
 
     @Override
@@ -79,7 +81,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.AUDIT_RECORDS, CleanupPoliciesType::getAuditRecords,
                                 (p, task, result1) -> auditService.cleanupAudit(p, result1)),
-                null, (i) -> Part.AUDIT_RECORDS.identifier,
+                null,
+                (i) -> Part.AUDIT_RECORDS.identifier,
                 stateDef,
                 parentActivity));
 
@@ -88,7 +91,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.CLOSED_TASKS, CleanupPoliciesType::getClosedTasks,
                                 (p, task, result1) -> taskManager.cleanupTasks(p, task, result1)),
-                null, (i) -> Part.CLOSED_TASKS.identifier,
+                null,
+                (i) -> Part.CLOSED_TASKS.identifier,
                 stateDef,
                 parentActivity));
 
@@ -97,7 +101,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.CLOSED_CASES, CleanupPoliciesType::getClosedCases,
                                 this::cleanupCases),
-                null, (i) -> Part.CLOSED_CASES.identifier,
+                null,
+                (i) -> Part.CLOSED_CASES.identifier,
                 stateDef,
                 parentActivity));
 
@@ -106,7 +111,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.DEAD_NODES, CleanupPoliciesType::getDeadNodes,
                                 (p, task, result1) -> taskManager.cleanupNodes(p, task, result1)),
-                null, (i) -> Part.DEAD_NODES.identifier,
+                null,
+                (i) -> Part.DEAD_NODES.identifier,
                 stateDef,
                 parentActivity));
 
@@ -115,7 +121,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.OUTPUT_REPORTS, CleanupPoliciesType::getOutputReports,
                                 (p, task, result1) -> cleanupReports(p, result1)),
-                null, (i) -> Part.OUTPUT_REPORTS.identifier,
+                null,
+                (i) -> Part.OUTPUT_REPORTS.identifier,
                 stateDef,
                 parentActivity));
 
@@ -124,14 +131,16 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.CLOSED_CERTIFICATION_CAMPAIGNS, CleanupPoliciesType::getClosedCertificationCampaigns,
                                 (p, task, result1) -> certificationService.cleanupCampaigns(p, task, result1)),
-                null, (i) -> Part.CLOSED_CERTIFICATION_CAMPAIGNS.identifier,
+                null,
+                (i) -> Part.CLOSED_CERTIFICATION_CAMPAIGNS.identifier,
                 stateDef,
                 parentActivity));
 
         return children;
     }
 
-    private void cleanupCases(CleanupPolicyType p, RunningTask task, OperationResult result1) throws SchemaException {
+    private void cleanupCases(CleanupPolicyType p, RunningTask task, OperationResult result1)
+            throws SchemaException, ObjectNotFoundException {
         if (workflowManager != null) {
             workflowManager.cleanupCases(p, task, result1);
         } else {

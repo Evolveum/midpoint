@@ -158,7 +158,7 @@ public class AuditTest extends BaseSQLRepoTest {
         context.sqlQuery().orderBy(aer.id.asc());
 
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            PageOf<MAuditEventRecord> result = context.executeQuery(jdbcSession.connection())
+            PageOf<MAuditEventRecord> result = context.executeQuery(jdbcSession)
                     .map(t -> t.get(aer));
 
             assertThat(result).hasSize(expectedCount);

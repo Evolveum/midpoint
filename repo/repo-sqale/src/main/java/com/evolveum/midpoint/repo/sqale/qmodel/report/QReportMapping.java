@@ -27,9 +27,7 @@ public class QReportMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QReportMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QReportMapping(repositoryContext);
-        }
+        instance = new QReportMapping(repositoryContext);
         return instance;
     }
 

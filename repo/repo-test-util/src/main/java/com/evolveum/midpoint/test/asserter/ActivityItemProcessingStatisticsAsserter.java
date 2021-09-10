@@ -63,7 +63,7 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
     }
 
     public ActivityItemProcessingStatisticsAsserter<RA> assertSuccessCount(int min, int max) {
-        assertBetween(getSuccessCount(), min, max, "Total success counter");
+        assertMinMax("Total success counter", min, max, getSuccessCount());
         return this;
     }
 
@@ -73,7 +73,7 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
     }
 
     public ActivityItemProcessingStatisticsAsserter<RA> assertFailureCount(int min, int max) {
-        assertBetween(getFailureCount(), min, max, "Total failure counter");
+        assertMinMax("Total failure counter", min, max, getFailureCount());
         return this;
     }
 
@@ -82,17 +82,14 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
         return this;
     }
 
-    public ActivityItemProcessingStatisticsAsserter<RA> assertLastFailureObjectName(String expected) {
-        assertEquals("Wrong 'last failure' object name", expected, getLastFailedObjectName());
+    public ActivityItemProcessingStatisticsAsserter<RA> assertLastSuccessObjectOid(String expected) {
+        assertEquals("Wrong 'last success' object oid", expected, getLastSuccessObjectOid());
         return this;
     }
 
-    private void assertBetween(int actual, int min, int max, String label) {
-        if (actual < min) {
-            fail(label + " (" + actual + ") is less than minimum expected (" + min + ")");
-        } else if (actual > max) {
-            fail(label + " (" + actual + ") is more than maximum expected (" + max + ")");
-        }
+    public ActivityItemProcessingStatisticsAsserter<RA> assertLastFailureObjectName(String expected) {
+        assertEquals("Wrong 'last failure' object name", expected, getLastFailedObjectName());
+        return this;
     }
 
     @Override
@@ -123,6 +120,10 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
 
     private String getLastSuccessObjectName() {
         return ActivityItemProcessingStatisticsUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isSuccess);
+    }
+
+    private String getLastSuccessObjectOid() {
+        return ActivityItemProcessingStatisticsUtil.getLastProcessedObjectOid(information, OutcomeKeyedCounterTypeUtil::isSuccess);
     }
 
     private String getLastFailedObjectName() {

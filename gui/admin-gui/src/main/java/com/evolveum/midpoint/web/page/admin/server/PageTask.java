@@ -378,11 +378,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public StringResourceModel getTitle() {
-                        return createStringResource("pageUsers.message.confirmActionPopupTitle");
-                    }
-
-                    @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         try {
                             deleteStatistics(target);
@@ -433,11 +428,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             public void onClick(AjaxRequestTarget target) {
                 ConfirmationPanel dialog = new ConfirmationPanel(getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupResults.confirmation")) {
                     private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public StringResourceModel getTitle() {
-                        return createStringResource("pageUsers.message.confirmActionPopupTitle");
-                    }
 
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
@@ -616,7 +606,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             String taskOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
             if (taskOid != null) {
                 if (saveAndRun) {
-                    result.recordInProgress();
+                    result.setInProgress();
                 }
                 result.setBackgroundTaskOid(taskOid);
             }

@@ -234,6 +234,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
                 SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        /*
+        TODO for new repo - why does it complain about raw when there is raw above?
+        java.lang.IllegalStateException: Raw value PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, Caribbean, namespace declarations)))
+         in item PP({.../resource/instance/10000000-0000-0000-0000-000000000004}location):[PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, Caribbean, namespace declarations)))]
+          (attributes/location in shadow:3a727816-70f7-4301-98ab-c1a0020d1ea2(jack))
+         */
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 

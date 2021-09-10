@@ -15,6 +15,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -174,9 +175,14 @@ class ResourceObjectReferenceResolver {
         return primaryIdentifiers;
     }
 
+    /**
+     * @param oidToReportAsNotFound When we know the shadow OID corresponding to the object being fetched, we should provide
+     * it here. It is stored in {@link ObjectNotFoundException} should that be thrown.
+     */
     PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
+            @Nullable String oidToReportAsNotFound,
             OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
@@ -198,28 +204,28 @@ class ResourceObjectReferenceResolver {
             resolvedIdentification.validatePrimaryIdenfiers();
             return connector.fetchObject(resolvedIdentification, attributesToReturn, ctx, parentResult);
         } catch (ObjectNotFoundException e) {
-            parentResult.recordFatalError(
-                    "Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
+            // Not finishing the result because we did not create it! (The same for other catch clauses.)
+            parentResult.recordFatalErrorNotFinish("Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
             throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
                         PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())+": "
-                    + e.getMessage(), e);
+                    + e.getMessage(), e, oidToReportAsNotFound);
         } catch (CommunicationException e) {
-            parentResult.recordFatalError("Error communication with the connector " + connector
+            parentResult.recordFatalErrorNotFinish("Error communication with the connector " + connector
                     + ": " + e.getMessage(), e);
             throw e;
         } catch (GenericFrameworkException e) {
-            parentResult.recordFatalError(
+            parentResult.recordFatalErrorNotFinish(
                     "Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
             throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
                     + e.getMessage(), e);
         } catch (SchemaException ex) {
-            parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
+            parentResult.recordFatalErrorNotFinish("Can't get resource object, schema error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ExpressionEvaluationException ex) {
-            parentResult.recordFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
+            parentResult.recordFatalErrorNotFinish("Can't get resource object, expression error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ConfigurationException e) {
-            parentResult.recordFatalError(e);
+            parentResult.recordFatalErrorNotFinish(e);
             throw e;
         }
     }

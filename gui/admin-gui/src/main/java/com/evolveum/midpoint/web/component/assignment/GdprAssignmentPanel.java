@@ -10,7 +10,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -27,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import javax.xml.namespace.QName;
 
-public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
+public class GdprAssignmentPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,6 +48,13 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
         super(id, assignmentContainerWrapperModel);
     }
 
+    public GdprAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, assignmentContainerWrapperModel, config);
+    }
+
+    public GdprAssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AssignmentHolderType.F_ASSIGNMENT), config);
+    }
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {

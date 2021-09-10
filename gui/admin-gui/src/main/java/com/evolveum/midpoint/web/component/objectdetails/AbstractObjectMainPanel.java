@@ -269,11 +269,6 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
                         parameters.add(PageDebugView.PARAM_OBJECT_TYPE, parentPage.getCompileTimeClass().getSimpleName());
                         parentPage.navigateToNext(PageDebugView.class, parameters);
                     }
-
-                    @Override
-                    public StringResourceModel getTitle() {
-                        return new StringResourceModel("pageUsers.message.confirmActionPopupTitle");
-                    }
                 };
 
                 parentPage.showMainPopup(confirmationPanel, target);

@@ -94,11 +94,6 @@ public abstract class ExpressionTypeSelectPopup extends BasePanel implements Pop
                 addExpressionPerformed(target, expressionType);
             }
 
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
-            }
         };
         add(select);
 
@@ -132,11 +127,6 @@ public abstract class ExpressionTypeSelectPopup extends BasePanel implements Pop
     @Override
     public String getHeightUnit() {
         return "%";
-    }
-
-    @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("ExpressionTypeSelectPopup.title");
     }
 
     @Override

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -231,6 +232,12 @@ public class ExpressionUtil {
                 // TODO should we attempt to convert Item to a list of PrismValues?
                 return typedValue;
             }
+        } else if (value instanceof Collection && ((Collection)value).iterator().next() instanceof PrismValue) {
+            if (valueVariableMode == ValueVariableModeType.REAL_VALUE) {
+                return convertPrismValuesToRealValue(typedValue);
+            } else {
+                return typedValue;
+            }
         } else {
             return typedValue;
         }
@@ -304,27 +311,41 @@ public class ExpressionUtil {
         }
     }
 
+    private static TypedValue<?> convertPrismValuesToRealValue(TypedValue<?> typedValue) {
+        Object collection = typedValue.getValue();
+        if (!(collection instanceof Collection)) {
+            return typedValue;
+        }
+        List realValues = new ArrayList();
+        ((Collection)collection).forEach(value -> realValues.add(convertPrismValueToRealValue(value)));
+        typedValue.setValue(realValues);
+        return typedValue;
+    }
+
     private static TypedValue<?> convertPrismValueToRealValue(TypedValue<?> typedValue) {
-        Object value = typedValue.getValue();
+        typedValue.setValue(convertPrismValueToRealValue(typedValue.getValue()));
+        return typedValue;
+    }
+    private static Object convertPrismValueToRealValue(Object value) {
         if (value instanceof PrismContainerValue<?>) {
             PrismContainerValue<?> cval = ((PrismContainerValue<?>) value);
             Class<?> containerCompileTimeClass = cval.getCompileTimeClass();
             if (containerCompileTimeClass == null) {
                 // Dynamic schema. We do not have anything to convert to. Leave it as PrismContainerValue
-                typedValue.setValue(value);
+                return value;
             } else {
-                typedValue.setValue(cval.asContainerable());
+                return cval.asContainerable();
             }
         } else if (value instanceof PrismPropertyValue<?>) {
-            typedValue.setValue(((PrismPropertyValue<?>) value).getValue());
+            return ((PrismPropertyValue<?>) value).getValue();
         } else if (value instanceof PrismReferenceValue) {
             if (((PrismReferenceValue) value).getDefinition() != null) {
-                typedValue.setValue(((PrismReferenceValue) value).asReferencable());
+                return ((PrismReferenceValue) value).asReferencable();
             }
         } else {
             // Should we throw an exception here?
         }
-        return typedValue;
+        return value;
     }
 
     private static TypedValue<?> resolveReference(TypedValue referenceTypedValue, String variableName,
@@ -624,23 +645,34 @@ public class ExpressionUtil {
             ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
 
             try {
-                PrismValue expressionResult = evaluateExpression(variables, prismContext, valueExpression, expressionProfile,
-                        filter, expressionFactory, shortDesc, task, result);
+                ItemDefinition outputDefinition = ((ValueFilter) filter).getDefinition();
+                if (outputDefinition == null) {
+                    outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+                            DOMUtil.XSD_STRING);
+                }
+                Collection<PrismValue> expressionResults = evaluateExpressionNative(null, variables, outputDefinition,
+                        valueExpression, expressionProfile, expressionFactory, shortDesc, task, result);
 
-                if (expressionResult == null || expressionResult.isEmpty()) {
+                List<PrismValue> nonEmptyResults = expressionResults.stream().filter(
+                        expressionResult -> expressionResult != null && !expressionResult.isEmpty()).collect(Collectors.toList());
+
+                if (nonEmptyResults.isEmpty()) {
                     LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
                             valueExpression);
 
                     return createFilterForNoValue(valueFilter, valueExpression, prismContext);
                 }
+
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
-                        shortDesc, expressionResult);
+                        shortDesc, nonEmptyResults);
 
                 ValueFilter evaluatedFilter = valueFilter.clone();
-                evaluatedFilter.setValue(expressionResult);
+                nonEmptyResults.forEach(expressionResult -> expressionResult.setParent(evaluatedFilter));
+                evaluatedFilter.setValue(null); //set fakeValue because of creating empty list
+                evaluatedFilter.getValues().addAll(nonEmptyResults);
                 evaluatedFilter.setExpression(null);
-                // }
+
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Transformed filter to:\n{}", evaluatedFilter.debugDump());
                 }
@@ -785,6 +817,26 @@ public class ExpressionUtil {
         LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
         return getExpressionOutputValue(outputTriple, shortDesc);
+    }
+
+    public static <V extends PrismValue, D extends ItemDefinition> Collection<V> evaluateExpressionNative(Collection<Source<?, ?>> sources,
+            VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
+            ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+        Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
+                shortDesc, task, parentResult);
+
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
+        context.setSkipEvaluationMinus(true); // no need to evaluate old state; we are interested in non-negative output values anyway
+        context.setExpressionFactory(expressionFactory);
+        context.setExpressionProfile(expressionProfile);
+        PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, parentResult);
+
+        LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
+
+        return outputTriple != null ?
+                outputTriple.getNonNegativeValues() : List.of();
     }
 
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(

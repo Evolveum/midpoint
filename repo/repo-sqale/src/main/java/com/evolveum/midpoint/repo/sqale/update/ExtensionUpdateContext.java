@@ -85,8 +85,7 @@ public class ExtensionUpdateContext<Q extends FlexibleRelationalPathBase<R>, R>
     @Override
     protected void finishExecutionOwn() throws SchemaException, RepositoryException {
         if (deletedItems.isEmpty() && changedItems.isEmpty()) {
-            throw new IllegalStateException(
-                    "Extension modification executed but no changes detected");
+            return; // we don't have to do anything in the DB
         }
 
         // We need to avoid NULL otherwise the operations lower return NULL too.

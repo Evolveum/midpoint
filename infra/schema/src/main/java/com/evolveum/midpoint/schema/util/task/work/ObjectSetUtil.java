@@ -36,11 +36,17 @@ public class ObjectSetUtil {
                 .type(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class))
                 .query(getQueryLegacy(source))
                 .searchOptions(getSearchOptionsLegacy(extension))
-                .useRepositoryDirectly(getUseRepositoryDirectly(extension));
+                .useRepositoryDirectly(getUseRepositoryDirectly(extension))
+                .failedObjectsSelector(getFailedObjectsSelector(extension));
     }
 
     private static Boolean getUseRepositoryDirectly(PrismContainerValue<?> extension) {
         return getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY, Boolean.class);
+    }
+
+    static FailedObjectsSelectorType getFailedObjectsSelector(PrismContainerValue<?> extension) {
+        return getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR,
+                FailedObjectsSelectorType.class);
     }
 
     static QueryType getQueryLegacy(@NotNull LegacyWorkDefinitionSource source) {
@@ -129,5 +135,9 @@ public class ObjectSetUtil {
         if (set.getType() == null) {
             set.setType(type);
         }
+    }
+
+    public static @NotNull ObjectSetType fromConfiguration(ObjectSetType configured) {
+        return configured != null ? configured : new ObjectSetType(PrismContext.get());
     }
 }

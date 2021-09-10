@@ -11,9 +11,10 @@ import java.util.function.Function;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberPath;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -23,7 +24,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <R> row type of {@link Q}
  */
 public class CountMappingResolver<Q extends FlexibleRelationalPathBase<R>, R>
-        implements ItemRelationResolver<Q, R, Q, R> {
+        implements SqaleItemRelationResolver<Q, R, Q, R> {
 
     private final Function<Q, NumberPath<Integer>> rootToCount;
 
@@ -40,5 +41,11 @@ public class CountMappingResolver<Q extends FlexibleRelationalPathBase<R>, R>
     /** This creates the predicate representing the EXISTS filter. */
     public Predicate createExistsPredicate(SqaleQueryContext<?, Q, R> context) {
         return rootToCount.apply(context.path()).gt(0);
+    }
+
+    @Override
+    public SqaleUpdateContext<?, ?, ?> resolve(
+            SqaleUpdateContext<?, Q, R> context, ItemPath itemPath) {
+        return null; // indicates ignore
     }
 }

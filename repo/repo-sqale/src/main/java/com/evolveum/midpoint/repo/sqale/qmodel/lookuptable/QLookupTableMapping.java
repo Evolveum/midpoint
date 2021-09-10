@@ -8,15 +8,34 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import javax.xml.namespace.QName;
 
+import com.google.common.base.Strings;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectSelector;
+import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
@@ -31,9 +50,7 @@ public class QLookupTableMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QLookupTableMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QLookupTableMapping(repositoryContext);
-        }
+        instance = new QLookupTableMapping(repositoryContext);
         return instance;
     }
 
@@ -74,4 +91,124 @@ public class QLookupTableMapping
                     QLookupTableRowMapping.get().insert(row, lookupTable, jdbcSession));
         }
     }
+
+    @Override
+    protected Collection<? extends QName> fullObjectItemsToSkip() {
+        return Collections.singleton(F_ROW);
+    }
+
+    @Override
+    public LookupTableType toSchemaObject(Tuple row, QLookupTable entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession session, boolean forceFull) throws SchemaException {
+        LookupTableType base = super.toSchemaObject(row, entityPath, options, session, forceFull);
+
+        if (forceFull || SelectorOptions.hasToLoadPath(F_ROW, options)) {
+            @Nullable GetOperationOptions rowOptions = findLookupTableGetOption(options);
+            appendLookupTableRows(row.get(0, UUID.class), base, rowOptions, session);
+        }
+
+        return base;
+    }
+
+    private void appendLookupTableRows(UUID ownerOid, LookupTableType base, GetOperationOptions rowOptions,
+            JdbcSession session) {
+        try {
+            RelationalValueSearchQuery queryDef = rowOptions == null ? null : rowOptions.getRelationalValueSearchQuery();
+            QLookupTableRowMapping rowMapping = QLookupTableRowMapping.get();
+            QLookupTableRow alias = rowMapping.defaultAlias();
+
+            BooleanExpression whereQuery = appendConditions(alias, alias.ownerOid.eq(ownerOid), queryDef);
+            SQLQuery<MLookupTableRow> query = session.newQuery()
+                    .from(alias)
+                    .select(alias)
+                    .where(whereQuery);
+
+            query = pagingAndOrdering(query, queryDef, rowMapping, alias);
+
+            List<MLookupTableRow> result = query.fetch();
+
+            for (MLookupTableRow r : result) {
+                LookupTableRowType lookupRow = new LookupTableRowType().key(r.key);
+                if (r.labelOrig != null || r.labelNorm != null) {
+                    lookupRow.label(PolyString.toPolyStringType(new PolyString(r.labelOrig, r.labelNorm)));
+                }
+                lookupRow.lastChangeTimestamp(MiscUtil.asXMLGregorianCalendar(r.lastChangeTimestamp));
+                lookupRow.value(r.value);
+                lookupRow.asPrismContainerValue().setId(r.cid);
+                base.getRow().add(lookupRow);
+            }
+        } catch (QueryException e) {
+            throw new SystemException("Unable to fetch nested table rows", e);
+        }
+    }
+
+    private BooleanExpression appendConditions(QLookupTableRow alias, BooleanExpression base, RelationalValueSearchQuery queryDef) throws QueryException {
+        if (queryDef == null || queryDef.getColumn() == null || queryDef.getSearchType() == null || Strings.isNullOrEmpty(queryDef.getSearchValue())) {
+            return base;
+        }
+        String value = queryDef.getSearchValue();
+        StringPath path = (StringPath) QLookupTableRowMapping.get().getItemMapper(queryDef.getColumn()).itemOrdering(alias, null);
+        BooleanExpression right;
+        if (LookupTableRowType.F_LABEL.equals(queryDef.getColumn())) {
+            path = alias.labelNorm;
+            var poly = new PolyString(value);
+            poly.recompute(prismContext().getDefaultPolyStringNormalizer());
+            value = poly.getNorm();
+        }
+
+        switch (queryDef.getSearchType()) {
+            case EXACT:
+                right = path.eq(value);
+                break;
+            case STARTS_WITH:
+                right = path.startsWith(value);
+                break;
+            case SUBSTRING:
+                right = path.contains(value);
+                break;
+            default:
+                throw new IllegalStateException();
+        }
+        return base.and(right);
+    }
+
+    private <R> SQLQuery<R> pagingAndOrdering(SQLQuery<R> query, RelationalValueSearchQuery queryDef, QLookupTableRowMapping rowMapping, QLookupTableRow alias) throws QueryException {
+        if (queryDef != null && queryDef.getPaging() != null) {
+            var paging = queryDef.getPaging();
+            if (paging.getOffset() != null) {
+                query = query.offset(paging.getOffset());
+            }
+            if (paging.getMaxSize() != null) {
+                query = query.limit(paging.getMaxSize());
+            }
+            for (ObjectOrdering ordering : paging.getOrderingInstructions()) {
+                Order direction = ordering.getDirection() == OrderDirection.DESCENDING ? Order.DESC : Order.ASC;
+                if (ordering.getOrderBy() == null || !ordering.getOrderBy().isSingleName()) {
+                    throw new SystemException("Only single name order path is supported");
+                }
+                @SuppressWarnings("rawtypes")
+                Expression path = rowMapping.itemMapper(ordering.getOrderBy().firstToQName()).itemOrdering(alias, null);
+                query.orderBy(new OrderSpecifier<>(direction, path));
+            }
+        }
+        return query;
+    }
+
+    private GetOperationOptions findLookupTableGetOption(Collection<SelectorOptions<GetOperationOptions>> options) {
+        Collection<SelectorOptions<GetOperationOptions>> filtered = SelectorOptions.filterRetrieveOptions(options);
+        for (SelectorOptions<GetOperationOptions> option : filtered) {
+            ObjectSelector selector = option.getSelector();
+            if (selector == null) {
+                // Ignore this. These are top-level options. There will not
+                // apply to lookup table
+                continue;
+            }
+            if (LookupTableType.F_ROW.equivalent(selector.getPath())) {
+                return option.getOptions();
+            }
+        }
+
+        return null;
+    }
+
 }

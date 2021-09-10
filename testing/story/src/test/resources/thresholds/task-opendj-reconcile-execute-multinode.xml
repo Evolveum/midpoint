@@ -27,7 +27,6 @@
                 </resourceObjects>
             </reconciliation>
         </work>
-        <executionMode>execute</executionMode>
         <distribution>
             <subtasks/>
         </distribution>

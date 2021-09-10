@@ -284,6 +284,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="useNewDesign" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            If the old or new design should be used. Temporary, will be removed in 4.5 when
+                            the old design will be fully replaced with the new one.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:displayName>AdminGuiConfigurationType.useNewDesign</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -741,6 +755,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="panel" type="tns:ContainerPanelConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies which panels will be show, in which order, ...
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -867,6 +890,28 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="expanded" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Defines if the contianer is expanded or collapsed by default. Default behavior depends on
+                                    various aspects. E.g. whether the container is multi-value, or container any values, ...
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>VirtualContainersSpecificationType.expanded</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>VirtualContainerItemSpecificationType.path</a:displayName>
+                                <a:since>4.4</a:since>
+                                <a:experimental/>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -887,6 +932,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>VirtualContainerItemSpecificationType.path</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>VirtualContainerItemSpecificationType.visibility</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2405,6 +2457,24 @@
                         Type of the widget. It is an identifier that specifies the type of the information (content)
                         of the widget.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DashboardWidgetDataType.sourceType</a:displayName>
+                        <a:help>DashboardWidgetDataType.sourceType.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displaySourceType" type="tns:DashboardWidgetSourceTypeType" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the widget. It is an identifier that override sourceType.
+                        This element is used only for number message in widget, for redirect
+                        to details page is still used sourceType.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:displayName>DashboardWidgetDataType.displaySourceType</a:displayName>
+                        <a:help>DashboardWidgetDataType.displaySourceType.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
@@ -2425,6 +2495,18 @@
                     <xsd:appinfo>
                         <a:displayName>DashboardWidgetDataType.objectRef</a:displayName>
                         <a:help>DashboardWidgetDataType.objectRef.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="storedData" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of a string data as a widget data source. This data can be stored by report task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:displayName>DashboardWidgetDataType.storedData</a:displayName>
+                        <a:help>DashboardWidgetDataType.storedData.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2473,6 +2555,17 @@
                     </xsd:appinfo>
                     <xsd:documentation>
                         Content of the widget will be based on data from a single object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="widgetData">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WIDGET_DATA"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Content of the widget will be based on data from a stored in widget.
+                        This data can be changed asynchronously.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -2889,7 +2982,7 @@
     <xsd:complexType name="CollectionSpecificationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specification of an explicit or implicit object collection, withough reference to the collection.
+                Specification of an explicit or implicit object collection, without reference to the collection.
                 This data structure expects that the collection is referenced implicitly (e.g. from policy rules).
             </xsd:documentation>
             <xsd:appinfo>
@@ -2898,7 +2991,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="interpretation" type="tns:CollectionSpecificationInterpretationType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="interpretation" type="tns:CollectionSpecificationInterpretationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2919,7 +3012,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+            <xsd:element name="relation" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Relation parameter for collection interpretations that depend on relation.
@@ -2930,7 +3023,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="depth" type="tns:CollectionSpecificationDepthType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="depth" type="tns:CollectionSpecificationDepthType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Depth parameter for collection interpretations that allow distinction between direct and indirect relation.
@@ -2960,7 +3053,7 @@
             <xsd:extension base="tns:CollectionSpecificationType">
                 <xsd:sequence>
                     <xsd:choice>
-                        <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0">
                             <xsd:annotation>
                                 <xsd:documentation>
                                     Reference to an object that defines the base of implicit or explicit collection.
@@ -2972,7 +3065,7 @@
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+                        <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
                             <xsd:annotation>
                                 <xsd:documentation>
                                     Filter for objectType. This filter can be use instead of reference of collection.
@@ -2984,7 +3077,7 @@
                             </xsd:annotation>
                         </xsd:element>
                     </xsd:choice>
-                    <xsd:element name="baseCollectionRef" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="baseCollectionRef" type="tns:CollectionRefSpecificationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to an object that defines the base of implicit or explicit collection.
@@ -3575,5 +3668,106 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+
+    <xsd:complexType name="ContainerPanelConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Generic panel usable for single-valued containers. It can be used to declaratively
+                    define custom panel or override current panels.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    List of containers to show on this panel
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="panelType" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Unique identifier used to reference panel to create. E.g. SingelContainerPanel, etc
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="listView" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specification of an explicit or implicit object collection that will be used to select objects in this view.
+                                If no collection is specified then it is assumed that all objects of a particular
+                                type has to be displayed (type element above is mandatory in that case).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:displayName>GuiObjectListViewType.collection</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Panel class identifying panel to create. E.g. SingelContainerPanel, etc
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Panel class identifying panel to create. E.g. SingelContainerPanel, etc
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="panel" type="tns:ContainerPanelConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Sub panel
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:elaborate>true</a:elaborate>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="default" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    If the panel is default.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="visibleForAdd" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    TRANSIENT. Temporary used for distinguish if the panel is visible while creating new object.
+                                    Some panels should be shown only for existing objects, e.g Cases panel, Triggers panel, etc.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
 </xsd:schema>

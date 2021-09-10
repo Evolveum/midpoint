@@ -161,7 +161,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private ClusterwideUserSessionManager clusterwideUserSessionManager;
     @Autowired private ContextLoader contextLoader;
-    @Autowired private AuditService auditService;
+    @Autowired private ModelAuditService modelAuditService;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -242,7 +242,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
             if (securityConstraints == null) {
                 // Nothing allowed => everything denied
-                result.setStatus(OperationResultStatus.NOT_APPLICABLE);
+                result.recordNotApplicable();
                 return null;
             } else {
                 applyArchetypePolicy(objectDefinition, object, result);
@@ -1712,7 +1712,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
-        return archetypeManager.determineArchetype(assignmentHolder, result);
+        return archetypeManager.determineStructuralArchetype(assignmentHolder, result);
     }
 
     @Override
@@ -1884,64 +1884,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> Collection<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, @NotNull Task task, @NotNull OperationResult parentResult) {
-
-        OperationResult result = parentResult.createMinorSubresult(OPERATION_DETERMINE_VIRTUAL_CONTAINERS);
-        Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
-        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
-
-            try {
-                ArchetypePolicyType archetypePolicyType = determineArchetypePolicy((PrismObject) object, result);
-                if (archetypePolicyType != null) {
-                    ArchetypeAdminGuiConfigurationType archetypeAdminGui = archetypePolicyType.getAdminGuiConfiguration();
-                    if (archetypeAdminGui != null) {
-                        GuiObjectDetailsPageType guiDetails = archetypeAdminGui.getObjectDetails();
-                        if (guiDetails != null && guiDetails.getContainer() != null) {
-                            virtualContainers.addAll(guiDetails.getContainer());
-                        }
-                    }
-                }
-            } catch (SchemaException | ConfigurationException e) {
-                LOGGER.error("Cannot determine virtual containers for {}, reason: {}", object, e.getMessage(), e);
-                result.recordPartialError("Cannot determine virtual containers for " + object + ", reason: " + e.getMessage(), e);
-            }
-
-        }
-
-        QName objectType = object.getDefinition().getTypeName();
-        try {
-            CompiledGuiProfile userProfile = getCompiledGuiProfile(task, result);
-            GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
-            if (objectDetailsSetType == null) {
-                result.recordSuccess();
-                return virtualContainers;
-            }
-            List<GuiObjectDetailsPageType> detailsPages = objectDetailsSetType.getObjectDetailsPage();
-            for (GuiObjectDetailsPageType detailsPage : detailsPages) {
-                if (objectType == null) {
-                    LOGGER.trace("Object type is not known, skipping considering custom details page settings.");
-                    continue;
-                }
-                if (detailsPage.getType() == null) {
-                    LOGGER.trace("Object type for details page {} not know, skipping considering custom details page settings.", detailsPage);
-                    continue;
-                }
-
-                if (QNameUtil.match(objectType, detailsPage.getType()) && detailsPage.getContainer() != null) {
-                    virtualContainers.addAll(detailsPage.getContainer());
-                }
-            }
-            result.recordSuccess();
-            return virtualContainers;
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-            LOGGER.error("Cannot determine virtual containers for {}, reason: {}", objectType, e.getMessage(), e);
-            result.recordPartialError("Cannot determine virtual containers for " + objectType + ", reason: " + e.getMessage(), e);
-            return virtualContainers;
-        }
-
-    }
-
-    @Override
     public void applyView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         collectionProcessor.compileView(existingView, objectListViewType);
     }
@@ -1952,6 +1894,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return policyProcessor.validateValue(getClearValue(protectedStringValue), pp, createOriginResolver(object, parentResult), "validate string", task, parentResult);
     }
 
+    // TODO deduplicate with getSearchSpecificationFromCollection
     @Override
     public void processObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables, Task task, OperationResult result, boolean recordProgress)
@@ -1975,28 +1918,69 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             task.setExpectedTotal(count);
         }
         if (AuditEventRecordType.class.equals(type)) {
-            checkOrdering(query, ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(), AuditEventRecordType.F_TIMESTAMP.getLocalPart())));
-            @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+            checkOrdering(query, ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(),
+                    AuditEventRecordType.F_TIMESTAMP.getLocalPart())));
+            @NotNull SearchResultList<AuditEventRecordType> auditRecords = modelAuditService.searchObjects(
+                    query, options, task, result);
             processContainerByHandler(auditRecords, handler);
         } else if (ObjectType.class.isAssignableFrom(type)) {
             ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test((PrismContainer)value);
             checkOrdering(query, ObjectType.F_NAME);
             modelService.searchObjectsIterative((Class<ObjectType>) type, query, resultHandler, options, task, result);
         } else {
-            SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, task, result);
+            SearchResultList<? extends Containerable> containers = modelService.searchContainers(
+                    type, query, options, task, result);
             processContainerByHandler(containers, handler);
         }
     }
 
-    private void checkOrdering(ObjectQuery query, ItemPath defaultOrderBy) {
+    @Override
+    public <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CompiledObjectCollectionView compiledCollection,
+            QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables,
+            Task task, OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+
+        SearchSpec<C> searchSpec = new SearchSpec<>();
+
+        Class<C> type;
+        if (typeForFilter != null) {
+            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        } else {
+            type = null;
+        }
+
+        if (compiledCollection != null) {
+            searchSpec.type = determineTypeForSearch(compiledCollection, typeForFilter);
+            searchSpec.query = parseFilterFromCollection(compiledCollection, variables, null, task, result);
+            searchSpec.options = determineOptionsForSearch(compiledCollection, defaultOptions);
+        } else {
+            searchSpec.type = type;
+            searchSpec.query = null;
+            searchSpec.options = defaultOptions;
+        }
+
+        if (AuditEventRecordType.class.equals(type)) {
+            searchSpec.query = checkOrdering(searchSpec.query, AuditEventRecordType.F_TIMESTAMP);
+        } else if (type != null && ObjectType.class.isAssignableFrom(type)) {
+            searchSpec.query = checkOrdering(searchSpec.query, ObjectType.F_NAME);
+        }
+        return searchSpec;
+    }
+
+    private ObjectQuery checkOrdering(ObjectQuery query, ItemPath defaultOrderBy) {
         if (query != null) {
             if (query.getPaging() == null) {
                 ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType(), prismContext);
                 paging.setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
                 query.setPaging(paging);
-            } else if (query.getPaging().getOrderBy() == null){
+            } else if (query.getPaging().getPrimaryOrderingPath() == null){
                 query.getPaging().setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
             }
+            return query;
+        } else {
+            return prismContext.queryFactory().createQuery(
+                    prismContext.queryFactory().createPaging(defaultOrderBy, OrderDirection.ASCENDING));
         }
     }
 
@@ -2030,15 +2014,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
 
         if (AuditEventRecordType.class.equals(type)) {
-            @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+            @NotNull SearchResultList<AuditEventRecordType> auditRecords = modelAuditService.searchObjects(
+                    query, options, task, result);
             return auditRecords.getList();
         } else if (ObjectType.class.isAssignableFrom(type)) {
-            SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects((Class<ObjectType>) type, query, options, task, result);
+            SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects(
+                    (Class<ObjectType>) type, query, options, task, result);
             List list = new ArrayList<Containerable>();
             results.forEach(object -> list.add(object.asObjectable()));
             return list;
         } else {
-            SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, task, result);
+            SearchResultList<? extends Containerable> containers = modelService.searchContainers(
+                    type, query, options, task, result);
             return containers.getList();
         }
     }
@@ -2066,7 +2053,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private Integer countObjectsFromCollectionByType(Class<? extends Containerable> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         if (AuditEventRecordType.class.equals(type)) {
-            return auditService.countObjects(query, options, result);
+            return modelAuditService.countObjects(query, options, task, result);
         } else if (ObjectType.class.isAssignableFrom(type)) {
             return modelService.countObjects((Class<ObjectType>) type, query, options, task, result);
         }
@@ -2080,7 +2067,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return compiledCollection.getOptions();
     }
 
-    private Class<? extends Containerable> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
+    private <C extends Containerable> Class<C> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
         if (compiledCollection.getTargetClass(prismContext) == null) {
             if (typeForFilter == null) {
                 LOGGER.error("Type of objects is null");
@@ -2092,7 +2079,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     }
 
-    private ObjectQuery parseFilterFromCollection(CompiledObjectCollectionView compiledCollection, VariablesMap variables, ObjectPaging usedPaging, Task task, OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+    private ObjectQuery parseFilterFromCollection(CompiledObjectCollectionView compiledCollection, VariablesMap variables,
+            ObjectPaging usedPaging, Task task, OperationResult result) throws ConfigurationException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
         ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
         if (filter == null) {

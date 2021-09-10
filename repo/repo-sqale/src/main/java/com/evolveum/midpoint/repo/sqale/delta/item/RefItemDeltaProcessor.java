@@ -13,6 +13,7 @@ import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -43,8 +44,7 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
      * @param <Q> entity query type from which the attribute is resolved
      * @param <R> row type related to {@link Q}
      */
-    // exposed mainly for RefTableItemFilterProcessor
-    <Q extends FlexibleRelationalPathBase<R>, R> RefItemDeltaProcessor(
+    private <Q extends FlexibleRelationalPathBase<R>, R> RefItemDeltaProcessor(
             SqaleUpdateContext<?, Q, R> context,
             UuidPath oidPath, EnumPath<MObjectType> typePath, NumberPath<Integer> relationIdPath) {
         super(context);
@@ -55,6 +55,7 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
 
     @Override
     public void setValue(Referencable value) {
+        value = SqaleUtils.referenceWithTypeFixed(value);
         context.set(oidPath, UUID.fromString(value.getOid()));
         context.set(typePath, MObjectType.fromTypeQName(value.getType()));
         context.set(relationIdPath,

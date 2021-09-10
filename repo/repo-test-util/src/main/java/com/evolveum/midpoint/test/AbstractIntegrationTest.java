@@ -13,8 +13,6 @@ import static com.evolveum.midpoint.task.api.TaskDebugUtil.suspendedWithErrorCol
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.SUCCESS;
-
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -36,6 +34,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
@@ -54,6 +53,7 @@ import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 
+import com.evolveum.midpoint.test.ObjectCreator.RealCreator;
 import com.evolveum.midpoint.test.asserter.*;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -259,6 +259,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
         initSystem(initTask, result);
         postInitSystem(initTask, result);
+
+        taskManager.registerNodeUp(result);
 
         result.computeStatus();
         IntegrationTestTools.display("initSystem result", result);
@@ -2800,6 +2802,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return shadow;
     }
 
+    protected PrismObject<ShadowType> getShadowRepoRetrieveAllAttributes(String shadowOid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        // We need to read the shadow as raw, so repo will look for some kind of rudimentary attribute
+        // definitions here. Otherwise we will end up with raw values for non-indexed (cached) attributes
+        logger.info("Getting repo shadow {}", shadowOid);
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                .raw()
+                .item(ShadowType.F_ATTRIBUTES).retrieve()
+                .build();
+        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, options, result);
+        logger.info("Got repo shadow\n{}", shadow.debugDumpLazily(1));
+        assertSuccess(result);
+        return shadow;
+    }
+
     protected Collection<ObjectDelta<? extends ObjectType>> createDetlaCollection(ObjectDelta<?>... deltas) {
         return (Collection) MiscUtil.createCollection(deltas);
     }
@@ -2864,12 +2881,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertEquals("Wrong relation " + qname + " label", expectedLabel, relDef.getDisplay().getLabel().getOrig());
     }
 
-    protected void initializeAsserter(AbstractAsserter<?> asserter) {
+    protected <A extends AbstractAsserter<?>> A initializeAsserter(A asserter) {
         asserter.setPrismContext(prismContext);
         asserter.setObjectResolver(repoSimpleObjectResolver);
         asserter.setRepositoryService(repositoryService);
         asserter.setProtector(protector);
         asserter.setClock(clock);
+        return asserter;
     }
 
     protected PolyStringAsserter<Void> assertPolyString(PolyString polystring, String desc) {
@@ -3032,6 +3050,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
+    /** Implants worker threads to the root activity definition. */
     protected Consumer<PrismObject<TaskType>> rootActivityWorkerThreadsCustomizer(int threads) {
         return taskObject -> {
             if (threads != 0) {
@@ -3042,6 +3061,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         };
     }
 
+    /** Implants worker threads to the component activities definitions. */
+    protected Consumer<PrismObject<TaskType>> compositeActivityWorkerThreadsCustomizer(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                ActivityDefinitionType activityDef = requireNonNull(
+                        taskObject.asObjectable().getActivity(), "no activity definition");
+                activityDef.getComposition().getActivity()
+                        .forEach(a ->
+                                ActivityDefinitionUtil.findOrCreateDistribution(a)
+                                        .setWorkerThreads(threads));
+            }
+        };
+    }
+
+    /** Implants worker threads to embedded activities definitions (via tailoring). */
     protected Consumer<PrismObject<TaskType>> tailoringWorkerThreadsCustomizer(int threads) {
         return taskObject -> {
             if (threads != 0) {
@@ -3226,6 +3260,35 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }, timeoutInterval, sleepInterval);
     }
 
+    protected void waitForTaskTreeCloseOrCondition(String taskOid, OperationResult result,
+            long timeoutInterval, long sleepInterval, @NotNull Predicate<List<Task>> predicate) throws CommonException {
+        waitFor("Waiting for task manager to finish the task", () -> {
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                    .item(TaskType.F_RESULT).retrieve()
+                    .build();
+            List<Task> allTasks = new ArrayList<>();
+            Task task = taskManager.getTaskPlain(taskOid, options, result);
+            String dump = TaskDebugUtil.dumpTaskTree(task, allTasks::add, result);
+            displayValue("Task tree while waiting", dump);
+            if (task.isClosed()) {
+                display("Task is closed, finishing waiting: " + task);
+                return true;
+            }
+
+            if (predicate.test(allTasks)) {
+                display("Predicate is true, done waiting");
+                return true;
+            }
+            return false;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected Predicate<List<Task>> tasksClosedPredicate(int expectedNumber) {
+        return tasks -> tasks.stream()
+                .filter(Task::isClosed)
+                .count() == expectedNumber;
+    }
+
     protected void waitForTaskStart(String oid, OperationResult result, long timeoutInterval, long sleepInterval) throws CommonException {
         waitFor("Waiting for task manager to start the task", () -> {
             Task task = taskManager.getTaskWithResult(oid, result);
@@ -3239,7 +3302,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         waitFor("Waiting for task progress reaching " + threshold, () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             displaySingleTask("Task while waiting for progress reaching " + threshold, task);
-            return task.getProgress() >= threshold;
+            return task.getLegacyProgress() >= threshold;
         }, timeoutInterval, sleepInterval);
     }
 
@@ -3315,17 +3378,25 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
+    protected void assertBucketState(Task task, int sequentialNumber, WorkBucketStateType expectedState) {
+        ActivityStateType state = ActivityStateUtil.getActivityStateRequired(task.getActivitiesStateOrClone(), ActivityPath.empty());
+        assertThat(state.getBucketing()).as("bucketing state").isNotNull();
+        WorkBucketType bucket = BucketingUtil.findBucketByNumber(state.getBucketing().getBucket(), sequentialNumber);
+        assertThat(bucket).as("bucket #" + sequentialNumber).isNotNull();
+        assertThat(bucket.getState()).as("bucket #" + sequentialNumber + " state").isEqualTo(expectedState);
+    }
+
     protected void assertNumberOfBuckets(Task task, Integer expectedNumber, ActivityPath activityPath) {
         ActivityStateType workState = ActivityStateUtil.getActivityStateRequired(task.getWorkState(), activityPath);
         assertEquals("Wrong # of expected buckets", expectedNumber, getNumberOfBuckets(workState));
     }
 
-    protected void assertCachingProfiles(Task task, String... expectedProfiles) {
+    protected void assertCachingProfiles(TaskType task, String... expectedProfiles) {
         Set<String> realProfiles = getCachingProfiles(task);
         assertEquals("Wrong caching profiles in " + task, new HashSet<>(Arrays.asList(expectedProfiles)), realProfiles);
     }
 
-    private Set<String> getCachingProfiles(Task task) {
+    private Set<String> getCachingProfiles(TaskType task) {
         TaskExecutionEnvironmentType env = task.getExecutionEnvironment();
         return env != null ? new HashSet<>(env.getCachingProfile()) : Collections.emptySet();
     }
@@ -3362,7 +3433,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected TaskAsserter<Void> assertTask(TaskType task, String message) {
-        return TaskAsserter.forTask(task.asPrismObject(), message);
+        return initializeAsserter(
+                TaskAsserter.forTask(task.asPrismObject(), message));
     }
 
     protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStateType expectedExecutionStatus)
@@ -3765,5 +3837,92 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         ActivityPerformanceInformationAsserter<Void> asserter = new ActivityPerformanceInformationAsserter<>(node, null, message);
         initializeAsserter(asserter);
         return asserter;
+    }
+
+    /**
+     * @return Creator of repository objects.
+     */
+    protected <O extends ObjectType> RealCreator<O> realRepoCreator() {
+        return (o, result) -> repositoryService.addObject(o.asPrismObject(), null, result);
+    }
+
+    protected <O extends ObjectType> ObjectCreatorBuilder<O> repoObjectCreatorFor(Class<O> type) {
+        return ObjectCreator.forType(type)
+                .withRealCreator(realRepoCreator());
+    }
+
+    protected void assumeNoExtraClusterNodes(OperationResult result) throws CommonException {
+        deleteExistingExtraNodes(result);
+    }
+
+    protected void assumeExtraClusterNodes(List<String> nodes, OperationResult result) throws CommonException {
+        deleteExistingExtraNodes(result);
+        createNodes(nodes, result);
+    }
+
+    private void deleteExistingExtraNodes(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        SearchResultList<PrismObject<NodeType>> existingNodes =
+                repositoryService.searchObjects(NodeType.class, null, null, result);
+        for (PrismObject<NodeType> existingNode : existingNodes) {
+            if (!existingNode.getOid().equals(taskManager.getLocalNode().getOid())) {
+                System.out.printf("Deleting extra node %s\n", existingNode);
+                repositoryService.deleteObject(NodeType.class, existingNode.getOid(), result);
+            }
+        }
+    }
+
+    protected void createNodes(List<String> nodes, OperationResult result) throws CommonException {
+        for (String node : nodes) {
+            createNode(node, result);
+        }
+    }
+
+    protected void createNode(String nodeId, OperationResult result) throws CommonException{
+        NodeType node = new NodeType(prismContext)
+                .name(nodeId)
+                .nodeIdentifier(nodeId)
+                .operationalState(NodeOperationalStateType.UP)
+                .lastCheckInTime(XmlTypeConverter.createXMLGregorianCalendar());
+        repositoryService.addObject(node.asPrismObject(), null, result);
+        System.out.printf("Created extra node %s\n", node);
+    }
+
+    protected boolean hasSingleRunningChild(Task task, OperationResult result) throws SchemaException {
+        return hasRunningChildren(task, 1, result);
+    }
+
+    protected boolean hasRunningChildren(Task task, int children, OperationResult result) throws SchemaException {
+        List<? extends Task> subtasks = task.listSubtasks(result);
+        return subtasks.stream()
+                .filter(Task::isRunning)
+                .count() == children;
+    }
+
+    protected @NotNull Task findTaskByName(List<? extends Task> tasks, String name) {
+        return tasks.stream()
+                .filter(t -> t.getName().getOrig().equals(name))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    protected void waitForChildrenBeRunning(String rootOid, int runningChildren, OperationResult result) throws CommonException {
+        waitForChildrenBeRunning(
+                taskManager.getTask(rootOid, null, result),
+                runningChildren,
+                result);
+    }
+
+    protected void waitForChildrenBeRunning(Task root, int runningChildren, OperationResult result) throws CommonException {
+        waitFor("Waiting for the children to be running",
+                () -> hasRunningChildren(root, runningChildren, result),
+                10000, 500);
+    }
+
+    protected void deleteIfPresent(TestResource<?> resource, OperationResult result) throws SchemaException, IOException {
+        try {
+            repositoryService.deleteObject(resource.getType(), resource.oid, result);
+        } catch (ObjectNotFoundException e) {
+            // ok
+        }
     }
 }

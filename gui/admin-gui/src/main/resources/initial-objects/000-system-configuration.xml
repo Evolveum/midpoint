@@ -350,10 +350,24 @@
             </objectCollectionView>
             <objectCollectionView>
                 <identifier>report-tasks-view</identifier>
+                <display>
+                    <label>Report task</label>
+                    <pluralLabel>
+                        <orig>Report tasks</orig>
+                        <norm>report tasks</norm>
+                        <translation>
+                            <key>ReportTasks.title</key>
+                        </translation>
+                    </pluralLabel>
+                    <icon>
+                        <cssClass>fa fa-pie-chart</cssClass>
+                        <color>green</color>
+                    </icon>
+                </display>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000507" relation="org:default" type="c:ArchetypeType"/>
+                    <collectionRef oid="00000000-0000-0000-0002-000000000007" relation="org:default" type="c:ObjectCollectionType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView>

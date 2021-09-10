@@ -76,7 +76,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         evaluator = new MappingTestEvaluator();
         evaluator.initWithMetadata();
 
-        TEMPLATE_PROVENANCE.read(evaluator.getPrismContext());
+        TEMPLATE_PROVENANCE.read();
     }
 
     /**

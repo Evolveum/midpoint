@@ -1,0 +1,75 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000172"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Report</name>
+    <archetypePolicy>
+        <display>
+            <label>Report</label>
+            <pluralLabel>
+                <orig>Report</orig>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-pie-chart</cssClass>
+                <color>#001F3F</color>
+            </icon>
+        </display>
+        <itemConstraint>
+            <path>jasper</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>diagnosticInformation</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>defaultScriptConfiguration</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>postReportScript</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>lifecycleState</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>ReportType</type>
+                <panel>
+                    <identifier>assignments</identifier>
+                    <visibility>hidden</visibility>
+                    <panelType>assignments</panelType>
+                </panel>
+                <panel>
+                    <identifier>fileFormat</identifier>
+                    <display>
+                        <label>File format</label>
+                        <cssClass>fa fa-file-text-o</cssClass>
+                        <icon>
+                            <cssClass>fa fa-file-text-o</cssClass>
+                        </icon>
+                    </display>
+                    <container>
+                        <path>fileFormat</path>
+                    </container>
+                    <panelType>genericSingleValue</panelType>
+                    <path>c:fileFormat</path>
+                    <type>c:FileFormatConfigurationType</type>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>ReportType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

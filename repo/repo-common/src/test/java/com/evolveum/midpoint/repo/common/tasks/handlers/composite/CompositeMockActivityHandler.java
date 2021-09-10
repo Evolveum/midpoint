@@ -13,6 +13,7 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 
+import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
@@ -68,7 +69,7 @@ public class CompositeMockActivityHandler
     public AbstractActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<CompositeMockWorkDefinition, CompositeMockActivityHandler> context,
             @NotNull OperationResult result) {
-        return new CompositeMockActivityExecution(context);
+        return new CompositeActivityExecution<>(context);
     }
 
     @Override
@@ -78,7 +79,7 @@ public class CompositeMockActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         if (workDefinition.isOpeningEnabled()) {
             children.add(EmbeddedActivity.create(
-                    parentActivity.getDefinition(),
+                    parentActivity.getDefinition().clone(),
                     (context, result) -> new MockOpeningActivityExecution(context),
                     this::runBeforeExecution,
                     (i) -> "opening",
@@ -87,7 +88,7 @@ public class CompositeMockActivityHandler
         }
         if (workDefinition.isClosingEnabled()) {
             children.add(EmbeddedActivity.create(
-                    parentActivity.getDefinition(),
+                    parentActivity.getDefinition().clone(),
                     (context, result) -> new MockClosingActivityExecution(context),
                     this::runBeforeExecution,
                     (i) -> "closing",
@@ -126,7 +127,7 @@ public class CompositeMockActivityHandler
         return recorder;
     }
 
-    public @NotNull CommonMockActivityHelper getMockHelper() {
+    @NotNull CommonMockActivityHelper getMockHelper() {
         return mockHelper;
     }
 

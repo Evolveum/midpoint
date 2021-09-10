@@ -180,7 +180,8 @@ public class TestDiffEquals extends AbstractSchemaTest {
         assertFalse(a2.asPrismContainerValue().equivalent(a1.asPrismContainerValue()));            // a bit redundant
     }
 
-    @Test
+    // Disabled, prismContext is now always present
+    @Test(enabled = false)
     public void testContextlessAssignmentEquals() throws Exception {
         AssignmentType a1 = new AssignmentType();            // no prismContext here
         a1.setDescription("descr1");
@@ -202,7 +203,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
         assertTrue(a1.equals(a3));
     }
 
-    @Test
+    @Test(enabled = false)
     public void testContextlessAssignmentEquals2() throws Exception {
         // (1) user without prismContext - the functionality is reduced
 

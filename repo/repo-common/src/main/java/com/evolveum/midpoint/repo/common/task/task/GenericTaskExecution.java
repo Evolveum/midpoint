@@ -119,7 +119,9 @@ public class GenericTaskExecution implements TaskExecution {
      * On root execution start we have to cleanup
      */
     private void updateStateOnRootExecutionStart(OperationResult result) throws ActivityExecutionException {
-        if ((isRealizationComplete() || isRealizationInPreparation())) {
+        // Note that we prepare new realization also if the realization is in preparation, i.e. we were
+        // interrupted during previous realization reparation action.
+        if (isFirstRealization() || isRealizationComplete() || isRealizationInPreparation()) {
             prepareNewRealization(result);
         }
         activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PROGRESS, result);
@@ -135,6 +137,10 @@ public class GenericTaskExecution implements TaskExecution {
         if (getRunningTask().canRun() && executionResult.isFinished()) {
             activityTree.updateRealizationState(ActivityTreeRealizationStateType.COMPLETE, result);
         }
+    }
+
+    private boolean isFirstRealization() {
+        return activityTree.getRealizationState() == null;
     }
 
     private boolean isRealizationComplete() {

@@ -42,7 +42,15 @@ public class TestImportReconAuthorizations extends TestImportRecon {
      * TODO Allow `importer` user to add a task explicitly.
      */
     @Override
-    public void test161ImportFromResourceDummyLimeLimited() {
+    public void test161aImportFromResourceDummyLimeLimitedLegacy() {
+        throw new SkipException("TODO");
+    }
+
+    /**
+     * TODO Allow `importer` user to add a task explicitly.
+     */
+    @Override
+    public void test161bImportFromResourceDummyLimeLimited() {
         throw new SkipException("TODO");
     }
 }

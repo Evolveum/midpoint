@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskUnpauseActionTyp
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *  A task that is directly used to execute the handler code.
@@ -53,40 +53,18 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
      */
     void deleteLightweightAsynchronousSubtasks();
 
-    // EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
-    @Experimental
-    int getAndIncrementObjectsSeen();
-
-    /**
-     * Must be called from the thread that executes the task.
-     * EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
-     */
-    void startDynamicProfilingIfNeeded(RunningTask coordinatorTask, int objectsSeen);
-
-    /**
-     * Must be called from the thread that executes the task.
-     */
-    void stopDynamicProfiling();
-
-    /**
-     * EXPERIMENTAL
-     */
-    boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot);
-
-    /**
-     * EXPERIMENTAL
-     */
-    void stopTracing();
-
     /**
      * TODO
-     * EXPERIMENTAL
      */
+    @Experimental
     @NotNull String getRootTaskOid();
 
     /** TODO EXPERIMENTAL */
     @Experimental
     @NotNull Task getRootTask();
+
+    @Experimental
+    @Nullable Task getParentTask();
 
     /**
      * Changes scheduling status to WAITING. Does not change execution state.
@@ -108,7 +86,7 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
     @Experimental
     default @NotNull ExecutionModeType getExecutionMode() {
         ExecutionSupport executionSupport = getExecutionSupport();
-        return executionSupport != null ? executionSupport.getExecutionMode() : ExecutionModeType.EXECUTE;
+        return executionSupport != null ? executionSupport.getExecutionMode() : ExecutionModeType.FULL;
     }
 
     ExecutionSupport getExecutionSupport();

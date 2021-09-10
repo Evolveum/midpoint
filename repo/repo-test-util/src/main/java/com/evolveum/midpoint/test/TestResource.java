@@ -55,7 +55,15 @@ public class TestResource<T extends ObjectType> {
         return ObjectTypeUtil.createObjectRef(object, SchemaConstants.ORG_DEFAULT);
     }
 
-    public void read(PrismContext prismContext) throws SchemaException, IOException {
-        object = prismContext.parserFor(file).parse();
+    public void read() throws SchemaException, IOException {
+        object = PrismContext.get().parserFor(file).parse();
+    }
+
+    public Class<T> getType() throws SchemaException, IOException {
+        if (object == null) {
+            read();
+        }
+        //noinspection unchecked
+        return (Class<T>) object.asObjectable().getClass();
     }
 }

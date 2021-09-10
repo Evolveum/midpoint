@@ -18,6 +18,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -35,8 +37,11 @@ public class MainMenuItem extends BaseMenuItem {
     }
 
     public MainMenuItem(String name, String iconClass, Class<? extends PageBase> page) {
-        super(name, iconClass, page, null);
+        this(name, iconClass, page, null);
+    }
 
+    public MainMenuItem(String name, String iconClass, Class<? extends PageBase> page, PageParameters params) {
+        super(name, iconClass, page, params);
     }
 
     private List<MenuItem> getItems() {

@@ -14,6 +14,10 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,8 +25,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
-import com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext;
-import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityExecution;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -60,9 +62,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class ShadowCleanupActivityHandler
         extends SimpleActivityHandler<
-        ShadowType,
-        ShadowCleanupActivityHandler.MyWorkDefinition,
-        ShadowCleanupActivityHandler.MyExecutionContext> {
+            ShadowType,
+            ShadowCleanupActivityHandler.MyWorkDefinition,
+            ShadowCleanupActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.DELETE_NOT_UPDATE_SHADOW_TASK_HANDLER_URI;
 
@@ -84,6 +86,11 @@ public class ShadowCleanupActivityHandler
     }
 
     @Override
+    protected @NotNull SearchBasedSpecificsSupplier<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler> getSpecificSupplier() {
+        return MyExecutionSpecifics::new;
+    }
+
+    @Override
     protected @NotNull String getLegacyHandlerUri() {
         return LEGACY_HANDLER_URI;
     }
@@ -99,84 +106,79 @@ public class ShadowCleanupActivityHandler
     }
 
     @Override
-    public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        return new ActivityReportingOptions()
-                .enableActionsExecutedStatistics(true)
-                .skipWritingOperationExecutionRecords(true); // because the shadows are deleted anyway
+    public String getIdentifierPrefix() {
+        return "shadow-cleanup";
     }
 
-    @Override
-    public MyExecutionContext createExecutionContext(
-            SimpleActivityExecution<ShadowType, MyWorkDefinition, MyExecutionContext> execution,
-            OperationResult opResult) throws ActivityExecutionException, CommonException {
+    public static class MyExecutionSpecifics extends
+            BaseSearchBasedExecutionSpecificsImpl<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler> {
 
-        ResourceObjectSetType resourceObjectSet = execution.getWorkDefinition().getResourceObjectSetSpecification();
-        RunningTask runningTask = execution.getRunningTask();
+        private ResourceObjectClassSpecification resourceObjectClassSpecification;
 
-        ResourceObjectClassSpecification objectClassSpec = getModelBeans().syncTaskHelper
-                .createObjectClassSpec(resourceObjectSet, runningTask, opResult);
-
-        objectClassSpec.checkNotInMaintenance();
-        objectClassSpec.checkResourceUp();
-        return new MyExecutionContext(objectClassSpec);
-    }
-
-    @Override
-    public ObjectQuery customizeQuery(
-            @NotNull SimpleActivityExecution<ShadowType, MyWorkDefinition, MyExecutionContext> activityExecution,
-            ObjectQuery configuredQuery, OperationResult opResult) {
-
-        Duration notUpdatedDuration = activityExecution.getWorkDefinition().getInterval();
-        Date deletingDate = new Date(clock.currentTimeMillis());
-        notUpdatedDuration.addTo(deletingDate);
-
-        ObjectFilter syncTimestampFilter = prismContext.queryFor(ShadowType.class)
-                .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(deletingDate))
-                .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
-                .buildFilter();
-
-        ObjectQuery fullQuery = ObjectQueryUtil.addConjunctions(configuredQuery, prismContext, syncTimestampFilter);
-
-        LOGGER.trace("Query with sync timestamp filter:\n{}", fullQuery.debugDumpLazily());
-        return fullQuery;
-    }
-
-    @Override
-    public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-            @NotNull SimpleActivityExecution<ShadowType, MyWorkDefinition, MyExecutionContext> activityExecution,
-            Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult opResult) throws CommonException {
-
-        return GetOperationOptions.updateToNoFetch(configuredOptions);
-    }
-
-    @Override
-    public boolean processItem(PrismObject<ShadowType> shadow, ItemProcessingRequest<PrismObject<ShadowType>> request,
-            SimpleActivityExecution<ShadowType, MyWorkDefinition, MyExecutionContext> activityExecution,
-            RunningTask workerTask, OperationResult result) throws CommonException {
-        deleteShadow(shadow, activityExecution.getExecutionContext(), workerTask, result);
-        return true;
-    }
-
-    private void deleteShadow(PrismObject<ShadowType> shadow, MyExecutionContext executionContext,
-            Task workerTask, OperationResult result) {
-        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        change.setObjectDelta(shadow.createDeleteDelta());
-        change.setResource(executionContext.getObjectClassSpec().getResource().asPrismObject());
-        change.setShadowedResourceObject(shadow);
-        change.setSourceChannel(SchemaConstants.CHANNEL_CLEANUP_URI);
-        synchronizationService.notifyChange(change, workerTask, result);
-    }
-
-    public static class MyExecutionContext extends ExecutionContext {
-
-        @NotNull private final ResourceObjectClassSpecification resourceObjectClassSpecification;
-
-        MyExecutionContext(@NotNull ResourceObjectClassSpecification resourceObjectClassSpecification) {
-            this.resourceObjectClassSpecification = resourceObjectClassSpecification;
+        MyExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler, ?> activityExecution) {
+            super(activityExecution);
         }
 
-        public @NotNull ResourceObjectClassSpecification getObjectClassSpec() {
-            return resourceObjectClassSpecification;
+        @Override
+        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
+            return super.getDefaultReportingOptions()
+                    .enableActionsExecutedStatistics(true)
+                    .skipWritingOperationExecutionRecords(true); // because the shadows are deleted anyway
+        }
+
+        @Override
+        public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
+
+            ResourceObjectSetType resourceObjectSet = getWorkDefinition().getResourceObjectSetSpecification();
+            RunningTask runningTask = getRunningTask();
+
+            resourceObjectClassSpecification = getActivityHandler().syncTaskHelper
+                    .createObjectClassSpec(resourceObjectSet, runningTask, result);
+
+            resourceObjectClassSpecification.checkNotInMaintenance();
+            resourceObjectClassSpecification.checkResourceUp();
+        }
+
+        @Override
+        public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
+
+            Duration notUpdatedDuration = getWorkDefinition().getInterval();
+            Date deletingDate = new Date(getActivityHandler().clock.currentTimeMillis());
+            notUpdatedDuration.addTo(deletingDate);
+
+            PrismContext prismContext = getActivityHandler().prismContext;
+
+            ObjectFilter syncTimestampFilter = prismContext.queryFor(ShadowType.class)
+                    .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(deletingDate))
+                    .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
+                    .buildFilter();
+
+            ObjectQuery fullQuery = ObjectQueryUtil.addConjunctions(configuredQuery, prismContext, syncTimestampFilter);
+
+            LOGGER.trace("Query with sync timestamp filter:\n{}", fullQuery.debugDumpLazily());
+            return fullQuery;
+        }
+
+        @Override
+        public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
+                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) throws CommonException {
+            return GetOperationOptions.updateToNoFetch(configuredOptions);
+        }
+
+        @Override
+        public boolean processObject(@NotNull PrismObject<ShadowType> object,
+                @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request, RunningTask workerTask, OperationResult result) {
+            deleteShadow(object, workerTask, result);
+            return true;
+        }
+
+        private void deleteShadow(PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) {
+            ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+            change.setObjectDelta(shadow.createDeleteDelta());
+            change.setResource(resourceObjectClassSpecification.getResource().asPrismObject());
+            change.setShadowedResourceObject(shadow);
+            change.setSourceChannel(SchemaConstants.CHANNEL_CLEANUP_URI);
+            getActivityHandler().synchronizationService.notifyChange(change, workerTask, result);
         }
     }
 
@@ -193,7 +195,7 @@ public class ShadowCleanupActivityHandler
             } else {
                 ShadowCleanupWorkDefinitionType typedDefinition = (ShadowCleanupWorkDefinitionType)
                         ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                shadows = typedDefinition.getShadows();
+                shadows = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
                 interval = typedDefinition.getInterval();
             }
             ResourceObjectSetUtil.setDefaultQueryApplicationMode(shadows, APPEND); // "replace" would be very dangerous

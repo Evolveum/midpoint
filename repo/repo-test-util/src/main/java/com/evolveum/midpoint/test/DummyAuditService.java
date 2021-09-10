@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,10 +17,7 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.audit.api.*;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -29,15 +26,13 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -530,23 +525,8 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     }
 
     @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
-    }
-
-    @Override
-    public long countObjects(String query, Map<String, Object> params) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
-    }
-
-    @Override
     public boolean supportsRetrieval() {
         return false;
-    }
-
-    @Override
-    public void reindexEntry(AuditEventRecord record) {
-        // not needed in dummy
     }
 
     public boolean isEnabled() {
@@ -572,5 +552,14 @@ public class DummyAuditService implements AuditService, DebugDumpable {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) {
         throw new UnsupportedOperationException("searchObjects not supported");
+    }
+
+    @Override
+    public SearchResultMetadata searchObjectsIterative(
+            @Nullable ObjectQuery query,
+            @NotNull AuditResultHandler handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+        throw new UnsupportedOperationException("searchObjectsIterative not supported");
     }
 }

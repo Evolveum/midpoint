@@ -59,11 +59,11 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     private static final File ROLE_MAPLE_LEAF_FACULTY_LICENSE = new File(TEST_DIR, "role-maple-leaf-faculty-license.xml");
     private static final File ROLE_MAPLE_LEAF_FACULTY = new File(TEST_DIR, "role-maple-leaf-faculty.xml");
-    private static final String ROLE_MAPLE_LEAF_FACULTY_OID = "00000000-role-0000-0000-000011112222";
+    private static final String ROLE_MAPLE_LEAF_FACULTY_OID = "00000000-1111-0000-0000-000011112222";
 
     private static final File ROLE_MAPLE_LEAF_GRADUATE_LICENSE = new File(TEST_DIR, "role-maple-leaf-graduate-license.xml");
     private static final File ROLE_MAPLE_LEAF_GRADUATE = new File(TEST_DIR, "role-maple-leaf-graduate.xml");
-    private static final String ROLE_MAPLE_LEAF_GRADUATE_OID = "00000000-role-0000-0000-000011113333";
+    private static final String ROLE_MAPLE_LEAF_GRADUATE_OID = "00000000-1111-0000-0000-000011113333";
 
     private static final File OBJECT_TEMPLATE_USER = new File(TEST_DIR, "object-template-user.xml");
 

@@ -89,7 +89,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     private static final int NUMBER_OF_GENERATED_DUMMY_ROLES = 100;
     private static final String GENERATED_DUMMY_ROLE_OID_FORMAT = "00000000-0000-ffff-2000-d0000000%04d";
     private static final int NUMBER_OF_GENERATED_DUMMY_GROUPS = 100;
-    private static final String GENERATED_DUMMY_GROUP_ROLE_OID_FORMAT = "00000000-0000-ffff-2000-g0000000%04d";
+    private static final String GENERATED_DUMMY_GROUP_ROLE_OID_FORMAT = "00000000-0000-ffff-2000-f0000000%04d";
 
     private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER = 600;
     private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER = 400;

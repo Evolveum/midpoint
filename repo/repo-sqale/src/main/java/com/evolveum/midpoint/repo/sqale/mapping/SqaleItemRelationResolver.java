@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -26,6 +27,10 @@ public interface SqaleItemRelationResolver<
      * The information about the resolved item is captured in the instance resolver already
      * in a manner that is specific for various types of resolution (JOIN or nested mapping).
      * Optional {@link ItemPath} is provided for cases when container ID is necessary.
+     *
+     * Return value `null` indicates that the modification using the resolver should be ignored
+     * by the repository.
      */
-    SqaleUpdateContext<?, ?, ?> resolve(SqaleUpdateContext<?, Q, R> context, ItemPath itemPath);
+    SqaleUpdateContext<?, ?, ?> resolve(SqaleUpdateContext<?, Q, R> context, ItemPath itemPath)
+            throws RepositoryException;
 }

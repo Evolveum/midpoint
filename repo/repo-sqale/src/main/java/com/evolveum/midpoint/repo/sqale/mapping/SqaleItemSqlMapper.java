@@ -10,12 +10,16 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
@@ -62,7 +66,14 @@ public class SqaleItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
      */
     public SqaleItemSqlMapper(
             @NotNull Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory) {
-        super(ctx -> null);
+        super(ctx -> new ItemValueFilterProcessor<>(ctx) {
+            @Override
+            public Predicate process(ValueFilter<?, ?> filter) throws RepositoryException {
+                throw new QueryException(
+                        "Value filter processor not supported for filter: " + filter);
+            }
+        });
+
         this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);
     }
 

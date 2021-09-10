@@ -23,16 +23,15 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-
-import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.apache.wicket.*;
@@ -54,6 +53,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -111,18 +111,21 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskResolver;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -138,7 +141,6 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -150,11 +152,13 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
+import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
@@ -165,7 +169,6 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
@@ -216,8 +219,11 @@ public final class WebComponentUtil {
      */
     private static RelationRegistry staticallyProvidedRelationRegistry;
 
-    private static final Map<Class<?>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
-    private static final Map<Class<?>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
+    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
+    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
+
+
+    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP_NEW;
 
     static {
         OBJECT_DETAILS_PAGE_MAP = new HashMap<>();
@@ -234,6 +240,23 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(ShadowType.class, PageAccount.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectCollectionType.class, PageObjectCollection.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectTemplateType.class, PageObjectTemplate.class);
+    }
+
+    static {
+        OBJECT_DETAILS_PAGE_MAP_NEW = new HashMap<>();
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(UserType.class, com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(OrgType.class, PageOrg.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(RoleType.class, com.evolveum.midpoint.gui.impl.page.admin.role.PageRole.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ServiceType.class, com.evolveum.midpoint.gui.impl.page.admin.service.PageService.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ResourceType.class, com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(TaskType.class, com.evolveum.midpoint.gui.impl.page.admin.task.PageTask.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ReportType.class, com.evolveum.midpoint.gui.impl.page.admin.report.PageReport.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ValuePolicyType.class, PageValuePolicy.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(CaseType.class, com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ArchetypeType.class, PageArchetype.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageAccount.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, PageObjectCollection.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, PageObjectTemplate.class);
     }
 
     static {
@@ -332,6 +355,31 @@ public final class WebComponentUtil {
 
     private static String emptyIfNull(String s) {
         return s != null ? s : "";
+    }
+
+    public static String getReferencedObjectDisplayNameAndName(Referencable ref, boolean loadObject, PageBase pageBase) {
+        if (ref == null || ref.getOid() == null) {
+            return "";
+        }
+        if (ref.asReferenceValue().getObject() == null && !loadObject) {
+            return getReferencedObjectDisplayNamesAndNames(ref, false, true);
+        }
+        PrismObject<ObjectType> prismObject = ref.asReferenceValue().getObject();
+        if (prismObject == null) {
+            prismObject = WebModelServiceUtils.loadObject(ref, pageBase);
+        }
+        if (prismObject == null) {
+            return getReferencedObjectDisplayNamesAndNames(ref, false, true);
+        }
+        ObjectType object = prismObject.asObjectable();
+        String displayName = null;
+        if (object instanceof UserType) {
+            displayName = getTranslatedPolyString(((UserType) object).getFullName());
+        } else if (object instanceof AbstractRoleType) {
+            displayName = getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
+        }
+        String name = getTranslatedPolyString(object.getName());
+        return StringUtils.isNotEmpty(displayName) ? displayName + " (" + name + ")" : name;
     }
 
     public static String getReferencedObjectDisplayNamesAndNames(List<ObjectReferenceType> refs, boolean showTypes) {
@@ -758,8 +806,7 @@ public final class WebComponentUtil {
             return archetypeRef;
         }
         for (AssignmentType assignment : assignmentHolder.getAssignment()) {
-            if (StringUtils.isNotEmpty(assignment.getTargetRef().getOid())
-                    && assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+            if (isArchetypeAssignment(assignment)) {
                 archetypeRef = assignment.getTargetRef();
             }
         }
@@ -772,13 +819,6 @@ public final class WebComponentUtil {
             return archetypeRef.getOid();
         }
         return null;
-    }
-
-    public static void iterativeExecuteBulkAction(PageBase pageBase, ExecuteScriptType script, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-
-        pageBase.getScriptingService().evaluateIterativeExpressionInBackground(script, task, result);
     }
 
     public static boolean isAuthorized(String... action) {
@@ -800,7 +840,7 @@ public final class WebComponentUtil {
     }
 
     public static boolean isAuthorized(Class<? extends ObjectType> clazz) {
-        Class<? extends PageBase> detailsPage = WebComponentUtil.getObjectDetailsPage(clazz);
+        Class<? extends PageBase> detailsPage = getObjectDetailsPage(clazz);
         if (detailsPage == null) {
             return false;
         }
@@ -947,6 +987,18 @@ public final class WebComponentUtil {
         focusTypeList.add(ObjectTypes.SERVICE);
 
         return focusTypeList;
+    }
+
+    public static List<QName> createAvailableNewObjectsTypesList() {
+        List<QName> objectTypesList = new ArrayList<>();
+
+        OBJECT_DETAILS_PAGE_MAP.keySet().forEach(type -> {
+            if (type.equals(ShadowType.class) || type.equals(ValuePolicyType.class) || type.equals(CaseType.class)) {
+                return;
+            }
+            objectTypesList.add(ObjectTypes.getObjectType(type).getTypeQName());
+        });
+        return objectTypesList;
     }
 
     public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
@@ -1550,6 +1602,49 @@ public final class WebComponentUtil {
         }
     }
 
+    public static void encryptCredentials(ObjectDelta delta, boolean encrypt, ModelServiceLocator serviceLocator) {
+        if (delta == null || delta.isEmpty()) {
+            return;
+        }
+
+        PropertyDelta propertyDelta = delta.findPropertyDelta(SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE);
+        if (propertyDelta == null) {
+            return;
+        }
+
+        Collection<PrismPropertyValue<ProtectedStringType>> values = propertyDelta
+                .getValues(ProtectedStringType.class);
+        for (PrismPropertyValue<ProtectedStringType> value : values) {
+            ProtectedStringType string = value.getValue();
+            encryptProtectedString(string, encrypt, serviceLocator);
+        }
+    }
+
+    public static void encryptProtectedString(ProtectedStringType string, boolean encrypt,
+            ModelServiceLocator serviceLocator) {
+        if (string == null) {
+            return;
+        }
+        Protector protector = serviceLocator.getPrismContext().getDefaultProtector();
+        try {
+            if (encrypt) {
+                if (StringUtils.isEmpty(string.getClearValue())) {
+                    return;
+                }
+                protector.encrypt(string);
+            } else {
+                if (string.getEncryptedDataType() == null) {
+                    return;
+                }
+                protector.decrypt(string);
+            }
+        } catch (EncryptionException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't encrypt protected string", ex);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't encrypt/decrypt protected string", e);
+        }
+    }
+
     public static void encryptCredentials(PrismObject object, boolean encrypt, MidPointApplication app) {
         PrismContainer password = object.findContainer(SchemaConstants.PATH_CREDENTIALS_PASSWORD);
         if (password == null) {
@@ -1565,6 +1660,23 @@ public final class WebComponentUtil {
                 .getRealValue(ProtectedStringType.class);
 
         encryptProtectedString(string, encrypt, app);
+    }
+
+    public static void encryptCredentials(PrismObject object, boolean encrypt, ModelServiceLocator serviceLocator) {
+        PrismContainer password = object.findContainer(SchemaConstants.PATH_CREDENTIALS_PASSWORD);
+        if (password == null) {
+            return;
+        }
+        PrismProperty protectedStringProperty = password.findProperty(PasswordType.F_VALUE);
+        if (protectedStringProperty == null
+                || protectedStringProperty.getRealValue(ProtectedStringType.class) == null) {
+            return;
+        }
+
+        ProtectedStringType string = (ProtectedStringType) protectedStringProperty
+                .getRealValue(ProtectedStringType.class);
+
+        encryptProtectedString(string, encrypt, serviceLocator);
     }
 
     public static void encryptProtectedString(ProtectedStringType string, boolean encrypt,
@@ -1850,6 +1962,12 @@ public final class WebComponentUtil {
             return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
         } else if (QNameUtil.match(ReportType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_REPORT_ICON;
+        } else if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON;
+        } else if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON;
+        } else if (QNameUtil.match(ObjectTemplateType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON;
         } else if (QNameUtil.match(MappingType.COMPLEX_TYPE, objectType)) {
             //TODO fix icon style for mapping type
             return "";
@@ -1945,7 +2063,7 @@ public final class WebComponentUtil {
             return null;
         }
 
-        ObjectReferenceType ref = refValue.getRealValue();
+        Referencable ref = refValue.getRealValue();
         if (ref == null) {
             return null;
         }
@@ -2380,6 +2498,21 @@ public final class WebComponentUtil {
         dispatchToObjectDetailsPage(obj, false, component);
     }
 
+    private static boolean isNewDesignEnabled() {
+        MidPointApplication app = MidPointApplication.get();
+        ModelInteractionService service = app.getModelInteractionService();
+        Task task = app.createSimpleTask("get compiledGui profile");
+        OperationResult result = task.getResult();
+        try {
+            CompiledGuiProfile compiledGuiProfile = service.getCompiledGuiProfile(task, result);
+            return compiledGuiProfile.isUseNewDesign();
+        } catch (Throwable e) {
+            LOGGER.error("Cannot get compiled gui profile, {}", e.getMessage(), e);
+        }
+        //if somthing happen just return true, by default we want new design
+        return true;
+    }
+
     // shows the actual object that is passed via parameter (not its state in repository)
     public static void dispatchToObjectDetailsPage(PrismObject obj, boolean isNewObject, Component component) {
         Class newObjectPageClass = isNewObject ? getNewlyCreatedObjectPage(obj.getCompileTimeClass()) : getObjectDetailsPage(obj.getCompileTimeClass());
@@ -2394,8 +2527,13 @@ public final class WebComponentUtil {
                 constructor = newObjectPageClass.getConstructor(PageParameters.class);
                 page = (PageBase) constructor.newInstance(new PageParameters());
             } else {
-                constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
-                page = (PageBase) constructor.newInstance(obj, isNewObject);
+                if (isNewDesignEnabled()) {
+                    constructor = newObjectPageClass.getConstructor(PrismObject.class);
+                    page = (PageBase) constructor.newInstance(obj);
+                } else {
+                    constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+                    page = (PageBase) constructor.newInstance(obj, isNewObject);
+                }
 
             }
             if (component.getPage() instanceof PageBase) {
@@ -2435,11 +2573,10 @@ public final class WebComponentUtil {
         return OBJECT_DETAILS_PAGE_MAP.containsKey(clazz);
     }
 
-    public static String getStorageKeyForTableId(TableId tableId) {
-        return STORAGE_TABLE_ID_MAP.get(tableId);
-    }
-
     public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {
+        if (isNewDesignEnabled()) {
+            return OBJECT_DETAILS_PAGE_MAP_NEW.get(type);
+        }
         return OBJECT_DETAILS_PAGE_MAP.get(type);
     }
 
@@ -2447,6 +2584,9 @@ public final class WebComponentUtil {
         if (ResourceType.class.equals(type)) {
             return CREATE_NEW_OBJECT_PAGE_MAP.get(type);
         } else {
+            if (isNewDesignEnabled()) {
+                return OBJECT_DETAILS_PAGE_MAP_NEW.get(type);
+            }
             return OBJECT_DETAILS_PAGE_MAP.get(type);
         }
     }
@@ -3196,7 +3336,7 @@ public final class WebComponentUtil {
                                     Map<QName, Object> extensionValues = prepareExtensionValues(oids);
                                     TaskType executorTask = pageBase.getModelInteractionService().submitTaskFromTemplate(
                                             templateOid, extensionValues, pageBase.createSimpleTask(operation), result);
-                                    result.recordInProgress(); // this should be probably have been done in submitTaskFromTemplate
+                                    result.setInProgress(); // this should be probably have been done in submitTaskFromTemplate
                                     result.setBackgroundTaskOid(executorTask.getOid());
                                 } else {
                                     result.recordWarning(pageBase.createStringResource("WebComponentUtil.message.createMenuItemsFromActions.warning").getString());
@@ -4291,26 +4431,26 @@ public final class WebComponentUtil {
         return null;
     }
 
-    public static void workItemApproveActionPerformed(AjaxRequestTarget target, CaseWorkItemType workItem, AbstractWorkItemOutputType workItemOutput,
+    public static void workItemApproveActionPerformed(AjaxRequestTarget target, CaseWorkItemType workItem,
             Component formPanel, PrismObject<UserType> powerDonor, boolean approved, OperationResult result, PageBase pageBase) {
         if (workItem == null) {
             return;
         }
         CaseType parentCase = CaseWorkItemUtil.getCase(workItem);
+        AbstractWorkItemOutputType output = workItem.getOutput();
+        if (output == null) {
+            output = new AbstractWorkItemOutputType(pageBase.getPrismContext());
+        }
+        output.setOutcome(ApprovalUtils.toUri(approved));
+        if (WorkItemTypeUtil.getComment(workItem) != null) {
+            output.setComment(WorkItemTypeUtil.getComment(workItem));
+        }
+        if (WorkItemTypeUtil.getEvidence(workItem) != null) {
+            output.setEvidence(WorkItemTypeUtil.getEvidence(workItem));
+        }
         if (CaseTypeUtil.isManualProvisioningCase(parentCase)) {
             Task task = pageBase.createSimpleTask(result.getOperation());
             try {
-                AbstractWorkItemOutputType output = workItem.getOutput();
-                if (output == null) {
-                    output = new AbstractWorkItemOutputType(pageBase.getPrismContext());
-                }
-                output.setOutcome(ApprovalUtils.toUri(approved));
-                if (workItemOutput != null && workItemOutput.getComment() != null) {
-                    output.setComment(workItemOutput.getComment());
-                }
-                if (workItemOutput != null && workItemOutput.getEvidence() != null) {
-                    output.setEvidence(workItemOutput.getEvidence());
-                }
                 WorkItemId workItemId = WorkItemId.create(parentCase.getOid(), workItem.getId());
                 pageBase.getWorkflowService().completeWorkItem(workItemId, output, task, result);
             } catch (Exception ex) {
@@ -4338,8 +4478,7 @@ public final class WebComponentUtil {
                     }
                     assumePowerOfAttorneyIfRequested(result, powerDonor, pageBase);
                     pageBase.getWorkflowService().completeWorkItem(WorkItemId.of(workItem),
-                            workItemOutput,
-                            additionalDelta, task, result);
+                            output, additionalDelta, task, result);
                 } finally {
                     dropPowerOfAttorneyIfRequested(result, powerDonor, pageBase);
                 }
@@ -4846,6 +4985,10 @@ public final class WebComponentUtil {
     }
 
     public static String countLinkFroNonDeadShadows(Collection<ObjectReferenceType> refs) {
+        return Integer.toString(countLinkForNonDeadShadows(refs));
+    }
+
+    public static int countLinkForNonDeadShadows(Collection<ObjectReferenceType> refs) {
         int count = 0;
         for (ObjectReferenceType ref : refs) {
             if (QNameUtil.match(ref.getRelation(), SchemaConstants.ORG_RELATED)) {
@@ -4853,7 +4996,7 @@ public final class WebComponentUtil {
             }
             count++;
         }
-        return Integer.toString(count);
+        return count;
     }
 
     public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
@@ -4867,7 +5010,7 @@ public final class WebComponentUtil {
         Object value = null;
         try {
 
-            value = ExpressionUtil.evaluateExpression(new VariablesMap(), null,
+            value = ExpressionUtil.evaluateExpressionNative(null, new VariablesMap(), null,
                     expression, MiscSchemaUtil.getExpressionProfile(),
                     pageBase.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
         } catch (Exception e) {
@@ -4879,19 +5022,22 @@ public final class WebComponentUtil {
             value = ((PrismPropertyValue) value).getRealValue();
         }
 
-        if (!(value instanceof List)) {
-            LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
+        if (!(value instanceof Set)) {
+            LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
             pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
             return allowedValues;
         }
 
-        if (!((List<?>) value).isEmpty()) {
-            if (!(((List<?>) value).get(0) instanceof DisplayableValue)) {
-                LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
+        if (!((Set<?>) value).isEmpty()) {
+            if (!(((Set<?>) value).iterator().next() instanceof PrismPropertyValue)
+                    || !(((PrismPropertyValue)(((Set<?>) value).iterator().next())).getValue() instanceof DisplayableValue)) {
+                LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
                 pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
                 return allowedValues;
             }
-            return (List<DisplayableValue<?>>) value;
+
+            return (List<DisplayableValue<?>>) ((Set<PrismPropertyValue<?>>) value).stream()
+                    .map(PrismPropertyValue::getValue).collect(Collectors.toList());
         }
         return allowedValues;
     }
@@ -4990,5 +5136,33 @@ public final class WebComponentUtil {
 
             return target + "(" + strength + ")";
         });
+    }
+
+    //TODO
+    public static <T extends ObjectType> Panel createPanel(Class<? extends Panel> panelClass, String markupId, ObjectDetailsModels<T> objectDetailsModels, ContainerPanelConfigurationType panelConfig) {
+        if (panelClass == null) {
+            return null;
+        }
+
+        if (AbstractAssignmentTypePanel.class.isAssignableFrom(panelClass)) {
+            try {
+                Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
+                panel.setOutputMarkupId(true);
+                return panel;
+            } catch (Throwable e) {
+                e.printStackTrace();
+                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
+            }
+        }
+
+        try {
+            Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels, panelConfig);
+            panel.setOutputMarkupId(true);
+            return panel;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
+        }
+        return null;
     }
 }

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.registry;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
@@ -164,4 +166,6 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 
         wrapperFactories.sort(comparator);
     }
+
+
 }

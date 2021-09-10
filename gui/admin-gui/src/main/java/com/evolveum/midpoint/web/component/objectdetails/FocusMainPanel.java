@@ -10,9 +10,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.QNameUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,7 +37,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.wf.util.QueryUtils;
@@ -125,13 +121,13 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         if (AbstractFocusTabPanel.class.isAssignableFrom(panelClass)) {
             Constructor<?> constructor;
             try {
-                constructor = panelClass.getConstructor(String.class, MidpointForm.class, LoadableModel.class, LoadableModel.class);
+                constructor = panelClass.getConstructor(String.class, LoadableModel.class, LoadableModel.class);
             } catch (NoSuchMethodException | SecurityException e) {
-                throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,LoadableModel,LoadableModel,PageBase) in " + panelClass + ": " + e.getMessage(), e);
+                throw new SystemException("Unable to locate constructor (String,LoadableModel,LoadableModel,LoadableModel,PageBase) in " + panelClass + ": " + e.getMessage(), e);
             }
             AbstractFocusTabPanel<F> tabPanel;
             try {
-                tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), projectionModel);
+                tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getObjectModel(), projectionModel);
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new SystemException("Error instantiating " + panelClass + ": " + e.getMessage(), e);
             }
@@ -139,13 +135,13 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         } else if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
             Constructor<?> constructor;
             try {
-                constructor = panelClass.getConstructor(String.class, MidpointForm.class, LoadableModel.class);
+                constructor = panelClass.getConstructor(String.class, LoadableModel.class);
             } catch (NoSuchMethodException | SecurityException e) {
                 throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,PageBase) in " + panelClass + ": " + e.getMessage(), e);
             }
             AbstractObjectTabPanel<F> tabPanel;
             try {
-                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel());
+                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getObjectModel());
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new SystemException("Error instantiating " + panelClass + ": " + e.getMessage(), e);
             }
@@ -157,11 +153,11 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
     }
 
     protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId) {
-        return new FocusProjectionsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel);
+        return new FocusProjectionsTabPanel<>(panelId, getObjectModel(), projectionModel);
     }
 
     protected WebMarkupContainer createObjectHistoryTabPanel(String panelId) {
-        return new ObjectHistoryTabPanel<>(panelId, getMainForm(), getObjectModel()) {
+        return new ObjectHistoryTabPanel<>(panelId, getObjectModel()) {
             protected void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date) {
                 viewObjectHistoricalDataPerformed(target, object, date);
             }
@@ -238,7 +234,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel());
+                        return new FocusTasksTabPanel<>(panelId, getObjectModel());
                     }
 
                     @Override
@@ -255,7 +251,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTriggersTabPanel<>(panelId, getMainForm(), getObjectModel());
+                        return new FocusTriggersTabPanel<>(panelId, getObjectModel());
                     }
 
                     @Override
@@ -273,7 +269,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         } else {
             oid = getObjectWrapper().getOid();
         }
-        ObjectQuery casesQuery = QueryUtils.filterForCasesOverUser(parentPage.getPrismContext().queryFor(CaseType.class), oid)
+        ObjectQuery casesQuery = QueryUtils.filterForCasesOverObject(parentPage.getPrismContext().queryFor(CaseType.class), oid)
                 .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                 .build();
         return WebModelServiceUtils.countObjects(CaseType.class, casesQuery, parentPage);

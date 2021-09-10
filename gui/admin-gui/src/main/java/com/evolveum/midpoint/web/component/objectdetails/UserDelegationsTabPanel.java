@@ -55,10 +55,10 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private LoadableModel<List<AssignmentInfoDto>> privilegesListModel;
 
-    public UserDelegationsTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
+    public UserDelegationsTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
             LoadableModel<List<AssignmentEditorDto>> delegationsModel,
             LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
-        super(id, mainForm, focusWrapperModel);
+        super(id, focusWrapperModel);
         this.delegationsModel = delegationsModel;
         this.privilegesListModel = privilegesListModel;
 

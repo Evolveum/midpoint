@@ -8,12 +8,20 @@
 package com.evolveum.midpoint.repo.common.activity.state;
 
 import static com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState.Wrapper.w;
+import static com.evolveum.midpoint.repo.common.task.reports.BucketsReport.Kind.ANALYSIS;
+import static com.evolveum.midpoint.repo.common.task.reports.BucketsReport.Kind.EXECUTION;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.util.Objects;
+
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
+import com.evolveum.midpoint.repo.common.task.reports.BucketsReport;
+import com.evolveum.midpoint.repo.common.task.reports.ConnIdOperationsReport;
+import com.evolveum.midpoint.repo.common.task.reports.InternalOperationsReport;
+import com.evolveum.midpoint.repo.common.task.reports.ItemsReport;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +33,6 @@ import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -43,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Activity state for the current activity execution. Provides the full functionality, including creation of the work state
  * and maintenance of live progress and statistics.
  *
- * @param <WS>
+ * @param <WS> Work (business) state of the activity.
  */
 public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         extends ActivityState {
@@ -62,6 +69,18 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
 
     @NotNull private final ActivityStatistics liveStatistics;
 
+    /** Report on buckets processed. */
+    @NotNull private final BucketsReport bucketsReport;
+
+    /** Report on items processed. */
+    @NotNull private final ItemsReport itemsReport;
+
+    /** Report on ConnId operations executed. */
+    @NotNull private final ConnIdOperationsReport connIdOperationsReport;
+
+    /** Report on internal operations executed. */
+    @NotNull private final InternalOperationsReport internalOperationsReport;
+
     private boolean initialized;
 
     public CurrentActivityState(@NotNull AbstractActivityExecution<?, ?, WS> activityExecution) {
@@ -71,9 +90,16 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         this.workStateComplexTypeDefinition = determineWorkStateDefinition(this.activityStateDefinition.getWorkStateTypeName());
         this.liveProgress = new ActivityProgress(this);
         this.liveStatistics = new ActivityStatistics(this);
+
+        ActivityReportingDefinition reportingDef = activityExecution.getActivity().getReportingDefinition();
+        this.bucketsReport = new BucketsReport(reportingDef.getBucketsReportDefinition(), this,
+                activityExecution.isBucketsAnalysis() ? ANALYSIS : EXECUTION);
+        this.itemsReport = new ItemsReport(reportingDef.getItemsReportDefinition(), this);
+        this.connIdOperationsReport = new ConnIdOperationsReport(reportingDef.getConnIdOperationsReportDefinition(), this);
+        this.internalOperationsReport = new InternalOperationsReport(reportingDef.getInternalOperationsReportDefinition(), this);
     }
 
-    //region Initialization
+    //region Initialization and closing
     /**
      * Puts the activity state into operation:
      *
@@ -212,8 +238,16 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         ActivityStatePersistenceType requiredValue = activityStateDefinition.getPersistence();
         if (requiredValue != storedValue) {
             setItemRealValues(ActivityStateType.F_PERSISTENCE, requiredValue);
-            flushPendingModificationsChecked(result);
+            flushPendingTaskModificationsChecked(result);
         }
+    }
+
+    /** Closes the activity state. Currently this means closing the reports. */
+    public void close() {
+        bucketsReport.close();
+        itemsReport.close();
+        connIdOperationsReport.close();
+        internalOperationsReport.close();
     }
     //endregion
 
@@ -262,7 +296,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     private void setCombined(Wrapper<ActivityRealizationStateType> realizationState, Wrapper<OperationResultStatus> resultStatus,
             OperationResult result) throws ActivityExecutionException {
         setCombinedNoCommit(realizationState, resultStatus);
-        flushPendingModificationsChecked(result);
+        flushPendingTaskModificationsChecked(result);
     }
 
     private void setCombinedNoCommit(Wrapper<ActivityRealizationStateType> realizationState,
@@ -327,10 +361,6 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         return workStateComplexTypeDefinition;
     }
 
-    @NotNull ActivityHandler<?, ?> getActivityHandler() {
-        return activityExecution.getActivityHandler();
-    }
-
     //endregion
 
     //region Progress & statistics
@@ -359,14 +389,42 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     }
 
     public void updateProgressAndStatisticsNoCommit() throws ActivityExecutionException {
-        if (activityExecution.supportsProgress()) {
+        updateProgressNoCommit();
+        updateStatisticsNoCommit();
+    }
+
+    public void updateProgressNoCommit() throws ActivityExecutionException {
+        if (activityExecution.doesSupportProgress()) {
             liveProgress.writeToTaskAsPendingModification();
             LegacyProgressUpdater.update(this);
         }
-        if (activityExecution.supportsStatistics()) {
+    }
+
+    private void updateStatisticsNoCommit() throws ActivityExecutionException {
+        if (activityExecution.doesSupportStatistics()) {
             liveStatistics.writeToTaskAsPendingModifications();
         }
     }
+    //endregion
+
+    //region Reports
+
+    public @NotNull BucketsReport getBucketsReport() {
+        return bucketsReport;
+    }
+
+    public @NotNull ItemsReport getItemsReport() {
+        return itemsReport;
+    }
+
+    public @NotNull ConnIdOperationsReport getConnIdOperationsReport() {
+        return connIdOperationsReport;
+    }
+
+    public @NotNull InternalOperationsReport getInternalOperationsReport() {
+        return internalOperationsReport;
+    }
+
     //endregion
 
     //region toString + debugDump

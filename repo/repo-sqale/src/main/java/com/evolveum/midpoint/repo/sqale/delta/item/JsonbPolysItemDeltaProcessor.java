@@ -9,22 +9,16 @@ package com.evolveum.midpoint.repo.sqale.delta.item;
 import java.util.Collection;
 import java.util.function.Function;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Filter processor for multi-value poly-strings represented as array in JSONB column.
+ * Delta processor for multi-value poly-strings represented as array in JSONB column.
  */
-public class JsonbPolysItemDeltaProcessor extends ItemDeltaValueProcessor<PolyString> {
+public class JsonbPolysItemDeltaProcessor extends FinalValueDeltaProcessor<PolyString> {
 
     private final JsonbPath path;
 
@@ -37,19 +31,6 @@ public class JsonbPolysItemDeltaProcessor extends ItemDeltaValueProcessor<PolySt
             Function<Q, JsonbPath> rootToQueryItem) {
         super(context);
         this.path = rootToQueryItem.apply(context.entityPath());
-    }
-
-    @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
-        Item<PrismValue, ?> item = context.findItem(modification.getPath());
-        Collection<?> realValues = item != null ? item.getRealValues() : null;
-
-        if (realValues == null || realValues.isEmpty()) {
-            delete();
-        } else {
-            // Whatever the operation is, we just set the new value here.
-            setRealValues(realValues);
-        }
     }
 
     @Override

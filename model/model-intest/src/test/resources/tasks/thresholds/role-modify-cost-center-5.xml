@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role oid="6b0003a4-65bf-471d-af2c-ed575deaf199"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>role-modify-cost-center-5</name>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <modification>
+                    <operation>modify</operation>
+                    <item>costCenter</item>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>5</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
+</role>

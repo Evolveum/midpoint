@@ -338,7 +338,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // If this happens in reality, we need to adapt the assertion here.
         assertTrue("Token value is zero (should be greater)", token > 0);
 
-        int progress = (int) taskAfter.getProgress();
+        int progress = (int) taskAfter.getLegacyProgress();
         displayValue("Token value", token);
         displayValue("Task progress", progress);
         if (getWorkerThreads() <= 1) {
@@ -395,7 +395,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         displayValue("Token value", token);
         assertEquals("Wrong token value", (Integer) 0, token);
 
-        int progress = (int) taskAfter.getProgress();
+        int progress = (int) taskAfter.getLegacyProgress();
         displayValue("Task progress", progress);
 
         if (getWorkerThreads() <= 1) {
@@ -1175,7 +1175,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                     .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
                     .assertTimestampBetween(fromNow(start, "PT5M"), fromNow(end, "PT5M"))
                     .extension()
-                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                         .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
@@ -1189,7 +1189,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                     .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
                     .assertTimestampBetween(fromNow(start, "PT30M"), fromNow(end, "PT30M"))
                     .extension()
-                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                         .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
                             .assertNoItem(PlannedOperationAttemptType.F_LIMIT)
@@ -1222,7 +1222,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                     .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
                     .assertTimestampBetween(fromNow(triggerFirstStart, "PT1H"), fromNow(triggerFirstEnd, "PT1H")) // from current or from clock.current (overridden)?
                     .extension()
-                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                         .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
@@ -1254,7 +1254,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                     .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
                     .assertTimestampBetween(fromNow(triggerSecondStart, "PT1H"), fromNow(triggerSecondEnd, "PT1H")) // from current or from clock.current (overridden)?
                     .extension()
-                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                         .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));

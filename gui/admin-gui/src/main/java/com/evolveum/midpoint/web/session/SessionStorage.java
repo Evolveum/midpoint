@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -87,6 +88,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
      * place to store information in session for various pages
      */
     private Map<String, PageStorage> pageStorageMap = new HashMap<>();
+    private Map<String, ObjectDetailsStorage> detailsStorageMap = new HashMap<>();
 
     private Map<String, Boolean> mainMenuState = new HashMap<>();
 
@@ -118,6 +120,16 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(key, new ObjectListStorage());
         }
         return (ObjectListStorage) pageStorageMap.get(key);
+    }
+
+    public ObjectDetailsStorage getObjectDetailsStorage(String key) {
+        return detailsStorageMap.get(key);
+    }
+
+    public void setObjectDetailsStorage(String key, ContainerPanelConfigurationType config) {
+        ObjectDetailsStorage storage = new ObjectDetailsStorage();
+        storage.setDefaultConfiguration(config);
+        detailsStorageMap.put(key, storage);
     }
 
     public RoleCatalogStorage getRoleCatalog() {

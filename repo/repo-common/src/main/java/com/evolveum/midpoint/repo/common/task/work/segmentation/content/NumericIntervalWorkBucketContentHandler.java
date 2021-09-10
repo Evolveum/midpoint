@@ -14,6 +14,12 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 
+/**
+ * Interprets numeric interval segmentation.
+ *
+ * Repository service currently does not support {@link BigInteger} values. Therefore we use a conversion to {@link Long};
+ * hoping that it will be sufficient for current deployments.
+ */
 @Component
 public class NumericIntervalWorkBucketContentHandler extends IntervalWorkBucketContentHandler {
 
@@ -34,11 +40,15 @@ public class NumericIntervalWorkBucketContentHandler extends IntervalWorkBucketC
 
     @Override
     protected Object getFrom(AbstractWorkBucketContentType content) {
-        return ((NumericIntervalWorkBucketContentType) content).getFrom();
+        return toLong(((NumericIntervalWorkBucketContentType) content).getFrom());
     }
 
     @Override
     protected Object getTo(AbstractWorkBucketContentType content) {
-        return ((NumericIntervalWorkBucketContentType) content).getTo();
+        return toLong(((NumericIntervalWorkBucketContentType) content).getTo());
+    }
+
+    private Long toLong(BigInteger value) {
+        return value != null ? value.longValue() : null;
     }
 }

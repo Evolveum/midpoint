@@ -56,6 +56,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by honchar.
  */
@@ -77,7 +79,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
     private static final String DOT_CLASS = AssignmentPopup.class.getName() + ".";
     protected static final String OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION = DOT_CLASS + "loadAssignmentHolderSpecification";
 
-    public AssignmentPopup(String id, IModel<AssignmentPopupDto> model) {
+    public AssignmentPopup(String id, @NotNull IModel<AssignmentPopupDto> model) {
         super(id, model);
     }
 
@@ -91,6 +93,9 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
     }
 
     private List<CompositedIconButtonDto> newButtonDescription() {
+        if (getModelObject() == null) {
+            return null;
+        }
         List<AssignmentObjectRelation> relations = getModelObject().getAssignmentObjectRelation();
         if (relations == null) {
             return null;
@@ -175,15 +180,15 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                 new MultiCompositedButtonPanel(ID_COMPOSITED_BUTTONS, createNewButtonDescriptionModel()) {
 
                     @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                         Form form = (Form) AssignmentPopup.this.get(ID_FORM);
                         AssignmentPopup.this.getModelObject().setSelectionVisible(false);
-                        addOrReplaceTabPanels(form, relationSepc);
+                        addOrReplaceTabPanels(form, relationSpec);
                         target.add(form);
                     }
                 };
         form.add(newObjectIcon);
-        newObjectIcon.add(new VisibleBehaviour(() -> getModelObject().isSelectionVisible()));
+        newObjectIcon.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isSelectionVisible()));
 
         addOrReplaceTabPanels(form, null);
 

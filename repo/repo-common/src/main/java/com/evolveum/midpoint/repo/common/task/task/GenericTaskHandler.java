@@ -12,18 +12,17 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil;
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
-
-import com.evolveum.midpoint.task.api.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Handler for generic tasks, i.e. tasks that are driven by definition of their activities.
@@ -80,8 +79,6 @@ public class GenericTaskHandler implements TaskHandler {
      * Main entry point.
      *
      * We basically delegate all the processing to a TaskExecution object.
-     * Error handling is delegated to {@link TaskExceptionHandlingUtil#processException(Throwable, Trace, ActivityDefinition, String, TaskRunResult)}
-     * method.
      */
     @Override
     public TaskRunResult run(@NotNull RunningTask localCoordinatorTask)
@@ -93,6 +90,12 @@ public class GenericTaskHandler implements TaskHandler {
         } finally {
             unregisterExecution(localCoordinatorTask);
         }
+    }
+
+    @Override
+    public @NotNull StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy()
+                .fromStoredValues(); // these are cleared in ActivityTreePurger
     }
 
     /** TODO decide what to do with this method. */
@@ -137,11 +140,21 @@ public class GenericTaskHandler implements TaskHandler {
         beans.taskManager.unregisterHandler(handlerUri);
     }
 
-    public boolean isAvoidAutoAssigningArchetypes() {
+    boolean isAvoidAutoAssigningArchetypes() {
         return avoidAutoAssigningArchetypes;
     }
 
     public void setAvoidAutoAssigningArchetypes(boolean avoidAutoAssigningArchetypes) {
         this.avoidAutoAssigningArchetypes = avoidAutoAssigningArchetypes;
+    }
+
+    @Override
+    public void cleanupOnNodeDown(@NotNull TaskType taskBean, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+
+        Task task = taskManager.createTaskInstance(taskBean.asPrismObject(), result);
+        ParentAndRoot parentAndRoot = task.getParentAndRoot(result);
+        new NodeDownCleaner(task, parentAndRoot.parent, parentAndRoot.root, beans)
+                .execute(result);
     }
 }

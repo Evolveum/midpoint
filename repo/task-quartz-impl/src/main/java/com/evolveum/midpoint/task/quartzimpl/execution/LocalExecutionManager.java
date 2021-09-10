@@ -39,7 +39,7 @@ public class LocalExecutionManager {
     private static final Trace LOGGER = TraceManager.getTrace(LocalExecutionManager.class);
 
     private static final String DOT_CLASS = LocalExecutionManager.class.getName() + ".";
-    public static final String OP_STOP_ALL_TASKS_ON_THIS_NODE_AND_WAIT = DOT_CLASS + "stopAllTasksOnThisNodeAndWait";
+    private static final String OP_STOP_ALL_TASKS_ON_THIS_NODE_AND_WAIT = DOT_CLASS + "stopAllTasksOnThisNodeAndWait";
 
     @Autowired private TaskStopper taskStopper;
     @Autowired private LocalScheduler localScheduler;

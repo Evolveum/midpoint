@@ -5,17 +5,14 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="7ae7d616-1442-4295-9aee-5f5e339870af"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Undeletable</name>
     <assignment>
         <policyRule>
             <name>undeletable</name>
             <policyConstraints>
                 <modification>
-                    <operation>modify</operation>
+                    <operation>delete</operation>
                 </modification>
             </policyConstraints>
             <policyActions>

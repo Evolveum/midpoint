@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -69,13 +70,6 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     @PostConstruct
     private void initialize() {
         taskManager.registerHandler(HANDLER_URI, this);
-    }
-
-    @NotNull
-    @Override
-    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy()
-                .fromZero();
     }
 
     @Override
@@ -134,7 +128,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
             }
             if (!deltas.isEmpty()) {
                 repositoryService.modifyObject(object.getClass(), object.getOid(), deltas, opResult);
-                runContext.task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
+                runContext.task.incrementLegacyProgressAndStoreStatisticsIfTimePassed(opResult);
             }
         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update certification metadata for {}", e, toShortString(object));
@@ -144,8 +138,12 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     private void prepareMetadataDeltas(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
             RunContext runContext, OperationResult result) {
 
-        // we count progress for each certification case and then for each object updated
-        runContext.task.incrementProgressAndStoreStatisticsIfTimePassed(result);
+        try {
+            // we count progress for each certification case and then for each object updated
+            runContext.task.incrementLegacyProgressAndStoreStatisticsIfTimePassed(result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            throw new SystemException("Unexpected exception while reporting progress/stats: " + e.getMessage(), e);
+        }
 
         String objectOid = aCase.getObjectRef() != null ? aCase.getObjectRef().getOid() : null;
         if (objectOid == null) {

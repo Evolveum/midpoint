@@ -7,9 +7,14 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.ext;
 
 import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Querydsl "row bean" type related to {@link QExtItem}.
@@ -18,7 +23,12 @@ public class MExtItem {
 
     public Integer id;
     public String itemName;
-    public String valueType; // references use ObjectReferenceType#COMPLEX_TYPE
+
+    /**
+     * Value type as URI produced by {@link QNameUtil#qNameToUri(QName)}.
+     * References use URI for {@link ObjectReferenceType#COMPLEX_TYPE} (midPoint, not Prism one).
+     */
+    public String valueType;
     public MExtItemHolderType holderType;
     public MExtItemCardinality cardinality;
 
@@ -38,6 +48,13 @@ public class MExtItem {
         key.valueType = this.valueType;
         key.holderType = this.holderType;
         key.cardinality = this.cardinality;
+        return key;
+    }
+
+    public ItemNameKey itemNameKey() {
+        ItemNameKey key = new ItemNameKey();
+        key.itemName = this.itemName;
+        key.holderType = this.holderType;
         return key;
     }
 
@@ -69,6 +86,30 @@ public class MExtItem {
         }
     }
 
+    public static class ItemNameKey {
+        public String itemName;
+        public MExtItemHolderType holderType;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ItemNameKey key = (ItemNameKey) o;
+
+            return Objects.equals(itemName, key.itemName)
+                    && holderType == key.holderType;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(itemName, holderType);
+        }
+    }
+
     /** Creates ext item key from item definition and holder type. */
     public static Key keyFrom(ItemDefinition<?> definition, MExtItemHolderType holderType) {
         MExtItem.Key key = new MExtItem.Key();
@@ -79,6 +120,13 @@ public class MExtItem {
         key.holderType = holderType;
 
         return key;
+    }
+
+    public static @NotNull ItemNameKey itemNameKey(ItemName elementName, MExtItemHolderType type) {
+        ItemNameKey ret = new ItemNameKey();
+        ret.itemName = QNameUtil.qNameToUri(elementName);
+        ret.holderType = type;
+        return ret;
     }
 
     @Override

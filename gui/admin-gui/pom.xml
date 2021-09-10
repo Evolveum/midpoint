@@ -680,6 +680,11 @@
             <scope>runtime</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <!-- TEST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -710,11 +715,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.commons</groupId>
-            <artifactId>test-ng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-resource</artifactId>
             <version>${project.version}</version>
@@ -725,9 +725,14 @@
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
+        <dependency><!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.commons</groupId>
+            <artifactId>test-ng</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -988,9 +993,6 @@
     <profiles>
         <profile>
             <id>perftest</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>

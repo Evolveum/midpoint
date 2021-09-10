@@ -108,6 +108,8 @@ public class ConnIdUtil {
      * WARNING: This is black magic. Really. Blame Sun Identity Connector
      * Framework interface design.
      *
+     * *FIXME* We should not finish the connIdResult!
+     *
      * @param connIdException
      *            exception from the ConnId
      * @param connIdResult
@@ -679,6 +681,9 @@ public class ConnIdUtil {
         return map;
     }
 
+    static Object dumpOptionsLazily(OperationOptions options) {
+        return DebugUtil.lazy(() -> dumpOptions(options));
+    }
 
     public static String dumpOptions(OperationOptions options) {
         if (options == null) {

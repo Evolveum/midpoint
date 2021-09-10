@@ -216,9 +216,6 @@
     <profiles>
         <profile>
             <id>dbtest</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -235,9 +232,6 @@
         </profile>
         <profile>
             <id>perftest</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -254,6 +248,17 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <!-- New repo testing - skip all tests from this module -->
+            <id>sqale</id>
+            <properties>
+                <!--
+                Skips test execution but still compiles them.
+                Without this dependency plugin complains.
+                -->
+                <maven.test.skip.exec>true</maven.test.skip.exec>
+            </properties>
         </profile>
     </profiles>
 </project>

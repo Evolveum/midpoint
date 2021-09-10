@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +19,7 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -118,7 +117,8 @@ public interface RepositoryService {
     String OP_MODIFY_OBJECT = "modifyObject";
     String OP_MODIFY_OBJECT_DYNAMICALLY = "modifyObjectDynamically";
     String OP_GET_VERSION = "getVersion";
-    String OP_IS_ANY_SUBORDINATE = "isAnySubordinate";
+    String OP_IS_DESCENDANT = "isDescendant";
+    String OP_IS_ANCESTOR = "isAncestor";
     String OP_ADVANCE_SEQUENCE = "advanceSequence";
     String OP_RETURN_UNUSED_VALUES_TO_SEQUENCE = "returnUnusedValuesToSequence";
     String OP_EXECUTE_QUERY_DIAGNOSTICS = "executeQueryDiagnostics";
@@ -126,12 +126,16 @@ public interface RepositoryService {
     String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
     String OP_SEARCH_OBJECTS = "searchObjects";
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
+    String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
     String OP_SEARCH_CONTAINERS = "searchContainers";
     String OP_COUNT_CONTAINERS = "countContainers";
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
     String OP_ADD_DIAGNOSTIC_INFORMATION = "addDiagnosticInformation";
     String OP_HAS_CONFLICT = "hasConflict";
+    String OP_REPOSITORY_SELF_TEST = "repositorySelfTest";
+    String OP_TEST_ORG_CLOSURE_CONSISTENCY = "testOrgClosureConsistency";
 
+    // Not used by new repo, instead class specific prefix + OP_* constants are used
     String GET_OBJECT = CLASS_NAME_WITH_DOT + OP_GET_OBJECT;
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + OP_ADD_OBJECT;
     String DELETE_OBJECT = CLASS_NAME_WITH_DOT + OP_DELETE_OBJECT;
@@ -295,7 +299,8 @@ public interface RepositoryService {
      * @param parentResult Operation result into which we put our result
      */
     @Experimental
-    @NotNull default <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
+    @NotNull
+    default <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
             @NotNull Class<T> type,
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions,
@@ -385,32 +390,29 @@ public interface RepositoryService {
             OperationResult parentResult) throws SchemaException;
 
     /**
-     * <p>Search for objects in the repository in an iterative fashion.</p>
-     * <p>Searches through all object types. Calls a specified handler for each object found.
-     * If no search criteria specified, list of all objects of specified type is returned.</p>
-     * <p>
+     * Search for objects in the repository in an iterative fashion.
+     *
+     * Searches through all object types. Calls a specified handler for each object found.
+     * If no search criteria specified, list of all objects of specified type is returned.
+     *
      * Searches through all object types.
      * Returns a list of objects that match search criteria.
-     * </p><p>
+     *
      * Returns empty list if object type is correct but there are no objects of
      * that type. The ordering of the results is not significant and may be arbitrary
      * unless sorting in the paging is used.
-     * </p><p>
+     *
      * Should fail if object type is wrong. Should fail if unknown property is
      * specified in the query.
-     * </p>
      *
-     * @param query search query
-     * @param handler result handler
-     * @param strictlySequential takes care not to skip any object nor to process objects more than once; see below
-     * @param parentResult parent OperationResult (in/out)
-     * @return all objects of specified type that match search criteria (subject to paging)
-     * @throws IllegalArgumentException wrong object type
-     * @throws SchemaException unknown property used in search query
-     * <p>
-     * A note related to iteration method:
-     * <p>
-     * There are three iteration methods (see IterationMethodType):
+     * [NOTE]
+     * ====
+     * New repository uses single reliable iteration method similar to strictly sequential paging
+     * and supports custom ordering (currently only one).
+     * New repository ignores strictlySequential parameter and related get options completely.
+     *
+     * In old repository there are three iteration methods (see IterationMethodType):
+     *
      * - SINGLE_TRANSACTION: Fetches objects in single DB transaction. Not supported for all DBMSs.
      * - SIMPLE_PAGING: Uses the "simple paging" method: takes objects (e.g.) numbered 0 to 49, then 50 to 99,
      * then 100 to 149, and so on. The disadvantage is that if the order of objects is changed
@@ -419,30 +421,73 @@ public interface RepositoryService {
      * - STRICTLY_SEQUENTIAL_PAGING: Uses the "strictly sequential paging" method: sorting returned objects by OID. This
      * is (almost) reliable in such a way that no object would be skipped. However, custom
      * paging cannot be used in this mode.
-     * <p>
+     *
      * If GetOperationOptions.iterationMethod is specified, it is used without any further considerations.
      * Otherwise, the repository configuration determines whether to use SINGLE_TRANSACTION or a paging. In the latter case,
      * strictlySequential flag determines between SIMPLE_PAGING (if false) and STRICTLY_SEQUENTIAL_PAGING (if true).
-     * <p>
+     *
      * If explicit GetOperationOptions.iterationMethod is not provided, and paging is prescribed, and strictlySequential flag
      * is true and client-provided paging conflicts with the paging used by the iteration method, a warning is issued, and
      * iteration method is switched to SIMPLE_PAGING.
-     * <p>
+     * ====
+     *
      * Sources of conflicts:
      * - ordering is specified
      * - offset is specified
      * (limit is not a problem)
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param strictlySequential takes care not to skip any object nor to process objects more than once
+     * @param parentResult parent OperationResult (in/out)
+     * @return summary information about the search result
+     * @throws IllegalArgumentException wrong object type
+     * @throws SchemaException unknown property used in search query
      */
     <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
             OperationResult parentResult)
             throws SchemaException;
 
-    boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
+    /**
+     * Returns `true` if the `object` is under the organization identified with `ancestorOrgOid`.
+     * The `object` can either be an Org or any other object in which case all the targets
+     * of its `parentOrgRefs` are tested.
+     *
+     * Examples (from the perspective of the first parameter):
+     *
+     * * User belonging to Org with `ancestorOrgOid` returns true.
+     * * Organization under Org with `ancestorOrgOid` returns true (in any depth).
+     * * User belonging to Org under another Org with `ancestorOrgOid` returns true (any depth).
+     * * Organization with `ancestorOrgOid` returns `false`, as it is not considered
+     * to be its own descendant.
+     *
+     * @param object object of any type tested to belong under Org with `ancestorOrgOid`
+     * @param ancestorOrgOid identifier of ancestor organization
+     */
+    <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String ancestorOrgOid)
+            throws SchemaException;
 
-    <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException;
-
-    <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException;
+    /**
+     * Returns `true` if the `object` is above organization identified with `descendantOrgOid`.
+     * Despite type parameter, only `PrismObject<OrgType>` can return `true`.
+     *
+     * Examples (from the perspective of the first parameter):
+     *
+     * * Any other type than `Org` used for `object` returns `false`.
+     * * Organization being a parent of another organization with `descendantOrgOid` returns `true`.
+     * This means that Organization with `descendantOrgOid` has `parentOrgRef` to `object`.
+     * * Organization higher in the organization hierarchy than Org with `descendantOrgOid`
+     * returns `true`, for any number of levels between them as long as it's possible to traverse
+     * from Org identified by `descendantOrgOid` to `object` using any number of `parentOrgRefs`.
+     * * Organization with `descendantOrgOid` returns `false`, as it is not considered
+     * to be its own ancestor.
+     *
+     * @param object potential ancestor organization
+     * @param descendantOrgOid identifier of potential descendant organization
+     */
+    <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String descendantOrgOid)
+            throws SchemaException;
 
     /**
      * <p>Returns the object representing owner of specified shadow.</p>

@@ -30,10 +30,7 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.CheckedProducer;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
@@ -482,16 +479,6 @@ public interface ModelInteractionService {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
     /**
-     * @param object
-     * @param task
-     * @param parentResult
-     * @param <O>
-     * @return virtual containers sepcification if present. Merge virtual container specification from archetype policy
-     * for concrete object with global settings in systemConfiguration/adminGuiConfig
-     */
-    <O extends ObjectType> Collection<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, @NotNull Task task, @NotNull OperationResult parentResult);
-
-    /**
      * Applying all GuiObjectListViewsType to CompiledObjectCollectionView
      */
     @Experimental
@@ -501,10 +488,27 @@ public interface ModelInteractionService {
     <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
+    /**
+     * TODO document
+     */
     @Experimental
     void processObjectsFromCollection(CollectionRefSpecificationType collection, QName typeForFilter, Predicate<PrismContainer> handler,
             Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result, boolean recordProgress) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    /**
+     * TODO document and clean up the interface
+     */
+    @Experimental
+    <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CompiledObjectCollectionView collection, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException;
+
+    class SearchSpec<C extends Containerable> {
+        public Class<C> type;
+        public ObjectQuery query;
+        public Collection<SelectorOptions<GetOperationOptions>> options;
+    }
 
     @Experimental
     List<? extends Containerable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,

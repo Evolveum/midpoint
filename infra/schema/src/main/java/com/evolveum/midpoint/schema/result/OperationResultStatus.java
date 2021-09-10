@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -100,6 +101,7 @@ public enum OperationResultStatus {
         }
     }
 
+    @Contract("null -> null; !null -> !null")
     public static @Nullable OperationResultStatusType createStatusType(
             @Nullable OperationResultStatus status) {
         if (status == null) {

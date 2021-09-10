@@ -70,6 +70,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
+    public static final String OP_IS_ANY_SUBORDINATE = "isAnySubordinate"; // not part of API anymore
+
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
 
@@ -127,11 +129,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public SqlRepositoryConfiguration sqlConfiguration() {
         return baseHelper.getConfiguration();
-    }
-
-    // public because of testing
-    public OrgClosureManager getClosureManager() {
-        return closureManager;
     }
 
     @FunctionalInterface
@@ -303,7 +300,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @NotNull
     private ObjectQuery replaceSimplifiedFilter(ObjectQuery query, ObjectFilter filter) {
-        query = query.cloneEmpty();
+        query = query.cloneWithoutFilter();
         query.setFilter(filter instanceof AllFilter ? null : filter);
         return query;
     }
@@ -829,13 +826,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      */
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
-        // TODO add some SQL-specific self-test methods
         // No self-tests for now
     }
 
     @Override
     public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
-        getClosureManager().checkAndOrRebuild(true, repairIfNecessary, false, false, testResult);
+        closureManager.checkAndOrRebuild(true, repairIfNecessary, false, false, testResult);
     }
 
     @Override
@@ -1011,16 +1007,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO conflict checking (if needed)
     }
 
-    @Override
-    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) {
-        Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
-        Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
+    protected boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids) {
+        Validate.notNull(ancestorOrgOid, "upperOrgOid must not be null.");
+        Validate.notNull(descendantOrgOids, "lowerObjectOids must not be null.");
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Querying for subordination upper {}, lower {}", upperOrgOid, lowerObjectOids);
+            LOGGER.trace("Querying for subordination upper {}, lower {}", ancestorOrgOid, descendantOrgOids);
         }
 
-        if (lowerObjectOids.isEmpty()) {
+        if (descendantOrgOids.isEmpty()) {
             // trivial case
             return false;
         }
@@ -1033,9 +1028,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    return objectRetriever.isAnySubordinateAttempt(upperOrgOid, lowerObjectOids);
+                    return objectRetriever.isAnySubordinateAttempt(ancestorOrgOid, descendantOrgOids);
                 } catch (RuntimeException ex) {
-                    attempt = baseHelper.logOperationAttempt(upperOrgOid, OP_IS_ANY_SUBORDINATE, attempt, ex, null);
+                    attempt = baseHelper.logOperationAttempt(ancestorOrgOid, OP_IS_ANY_SUBORDINATE, attempt, ex, null);
                     pm.registerOperationNewAttempt(opHandle, attempt);
                 }
             }
@@ -1253,23 +1248,25 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) {
+    public <O extends ObjectType> boolean isDescendant(
+            PrismObject<O> object, String ancestorOrgOid) {
         List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
         List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
         for (ObjectReferenceType objParentOrgRef : objParentOrgRefs) {
             objParentOrgOids.add(objParentOrgRef.getOid());
         }
-        return isAnySubordinate(orgOid, objParentOrgOids);
+        return isAnySubordinate(ancestorOrgOid, objParentOrgOids);
     }
 
     @Override
-    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) {
-        if (object.getOid() == null) {
+    public <O extends ObjectType> boolean isAncestor(
+            PrismObject<O> object, String descendantOrgOid) {
+        // object is not considered ancestor of itself
+        if (object.getOid() == null || object.getOid().equals(descendantOrgOid)) {
             return false;
         }
-        Collection<String> oidList = new ArrayList<>(1);
-        oidList.add(oid);
-        return isAnySubordinate(object.getOid(), oidList);
+
+        return isAnySubordinate(object.getOid(), List.of(descendantOrgOid));
     }
 
     @Override

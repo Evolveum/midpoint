@@ -111,6 +111,7 @@ public class DataSourceFactory {
         }
 
         config.setInitializationFailTimeout(configuration.getInitializationFailTimeout());
+        // We don't want auto commit to assure rollback behavior on close() if connection was not committed.
         config.setAutoCommit(false);
 
         return config;

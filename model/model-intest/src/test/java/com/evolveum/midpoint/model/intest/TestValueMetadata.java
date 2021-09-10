@@ -235,7 +235,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .assertHasDefinition()
                     .singleValue()
                         .containerSingle(ValueMetadataType.F_PROCESS)
-                            .assertItems(ProcessMetadataType.F_REQUEST_TIMESTAMP)
+                            .assertItemsExactly(ProcessMetadataType.F_REQUEST_TIMESTAMP)
                             .end()
                         .end()
                     .end()

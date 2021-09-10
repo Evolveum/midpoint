@@ -135,7 +135,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
-        ObjectHandler handler = ucfObject -> {
+        ObjectHandler handler = (ucfObject, result) -> {
             displayDumpable("Search: found", ucfObject);
             checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
             searchResults.add(ucfObject.getResourceObject());
@@ -167,7 +167,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
-        final ObjectHandler handler = ucfObject -> {
+        final ObjectHandler handler = (ucfObject, lResult) -> {
             checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
             searchResults.add(ucfObject.getResourceObject());
             return true;
@@ -228,7 +228,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         OperationResult result1 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<>();
-        final ObjectHandler handler1 = ucfObject -> {
+        final ObjectHandler handler1 = (ucfObject, result) -> {
             checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
             searchResults1.add(ucfObject.getResourceObject());
             return true;
@@ -236,7 +236,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         OperationResult result2 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<>();
-        final ObjectHandler handler2 = ucfObject -> {
+        final ObjectHandler handler2 = (ucfObject, result) -> {
             checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
             searchResults2.add(ucfObject.getResourceObject());
             return true;

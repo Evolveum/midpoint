@@ -131,8 +131,10 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         }
 
         if (def.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(getModelInteractionService(), context.getTask(), context.getResult())) {
-            LOGGER.trace("Skipping creating wrapper for {}, because experimental GUI features are turned off.", def);
-            return true;
+            if (!(def instanceof PrismContainerDefinition)) {
+                LOGGER.trace("Skipping creating wrapper for {}, because experimental GUI features are turned off.", def);
+                return true;
+            }
         }
 
         if (ItemStatus.ADDED == status && def.isDeprecated()) {

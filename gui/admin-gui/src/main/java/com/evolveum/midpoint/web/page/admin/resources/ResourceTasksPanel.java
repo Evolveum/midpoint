@@ -10,28 +10,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -48,10 +52,6 @@ import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> implements Popupable {
     private static final long serialVersionUID = 1L;
@@ -66,19 +66,19 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
     private static final String ID_RESUME = "resume";
     private static final String ID_SUSPEND = "suspend";
 
-    private IModel<PrismObject<ResourceType>> resourceModel;
+//    private IModel<PrismObject<ResourceType>> resourceModel;
     String[] resourceTaskArchetypeOids = new String[] { SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
             SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
             SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
             SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value() };
 
 
-    public ResourceTasksPanel(String id, final IModel<PrismObject<ResourceType>> resourceModel) {
-        super(id);
-        this.resourceModel = resourceModel;
+    public ResourceTasksPanel(String id, LoadableModel<PrismObject<ResourceType>> resourceModel) {
+        super(id, resourceModel);
+//        this.resourceModel = resourceModel;
 
 //        ListModel<TaskType> model = createTaskModel();
-        initLayout();
+//        initLayout();
     }
 
 //    private ListModel<TaskType> createTaskModel() {
@@ -97,7 +97,13 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
 //
 //    }
 
-    private void initLayout() {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    protected void initLayout() {
         final MainObjectListPanel<TaskType> tasksPanel =
                 new MainObjectListPanel<>(ID_TASKS_TABLE, TaskType.class, null) {
                     private static final long serialVersionUID = 1L;
@@ -107,32 +113,14 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
                         return UserProfileStorage.TableId.PAGE_RESOURCE_TASKS_PANEL;
                     }
 
-//                    @Override
-//                    protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
-//                        return new SelectableListDataProvider<>(pageBase, tasks);
-//                    }
-
                     @Override
                     protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
                         return createSelectableBeanObjectDataProvider(() -> createResourceTasksQuery(), null);
                     }
 
-//                    @Override
-//                    protected ObjectQuery getCustomizeContentQuery() {
-//                        return
-//
-//                    }
-
                     @Override
                     protected List<InlineMenuItem> createInlineMenu() {
                         return null;
-                    }
-
-                    @Override
-                    public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
-                        getPageBase().navigateToNext(PageTask.class, parameters);
                     }
 
                     @Override
@@ -149,7 +137,7 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
                             TaskType newTask = obj.asObjectable();
 
                             ObjectReferenceType resourceRef = new ObjectReferenceType();
-                            resourceRef.setOid(resourceModel.getObject().getOid());
+                            resourceRef.setOid(ResourceTasksPanel.this.getModelObject().getOid());
                             resourceRef.setType(ResourceType.COMPLEX_TYPE);
                             newTask.setObjectRef(resourceRef);
 
@@ -237,7 +225,7 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
 
     private ObjectQuery createResourceTasksQuery() {
         return getPageBase().getPrismContext().queryFor(TaskType.class)
-                .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
+                .item(TaskType.F_OBJECT_REF).ref(getModelObject().getOid())
                 .build();
     }
 
@@ -276,11 +264,6 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
     @Override
     public String getHeightUnit() {
         return "px";
-    }
-
-    @Override
-    public StringResourceModel getTitle() {
-        return getPageBase().createStringResource("ResourceTasksPanel.definedTasks");
     }
 
     @Override

@@ -11,7 +11,7 @@
     <description>Suddenly appearing and disappearing org</description>
     <displayName>Temp Org</displayName>
     <identifier>oooo</identifier>
-    <orgType>functional</orgType>
+    <subtype>functional</subtype>
     <costCenter>CCoooo</costCenter>
 </org>
 

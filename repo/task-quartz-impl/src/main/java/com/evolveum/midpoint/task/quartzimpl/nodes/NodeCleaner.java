@@ -9,6 +9,9 @@ package com.evolveum.midpoint.task.quartzimpl.nodes;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +39,8 @@ public class NodeCleaner {
     @Autowired private ClusterManager clusterManager;
     @Autowired private RepositoryService repositoryService;
 
-    public void cleanupNodes(DeadNodeCleanupPolicyType policy, RunningTask task, OperationResult result) {
+    public void cleanupNodes(DeadNodeCleanupPolicyType policy, RunningTask task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
         if (policy.getMaxAge() == null) {
             return;
         }
@@ -67,7 +71,7 @@ public class NodeCleaner {
                     op.failed(t);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete dead node {}", t, node);
                 }
-                task.incrementProgressAndStoreStatisticsIfTimePassed(result);
+                task.incrementLegacyProgressAndStoreStatisticsIfTimePassed(result);
             }
         }
     }

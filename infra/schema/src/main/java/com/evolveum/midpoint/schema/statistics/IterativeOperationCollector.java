@@ -8,17 +8,12 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemProcessingStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-// TODO consider renaming?
-@Deprecated
+@Deprecated // TODO migrate to activity reporting, see MID-7209
 public interface IterativeOperationCollector {
 
     /**
@@ -48,13 +43,4 @@ public interface IterativeOperationCollector {
      * Resets iterative task information collection, starting from a given value.
      */
     void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions);
-
-    /**
-     * Returns last N failures. Deprecated.
-     */
-    @NotNull
-    @Experimental
-    @Deprecated
-    List<String> getLastFailures();
-
 }

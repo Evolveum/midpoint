@@ -25,9 +25,7 @@ public class QArchetypeMapping
     // Explanation in class Javadoc for SqaleTableMapping
     public static QArchetypeMapping initArchetypeMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QArchetypeMapping(repositoryContext);
-        }
+        instance = new QArchetypeMapping(repositoryContext);
         return instance;
     }
 

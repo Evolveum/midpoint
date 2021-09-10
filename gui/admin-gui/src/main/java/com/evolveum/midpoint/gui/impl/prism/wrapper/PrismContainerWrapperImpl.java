@@ -46,6 +46,8 @@ public class PrismContainerWrapperImpl<C extends Containerable>
 
     private boolean virtual;
 
+    private String identifier;
+
     public PrismContainerWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<C> item, ItemStatus status) {
         super(parent, item, status);
     }
@@ -140,6 +142,17 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     @Override
     public <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException {
         return findItem(path, PrismContainerWrapper.class);
+    }
+
+    public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier) {
+        List<PrismContainerValueWrapper<C>> values = getValues();
+        for (PrismContainerValueWrapper<C> value : values) {
+            PrismContainerWrapper<T> wrapper = value.findContainer(identifier);
+            if (wrapper != null) {
+                return wrapper;
+            }
+        }
+        return null;
     }
 
     private PrismContainerValueWrapper<C> findValue(Long id) {
@@ -343,5 +356,15 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         }
 
         return null;
+    }
+
+    @Override
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    @Override
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 }

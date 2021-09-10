@@ -7,16 +7,18 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
@@ -51,12 +53,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> initObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QObjectMapping<>(
-                    QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    ObjectType.class, QObject.CLASS,
-                    repositoryContext);
-        }
+        instance = new QObjectMapping<>(
+                QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ObjectType.class, QObject.CLASS,
+                repositoryContext);
         return instance;
     }
 
@@ -147,9 +147,14 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public S toSchemaObject(Tuple row, Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
-        return parseSchemaObject(
-                Objects.requireNonNull(row.get(entityPath.fullObject)),
-                Objects.requireNonNull(row.get(entityPath.oid)).toString());
+        byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
+        UUID oid = Objects.requireNonNull(row.get(entityPath.oid));
+        S ret = parseSchemaObject(fullObject, oid.toString());
+        if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
+            RepositoryObjectDiagnosticData diagData = new RepositoryObjectDiagnosticData(fullObject.length);
+            ret.asPrismContainer().setUserData(RepositoryService.KEY_DIAG_DATA, diagData);
+        }
+        return ret;
     }
 
     /**
@@ -168,16 +173,16 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
         R row = newRowObject();
 
-        row.oid = oidToUUid(schemaObject.getOid());
+        row.oid = SqaleUtils.oidToUUid(schemaObject.getOid());
         // objectType MUST be left NULL for INSERT, it's determined by PG
         setPolyString(schemaObject.getName(), o -> row.nameOrig = o, n -> row.nameNorm = n);
-        // fullObject is managed outside of this method
+        // fullObject is managed outside this method
         setReference(schemaObject.getTenantRef(),
                 o -> row.tenantRefTargetOid = o,
                 t -> row.tenantRefTargetType = t,
                 r -> row.tenantRefRelationId = r);
         row.lifecycleState = schemaObject.getLifecycleState();
-        // containerIdSeq is managed outside of this method
+        // containerIdSeq is managed outside this method
         row.version = SqaleUtils.objectVersionAsInt(schemaObject);
 
         // complex DB fields

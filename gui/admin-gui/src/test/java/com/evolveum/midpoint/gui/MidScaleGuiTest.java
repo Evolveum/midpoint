@@ -9,7 +9,12 @@ package com.evolveum.midpoint.gui;
 import java.io.File;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -37,7 +42,6 @@ import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
@@ -51,8 +55,10 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
 
     private static final String TEST_DIR = "./src/test/resources/midScale";
 
-//    private static final File FILE_ORG_STRUCT = new File(TEST_DIR, "org-struct.xml");
-//    private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
+    private static final File FILE_ORG_STRUCT = new File(TEST_DIR, "org-struct.xml");
+    private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
+    private static final File FILE_ARCHETYPE_TEACHER = new File(TEST_DIR, "archetype-teacher.xml");
+    private static final String ARCHETYPE_TEACHER_OID = "b27830c5-f02a-4273-ab7e-b6bd0e1026dc";
 
     private static final int REPETITION_COUNT = 10;
 
@@ -63,19 +69,38 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
         super.initSystem(initTask, initResult);
         modelService.postInit(initResult);
         userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
+
+        int users = repositoryService.countObjects(UserType.class, null, null, initResult);
+        System.out.println("Users " + users);
+        if (users < 5) {
+            importObjectsFromFileNotRaw(FILE_ORG_STRUCT, initTask, initResult);
+            initResult.computeStatusIfUnknown();
+            if (!initResult.isSuccess()) {
+                System.out.println("init result:\n" + initResult);
+            }
+            importObjectsFromFileNotRaw(FILE_USERS, initTask, initResult);
+            importObjectsFromFileNotRaw(FILE_ARCHETYPE_TEACHER, initTask, initResult);
+
+            ObjectDelta<SystemConfigurationType> systemConfigurationDelta = prismContext.deltaFor(SystemConfigurationType.class)
+                            .item(ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_ENABLE_EXPERIMENTAL_FEATURES))
+                                    .replace(true)
+                            .item(ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS, GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW))
+                                    .add(createTeacherCollection()).asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+
+            modelService.executeChanges(MiscUtil.createCollection(systemConfigurationDelta), null, initTask, initResult);
+//            login(userAdministrator);
+        }
         login(userAdministrator);
+    }
 
-//        importObjectsFromFileNotRaw(FILE_ORG_STRUCT, initTask, initResult);
-//        initResult.computeStatusIfUnknown();
-//        if (!initResult.isSuccess()) {
-//            System.out.println("init result:\n" + initResult);
-//        }
-//        importObjectsFromFileNotRaw(FILE_USERS, initTask, initResult);
-
-        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_ENABLE_EXPERIMENTAL_FEATURES),
-                initTask, initResult, true);
-
+    private GuiObjectListViewType createTeacherCollection() {
+        GuiObjectListViewType teacherCollection = new GuiObjectListViewType(prismContext);
+        CollectionRefSpecificationType collectionRefSpecificationType = new CollectionRefSpecificationType(prismContext);
+        collectionRefSpecificationType.setCollectionRef(ObjectTypeUtil.createObjectRef(ARCHETYPE_TEACHER_OID, ObjectTypes.ARCHETYPE));
+        teacherCollection.setCollection(collectionRefSpecificationType);
+        teacherCollection.setType(UserType.COMPLEX_TYPE);
+        teacherCollection.setIdentifier("teacher-collection");
+        return teacherCollection;
     }
 
     @BeforeMethod
@@ -146,7 +171,28 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
     @Test
     public void test220newUser() {
         logger.info(getTestName());
-        runTestFor(PageUser.class, "newUser", "New user");
+
+        Stopwatch stopwatch = stopwatch("newUser", "New user");
+        for (int i = 0; i < REPETITION_COUNT; i++) {
+            tester.startPage(PageUser.class);
+            tester.debugComponentTrees();
+            try (Split ignored = stopwatch.start()) {
+                queryListener.start();
+                tester.executeAjaxEvent("template:additionalButtons:0:additionalButton:compositedButton", "click");
+            }
+        }
+        queryListener.dumpAndStop();
+        tester.assertRenderedPage(PageUser.class);
+        OperationsPerformanceInformationType performanceInformation =
+                OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
+                        OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
+        displayValue("Operation performance (by name)",
+                OperationsPerformanceInformationUtil.format(performanceInformation));
+        displayValue("Operation performance (by time)",
+                OperationsPerformanceInformationUtil.format(performanceInformation,
+                        new AbstractStatisticsPrinter.Options(AbstractStatisticsPrinter.Format.TEXT, AbstractStatisticsPrinter.SortBy.TIME), null, null));
+
+//        runTestFor(PageUser.class, "newUser", "New user");
 
     }
 
@@ -172,7 +218,7 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
         }
 
         queryListener.dumpAndStop();
-        tester.assertRenderedPage(PageUser.class);
+        tester.assertRenderedPage(com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
         OperationsPerformanceInformationType performanceInformation =
                 OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
                         OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
@@ -201,12 +247,12 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
             Stopwatch stopwatch = stopwatch("showProjections", "User's projection tab");
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
-                clickOnTab(1, PageUser.class);
+                clickOnDetailsMenu(1, com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
             }
         }
 
         queryListener.dumpAndStop();
-        tester.assertRenderedPage(PageUser.class);
+        tester.assertRenderedPage(com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
         OperationsPerformanceInformationType performanceInformation =
                 OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
                         OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
@@ -235,12 +281,13 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
             Stopwatch stopwatch = stopwatch("showAssignments", "User's assignmentTab");
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
-                clickOnTab(2, PageUser.class);
+                //order 0 == All Assignments
+                clickOnDetailsAssignmentMenu(0, com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
             }
         }
 
         queryListener.dumpAndStop();
-        tester.assertRenderedPage(PageUser.class);
+        tester.assertRenderedPage(com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
         OperationsPerformanceInformationType performanceInformation =
                 OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
                         OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());

@@ -13,11 +13,11 @@
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="00000000-role-0000-0000-000011113333"
+      oid="00000000-1111-0000-0000-000011113333"
       version="11">
    <name>Maple Leaf Graduate</name>
    <assignment>
-           <targetRef oid="00000000-role-meta-0000-000011113333" type="RoleType" /> <!-- role maple leaf graduate license -->
+           <targetRef oid="00000000-1111-2222-0000-000011113333" type="RoleType" /> <!-- role maple leaf graduate license -->
    </assignment>
    <inducement id="4">
       <construction>

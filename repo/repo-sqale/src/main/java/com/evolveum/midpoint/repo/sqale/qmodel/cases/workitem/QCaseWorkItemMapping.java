@@ -9,20 +9,28 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
@@ -38,7 +46,7 @@ public class QCaseWorkItemMapping
     // Explanation in class Javadoc for SqaleTableMapping
     public static QCaseWorkItemMapping initCaseWorkItemMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QCaseWorkItemMapping(repositoryContext);
         }
         return instance;
@@ -90,6 +98,7 @@ public class QCaseWorkItemMapping
     @Override
     public CaseWorkItemType toSchemaObject(MCaseWorkItem row) {
         CaseWorkItemType cwi = new CaseWorkItemType(prismContext())
+                .id(row.cid)
                 .closeTimestamp(asXMLGregorianCalendar(row.closeTimestamp))
                 .createTimestamp(asXMLGregorianCalendar(row.createTimestamp))
                 .deadline(asXMLGregorianCalendar(row.deadline))
@@ -102,8 +111,34 @@ public class QCaseWorkItemMapping
         if (row.outcome != null) {
             cwi.output(new AbstractWorkItemOutputType(prismContext()).outcome(row.outcome));
         }
-
         return cwi;
+    }
+
+    @Override
+    public ResultListRowTransformer<CaseWorkItemType, QCaseWorkItem, MCaseWorkItem> createRowTransformer(
+            SqlQueryContext<CaseWorkItemType, QCaseWorkItem, MCaseWorkItem> sqlQueryContext, JdbcSession jdbcSession) {
+        Map<UUID, PrismObject<CaseType>> casesCache = new HashMap<>();
+
+        return (tuple, entityPath, options) -> {
+            MCaseWorkItem row = Objects.requireNonNull(tuple.get(entityPath));
+            UUID caseOid = row.ownerOid;
+            PrismObject<CaseType> aCase = casesCache.get(caseOid);
+            if (aCase == null) {
+                aCase = ((SqaleQueryContext<CaseWorkItemType, QCaseWorkItem, MCaseWorkItem>) sqlQueryContext)
+                        .loadObject(jdbcSession, CaseType.class, caseOid, options);
+                casesCache.put(caseOid, aCase);
+            }
+
+            PrismContainer<CaseWorkItemType> workItemContainer = aCase.findContainer(CaseType.F_WORK_ITEM);
+            if (workItemContainer == null) {
+                throw new SystemException("Case " + aCase + " has no work items even if it should have " + tuple);
+            }
+            PrismContainerValue<CaseWorkItemType> workItemPcv = workItemContainer.findValue(row.cid);
+            if (workItemPcv == null) {
+                throw new SystemException("Case " + aCase + " has no work item with ID " + row.cid);
+            }
+            return workItemPcv.asContainerable();
+        };
     }
 
     @Override

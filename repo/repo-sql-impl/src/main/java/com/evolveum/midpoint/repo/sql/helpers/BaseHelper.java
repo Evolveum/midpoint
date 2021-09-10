@@ -14,6 +14,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.exception.ConstraintViolationException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
@@ -160,7 +162,7 @@ public class BaseHelper {
             RuntimeException ex, Session session, OperationResult result) {
         LOGGER.debug("General runtime exception occurred.", ex);
 
-        if (sqlRepositoryConfiguration.isFatalException(ex)) {
+        if (isFatalException(ex)) {
             rollbackTransaction(session, ex, result, true);
             if (ex instanceof SystemException) {
                 throw ex;
@@ -181,6 +183,31 @@ public class BaseHelper {
         boolean fatal = !isExceptionRelatedToSerialization(ex);
         rollbackTransaction(session, ex, result, fatal);
         throw new SystemException(ex.getMessage(), ex);
+    }
+
+    public void handleGeneralRuntimeException(
+            @NotNull RuntimeException ex,
+            @NotNull JdbcSession jdbcSession,
+            @Nullable OperationResult result) {
+        LOGGER.debug("General runtime exception occurred (session {})", jdbcSession.sessionId(), ex);
+
+        if (isFatalException(ex)) {
+            if (result != null) {
+                result.recordFatalError(ex);
+            }
+            jdbcSession.rollback();
+
+            if (ex instanceof SystemException) {
+                throw ex;
+            } else {
+                throw new SystemException(ex.getMessage(), ex);
+            }
+        } else {
+            jdbcSession.rollback();
+            // this exception will be caught and processed in logOperationAttempt,
+            // so it's safe to pass any RuntimeException here
+            throw ex;
+        }
     }
 
     public int logOperationAttempt(String oid, String operation, int attempt, @NotNull RuntimeException ex,
@@ -258,5 +285,10 @@ public class BaseHelper {
 
     public DataSource dataSource() {
         return dataSource;
+    }
+
+    public boolean isFatalException(Throwable ex) {
+        return !new TransactionSerializationProblemDetector(sqlRepositoryConfiguration, LOGGER)
+                .isExceptionRelatedToSerialization(ex);
     }
 }

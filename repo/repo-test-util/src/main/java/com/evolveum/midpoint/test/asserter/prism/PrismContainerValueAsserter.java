@@ -29,10 +29,15 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.asserter.predicates.AssertionPredicate;
 import com.evolveum.midpoint.test.asserter.predicates.AssertionPredicateEvaluation;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.CheckedConsumer;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import org.jetbrains.annotations.Nullable;
 
 import static org.testng.AssertJUnit.*;
 
@@ -58,16 +63,31 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         return this;
     }
 
-    public PrismContainerValueAsserter<C,RA> assertItems(QName... expectedItems) {
+    public PrismContainerValueAsserter<C,RA> assertItemsExactly(QName... expectedItems) {
+        assertItemsPresent(expectedItems);
+        for (Item<?, ?> existingItem : getPrismValue().getItems()) {
+            if (!QNameUtil.contains(expectedItems, existingItem.getElementName())) {
+                fail("Unexpected item "+existingItem.getElementName()+" in "+desc()+". Expected items: "+QNameUtil.prettyPrint(expectedItems));
+            }
+        }
+        return this;
+    }
+
+    public PrismContainerValueAsserter<C,RA> assertItemsPresent(QName... expectedItems) {
         for (QName expectedItem: expectedItems) {
             Item<PrismValue,ItemDefinition> item = getPrismValue().findItem(ItemName.fromQName(expectedItem));
             if (item == null) {
                 fail("Expected item "+expectedItem+" in "+desc()+" but there was none. Items present: "+presentItemNames());
             }
         }
-        for (Item<?, ?> existingItem : getPrismValue().getItems()) {
-            if (!QNameUtil.contains(expectedItems, existingItem.getElementName())) {
-                fail("Unexpected item "+existingItem.getElementName()+" in "+desc()+". Expected items: "+QNameUtil.prettyPrint(expectedItems));
+        return this;
+    }
+
+    public PrismContainerValueAsserter<C,RA> assertItemsAbsent(QName... names) {
+        for (QName name : names) {
+            Item<PrismValue,ItemDefinition> item = getPrismValue().findItem(ItemName.fromQName(name));
+            if (item != null && item.hasAnyValue()) {
+                fail("Expected that item "+name+" is not in "+desc()+" but there was one.");
             }
         }
         return this;
@@ -115,12 +135,28 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         return this;
     }
 
-    public <T> PrismContainerValueAsserter<C,RA> assertPropertyValueSatisfies(ItemPath path, AssertionPredicate<T> predicate) {
-        PrismProperty<T> prop = findProperty(path);
-        T value = prop != null ? prop.getRealValue() : null;
+    public <T> PrismContainerValueAsserter<C,RA> assertItemValueSatisfies(ItemPath path, AssertionPredicate<T> predicate) {
+        T value = getItemRealValue(path);
         AssertionPredicateEvaluation evaluation = predicate.evaluate(value);
         if (evaluation.hasFailed()) {
-            fail("Property " + path + " value of '" + value + "' does not satisfy predicate: " + evaluation.getFailureDescription());
+            fail("Item " + path + " value of '" + value + "' does not satisfy predicate: " + evaluation.getFailureDescription());
+        }
+        return this;
+    }
+
+    @Nullable
+    private <T> T getItemRealValue(ItemPath path) {
+        Item<?, ?> item = findItem(path);
+        //noinspection unchecked
+        return item != null ? (T) item.getRealValue() : null;
+    }
+
+    public <T> PrismContainerValueAsserter<C,RA> sendItemValue(ItemPath path, CheckedConsumer<T> consumer) {
+        T value = getItemRealValue(path);
+        try {
+            consumer.accept(value);
+        } catch (CommonException e) {
+            throw new SystemException(e);
         }
         return this;
     }

@@ -14,6 +14,11 @@
 --
 -- Other notes:
 -- TEXT is used instead of VARCHAR, see: https://dba.stackexchange.com/a/21496/157622
+--
+-- For Audit tables see 'pgnew-repo-audit.sql' right next to this file.
+--
+-- For Quartz tables see:
+-- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
 
 -- noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
 
@@ -21,7 +26,7 @@
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
 CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
---CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
 
 -- region custom enum types
 -- Some enums are from schema, some are only defined in repo-sqale.
@@ -107,6 +112,8 @@ CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
 CREATE TYPE LockoutStatusType AS ENUM ('NORMAL', 'LOCKED');
 
+CREATE TYPE NodeOperationalStateType AS ENUM ('UP', 'DOWN', 'STARTING');
+
 CREATE TYPE OperationExecutionRecordTypeType AS ENUM ('SIMPLE', 'COMPLEX');
 
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
@@ -121,11 +128,15 @@ CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOW
 CREATE TYPE SynchronizationSituationType AS ENUM (
     'DELETED', 'DISPUTED', 'LINKED', 'UNLINKED', 'UNMATCHED');
 
+CREATE TYPE TaskAutoScalingModeType AS ENUM ('DISABLED', 'DEFAULT');
+
 CREATE TYPE TaskBindingType AS ENUM ('LOOSE', 'TIGHT');
 
 CREATE TYPE TaskExecutionStateType AS ENUM ('RUNNING', 'RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
 CREATE TYPE TaskRecurrenceType AS ENUM ('SINGLE', 'RECURRING');
+
+CREATE TYPE TaskSchedulingStateType AS ENUM ('READY', 'WAITING', 'SUSPENDED', 'CLOSED');
 
 CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
 
@@ -481,10 +492,9 @@ CREATE TRIGGER m_generic_object_update_tr BEFORE UPDATE ON m_generic_object
 CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
--- TODO unique per genericObjectTypeId?
---  No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
 ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_nameNorm_key UNIQUE (nameNorm);
+-- TODO No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtypes);
 -- endregion
 
@@ -657,8 +667,7 @@ CREATE INDEX m_ref_object_parent_orgTargetOidRelationId_idx
 
 -- region org-closure
 /*
-Trigger on m_ref_object_parent_org refreshes this view.
-This is not most performant, but it is *correct* and it's still WIP.
+Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
 Closure contains also identity (org = org) entries because:
 * It's easier to do optimized matrix-multiplication based refresh with them later.
 * It actually makes some query easier and requires AND instead of OR conditions.
@@ -745,7 +754,6 @@ BEGIN
     END IF;
 END; $$;
 -- endregion
--- endregion
 
 -- region OTHER object tables
 -- Represents ResourceType, see https://wiki.evolveum.com/display/midPoint/Resource+Configuration
@@ -753,8 +761,8 @@ CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED
         CHECK (objectType = 'RESOURCE'),
-    business_administrativeState ResourceAdministrativeStateType,
-    operationalState_lastAvailabilityStatus AvailabilityStatusType,
+    businessAdministrativeState ResourceAdministrativeStateType,
+    operationalStateLastAvailabilityStatus AvailabilityStatusType,
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
     connectorRefRelationId INTEGER REFERENCES m_uri(id)
@@ -802,7 +810,7 @@ CREATE TABLE m_shadow (
     dead BOOLEAN,
     exist BOOLEAN,
     fullSynchronizationTimestamp TIMESTAMPTZ,
-    pendingOperationCount INTEGER,
+    pendingOperationCount INTEGER NOT NULL,
     primaryIdentifierValue TEXT,
 --     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
@@ -810,8 +818,6 @@ CREATE TABLE m_shadow (
     attributes JSONB
 )
     INHERITS (m_object);
-
--- TODO not partitioned yet, discriminator columns probably can't be NULL
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -846,7 +852,8 @@ CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('NODE') STORED
         CHECK (objectType = 'NODE'),
-    nodeIdentifier TEXT
+    nodeIdentifier TEXT,
+    operationalState NodeOperationalStateType
 )
     INHERITS (m_assignment_holder);
 
@@ -1003,7 +1010,7 @@ CREATE TRIGGER m_report_data_oid_delete_tr AFTER DELETE ON m_report_data
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_report_data_nameOrig_idx ON m_report_data (nameOrig);
-ALTER TABLE m_report_data ADD CONSTRAINT m_report_data_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_report_data_nameNorm_idx ON m_report_data (nameNorm); -- not unique
 CREATE INDEX m_report_data_subtypes_idx ON m_report_data USING gin(subtypes);
 CREATE INDEX m_report_data_policySituation_idx
     ON m_report_data USING gin(policysituations gin__int_ops);
@@ -1071,7 +1078,9 @@ CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
-ALTER TABLE m_connector ADD CONSTRAINT m_connector_nameNorm_key UNIQUE (nameNorm);
+-- TODO: wasn't unique but duplicates caused problems
+--  Also, perhaps unique constraint on type+version would be handy?
+CREATE INDEX m_connector_nameNorm_idx ON m_connector (nameNorm);
 CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
 CREATE INDEX m_connector_policySituation_idx
     ON m_connector USING gin(policysituations gin__int_ops);
@@ -1123,6 +1132,8 @@ CREATE TABLE m_task (
     parent TEXT, -- value of taskIdentifier
     recurrence TaskRecurrenceType,
     resultStatus OperationResultStatusType,
+    schedulingState TaskSchedulingStateType,
+    autoScalingMode TaskAutoScalingModeType, -- autoScaling/mode
     threadStopAction ThreadStopActionType,
     waitingReason TaskWaitingReasonType,
     dependentTaskIdentifiers TEXT[] -- contains values of taskIdentifier
@@ -1137,7 +1148,7 @@ CREATE TRIGGER m_task_oid_delete_tr AFTER DELETE ON m_task
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_task_nameOrig_idx ON m_task (nameOrig);
-ALTER TABLE m_task ADD CONSTRAINT m_task_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_task_nameNorm_idx ON m_task (nameNorm); -- can have duplicates
 CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRefTargetOid_idx ON m_task(objectRefTargetOid);
 ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
@@ -1177,7 +1188,7 @@ CREATE TRIGGER m_case_oid_delete_tr AFTER DELETE ON m_case
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
-ALTER TABLE m_case ADD CONSTRAINT m_case_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_case_nameNorm_idx ON m_case (nameNorm);
 CREATE INDEX m_case_subtypes_idx ON m_case USING gin(subtypes);
 CREATE INDEX m_case_policySituation_idx ON m_case USING gin(policysituations gin__int_ops);
 
@@ -1378,8 +1389,7 @@ ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_i
 
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
-        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
-        ON DELETE CASCADE; -- TODO is the cascade needed?
+        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid);
 
 -- stores case/workItem/candidateRef
 CREATE TABLE m_access_cert_wi_candidate (
@@ -1559,12 +1569,12 @@ CREATE TABLE m_assignment (
     creatorRefTargetOid UUID,
     creatorRefTargetType ObjectType,
     creatorRefRelationId INTEGER REFERENCES m_uri(id),
-    createChannelId INTEGER,
+    createChannelId INTEGER REFERENCES m_uri(id),
     createTimestamp TIMESTAMPTZ,
     modifierRefTargetOid UUID,
     modifierRefTargetType ObjectType,
     modifierRefRelationId INTEGER REFERENCES m_uri(id),
-    modifyChannelId INTEGER,
+    modifyChannelId INTEGER REFERENCES m_uri(id),
     modifyTimestamp TIMESTAMPTZ,
 
     PRIMARY KEY (ownerOid, cid)
@@ -1626,13 +1636,13 @@ CREATE TABLE m_trigger (
     containerType ContainerType GENERATED ALWAYS AS ('TRIGGER') STORED
         CHECK (containerType = 'TRIGGER'),
     handlerUriId INTEGER REFERENCES m_uri(id),
-    timestampValue TIMESTAMPTZ,
+    timestamp TIMESTAMPTZ,
 
     PRIMARY KEY (ownerOid, cid)
 )
     INHERITS(m_container);
 
-CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
+CREATE INDEX m_trigger_timestamp_idx ON m_trigger (timestamp);
 
 -- stores ObjectType/operationExecution (OperationExecutionType)
 CREATE TABLE m_operation_execution (
@@ -1647,7 +1657,7 @@ CREATE TABLE m_operation_execution (
     taskRefTargetOid UUID,
     taskRefTargetType ObjectType,
     taskRefRelationId INTEGER REFERENCES m_uri(id),
-    timestampValue TIMESTAMPTZ,
+    timestamp TIMESTAMPTZ,
 
     PRIMARY KEY (ownerOid, cid)
 )
@@ -1657,7 +1667,7 @@ CREATE INDEX m_operation_execution_initiatorRefTargetOid_idx
     ON m_operation_execution (initiatorRefTargetOid);
 CREATE INDEX m_operation_execution_taskRefTargetOid_idx
     ON m_operation_execution (taskRefTargetOid);
-CREATE INDEX m_operation_execution_timestampValue_idx ON m_operation_execution (timestampValue);
+CREATE INDEX m_operation_execution_timestamp_idx ON m_operation_execution (timestamp);
 -- index for ownerOid is part of PK
 -- TODO: index for status is questionable, don't we want WHERE status = ... to another index instead?
 -- endregion
@@ -1676,103 +1686,14 @@ CREATE TABLE m_ext_item (
     -- information about storage mechanism (JSON common/separate, column, table separate/common, etc.)
     -- storageType JSONB NOT NULL default '{"type": "EXT_JSON"}', -- currently only JSONB is used
 );
+
+-- This works fine for itemName+holderType search used in raw processing
+ALTER TABLE m_ext_item ADD CONSTRAINT m_ext_item_key
+    UNIQUE (itemName, holderType, valueType, cardinality);
 -- endregion
 
 /*
--- TODO audit
-CREATE TABLE m_audit_delta (
-  checksum          VARCHAR(32) NOT NULL,
-  record_id         BIGINT        NOT NULL,
-  delta             BYTEA,
-  deltaOid          UUID,
-  deltaType         INTEGER,
-  fullResult        BYTEA,
-  objectNameNorm   TEXT,
-  objectNameOrig   TEXT,
-  resourceNameNorm TEXT,
-  resourceNameOrig TEXT,
-  resourceOid       UUID,
-  status            INTEGER,
-  PRIMARY KEY (record_id, checksum)
-);
-CREATE TABLE m_audit_event (
-  id                BIGSERIAL NOT NULL,
-  attorneyName      TEXT,
-  attorneyOid       UUID,
-  channel           TEXT,
-  eventIdentifier   TEXT,
-  eventStage        INTEGER,
-  eventType         INTEGER,
-  hostIdentifier    TEXT,
-  initiatorName     TEXT,
-  initiatorOid      UUID,
-  initiatorType     INTEGER,
-  message           VARCHAR(1024),
-  nodeIdentifier    TEXT,
-  outcome           INTEGER,
-  parameter         TEXT,
-  remoteHostAddress TEXT,
-  requestIdentifier TEXT,
-  result            TEXT,
-  sessionIdentifier TEXT,
-  targetName        TEXT,
-  targetOid         UUID,
-  targetOwnerName   TEXT,
-  targetOwnerOid    UUID,
-  targetOwnerType   INTEGER,
-  targetType        INTEGER,
-  taskIdentifier    TEXT,
-  taskOID           TEXT,
-  timestampValue    TIMESTAMPTZ,
-  PRIMARY KEY (id)
-);
-CREATE TABLE m_audit_item (
-  changedItemPath VARCHAR(900) NOT NULL,
-  record_id       BIGINT         NOT NULL,
-  PRIMARY KEY (record_id, changedItemPath)
-);
-CREATE TABLE m_audit_prop_value (
-  id        BIGSERIAL NOT NULL,
-  name      TEXT,
-  record_id BIGINT,
-  value     VARCHAR(1024),
-  PRIMARY KEY (id)
-);
-CREATE TABLE m_audit_ref_value (
-  id              BIGSERIAL NOT NULL,
-  name            TEXT,
-  oid             UUID,
-  record_id       BIGINT,
-  targetNameNorm TEXT,
-  targetNameOrig TEXT,
-  type            TEXT,
-  PRIMARY KEY (id)
-);
-CREATE TABLE m_audit_resource (
-  resourceOid       TEXT NOT NULL,
-  record_id       BIGINT         NOT NULL,
-  PRIMARY KEY (record_id, resourceOid)
-);
-
-CREATE INDEX iAuditDeltaRecordId
-  ON m_audit_delta (record_id);
-CREATE INDEX iTimestampValue
-  ON m_audit_event (timestampValue);
-CREATE INDEX iAuditEventRecordEStageTOid
-  ON m_audit_event (eventStage, targetOid);
-CREATE INDEX iChangedItemPath
-  ON m_audit_item (changedItemPath);
-CREATE INDEX iAuditItemRecordId
-  ON m_audit_item (record_id);
-CREATE INDEX iAuditPropValRecordId
-  ON m_audit_prop_value (record_id);
-CREATE INDEX iAuditRefValRecordId
-  ON m_audit_ref_value (record_id);
-CREATE INDEX iAuditResourceOid
-  ON m_audit_resource (resourceOid);
-CREATE INDEX iAuditResourceOidRecordId
-  ON m_audit_resource (record_id);
-
+TODO: further indexes
 CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState
@@ -1800,19 +1721,6 @@ CREATE INDEX iFocusValidFrom
 CREATE INDEX iFocusValidTo
   ON m_focus (validTo);
 
-ALTER TABLE m_audit_delta
-  ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_item
-  ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_prop_value
-  ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_ref_value
-  ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_resource
-  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_focus_photo
-  ADD CONSTRAINT fk_focus_photo FOREIGN KEY (ownerOid) REFERENCES m_focus;
-
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (ownerOid) REFERENCES m_object;
 ALTER TABLE m_user_organization
@@ -1822,192 +1730,6 @@ ALTER TABLE m_user_organizational_unit
 ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
 
--- Thanks to Patrick Lightbody for submitting this...
---
--- In your Quartz properties file, you'll need to set
--- org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-
-drop table if exists qrtz_fired_triggers;
-DROP TABLE if exists QRTZ_PAUSED_TRIGGER_GRPS;
-DROP TABLE if exists QRTZ_SCHEDULER_STATE;
-DROP TABLE if exists QRTZ_LOCKS;
-drop table if exists qrtz_simple_triggers;
-drop table if exists qrtz_cron_triggers;
-drop table if exists qrtz_simprop_triggers;
-DROP TABLE if exists QRTZ_BLOB_TRIGGERS;
-drop table if exists qrtz_triggers;
-drop table if exists qrtz_job_details;
-drop table if exists qrtz_calendars;
-
-CREATE TABLE qrtz_job_details
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    JOB_NAME  VARCHAR(200) NOT NULL,
-    JOB_GROUP VARCHAR(200) NOT NULL,
-    DESCRIPTION VARCHAR(250) NULL,
-    JOB_CLASS_NAME   VARCHAR(250) NOT NULL,
-    IS_DURABLE BOOL NOT NULL,
-    IS_NONCONCURRENT BOOL NOT NULL,
-    IS_UPDATE_DATA BOOL NOT NULL,
-    REQUESTS_RECOVERY BOOL NOT NULL,
-    JOB_DATA BYTEA NULL,
-    PRIMARY KEY (SCHED_NAME,JOB_NAME,JOB_GROUP)
-);
-
-CREATE TABLE qrtz_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    JOB_NAME  VARCHAR(200) NOT NULL,
-    JOB_GROUP VARCHAR(200) NOT NULL,
-    DESCRIPTION VARCHAR(250) NULL,
-    NEXT_FIRE_TIME BIGINT NULL,
-    PREV_FIRE_TIME BIGINT NULL,
-    PRIORITY INTEGER NULL,
-    EXECUTION_GROUP VARCHAR(200) NULL,
-    TRIGGER_STATE VARCHAR(16) NOT NULL,
-    TRIGGER_TYPE VARCHAR(8) NOT NULL,
-    START_TIME BIGINT NOT NULL,
-    END_TIME BIGINT NULL,
-    CALENDAR_NAME VARCHAR(200) NULL,
-    MISFIRE_INSTR SMALLINT NULL,
-    JOB_DATA BYTEA NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,JOB_NAME,JOB_GROUP)
-    REFERENCES QRTZ_JOB_DETAILS(SCHED_NAME,JOB_NAME,JOB_GROUP)
-);
-
-CREATE TABLE qrtz_simple_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    REPEAT_COUNT BIGINT NOT NULL,
-    REPEAT_INTERVAL BIGINT NOT NULL,
-    TIMES_TRIGGERED BIGINT NOT NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-    REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_cron_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    CRON_EXPRESSION VARCHAR(120) NOT NULL,
-    TIME_ZONE_ID VARCHAR(80),
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-    REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_simprop_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    STR_PROP_1 VARCHAR(512) NULL,
-    STR_PROP_2 VARCHAR(512) NULL,
-    STR_PROP_3 VARCHAR(512) NULL,
-    INT_PROP_1 INT NULL,
-    INT_PROP_2 INT NULL,
-    LONG_PROP_1 BIGINT NULL,
-    LONG_PROP_2 BIGINT NULL,
-    DEC_PROP_1 NUMERIC(13,4) NULL,
-    DEC_PROP_2 NUMERIC(13,4) NULL,
-    BOOL_PROP_1 BOOL NULL,
-    BOOL_PROP_2 BOOL NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-    REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_blob_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    BLOB_DATA BYTEA NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-        REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_calendars
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    CALENDAR_NAME  VARCHAR(200) NOT NULL,
-    CALENDAR BYTEA NOT NULL,
-    PRIMARY KEY (SCHED_NAME,CALENDAR_NAME)
-);
-
-
-CREATE TABLE qrtz_paused_trigger_grps
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_GROUP  VARCHAR(200) NOT NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_fired_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    ENTRY_ID VARCHAR(95) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    INSTANCE_NAME VARCHAR(200) NOT NULL,
-    FIRED_TIME BIGINT NOT NULL,
-    SCHED_TIME BIGINT NOT NULL,
-    PRIORITY INTEGER NOT NULL,
-    EXECUTION_GROUP VARCHAR(200) NULL,
-    STATE VARCHAR(16) NOT NULL,
-    JOB_NAME VARCHAR(200) NULL,
-    JOB_GROUP VARCHAR(200) NULL,
-    IS_NONCONCURRENT BOOL NULL,
-    REQUESTS_RECOVERY BOOL NULL,
-    PRIMARY KEY (SCHED_NAME,ENTRY_ID)
-);
-
-CREATE TABLE qrtz_scheduler_state
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    INSTANCE_NAME VARCHAR(200) NOT NULL,
-    LAST_CHECKIN_TIME BIGINT NOT NULL,
-    CHECKIN_INTERVAL BIGINT NOT NULL,
-    PRIMARY KEY (SCHED_NAME,INSTANCE_NAME)
-);
-
-CREATE TABLE qrtz_locks
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    LOCK_NAME  VARCHAR(40) NOT NULL,
-    PRIMARY KEY (SCHED_NAME,LOCK_NAME)
-);
-
-create index idx_qrtz_j_req_recovery on qrtz_job_details(SCHED_NAME,REQUESTS_RECOVERY);
-create index idx_qrtz_j_grp on qrtz_job_details(SCHED_NAME,JOB_GROUP);
-
-create index idx_qrtz_t_j on qrtz_triggers(SCHED_NAME,JOB_NAME,JOB_GROUP);
-create index idx_qrtz_t_jg on qrtz_triggers(SCHED_NAME,JOB_GROUP);
-create index idx_qrtz_t_c on qrtz_triggers(SCHED_NAME,CALENDAR_NAME);
-create index idx_qrtz_t_g on qrtz_triggers(SCHED_NAME,TRIGGER_GROUP);
-create index idx_qrtz_t_state on qrtz_triggers(SCHED_NAME,TRIGGER_STATE);
-create index idx_qrtz_t_n_state on qrtz_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP,TRIGGER_STATE);
-create index idx_qrtz_t_n_g_state on qrtz_triggers(SCHED_NAME,TRIGGER_GROUP,TRIGGER_STATE);
-create index idx_qrtz_t_next_fire_time on qrtz_triggers(SCHED_NAME,NEXT_FIRE_TIME);
-create index idx_qrtz_t_nft_st on qrtz_triggers(SCHED_NAME,TRIGGER_STATE,NEXT_FIRE_TIME);
-create index idx_qrtz_t_nft_misfire on qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME);
-create index idx_qrtz_t_nft_st_misfire on qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_STATE);
-create index idx_qrtz_t_nft_st_misfire_grp on qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_GROUP,TRIGGER_STATE);
-
-create index idx_qrtz_ft_trig_inst_name on qrtz_fired_triggers(SCHED_NAME,INSTANCE_NAME);
-create index idx_qrtz_ft_inst_job_req_rcvry on qrtz_fired_triggers(SCHED_NAME,INSTANCE_NAME,REQUESTS_RECOVERY);
-create index idx_qrtz_ft_j_g on qrtz_fired_triggers(SCHED_NAME,JOB_NAME,JOB_GROUP);
-create index idx_qrtz_ft_jg on qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
-create index idx_qrtz_ft_t_g on qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
-create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
 */
 
 -- region Schema versioning and upgrading
@@ -2051,3 +1773,6 @@ BEGIN
     END IF;
 END $$;
 -- endregion
+
+-- For Quartz tables see:
+-- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql

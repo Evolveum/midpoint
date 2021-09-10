@@ -25,7 +25,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -44,8 +43,8 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
 
     private static final String ID_CHILD_CASES_PANEL = "childCasesPanel";
 
-    public ChildCasesTabPanel(String id, MidpointForm<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel) {
-        super(id, mainForm, objectWrapperModel);
+    public ChildCasesTabPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel) {
+        super(id, objectWrapperModel);
     }
 
     @Override
@@ -59,13 +58,6 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
 
         MainObjectListPanel<CaseType> table = new MainObjectListPanel<CaseType>(ID_CHILD_CASES_PANEL,
                 CaseType.class, Collections.emptyList()) {
-
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
-                PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
-                ChildCasesTabPanel.this.getPageBase().navigateToNext(PageCase.class, pageParameters);
-            }
 
             @Override
             protected List<IColumn<SelectableBean<CaseType>, String>> createDefaultColumns() {

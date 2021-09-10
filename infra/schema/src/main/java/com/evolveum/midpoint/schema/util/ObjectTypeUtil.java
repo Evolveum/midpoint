@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -768,10 +769,11 @@ public class ObjectTypeUtil {
 
     public static LocalizableMessage createDisplayInformation(PrismObject<?> object, boolean startsWithUppercase) {
         if (object != null) {
+            String displayName = getDetailedDisplayName((PrismObject<ObjectType>) object);
             return new LocalizableMessageBuilder()
                     .key(SchemaConstants.OBJECT_SPECIFICATION_KEY)
                     .arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
-                    .arg(object.asObjectable().getName())
+                    .arg(StringUtils.isEmpty(displayName) ? object.asObjectable().getName() : displayName)
                     .build();
         } else {
             return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
@@ -1045,30 +1047,45 @@ public class ObjectTypeUtil {
     @FunctionalInterface
     private interface ExtensionItemCreator {
         // Creates item (known from the context) holding specified real values
-        Item<?, ?> create(List<?> realValues) throws SchemaException;
+        Item<?, ?> create(PrismContainerValue<?> extension, List<?> realValues) throws SchemaException;
     }
 
     public static void setExtensionPropertyRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName propertyName,
             Object... values) throws SchemaException {
         setExtensionItemRealValues(parent,
                 extension -> extension.removeProperty(propertyName),
-                (realValues) -> {
-                    //noinspection unchecked
-                    PrismProperty<Object> property = prismContext.getSchemaRegistry()
-                            .findPropertyDefinitionByElementName(propertyName)
+                (extension, realValues) -> {
+                    PrismProperty<Object> property = findPropertyDefinition(prismContext, extension, propertyName)
                             .instantiate();
                     realValues.forEach(property::addRealValue);
                     return property;
                 }, values);
     }
 
+    private static @NotNull PrismPropertyDefinition<Object> findPropertyDefinition(PrismContext prismContext,
+            PrismContainerValue<?> extension, ItemName propertyName) {
+        if (extension.getDefinition() != null) {
+            PrismPropertyDefinition<Object> definitionInExtension = extension.getDefinition().findPropertyDefinition(propertyName);
+            if (definitionInExtension != null) {
+                return definitionInExtension;
+            }
+        }
+        //noinspection unchecked
+        PrismPropertyDefinition<Object> globalDefinition = prismContext.getSchemaRegistry()
+                .findPropertyDefinitionByElementName(propertyName);
+        if (globalDefinition != null) {
+            return globalDefinition;
+        }
+
+        throw new IllegalStateException("Cannot determine definition for " + propertyName + " in " + extension + " nor globally");
+    }
+
     public static void setExtensionContainerRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName containerName,
             Object... values) throws SchemaException {
         setExtensionItemRealValues(parent,
                 extension -> extension.removeContainer(containerName),
-                (realValues) -> {
-                    PrismContainer<Containerable> container = prismContext.getSchemaRegistry()
-                            .findContainerDefinitionByElementName(containerName)
+                (extension, realValues) -> {
+                    PrismContainer<Containerable> container = getContainerDefinition(prismContext, extension, containerName)
                             .instantiate();
                     for (Object realValue : realValues) {
                         //noinspection unchecked
@@ -1076,6 +1093,24 @@ public class ObjectTypeUtil {
                     }
                     return container;
                 }, values);
+    }
+
+    private static @NotNull PrismContainerDefinition<Containerable> getContainerDefinition(PrismContext prismContext,
+            PrismContainerValue<?> extension, ItemName containerName) {
+        if (extension.getDefinition() != null) {
+            PrismContainerDefinition<Containerable> definitionInExtension =
+                    extension.getDefinition().findContainerDefinition(containerName);
+            if (definitionInExtension != null) {
+                return definitionInExtension;
+            }
+        }
+        PrismContainerDefinition<Containerable> globalDefinition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByElementName(containerName);
+        if (globalDefinition != null) {
+            return globalDefinition;
+        }
+
+        throw new IllegalStateException("Cannot determine definition for " + containerName + " in " + extension + " nor globally");
     }
 
     private static void setExtensionItemRealValues(PrismContainerValue<?> parent, ExtensionItemRemover itemRemover,
@@ -1101,7 +1136,7 @@ public class ObjectTypeUtil {
         if (refinedValues.isEmpty()) {
             itemRemover.removeFrom(extension);
         } else {
-            extension.addReplaceExisting(itemCreator.create(refinedValues));
+            extension.addReplaceExisting(itemCreator.create(extension, refinedValues));
         }
     }
 

@@ -1,21 +1,19 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_RELATED;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_RELATED;
+
 import java.io.File;
 import java.util.List;
-
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,6 +28,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -101,29 +100,25 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200ReconcileDummyUuid() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        // TODO
+        // TODO ... do what?
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
 
-        // WHEN
         when();
         importObjectFromFile(TASK_RECONCILE_DUMMY_UUID_FILE);
 
-        // THEN
         then();
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_UUID_OID, false);
 
-        // THEN
-        then();
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 0, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -149,7 +144,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test210ReconcileDummyUuidAddAugustus() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -166,17 +161,13 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         Task taskBefore = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_UUID_OID, result);
 
-        // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
-        // THEN
         then();
 
         waitForTaskNextRunAssertSuccess(taskBefore, true);
 
-        // THEN
-        then();
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -207,7 +198,6 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         display("Augustus after recon", user);
         augustusShadowOid = getSingleLinkOid(user);
         repositoryService.getObject(ShadowType.class, augustusShadowOid, null, result);
-
     }
 
     /**
@@ -215,8 +205,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test220ReconcileDummyUuidDeleteAddAugustus() throws Exception {
-        // GIVEN
-        TestUuid.class.getName();
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -248,17 +237,12 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
 
-        // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
-        // THEN
         then();
-
         waitForTaskNextRunAssertSuccess(taskBefore, true);
 
-        // THEN
-        then();
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 1);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -285,6 +269,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         display("Recon task result", reconTaskResult);
         TestUtil.assertSuccess(reconTaskResult.getOperation(), reconTaskResult, 4); // there is an error deep inside (that is expected)
 
+        // @formatter:off
         augustusShadowOid = assertUserAfterByUsername(USER_AUGUSTUS_NAME)
                 .links()
                 .assertLinks(1, 1)
@@ -294,6 +279,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
                 .by().dead(false).relation(ORG_DEFAULT).find()
                     .assertOidDifferentThan(augustusShadowOid)
                 .getOid();
+        // @formatter:on
     }
 
     /**
@@ -302,7 +288,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test230ReconcileDummyUuidDeleteAugustusAddAugustina() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -332,17 +318,12 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
 
-        // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
-        // THEN
         then();
-
         waitForTaskNextRunAssertSuccess(taskBefore, true);
 
-        // THEN
-        then();
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 2);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -369,6 +350,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         display("Recon task result", reconTaskResult);
         TestUtil.assertSuccess(reconTaskResult.getOperation(), reconTaskResult, 4); // there is an error deep inside (that is expected)
 
+        // @formatter:off
         assertUserAfterByUsername(USER_AUGUSTUS_NAME)
                 .displayWithProjections()
                 .links()
@@ -377,6 +359,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
                     .assertCount(2)
                 .by().dead(false).find()
                     .assertOidDifferentThan(augustusShadowOid);
+        // @formatter:on
     }
 
     private void assertReconAuditModifications(int expectedModifications, String taskOid) {
@@ -479,5 +462,4 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
                     .assertKind(ShadowKindType.ACCOUNT);
         }
     }
-
 }

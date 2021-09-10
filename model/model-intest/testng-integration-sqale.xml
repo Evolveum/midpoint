@@ -5,28 +5,31 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
+
+<!--
+Tests for new repository can be run with this command:
+mvn integration-test -P sqale -pl model/model-intest/
+-->
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="integration" parallel="false">
     <listeners>
         <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
     </listeners>
-    <!-- TODO were in unit tests - but why?
-    TODO: enable after implementing SqaleRepositoryService.searchObjectsIterative()
+    <!-- TODO were in unit tests - but why? -->
     <test name="Security" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityPrincipal"/>
+            <!-- TODO fails on access certification campaign (parent) is not returned with container search
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityBasic"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMedium"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMultitenant"/>
         </classes>
     </test>
-    -->
     <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
-            <!-- TODO: starts failing with test135 (WIP) -->
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
-    <!--
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
             <class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
             <class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
@@ -50,7 +53,9 @@
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAdvanced"/>
             <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
+            <!-- TODO fails on AssertionError: Wrong value of total skip counter (multiple methods)
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.TestOptimizingTriggerCreator"/>
             <class name="com.evolveum.midpoint.model.intest.TestIteration"/>
             <class name="com.evolveum.midpoint.model.intest.TestTolerantAttributes"/>
@@ -58,6 +63,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
             <class name="com.evolveum.midpoint.model.intest.TestCaseIgnore"/>
             <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
+            <class name="com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound"/> <!-- missing from original suite, why? -->
             <class name="com.evolveum.midpoint.model.intest.gensync.TestEditSchema"/>
             <class name="com.evolveum.midpoint.model.intest.gensync.TestRoleEntitlement"/>
             <class name="com.evolveum.midpoint.model.intest.TestConsistencySimple"/>
@@ -65,6 +71,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestMerge"/>
             <class name="com.evolveum.midpoint.model.intest.TestAudit"/>
             <class name="com.evolveum.midpoint.model.intest.TestDeputy"/>
+
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
@@ -106,7 +113,12 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTaskMultithreaded"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTaskLegacy"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTaskLegacyMultithreaded"/>
+            <!-- TODO
+                 Fixed malformed shadow error - sqale validates real values
+                 Fails because expects import failure for long uid shadow
+                  - old repo had upper limit on string length new does not
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskReporting"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.tasks.TestProgressReporting"/>
         </classes>
     </test>
@@ -141,10 +153,10 @@
             <class name="com.evolveum.midpoint.model.intest.TestValueMetadata"/>
         </classes>
     </test>
-    &lt;!&ndash;
-        Some tests moved to the end of suite, because they change logging configuration.
-        TODO: Logging configuration should be refreshed from file during spring context reloading.
-    &ndash;&gt;
+    <!--
+    Some tests moved to the end of suite, because they change logging configuration.
+    TODO: Logging configuration should be refreshed from file during spring context reloading.
+    -->
     <test name="Model Integration 2" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.TestLoggingConfiguration"/>
@@ -164,12 +176,13 @@
             <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
         </classes>
     </test>
+    <!--
     Tests from testng-db-specific.xml
-    <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
+    -->
+    <test name="Synchronization DB" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationPartitioned"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationMultiNode"/>
-    -->
         </classes>
     </test>
 </suite>

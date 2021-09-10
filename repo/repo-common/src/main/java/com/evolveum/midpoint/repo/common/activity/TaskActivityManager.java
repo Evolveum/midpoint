@@ -7,25 +7,24 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.work.workers.WorkersReconciliation;
+import com.evolveum.midpoint.repo.common.task.work.workers.WorkersReconciliationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
 import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -44,13 +43,10 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType.F_TREE;
-
 @Experimental
 @Component
 public class TaskActivityManager {
 
-    private static final String OP_CLEAR_FAILED_ACTIVITY_STATE = TaskActivityManager.class.getName() + ".clearFailedActivityState";
     private static final String OP_RECONCILE_WORKERS = TaskActivityManager.class.getName() + ".reconcileWorkers";
     private static final String OP_RECONCILE_WORKERS_FOR_ACTIVITY = TaskActivityManager.class.getName() + ".reconcileWorkersForActivity";
     private static final String OP_DELETE_ACTIVITY_STATE_AND_WORKERS = TaskActivityManager.class.getName() + ".deleteActivityStateAndWorkers";
@@ -63,43 +59,22 @@ public class TaskActivityManager {
     @Autowired private TaskManager taskManager;
     @Autowired private CommonTaskBeans beans;
 
-    // TODO reconsider this
-    //  How should we clear the "not executed" flag in the tree overview when using e.g. the tests?
-    //  In production the flag is updated automatically when the task/activities start.
-    public void clearFailedActivityState(String taskOid, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        OperationResult result = parentResult.subresult(OP_CLEAR_FAILED_ACTIVITY_STATE)
-                .addParam("taskOid", taskOid)
-                .build();
-        try {
-            plainRepositoryService.modifyObjectDynamically(TaskType.class, taskOid, null,
-                    taskBean -> {
-                        ActivityStateOverviewType stateOverview = ActivityStateOverviewUtil.getStateOverview(taskBean);
-                        if (stateOverview != null) {
-                            ActivityStateOverviewType updatedStateOverview = stateOverview.clone();
-                            ActivityStateOverviewUtil.clearFailedState(updatedStateOverview);
-                            return prismContext.deltaFor(TaskType.class)
-                                    .item(TaskType.F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY)
-                                    .replace(updatedStateOverview)
-                                    .asItemDeltas();
-                        } else {
-                            return List.of();
-                        }
-                    }, null, result);
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
-
     // TODO reconsider the concept of resolver (as it is useless now - we have to fetch the subtasks manually!)
-    public ActivityProgressInformation getProgressInformation(String rootTaskOid, OperationResult result)
+    public ActivityProgressInformation getProgressInformationFromTaskTree(String rootTaskOid, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return ActivityProgressInformation.fromRootTask(
                 getTaskWithSubtasks(rootTaskOid, result),
                 createTaskResolver(result));
+    }
+
+    public ActivityProgressInformation getProgressInformation(@NotNull String rootTaskOid, @NotNull InformationSource source,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return ActivityProgressInformation.fromRootTask(
+                source == InformationSource.FULL_STATE_ONLY ?
+                        getTaskWithSubtasks(rootTaskOid, result) :
+                        getTaskWithoutSubtasks(rootTaskOid, result),
+                source);
     }
 
     public TreeNode<ActivityPerformanceInformation> getPerformanceInformation(String rootTaskOid, OperationResult result)
@@ -141,6 +116,13 @@ public class TaskActivityManager {
                 .asObjectable();
     }
 
+    @NotNull
+    private TaskType getTaskWithoutSubtasks(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        return taskManager.getTask(oid, null, result)
+                .getUpdatedTaskObject()
+                .asObjectable();
+    }
+
     public @NotNull Activity<?, ?> getActivity(Task rootTask, ActivityPath activityPath)
             throws SchemaException {
         return ActivityTree.create(rootTask, beans)
@@ -150,7 +132,8 @@ public class TaskActivityManager {
     /**
      * Note that we reconcile only workers for distributed activities that already have their state.
      */
-    public void reconcileWorkers(@NotNull String rootTaskOid, @NotNull OperationResult parentResult)
+    public @NotNull Map<ActivityPath, WorkersReconciliationResultType> reconcileWorkers(@NotNull String rootTaskOid,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.subresult(OP_RECONCILE_WORKERS)
                 .addParam("rootTaskOid", rootTaskOid)
@@ -158,11 +141,15 @@ public class TaskActivityManager {
         try {
             Task rootTask = taskManager.getTaskTree(rootTaskOid, result);
             TaskType rootTaskBean = rootTask.getRawTaskObjectClonedIfNecessary().asObjectable();
+            Map<ActivityPath, WorkersReconciliationResultType> resultMap = new HashMap<>();
             ActivityTreeUtil.processStates(rootTaskBean, TaskResolver.empty(), (path, state, workerStates, task) -> {
-                if (workerStates != null) {
-                    reconcileWorkersForActivity(rootTask, task, path, result);
+                if (shouldReconcileActivity(workerStates, state)) {
+                    resultMap.put(
+                            path,
+                            reconcileWorkersForActivity(rootTask, task, path, result));
                 }
             });
+            return resultMap;
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -171,10 +158,16 @@ public class TaskActivityManager {
         }
     }
 
+    private boolean shouldReconcileActivity(List<ActivityStateType> workerStates, ActivityStateType state) {
+        return workerStates != null &&
+                state != null && // actually, workerStates != null implies state != null
+                state.getRealizationState() == ActivityRealizationStateType.IN_PROGRESS_DISTRIBUTED;
+    }
+
     /**
      * Note: common exceptions are not propagated - these are reflected only in the operation result
      */
-    private void reconcileWorkersForActivity(@NotNull Task rootTask, @NotNull TaskType coordinatorTaskBean,
+    private @NotNull WorkersReconciliationResultType reconcileWorkersForActivity(@NotNull Task rootTask, @NotNull TaskType coordinatorTaskBean,
             @NotNull ActivityPath path, OperationResult parentResult) {
         OperationResult result = parentResult.subresult(OP_RECONCILE_WORKERS_FOR_ACTIVITY)
                 .addArbitraryObjectAsParam("rootTask", rootTask)
@@ -183,12 +176,16 @@ public class TaskActivityManager {
                 .build();
         try {
             Task coordinatorTask = taskManager.createTaskInstance(coordinatorTaskBean.asPrismObject(), result);
-            new WorkersReconciliation(rootTask, coordinatorTask, path, null, beans)
+            WorkersReconciliationOptions options = new WorkersReconciliationOptions();
+            options.setDontCloseWorkersWhenWorkDone(true); // TODO
+            return new WorkersReconciliation(rootTask, coordinatorTask, path, options, beans)
                     .execute(result);
         } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile workers for activity path '{}' in {}/{}", e, path,
                     coordinatorTaskBean, rootTask);
             result.recordFatalError(e);
+            return new WorkersReconciliationResultType(prismContext)
+                    .status(OperationResultStatusType.FATAL_ERROR);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;

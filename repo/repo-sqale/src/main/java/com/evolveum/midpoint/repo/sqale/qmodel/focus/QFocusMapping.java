@@ -9,8 +9,11 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
+import javax.xml.namespace.QName;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,11 +43,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QFocusMapping<?, ?, ?> initFocusMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    FocusType.class, QFocus.CLASS,
-                    repositoryContext);
-        }
+        instance = new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                FocusType.class, QFocus.CLASS,
+                repositoryContext);
         return instance;
     }
 
@@ -63,7 +64,8 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
         addItemMapping(F_COST_CENTER, stringMapper(q -> q.costCenter));
         addItemMapping(F_EMAIL_ADDRESS, stringMapper(q -> q.emailAddress));
-        // TODO byte[] mapping for F_JPEG_PHOTO -> q.photo
+        // photo is not filterable, obviously
+        addItemMapping(F_JPEG_PHOTO, binaryMapper(q -> q.photo));
         addItemMapping(F_LOCALE, stringMapper(q -> q.locale));
         addItemMapping(F_LOCALITY, polyStringMapper(
                 q -> q.localityOrig, q -> q.localityNorm));
@@ -109,7 +111,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     @Override
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
-        // TODO process photo option
+        if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
+            return new Path[] { entity.oid, entity.fullObject, entity.photo };
+        }
         return new Path[] { entity.oid, entity.fullObject };
     }
 
@@ -123,6 +127,11 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     public R newRowObject() {
         //noinspection unchecked
         return (R) new MFocus();
+    }
+
+    @Override
+    protected Collection<? extends QName> fullObjectItemsToSkip() {
+        return Collections.singletonList(F_JPEG_PHOTO);
     }
 
     @SuppressWarnings("DuplicatedCode") // activation code duplicated with assignment
@@ -169,8 +178,18 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
             row.archiveTimestamp = MiscUtil.asInstant(activation.getArchiveTimestamp());
             row.lockoutStatus = activation.getLockoutStatus();
         }
-
         return row;
+    }
+
+    @Override
+    public S toSchemaObject(Tuple row, Q entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException {
+        S ret = super.toSchemaObject(row, entityPath, options);
+        if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
+            byte[] photo = row.get(entityPath.photo);
+            ret.setJpegPhoto(photo);
+        }
+        return ret;
     }
 
     @Override

@@ -182,6 +182,8 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_ATTRIBUTES = ItemPath.create(C_ATTRIBUTES);
     public static final ItemPath PATH_ASSIGNMENT = ItemPath.create(FocusType.F_ASSIGNMENT);
     public static final ItemPath PATH_INDUCEMENT = ItemPath.create(AbstractRoleType.F_INDUCEMENT);
+    public static final ItemPath PATH_INDUCEMENT_POLICY_RULE = ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE);
+
     public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = ItemPath
             .create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
     public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = ItemPath
@@ -354,7 +356,7 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_SEARCH_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "searchOptions");
     public static final ItemName MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY = new ItemName(NS_MODEL_EXTENSION, "useRepositoryDirectly");
     public static final ItemName MODEL_EXTENSION_ITERATION_METHOD = new ItemName(NS_MODEL_EXTENSION, "iterationMethod");
-    public static final ItemName MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR = new ItemName(NS_MODEL_EXTENSION, "failedObjectsSelector"); // TODO!!!
+    public static final ItemName MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR = new ItemName(NS_MODEL_EXTENSION, "failedObjectsSelector");
     public static final ItemName MODEL_EXTENSION_OBJECT_DELTA = new ItemName(NS_MODEL_EXTENSION, "objectDelta"); // TODO ExecuteDeltasTaskHandler
     public static final ItemName MODEL_EXTENSION_OBJECT_DELTAS = new ItemName(NS_MODEL_EXTENSION, "objectDeltas"); // TODO ExecuteDeltasTaskHandler
     public static final ItemName MODEL_EXTENSION_WORKER_THREADS = new ItemName(NS_MODEL_EXTENSION, "workerThreads");

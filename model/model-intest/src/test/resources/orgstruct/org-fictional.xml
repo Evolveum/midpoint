@@ -11,6 +11,6 @@
     <description>Fictional org unit. It triggers mapping in object template.</description>
     <displayName>Fictional Org</displayName>
     <identifier>FfFfFf</identifier>
-    <orgType>fictional</orgType>
+    <subtype>fictional</subtype>
 </org>
 

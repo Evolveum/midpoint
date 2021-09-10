@@ -10,13 +10,10 @@ package com.evolveum.midpoint.schema.util.task;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.time.DurationFormatUtils;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * TODO
@@ -95,5 +92,9 @@ public class TaskTypeUtil {
         } else {
             return NOW;
         }
+    }
+
+    public static boolean isAutoScalingDisabled(TaskType task) {
+        return task.getAutoScaling() != null && task.getAutoScaling().getMode() == TaskAutoScalingModeType.DISABLED;
     }
 }

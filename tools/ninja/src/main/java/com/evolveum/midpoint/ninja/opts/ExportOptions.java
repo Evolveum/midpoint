@@ -26,11 +26,17 @@ public class ExportOptions extends BaseImportExportOptions {
     public static final String P_SPLIT = "-n";
     public static final String P_SPLIT_LONG = "-split";
 
+    public static final String P_NO_IDS = "-ni";
+    public static final String P_NO_IDS_LONG = "--no-container-ids";
+
     @Parameter(names = {P_OUTPUT, P_OUTPUT_LONG}, descriptionKey = "export.output")
     private File output;
 
     @Parameter(names = {P_OVERWRITE, P_OVERWRITE_LONG}, descriptionKey = "export.overwrite")
     private boolean overwrite;
+
+    @Parameter(names = {P_NO_IDS, P_NO_IDS_LONG}, descriptionKey =  "export.skipids")
+    private boolean skipIds;
 
 //    @Parameter(names = {P_SPLIT, P_SPLIT_LONG}, descriptionKey = "export.split")
 //    private boolean split;
@@ -41,6 +47,10 @@ public class ExportOptions extends BaseImportExportOptions {
 
     public boolean isOverwrite() {
         return overwrite;
+    }
+
+    public boolean isSkipContainerIds() {
+        return skipIds;
     }
 
 //    public boolean isSplit() {

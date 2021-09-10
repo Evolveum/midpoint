@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  *
  * Despite the class name it does not directly contain code that creates conditions based on values.
  * This is still a structural processor and the name "value filter" merely reflects the type of
- * a filter which it processes.
+ * filter which it processes.
  *
  * If the path has multiple names it creates new instance of this filter processor for each
  * step to preserve contextual information - e.g. when predicate needs to be applied to the current
@@ -56,16 +56,27 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
         return process(filter.getPath(), filter);
     }
 
-    private <TQ extends FlexibleRelationalPathBase<TR>, TR> Predicate process(
-            ItemPath path, ValueFilter<?, ?> filter) throws RepositoryException {
-        if (filter.getRightHandSidePath() != null) {
-            // TODO implement
-            throw new QueryException(
-                    "Filter with right-hand-side path is not supported YET: " + path);
-        }
+    @Override
+    public Predicate process(ValueFilter<?, ?> filter, RightHandProcessor rightPath) throws RepositoryException {
+        return process(filter.getPath(), filter, rightPath);
+    }
 
-        if (path.isSingleName()) {
-            QName itemName = path.asSingleName();
+    private Predicate process(
+            ItemPath path, ValueFilter<?, ?> filter) throws RepositoryException {
+        final RightHandProcessor right;
+        if (filter.getRightHandSidePath() != null) {
+            right = processRight(filter.getRightHandSidePath());
+        } else {
+            right = null;
+        }
+        return process(path, filter, right);
+    }
+
+    private <TQ extends FlexibleRelationalPathBase<TR>, TR> Predicate process(
+            ItemPath path, ValueFilter<?, ?> filter, RightHandProcessor right) throws RepositoryException {
+        // isSingleName/asSingleName or firstName don't work for T_ID (OID)
+        if (path.size() == 1) {
+            QName itemName = path.firstToQName();
             ItemValueFilterProcessor<ValueFilter<?, ?>> filterProcessor =
                     mapping.itemMapper(itemName)
                             .createFilterProcessor(context);
@@ -73,15 +84,18 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
                 throw new QueryException("Filtering on " + path + " is not supported.");
                 // this should not even happen, we can't even create a Query that would cause this
             }
-
+            if (right != null) {
+                return filterProcessor.process(filter, right);
+            }
             return filterProcessor.process(filter);
         } else {
-            ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path);
-            ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
+            //noinspection DuplicatedCode
+            ItemRelationResolver.ResolutionResult<TQ, TR> resolution =
+                    mapping.<TQ, TR>relationResolver(path).resolve(context);
             SqlQueryContext<?, TQ, TR> subcontext = resolution.context;
             ValueFilterProcessor<TQ, TR> nestedProcessor =
                     new ValueFilterProcessor<>(subcontext, resolution.mapping);
-            Predicate predicate = nestedProcessor.process(path.rest(), filter);
+            Predicate predicate = nestedProcessor.process(path.rest(), filter, right);
             if (resolution.subquery) {
                 return subcontext.sqlQuery()
                         .where(predicate)
@@ -89,6 +103,32 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
             } else {
                 return predicate;
             }
+        }
+    }
+
+    private <TQ extends FlexibleRelationalPathBase<TR>, TR> RightHandProcessor processRight(ItemPath path)
+            throws RepositoryException {
+        if (path.size() == 1) {
+            QName itemName = path.firstToQName();
+            RightHandProcessor filterProcessor =
+                    mapping.itemMapper(itemName)
+                            .createRightHandProcessor(context);
+            if (filterProcessor == null) {
+                throw new QueryException("Filtering on " + path + " is not supported.");
+                // this should not even happen, we can't even create a Query that would cause this
+            }
+            return filterProcessor;
+        } else {
+            //noinspection DuplicatedCode
+            ItemRelationResolver.ResolutionResult<TQ, TR> resolution =
+                    mapping.<TQ, TR>relationResolver(path).resolve(context);
+            SqlQueryContext<?, TQ, TR> subcontext = resolution.context;
+            ValueFilterProcessor<TQ, TR> nestedProcessor =
+                    new ValueFilterProcessor<>(subcontext, resolution.mapping);
+            if (resolution.subquery) {
+                throw new RepositoryException("Right path " + path + "is not single value");
+            }
+            return nestedProcessor.processRight(path.rest());
         }
     }
 }

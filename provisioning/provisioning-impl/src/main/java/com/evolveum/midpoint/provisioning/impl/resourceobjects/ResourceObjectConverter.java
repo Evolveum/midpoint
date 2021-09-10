@@ -33,7 +33,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.*;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -103,13 +103,15 @@ public class ResourceObjectConverter {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ResourceObjectsLocalBeans localBeans;
     @Autowired private CommonBeans commonBeans;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
     public static final String FULL_SHADOW_KEY = ResourceObjectConverter.class.getName()+".fullShadow";
 
     public @NotNull PrismObject<ShadowType> getResourceObject(ProvisioningContext ctx,
-            Collection<? extends ResourceAttribute<?>> identifiers, boolean fetchAssociations, OperationResult parentResult)
+            Collection<? extends ResourceAttribute<?>> identifiers, String shadowOid, boolean fetchAssociations,
+            OperationResult parentResult)
                     throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
                     SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
 
@@ -118,7 +120,7 @@ public class ResourceObjectConverter {
         AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
 
         PrismObject<ShadowType> resourceShadow = fetchResourceObject(ctx, identifiers,
-                attributesToReturn, fetchAssociations, parentResult);            // todo consider whether it is always necessary to fetch the entitlements
+                attributesToReturn, shadowOid, fetchAssociations, parentResult); // todo consider whether it is always necessary to fetch the entitlements
 
         LOGGER.trace("Got resource object\n{}", resourceShadow.debugDumpLazily());
 
@@ -141,7 +143,7 @@ public class ResourceObjectConverter {
 
         if (hasAllIdentifiers(identifiers, ctx.getObjectClassDefinition())) {
             return fetchResourceObject(ctx, identifiers,
-                    attributesToReturn, true, parentResult);    // todo consider whether it is always necessary to fetch the entitlements
+                    attributesToReturn, null, true, parentResult);    // todo consider whether it is always necessary to fetch the entitlements
         } else {
             // Search
             Collection<? extends RefinedAttributeDefinition> secondaryIdentifierDefs = ctx.getObjectClassDefinition().getSecondaryIdentifiers();
@@ -177,7 +179,7 @@ public class ResourceObjectConverter {
                     .itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getItemName()).eq(secondaryIdentifierValue)
                     .build();
             final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
-            ObjectHandler handler = ucfObject -> {
+            ObjectHandler handler = (ucfObject, result) -> {
                 if (!shadowHolder.isEmpty()) {
                     throw new IllegalStateException("More than one value found for secondary identifier "+finalSecondaryIdentifier);
                 }
@@ -237,7 +239,7 @@ public class ResourceObjectConverter {
 
             Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
-            if (ProvisioningUtil.isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, parentResult), shadowClone, matchingRuleRegistry,
+            if (ProvisioningUtil.isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone, matchingRuleRegistry,
                     relationRegistry)) {
                 LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
                 SecurityViolationException e = new SecurityViolationException("Cannot get protected shadow " + shadowType);
@@ -427,7 +429,7 @@ public class ResourceObjectConverter {
             LOGGER.debug("PROVISIONING DELETE result: {}", result.getStatus());
 
             AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
-            updateQuantum(ctx, connector, aResult, parentResult); // Hack: we use parentResult because result is closed now.
+            updateQuantum(ctx, connector, aResult, result); // The result is not closed, even if its status is set. So we use it.
             if (connectorAsyncOpRet != null) {
                 aResult.setOperationType(connectorAsyncOpRet.getOperationType());
             }
@@ -802,28 +804,28 @@ public class ResourceObjectConverter {
                     + "side-effects):\n{}", inProgress, DebugUtil.debugDumpLazily(knownExecutedChanges));
 
             if (inProgress) {
-                result.recordInProgress();
+                result.setInProgress();
                 result.setAsynchronousOperationReference(asynchronousOperationReference);
             }
 
         } catch (ObjectNotFoundException ex) {
-            result.recordFatalError("Object to modify not found: " + ex.getMessage(), ex);
+            result.recordFatalErrorNotFinish("Object to modify not found: " + ex.getMessage(), ex);
             throw new ObjectNotFoundException("Object to modify not found: " + ex.getMessage(), ex);
         } catch (CommunicationException ex) {
-            result.recordFatalError(
+            result.recordFatalErrorNotFinish(
                     "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
             throw new CommunicationException("Error communicating with connector " + connector + ": "
                     + ex.getMessage(), ex);
         } catch (GenericFrameworkException ex) {
-            result.recordFatalError(
+            result.recordFatalErrorNotFinish(
                     "Generic error in the connector " + connector + ": " + ex.getMessage(), ex);
             throw new GenericConnectorException("Generic error in connector connector " + connector + ": "
                     + ex.getMessage(), ex);
         } catch (ObjectAlreadyExistsException ex) {
-            result.recordFatalError("Conflict during modify: " + ex.getMessage(), ex);
+            result.recordFatalErrorNotFinish("Conflict during modify: " + ex.getMessage(), ex);
             throw new ObjectAlreadyExistsException("Conflict during modify: " + ex.getMessage(), ex);
         } catch (SchemaException | ConfigurationException | ExpressionEvaluationException | SecurityViolationException | PolicyViolationException | RuntimeException | Error ex) {
-            result.recordFatalError(ex.getMessage(), ex);
+            result.recordFatalErrorNotFinish(ex.getMessage(), ex);
             throw ex;
         }
 
@@ -847,7 +849,7 @@ public class ResourceObjectConverter {
             // TODO eliminate this fetch if this is first wave and there are no explicitly requested attributes
             // but make sure currentShadow contains all required attributes
             LOGGER.trace("Fetching object because of READ+REPLACE mode");
-            PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, attributesToReturn, false, result);
+            PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, attributesToReturn, null, false, result);
             operationsWave = convertToReplace(ctx, operationsWave, currentShadow, false);
         }
         UpdateCapabilityType updateCapability = ctx.getEffectiveCapability(UpdateCapabilityType.class);
@@ -855,7 +857,7 @@ public class ResourceObjectConverter {
             AttributeContentRequirementType attributeContentRequirement = updateCapability.getAttributeContentRequirement();
             if (AttributeContentRequirementType.ALL.equals(attributeContentRequirement)) {
                 LOGGER.trace("AttributeContentRequirement: {} for {}", attributeContentRequirement, ctx.getResource());
-                PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, null, false, result);
+                PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, null, null, false, result);
                 if (currentShadow == null) {
                     throw new SystemException("Attribute content requirement set for resource "+ctx.toHumanReadableDescription()+", but read of shadow returned null, identifiers: "+identifiers);
                 }
@@ -887,7 +889,7 @@ public class ResourceObjectConverter {
         attributesToReturn.setAttributesToReturn(neededExtraAttributes);
         try {
             currentShadow = fetchResourceObject(ctx, identifiers,
-                attributesToReturn, fetchEntitlements, parentResult);
+                attributesToReturn, null, fetchEntitlements, parentResult);
         } catch (ObjectNotFoundException e) {
             // This may happen for semi-manual connectors that are not yet up to date.
             // No big deal. We will have to work without it.
@@ -1304,8 +1306,9 @@ public class ResourceObjectConverter {
                 LOGGER.error("Error while modifying entitlement {} of {}: {}", entitlementCtx, subjectCtx, e.getMessage(), e);
                 result.recordFatalError(e);
                 throw e;
+            } finally {
+                result.computeStatusIfUnknown();
             }
-
         }
     }
 
@@ -1340,7 +1343,7 @@ public class ResourceObjectConverter {
         try {
 
             metadata = connector.search(objectClassDef, query,
-                    (ucfObject) -> {
+                    (ucfObject, result) -> {
                         ResourceObjectFound objectFound = new ResourceObjectFound(ucfObject, ResourceObjectConverter.this,
                                 ctx, fetchAssociations);
 
@@ -1351,25 +1354,13 @@ public class ResourceObjectConverter {
                             int objectNumber = objectCounter.getAndIncrement();
 
                             Task task = ctx.getTask();
-                            boolean requestedTracingHere;
-                            requestedTracingHere = task instanceof RunningTask &&
-                                    ((RunningTask) task).requestTracingIfNeeded(
-                                            (RunningTask) task, objectNumber,
-                                            TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING);
                             try {
-                                OperationResultBuilder resultBuilder = parentResult
+                                OperationResult objResult = result
                                         .subresult(OperationConstants.OPERATION_SEARCH_RESULT)
                                         .setMinor()
                                         .addParam("number", objectNumber)
                                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())
-                                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState());
-
-                                // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
-                                // operations we currently do not trace the "worker" part of the processing.
-                                boolean tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
-                                        TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING, task, parentResult);
-
-                                OperationResult objResult = resultBuilder.build();
+                                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState()).build();
                                 try {
                                     objectFound.initialize(task, objResult);
                                     return resultHandler.handle(objectFound, objResult);
@@ -1378,22 +1369,16 @@ public class ResourceObjectConverter {
                                     throw t;
                                 } finally {
                                     objResult.computeStatusIfUnknown();
-                                    if (tracingRequested) {
-                                        tracer.storeTrace(task, objResult, parentResult);
-                                    }
                                     // FIXME: hack. Hardcoded ugly summarization of successes. something like
                                     //  AbstractSummarizingResultHandler [lazyman]
-                                    if (objResult.isSuccess() && !tracingRequested && !objResult.isTraced()) {
+                                    if (objResult.isSuccess() && objResult.canBeCleanedUp()) {
                                         objResult.getSubresults().clear();
                                     }
-                                    // TODO Reconsider this. It is quite dubious to touch parentResult from the inside.
-                                    parentResult.summarize();
+                                    // TODO Reconsider this. It is quite dubious to touch the global result from the inside.
+                                    result.summarize();
                                 }
                             } finally {
                                 RepositoryCache.exitLocalCaches();
-                                if (requestedTracingHere && task instanceof RunningTask) {
-                                    ((RunningTask) task).stopTracing();
-                                }
                             }
                         } catch (RuntimeException e) {
                             throw e;
@@ -1447,23 +1432,6 @@ public class ResourceObjectConverter {
         return metadata;
     }
 
-    private boolean setTracingInOperationResultIfRequested(OperationResultBuilder resultBuilder, TracingRootType tracingRoot,
-            Task task, OperationResult parentResult) throws SchemaException {
-        boolean tracingRequested;
-        if (task != null && task.getTracingRequestedFor().contains(tracingRoot)) {
-            tracingRequested = true;
-            try {
-                resultBuilder.tracingProfile(tracer.compileProfile(task.getTracingProfile(), parentResult));
-            } catch (SchemaException | RuntimeException e) {
-                parentResult.recordFatalError(e);
-                throw e;
-            }
-        } else {
-            tracingRequested = false;
-        }
-        return tracingRequested;
-    }
-
     public LiveSyncToken fetchCurrentToken(ProvisioningContext ctx, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1492,14 +1460,20 @@ public class ResourceObjectConverter {
         return TokenUtil.fromUcf(lastToken);
     }
 
+    /**
+     * @param oidToReportAsNotFound When we know the shadow OID corresponding to the object being fetched, we should provide
+     * it here. It is stored in {@link ObjectNotFoundException} should that be thrown.
+     */
     public PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
+            @Nullable String oidToReportAsNotFound,
             boolean fetchAssociations,
             OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        PrismObject<ShadowType> resourceObject = resourceObjectReferenceResolver.fetchResourceObject(ctx, identifiers, attributesToReturn, parentResult);
+        PrismObject<ShadowType> resourceObject = resourceObjectReferenceResolver.fetchResourceObject(ctx, identifiers,
+                attributesToReturn, oidToReportAsNotFound, parentResult);
         postProcessResourceObjectRead(ctx, resourceObject, fetchAssociations, parentResult);
         return resourceObject;
     }
@@ -1617,51 +1591,23 @@ public class ResourceObjectConverter {
             int changeNumber = processed.getAndIncrement();
 
             Task task = ctx.getTask();
-            boolean requestedTracingHere;
-            requestedTracingHere = task instanceof RunningTask &&
-                    ((RunningTask) task).requestTracingIfNeeded(
-                            (RunningTask) task, changeNumber,
-                            TracingRootType.LIVE_SYNC_CHANGE_PROCESSING);
+            OperationResult lResult = lParentResult.subresult(OPERATION_HANDLE_CHANGE)
+                    .setMinor()
+                    .addParam("number", changeNumber)
+                    .addParam("localSequenceNumber", ucfChange.getLocalSequenceNumber())
+                    .addArbitraryObjectAsParam("primaryIdentifier", ucfChange.getPrimaryIdentifierRealValue())
+                    .addArbitraryObjectAsParam("token", ucfChange.getToken()).build();
+
             try {
-                OperationResultBuilder resultBuilder = lParentResult.subresult(OPERATION_HANDLE_CHANGE)
-                        .setMinor()
-                        .addParam("number", changeNumber)
-                        .addParam("localSequenceNumber", ucfChange.getLocalSequenceNumber())
-                        .addArbitraryObjectAsParam("primaryIdentifier", ucfChange.getPrimaryIdentifierRealValue())
-                        .addArbitraryObjectAsParam("token", ucfChange.getToken());
-
-                // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
-                // livesync we currently do not trace the "worker" part of the processing.
-                boolean tracingRequested;
-                Exception preInitializationException = null;
-                try {
-                    tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
-                            TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, lParentResult);
-                } catch (Exception e) {
-                    lParentResult.recordFatalError(e);
-                    preInitializationException = e;
-                    tracingRequested = false;
-                }
-
-                OperationResult lResult = resultBuilder.build();
-                try {
-                    ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange,
-                            preInitializationException, ResourceObjectConverter.this, ctx, attrsToReturn);
-                    change.initialize(task, lResult);
-                    return outerListener.onChange(change, lResult);
-                } catch (Throwable t) {
-                    lResult.recordFatalError(t);
-                    throw t;
-                } finally {
-                    lResult.computeStatusIfUnknown();
-                    if (tracingRequested) {
-                        tracer.storeTrace(task, lResult, lParentResult);
-                    }
-                }
+                ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange,
+                        null, ResourceObjectConverter.this, ctx, attrsToReturn);
+                change.initialize(task, lResult);
+                return outerListener.onChange(change, lResult);
+            } catch (Throwable t) {
+                lResult.recordFatalError(t);
+                throw t;
             } finally {
-                if (requestedTracingHere && task instanceof RunningTask) {
-                    ((RunningTask) task).stopTracing();
-                }
+                lResult.computeStatusIfUnknown();
             }
         };
 
@@ -1753,7 +1699,7 @@ public class ResourceObjectConverter {
         }
         ConnectorInstance connector = ctx.getConnector(ScriptCapabilityType.class, result);
         for (ExecuteProvisioningScriptOperation operation : operations) {
-            StateReporter reporter = new StateReporter(ctx.getResource().getOid(), ctx.getTask());
+            StateReporter reporter = new StateReporter(lightweightIdentifierGenerator, ctx.getResource().getOid(), ctx.getTask());
 
             try {
                 if (LOGGER.isDebugEnabled()) {
@@ -1864,10 +1810,13 @@ public class ResourceObjectConverter {
         OperationResult refreshResult = new OperationResult(OPERATION_REFRESH_OPERATION_STATUS);
         refreshResult.setStatus(status);
         AsynchronousOperationResult asyncResult = AsynchronousOperationResult.wrap(refreshResult);
-        updateQuantum(ctx, connector, asyncResult, result);
+        updateQuantum(ctx, connector, asyncResult, parentResult); // We have to use parent result here because the result is closed.
         return asyncResult;
     }
 
+    /**
+     * Does _not_ close the operation result, just sets its status (and async operation reference).
+     */
     private void computeResultStatus(OperationResult result) {
         if (result.isInProgress()) {
             return;

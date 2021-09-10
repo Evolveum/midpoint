@@ -23,7 +23,6 @@ import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -44,8 +43,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.DetailsNavigationMainItem;
-import com.evolveum.midpoint.gui.impl.component.DetailsNavigationPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -129,7 +126,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     private AbstractObjectMainPanel<O> mainPanel;
     private boolean saveOnConfigure;        // ugly hack - whether to invoke 'Save' when returning to this page
 
-    private boolean editingFocus = false;             //before we got isOidParameterExists status depending only on oid parameter existence
+    private boolean editingFocus = false;             //before we got isEditUser status depending only on oid parameter existence
     //we should set editingFocus=true not only when oid parameter exists but also
     //when object is given as a constructor parameter
 
@@ -137,12 +134,14 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected boolean previewRequested;
 
     public PageAdminObjectDetails() {
-        ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getCompileTimeClass());
-        Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
-        if (!applicableArchetypes.isEmpty()) {
-            PageParameters params = new PageParameters();
-            params.add("type", objectType.getRestType());
-            throw new RestartResponseException(PageCreateFromTemplate.class, params);
+        if (getObjectOidParameter() == null) {
+            ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getCompileTimeClass());
+            Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
+            if (!applicableArchetypes.isEmpty()) {
+                PageParameters params = new PageParameters();
+                params.add("type", objectType.getRestType());
+                throw new RestartResponseException(PageCreateFromTemplate.class, params);
+            }
         }
     }
 
@@ -360,20 +359,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
         progressPanel = new ProgressPanel(ID_PROGRESS_PANEL);
         add(progressPanel);
-    }
-
-    protected Panel createDetailsNavigation() {
-        return new DetailsNavigationPanel(ID_NAVIGATION, createNavigationModel());
-    }
-
-    protected IModel<List<DetailsNavigationMainItem>> createNavigationModel() {
-        return new LoadableModel<List<DetailsNavigationMainItem>>(false) {
-
-            @Override
-            protected List<DetailsNavigationMainItem> load() {
-                return Arrays.asList(new DetailsNavigationMainItem("Assignments"), new DetailsNavigationMainItem("Projections"), new DetailsNavigationMainItem("Bla"));
-            }
-        };
     }
 
     protected abstract ObjectSummaryPanel<O> createSummaryPanel(IModel<O> summaryModel);
@@ -688,21 +673,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
 
-    protected String getObjectOidParameter() {
-        PageParameters parameters = getPageParameters();
-        LOGGER.trace("Page parameters: {}", parameters);
-        StringValue oidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
-        LOGGER.trace("OID parameter: {}", oidValue);
-        if (oidValue == null) {
-            return null;
-        }
-        String oid = oidValue.toString();
-        if (StringUtils.isBlank(oid)) {
-            return null;
-        }
-        return oid;
-    }
-
     @Override
     public void continueEditing(AjaxRequestTarget target) {
         getMainPanel().setVisible(true);
@@ -719,6 +689,21 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public boolean isOidParameterExists() {
         return getObjectOidParameter() != null;
+    }
+
+    protected String getObjectOidParameter() {
+        PageParameters parameters = getPageParameters();
+        LOGGER.trace("Page parameters: {}", parameters);
+        StringValue oidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
+        LOGGER.trace("OID parameter: {}", oidValue);
+        if (oidValue == null) {
+            return null;
+        }
+        String oid = oidValue.toString();
+        if (StringUtils.isBlank(oid)) {
+            return null;
+        }
+        return oid;
     }
 
     protected PrismObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {

@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
@@ -30,6 +29,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIntegrityAspectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIntegrityCheckWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
@@ -64,11 +64,11 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
         } else {
             ShadowIntegrityCheckWorkDefinitionType typedDefinition = (ShadowIntegrityCheckWorkDefinitionType)
                     ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            shadows = typedDefinition.getShadows() != null ?
-                    typedDefinition.getShadows() : new ObjectSetType(PrismContext.get());
+            shadows = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
             duplicateShadowsResolverNullable = typedDefinition.getDuplicateShadowsResolver();
             checkDuplicatesOnPrimaryIdentifiersOnlyNullable = typedDefinition.isCheckDuplicatesOnPrimaryIdentifiersOnly();
         }
+        ObjectSetUtil.assumeObjectType(shadows, ShadowType.COMPLEX_TYPE);
         duplicateShadowsResolver = firstNonNull(duplicateShadowsResolverNullable, DefaultDuplicateShadowsResolver.class.getName());
         checkDuplicatesOnPrimaryIdentifiersOnly = Boolean.TRUE.equals(checkDuplicatesOnPrimaryIdentifiersOnlyNullable);
     }

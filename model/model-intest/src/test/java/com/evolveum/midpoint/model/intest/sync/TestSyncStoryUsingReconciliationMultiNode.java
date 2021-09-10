@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -26,13 +26,13 @@ import java.io.FileNotFoundException;
 public class TestSyncStoryUsingReconciliationMultiNode extends TestSyncStoryUsingReconciliationPartitioned {
 
     protected static final String TASK_RECONCILE_DUMMY_MULTINODE_FILENAME = COMMON_DIR + "/task-reconcile-dummy-multinode.xml";
-    protected static final String TASK_RECONCILE_DUMMY_MULTINODE_OID = "10000000-0000-0000-565M-565600000004";
+    protected static final String TASK_RECONCILE_DUMMY_MULTINODE_OID = "10000000-0000-0000-565f-565600000004";
 
     protected static final String TASK_RECONCILE_DUMMY_BLUE_MULTINODE_FILENAME = COMMON_DIR + "/task-reconcile-dummy-blue-multinode.xml";
-    protected static final String TASK_RECONCILE_DUMMY_BLUE_MULTINODE_OID = "10000000-0000-0000-565M-565600000204";
+    protected static final String TASK_RECONCILE_DUMMY_BLUE_MULTINODE_OID = "10000000-0000-0000-565f-565600000204";
 
     protected static final String TASK_RECONCILE_DUMMY_GREEN_MULTINODE_FILENAME = COMMON_DIR + "/task-reconcile-dummy-green-multinode.xml";
-    protected static final String TASK_RECONCILE_DUMMY_GREEN_MULTINODE_OID = "10000000-0000-0000-565M-565600000404";
+    protected static final String TASK_RECONCILE_DUMMY_GREEN_MULTINODE_OID = "10000000-0000-0000-565f-565600000404";
 
     @SuppressWarnings("Duplicates")
     @Override

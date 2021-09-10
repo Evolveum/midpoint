@@ -17,7 +17,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.filtering.RightHandProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
@@ -40,6 +42,13 @@ public class TimestampItemFilterProcessor<T extends Comparable<T>>
     public Predicate process(PropertyValueFilter<Object> filter) throws QueryException {
         return createBinaryCondition(filter, path,
                 ValueFilterValues.from(filter, this::convertToPathType));
+    }
+
+    @Override
+    public Predicate process(PropertyValueFilter<Object> filter, RightHandProcessor rightPath)
+            throws RepositoryException {
+        return createBinaryCondition(filter, path,
+                ValueFilterValues.from(filter, rightPath.rightHand(filter)));
     }
 
     // Used <T> instead of Object to conform to unknown type of path above

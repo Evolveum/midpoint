@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -24,8 +23,8 @@ public class CaseWorkitemsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
     private static final String ID_WORKITEMS_PANEL = "workitemsPanel";
 
-    public CaseWorkitemsTabPanel(String id, MidpointForm<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
-        super(id, mainForm, objectWrapperModel);
+    public CaseWorkitemsTabPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
+        super(id, objectWrapperModel);
     }
 
     @Override

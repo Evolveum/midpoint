@@ -9,7 +9,6 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 import java.util.*;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.statistics.IterationInformation;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -40,10 +39,10 @@ public class TaskThreadsDumper {
     private static final Trace LOGGER = TraceManager.getTrace(TaskThreadsDumper.class);
 
     private static final String DOT_CLASS = TaskThreadsDumper.class.getName() + ".";
-    public static final String OP_GET_RUNNING_TASKS_THREADS_DUMP = DOT_CLASS + "getRunningTasksThreadsDump";
-    public static final String OP_GET_TASK_THREADS_DUMP = DOT_CLASS + "getTaskThreadsDump";
-    public static final String OP_RECORD_RUNNING_TASKS_THREADS_DUMP = DOT_CLASS + "recordRunningTasksThreadsDump";
-    public static final String OP_RECORD_TASK_THREADS_DUMP = DOT_CLASS + "recordTaskThreadsDump";
+    private static final String OP_GET_RUNNING_TASKS_THREADS_DUMP = DOT_CLASS + "getRunningTasksThreadsDump";
+    private static final String OP_GET_TASK_THREADS_DUMP = DOT_CLASS + "getTaskThreadsDump";
+    private static final String OP_RECORD_RUNNING_TASKS_THREADS_DUMP = DOT_CLASS + "recordRunningTasksThreadsDump";
+    private static final String OP_RECORD_TASK_THREADS_DUMP = DOT_CLASS + "recordTaskThreadsDump";
 
     @Autowired private TaskRetriever taskRetriever;
     @Autowired private LocalScheduler localScheduler;
@@ -157,17 +156,11 @@ public class TaskThreadsDumper {
 
     private void addTaskInfo(StringBuilder output, RunningTask localTask, Thread thread) {
         output.append("Execution state: ").append(localTask.getExecutionState()).append("\n");
-        output.append("Progress: ").append(localTask.getProgress());
-        if (localTask.getExpectedTotal() != null) {
-            output.append(" of ").append(localTask.getExpectedTotal());
-        }
+        output.append("Progress: ").append(localTask.getLegacyProgress());
         output.append("\n");
-        OperationStatsType stats = localTask.getAggregatedLiveOperationStats();
-        ActivityItemProcessingStatisticsType info = stats != null ? stats.getIterationInformation() : null;
-        if (info != null) {
-            output.append(IterationInformation.format(info));
-        }
-        output.append("\n");
+
+        // TODO include activity iteration information
+
         if (thread != null) {
             output.append(MiscUtil.takeThreadDump(thread));
         } else {

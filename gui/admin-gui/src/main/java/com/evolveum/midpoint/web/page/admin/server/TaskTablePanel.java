@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
@@ -100,11 +101,6 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, TaskType object) {
-        taskDetailsPerformed(object.getOid());
-    }
-
-    @Override
     protected boolean isObjectDetailsEnabled(IModel<SelectableBean<TaskType>> rowModel) {
         return rowModel.getObject().getValue().getOid() != null;
     }
@@ -177,12 +173,6 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         refreshTable(target);
         target.add(getTable());
         clearCache();
-    }
-
-    private void taskDetailsPerformed(String oid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        getPageBase().navigateToNext(PageTask.class, parameters);
     }
 
     private List<IColumn<SelectableBean<TaskType>, String>> initTaskColumns() {

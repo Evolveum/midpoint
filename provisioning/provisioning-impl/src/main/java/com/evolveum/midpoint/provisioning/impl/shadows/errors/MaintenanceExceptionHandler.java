@@ -86,23 +86,29 @@ class MaintenanceExceptionHandler extends ErrorHandler {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
+        try {
+            if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
+                ObjectQuery query = ObjectAlreadyExistHandler.createQueryBySecondaryIdentifier
+                        (shadowToAdd.asObjectable(), prismContext);
+                SearchResultList<PrismObject<ShadowType>> conflictingShadows =
+                        repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
-            ObjectQuery query = ObjectAlreadyExistHandler.createQueryBySecondaryIdentifier
-                    (shadowToAdd.asObjectable(), prismContext);
-            SearchResultList<PrismObject<ShadowType>> conflictingShadows =
-                    repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
-
-            if (!conflictingShadows.isEmpty()) {
-                opState.setRepoShadow(conflictingShadows.get(0)); // there is already repo shadow in mp
-                failedOperationResult.setStatus(OperationResultStatus.SUCCESS);
-                result.recordSuccess();
-                return OperationResultStatus.SUCCESS;
+                if (!conflictingShadows.isEmpty()) {
+                    opState.setRepoShadow(conflictingShadows.get(0)); // there is already repo shadow in mp
+                    failedOperationResult.setStatus(OperationResultStatus.SUCCESS);
+                    result.recordSuccess();
+                    return OperationResultStatus.SUCCESS;
+                }
             }
-        }
 
-        failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS); // this influences how pending operation resultStatus is saved
-        return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
+            failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS); // this influences how pending operation resultStatus is saved
+            return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -113,9 +119,15 @@ class MaintenanceExceptionHandler extends ErrorHandler {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_MODIFY_ERROR);
         result.addParam("exception", cause.getMessage());
-
-        failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
-        return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
+        try {
+            failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
+            return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -125,9 +137,15 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             OperationResult failedOperationResult, Task task, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
-
-        failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
-        return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
+        try {
+            failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
+            return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override

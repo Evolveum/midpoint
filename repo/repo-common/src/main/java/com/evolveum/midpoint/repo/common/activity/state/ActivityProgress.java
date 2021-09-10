@@ -9,28 +9,28 @@ package com.evolveum.midpoint.repo.common.activity.state;
 
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractIterativeActivityExecution;
+import com.evolveum.midpoint.repo.common.task.IterativeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProgressType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Takes care of reporting the activity progress.
  *
  * The counters are managed in memory, and written to the running task (in-memory + repo representation) in regular intervals.
  *
- * Although this is mostly relevant for iterative activities (see {@link AbstractIterativeActivityExecution}), it has its
+ * Although this is mostly relevant for iterative activities (see {@link IterativeActivityExecution}), it has its
  * place also in non-standard activities that do their own iteration, like the cleanup activity.
  *
  * The distinction between open and closed items is relevant to activities with "commit points", like bucketed ones.
@@ -84,10 +84,26 @@ public class ActivityProgress extends Initializable {
         value.getUncommitted().clear();
     }
 
+    public synchronized @Nullable Integer getExpectedTotal() {
+        return value.getExpectedTotal();
+    }
+
+    public synchronized void setExpectedTotal(Integer expectedTotal) {
+        value.setExpectedTotal(expectedTotal);
+    }
+
+    public synchronized @Nullable Integer getExpectedInCurrentBucket() {
+        return value.getExpectedInCurrentBucket();
+    }
+
+    public synchronized void setExpectedInCurrentBucket(Integer expectedInCurrentBucket) {
+        value.setExpectedInCurrentBucket(expectedInCurrentBucket);
+    }
+
     /**
      * Returns a clone of the current value. The cloning is because of thread safety requirements.
      */
-    public synchronized ActivityProgressType getValueCopy() {
+    public synchronized @NotNull ActivityProgressType getValueCopy() {
         return value.cloneWithoutId();
     }
 
@@ -95,7 +111,7 @@ public class ActivityProgress extends Initializable {
      * Writes current values to the running task: into the memory and to repository.
      * Not synchronized, as it operates on value copy.
      */
-    public void writeToTaskAsPendingModification() throws ActivityExecutionException {
+    void writeToTaskAsPendingModification() throws ActivityExecutionException {
         assertInitialized();
         // TODO We should use the dynamic modification approach in order to provide most current values to the task
         //  (in case of update conflicts). But let's wait for the new repo with this.
@@ -110,8 +126,13 @@ public class ActivityProgress extends Initializable {
         return activityState.getActivityExecution();
     }
 
-    public synchronized long getLegacyValue() {
+    synchronized long getLegacyValue() {
         return ActivityProgressUtil.getCurrentProgress(value);
+    }
+
+    public @NotNull ItemsProgressOverviewType getOverview() {
+        return ActivityProgressUtil.getProgressOverview(
+                getValueCopy());
     }
 
     public enum Counters {

@@ -10,19 +10,12 @@ import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.markup.html.basic.Label;
-
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author mederly
@@ -34,8 +27,15 @@ public class FocusTasksTabPanel<F extends FocusType>
 
     private static final String ID_TASK_TABLE = "taskTable";
 
-    public FocusTasksTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
-        super(id, mainForm, focusModel);
+    private ContainerPanelConfigurationType config;
+
+    public FocusTasksTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+        super(id, focusModel);
+    }
+
+    public FocusTasksTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel, ContainerPanelConfigurationType config) {
+        super(id, focusModel);
+        this.config = config;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class FocusTasksTabPanel<F extends FocusType>
             @Override
             protected ObjectFilter getCasesFilter() {
                 String oid = getObjectWrapper().getOid();
-                return QueryUtils.filterForCasesOverUser(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
+                return QueryUtils.filterForCasesOverObject(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
                         .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                         .buildFilter();
             }

@@ -52,7 +52,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
     private final Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultConverter = OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
 
     @Autowired
-    @Qualifier("samlAuthenticationEvaluator")
+    @Qualifier("passwordAuthenticationEvaluator")
     private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
     public Saml2Provider() {
@@ -91,8 +91,10 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
         if (principal != null && principal instanceof GuiProfiledPrincipal) {
             mpAuthentication.setPrincipal(principal);
         }
-
-        moduleAuthentication.setAuthentication(originalAuthentication);
+        if (token instanceof PreAuthenticatedAuthenticationToken) {
+            ((PreAuthenticatedAuthenticationToken)token).setDetails(originalAuthentication);
+        }
+        moduleAuthentication.setAuthentication(token);
     }
 
     @Override

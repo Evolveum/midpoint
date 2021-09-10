@@ -73,7 +73,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
     public Class<T> getTypeClass() {
         Class<T> clazz = unwrapWrapperModel().getTypeClass();
         if (clazz == null) {
-            clazz = getPrismContext().getSchemaRegistry().determineClassForType(unwrapWrapperModel().getTypeName());
+            clazz = PrismContext.get().getSchemaRegistry().determineClassForType(unwrapWrapperModel().getTypeName());
         }
         if (clazz != null && clazz.isPrimitive()) {
             clazz = (Class<T>) ClassUtils.primitiveToWrapper(clazz);

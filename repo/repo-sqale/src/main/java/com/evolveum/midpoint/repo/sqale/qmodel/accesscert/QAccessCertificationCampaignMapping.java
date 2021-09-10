@@ -8,19 +8,28 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.*;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.querydsl.core.Tuple;
 
 /**
  * Mapping between {@link QAccessCertificationCampaign}
@@ -36,9 +45,7 @@ public class QAccessCertificationCampaignMapping
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAccessCertificationCampaignMapping initAccessCertificationCampaignMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QAccessCertificationCampaignMapping(repositoryContext);
-        }
+        instance = new QAccessCertificationCampaignMapping(repositoryContext);
         return instance;
     }
 
@@ -75,6 +82,12 @@ public class QAccessCertificationCampaignMapping
         addContainerTableMapping(F_CASE,
                 QAccessCertificationCaseMapping.initAccessCertificationCaseMapping(repositoryContext),
                 joinOn((o, acase) -> o.oid.eq(acase.ownerOid)));
+    }
+
+
+    @Override
+    protected Collection<? extends QName> fullObjectItemsToSkip() {
+        return Collections.singletonList(F_CASE);
     }
 
     @Override
@@ -125,6 +138,34 @@ public class QAccessCertificationCampaignMapping
             for (AccessCertificationCaseType c : cases) {
                 QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().insert(c, row, jdbcSession);
             }
+        }
+    }
+
+    @Override
+    public AccessCertificationCampaignType toSchemaObject(Tuple result, QAccessCertificationCampaign root,
+            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession,
+            boolean forceFull) throws SchemaException {
+        AccessCertificationCampaignType base = super.toSchemaObject(result, root, options, jdbcSession, forceFull);
+        if(forceFull || SelectorOptions.hasToLoadPath(F_CASE, options)) {
+            loadCases(base, options, jdbcSession, forceFull);
+        }
+        return base;
+    }
+
+    private void loadCases(AccessCertificationCampaignType base, Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull JdbcSession jdbcSession, boolean forceFull) throws SchemaException {
+        QAccessCertificationCaseMapping casesMapping = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping();
+        PrismContainer<AccessCertificationCaseType> cases = base.asPrismObject().findOrCreateContainer(F_CASE);
+        cases.setIncomplete(false);
+        QAccessCertificationCase qcase = casesMapping.defaultAlias();
+        List<Tuple> rows = jdbcSession.newQuery()
+            .from(qcase)
+            .select(casesMapping.selectExpressions(qcase, options))
+            .where(qcase.ownerOid.eq(SqaleUtils.oidToUUid(base.getOid())))
+            .fetch();
+        for (Tuple row : rows) {
+            AccessCertificationCaseType c = casesMapping.toSchemaObject(row, qcase, options, jdbcSession, forceFull);
+            cases.add(c.asPrismContainerValue());
         }
     }
 }

@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_RES
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -930,14 +931,17 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     @Test
     public void test300SearchReturnsMappedToManyAttributes() throws SchemaException {
         when("searching audit with query without any conditions and paging");
-        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+        List<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
                 .asc(AuditEventRecordType.F_PARAMETER)
                 .build());
 
         then("all audit events are returned");
         assertThat(result).hasSize(3);
-        result.sort(Comparator.comparing(AuditEventRecordType::getParameter));
+        // using stream, it's unmodifiable list
+        result = result.stream()
+                .sorted(Comparator.comparing(AuditEventRecordType::getParameter))
+                .collect(Collectors.toList());
 
         and("record 1 has all the attributes filled");
         AuditEventRecordType record1 = result.get(0);

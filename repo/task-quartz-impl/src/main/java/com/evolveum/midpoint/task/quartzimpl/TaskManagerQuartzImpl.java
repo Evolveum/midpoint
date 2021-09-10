@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,8 +12,12 @@ import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.sql.DataSource;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.zaxxer.hikari.HikariConfigMXBean;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +98,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     private static final String OP_STOP_SCHEDULER = DOT_INTERFACE + "stopScheduler";
     private static final String OP_STOP_SCHEDULERS_AND_TASKS = DOT_INTERFACE + "stopSchedulersAndTasks";
     private static final String OP_SUSPEND_TASK = DOT_INTERFACE + "suspendTask";
+    private static final String OP_MARK_CLOSED_TASK_SUSPENDED = DOT_INTERFACE + "markClosedTaskSuspended";
     private static final String OP_SUSPEND_TASKS = DOT_INTERFACE + "suspendTasks";
 
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
@@ -127,11 +132,11 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired private RepositoryService repositoryService;
     @Autowired(required = false) private SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaService schemaService;
     @Autowired private UpAndDown upAndDown;
     @Autowired private LightweightTaskManager lightweightTaskManager;
     @Autowired private TaskSynchronizer taskSynchronizer;
     @Autowired private TaskBeans beans;
+    @Autowired(required = false) private DataSource dataSource;
 
     @Autowired
     @Qualifier("securityContextManager")
@@ -231,6 +236,22 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
+    public void markClosedTaskSuspended(String taskOid, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+        OperationResult result = parentResult.subresult(OP_MARK_CLOSED_TASK_SUSPENDED)
+                .addParam("taskOid", taskOid)
+                .build();
+        try {
+            taskStateManager.markClosedTaskSuspended(taskOid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
     public boolean suspendTask(Task task, long waitTime, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         OperationResult result = parentResult.subresult(OP_SUSPEND_TASK)
@@ -248,7 +269,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SchemaException {
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
         OperationResult result = parentResult.subresult(OP_SUSPEND_TASKS)
                 .addArbitraryObjectCollectionAsParam("taskOids", taskOids)
                 .addParam("waitForStop", waitForStop)
@@ -428,7 +449,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     @Override
     public void suspendAndDeleteTasks(Collection<String> taskOids, long suspendTimeout, boolean alsoSubtasks,
-            OperationResult parentResult)  {
+            OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OP_SUSPEND_AND_DELETE_TASKS);
         result.addArbitraryObjectCollectionAsParam("taskOids", taskOids);
         result.addParam("suspendTimeout", suspendTimeout);
@@ -588,15 +609,21 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
-
-        if (TaskType.class.isAssignableFrom(type)) {
-            //noinspection unchecked
-            return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
-        } else if (NodeType.class.isAssignableFrom(type)) {
-            //noinspection unchecked
-            return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
-        } else {
-            throw new IllegalArgumentException("Unsupported object type: " + type);
+        try {
+            if (TaskType.class.isAssignableFrom(type)) {
+                //noinspection unchecked
+                return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
+            } else if (NodeType.class.isAssignableFrom(type)) {
+                //noinspection unchecked
+                return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
+            } else {
+                throw new IllegalArgumentException("Unsupported object type: " + type);
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
@@ -609,24 +636,29 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+        try {
+            SearchResultList<PrismObject<T>> objects;
+            if (TaskType.class.isAssignableFrom(type)) {
+                //noinspection unchecked
+                objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
+            } else if (NodeType.class.isAssignableFrom(type)) {
+                //noinspection unchecked
+                objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
+            } else {
+                throw new IllegalArgumentException("Unsupported object type: " + type);
+            }
 
-        SearchResultList<PrismObject<T>> objects;
-        if (TaskType.class.isAssignableFrom(type)) {
-            //noinspection unchecked
-            objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
-        } else if (NodeType.class.isAssignableFrom(type)) {
-            //noinspection unchecked
-            objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
-        } else {
-            throw new IllegalArgumentException("Unsupported object type: " + type);
+            for (PrismObject<T> object : objects) {
+                handler.handle(object, result);
+            }
+            return objects.getMetadata();
+
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
-
-        for (PrismObject<T> object : objects) {
-            handler.handle(object, result);
-        }
-
-        result.computeStatus();
-        return objects.getMetadata();
     }
 
     @Override
@@ -748,7 +780,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public String getNodeId() {
+    public @NotNull String getNodeId() {
         return configuration.getNodeId();
     }
 
@@ -892,6 +924,16 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
+    public void registerNodeUp(OperationResult result) {
+        clusterManager.registerNodeUp(result);
+    }
+
+    @Override
+    public @NotNull ClusterStateType determineClusterState(OperationResult result) throws SchemaException {
+        return clusterManager.determineClusterState(result);
+    }
+
+    @Override
     public void scheduleTaskNow(String taskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.subresult(OP_SCHEDULE_TASK_NOW)
                 .addParam("taskOid", taskOid)
@@ -945,7 +987,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     @Override
     @VisibleForTesting // TODO
-    public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    public void closeTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        Task task = taskRetriever.getTaskPlain(taskOid, parentResult);
         taskStateManager.closeTask(task, parentResult);
     }
 
@@ -998,7 +1041,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public void cleanupTasks(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult) throws SchemaException {
+    public void cleanupTasks(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
         if (policy.getMaxAge() == null) {
             return;
         }
@@ -1015,7 +1059,9 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public void cleanupNodes(DeadNodeCleanupPolicyType policy, RunningTask task, OperationResult parentResult) {
+    public void cleanupNodes(DeadNodeCleanupPolicyType policy, RunningTask task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+
         if (policy.getMaxAge() == null) {
             return;
         }
@@ -1115,7 +1161,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @VisibleForTesting
     @Override
     public RunningTaskQuartzImpl createFakeRunningTask(Task task) {
-        RunningTaskQuartzImpl runningTask = taskInstantiator.toRunningTaskInstance(task, task);
+        RunningTaskQuartzImpl runningTask = taskInstantiator.toRunningTaskInstance(task, task, null);
         runningTask.setExecutingThread(Thread.currentThread());
         return runningTask;
     }
@@ -1181,6 +1227,28 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         } else {
             return Collections.unmodifiableCollection(localNode.getArchetypeRef());
         }
+    }
+
+    // TODO move to more appropriate place
+    @Override
+    public Number[] getDBPoolStats() {
+        if (dataSource instanceof HikariDataSource) {
+            HikariPoolMXBean pool = ((HikariDataSource) dataSource).getHikariPoolMXBean();
+            HikariConfigMXBean config = ((HikariDataSource) dataSource).getHikariConfigMXBean();
+
+            if (pool == null || config == null) {
+                return null;
+            }
+
+            return new Number[] {
+                    pool.getActiveConnections(),
+                    pool.getIdleConnections(),
+                    pool.getThreadsAwaitingConnection(),
+                    pool.getTotalConnections(),
+                    config.getMaximumPoolSize()
+            };
+        }
+        return null;
     }
 
     public TaskBeans getBeans() {

@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -20,9 +18,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
@@ -81,7 +77,7 @@ public class ProcessingCoordinator<I> {
 
     public boolean submit(ItemProcessingRequest<I> request, OperationResult result) {
         if (!canRun()) {
-            recordInterrupted(result);
+            recordInterrupted(request, result);
             request.acknowledge(false, result);
             return false;
         }
@@ -90,13 +86,13 @@ public class ProcessingCoordinator<I> {
             try {
                 while (!requestsBuffer.offer(request)) {
                     if (!canRun()) {
-                        recordInterrupted(result);
+                        recordInterrupted(request, result);
                         request.acknowledge(false, result);
                         return false;
                     }
                 }
             } catch (InterruptedException e) {
-                recordInterrupted(result);
+                recordInterrupted(request, result);
                 request.acknowledge(false, result);
                 return false;
             }
@@ -126,15 +122,16 @@ public class ProcessingCoordinator<I> {
         return workerTask.canRun() && canRun();
     }
 
-    private void recordInterrupted(OperationResult result) {
+    private void recordInterrupted(ItemProcessingRequest<I> request, OperationResult result) {
         result.recordStatus(OperationResultStatus.WARNING, "Could not submit request as the processing was interrupted");
-        LOGGER.warn("Processing was interrupted in {}", coordinatorTask);
+        LOGGER.warn("Processing was interrupted while processing {} in {}", request, coordinatorTask);
     }
 
-    void createWorkerTasks(@NotNull ActivityReportingOptions reportingOptions) {
+    void createWorkerThreads() {
         if (threadsCount == 0) {
             return;
         }
+        assert workerSpecificResults != null;
 
         // remove subtasks that could have been created previously
         coordinatorTask.deleteLightweightAsynchronousSubtasks();
@@ -147,7 +144,6 @@ public class ProcessingCoordinator<I> {
             workerSpecificResults.add(workerSpecificResult);
 
             RunningLightweightTask subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
-            initializeStatisticsCollection(subtask, reportingOptions);
             subtask.setCategory(coordinatorTask.getCategory());
             subtask.setResult(new OperationResult(OP_EXECUTE_WORKER, OperationResultStatus.IN_PROGRESS, (String) null));
             subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
@@ -155,17 +151,6 @@ public class ProcessingCoordinator<I> {
             subtask.startLightweightHandler();
             LOGGER.trace("Worker subtask {} created", subtask);
         }
-    }
-
-    private void initializeStatisticsCollection(RunningLightweightTask subtask, ActivityReportingOptions reportingOptions) {
-        subtask.resetIterativeTaskInformation(null, reportingOptions.isCollectExecutions());
-//        if (reportingOptions.isEnableSynchronizationStatistics()) {
-//            subtask.resetSynchronizationInformation(null);
-//        }
-//        if (reportingOptions.isEnableActionsExecutedStatistics()) {
-//            subtask.resetActionsExecutedInformation(null);
-//        }
-        // Note we never maintain structured progress for LATs.
     }
 
     public boolean isMultithreaded() {
@@ -193,6 +178,7 @@ public class ProcessingCoordinator<I> {
 
     private void nackQueuedRequests(OperationResult result) {
         if (multithreaded) {
+            assert requestsBuffer != null;
             LOGGER.trace("Acknowledging (release=false) all pending requests");
             int count = requestsBuffer.nackAllRequests(result);
             LOGGER.trace("Acknowledged {} pending requests", count);
@@ -231,7 +217,7 @@ public class ProcessingCoordinator<I> {
                     } finally {
                         requestsBuffer.markProcessed(request, taskIdentifier);
                         treatOperationResultAfterOperation();
-                        workerTask.setProgress(workerTask.getProgress() + 1);
+                        workerTask.setLegacyProgress(workerTask.getLegacyProgress() + 1);
                     }
                 } else {
                     if (allItemsSubmitted.get()) {

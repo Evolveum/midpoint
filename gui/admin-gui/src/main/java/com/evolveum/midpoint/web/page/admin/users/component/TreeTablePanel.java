@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
@@ -698,6 +699,6 @@ public class TreeTablePanel extends BasePanel<String> {
         }
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, root.getValue().getOid());
-        getPageBase().navigateToNext(PageOrgUnit.class, parameters);
+        getPageBase().navigateToNext(PageOrg.class, parameters);
     }
 }

@@ -205,6 +205,9 @@ public class ConnIdConfigurationTransformer {
                 } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT
                         .equals(subelementName)) {
                     connectorPoolConfiguration.setMaxWait(parseLong(prismProperty));
+                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE_TIME_MILLIS
+                        .equals(subelementName)) {
+                    connectorPoolConfiguration.setMaxIdleTimeMillis(parseLong(prismProperty));
                 } else {
                     throw new SchemaException(
                             "Unexpected element "

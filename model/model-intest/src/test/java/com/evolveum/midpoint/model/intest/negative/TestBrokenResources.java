@@ -303,16 +303,16 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
                 .assertAny()
                 .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
                 .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN"))
+                .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN"))
                 .end()
                 .operationalStateHistory()
                 .assertSize(1)
                 .value(0)
                 .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
                 .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN"));
+                .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN"));
 
         result.computeStatus();
         display("getObject result", result);

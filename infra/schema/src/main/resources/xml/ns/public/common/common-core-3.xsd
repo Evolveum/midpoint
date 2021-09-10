@@ -8043,8 +8043,7 @@
     <xsd:complexType name="ProportionalExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
-                Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
-                But this is all experimental. Later it will probably get entire AuditSearchType object.
+                Expression gets IntegerStatType as an input, IntegerStatType is derived from collection.
                 This expression evaluator may autodetect that input is a ObjectCollectionType and find IntegerStatType inside.
             </xsd:documentation>
             <xsd:appinfo>
@@ -12875,6 +12874,19 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="archetypeType" type="tns:ArchetypeTypeType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Definition of archetype policies, such as object template, lifecycle, type display properties and so on.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ArchetypeType.archetypePolicy</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                 </xsd:sequence>
             </xsd:extension>
@@ -13062,6 +13074,43 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="ArchetypeTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Overall assignmentRelation approach for archetypes objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="structural">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Open assignmentRelation approach. Assignments with any target and relation (generic assignments)
+                        are allowed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STRUCTURAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="auxiliary">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Closed assignmentRelation approach. Assignments with any target and relation (generic assignments)
+                        are not allowed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUXILIARY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: abstract-->
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="LinkTypeDefinitionsType">
         <xsd:annotation>
@@ -15125,28 +15174,6 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                  Specification of an explicit or implicit object collection that will be used as data source for the view.
-
-                                  EXTREMELY ABSOLUTELY GIGANTICALLY ENORMOUSLY MEGA GIGA TERA SUPER HYPER EXPERIMENTAL
-
-                                  This is almost certain to change in the future. It does not even belong here well
-                                  as this is supposed to be *object* collection and not audit collection. But for now it solves a
-                                  couple of problems in dashboards and report functionality, which is also experimental.
-                                  Therefore this is a good temporary choice.
-                                  However, if you ever rely on this element the karma will get you, eventually.
-                                  If that happens, don't come to us crying. You have been warned.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>ObjectCollectionType.auditSearch</a:displayName>
-                                <a:experimental>true</a:experimental>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="baseCollection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -15337,55 +15364,6 @@
                             retrieved or computed.
                         </p>
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="AuditSearchType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specification of search criteria for audit trails.
-                EXTREMELY EXPERIMENTAL. This is almost certain to change in the future.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.0</a:since>
-                <a:experimental>true</a:experimental>
-                <a:deprecated>true</a:deprecated>
-                <a:plannedRemoval>4.4</a:plannedRemoval>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="recordQuery" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AuditSearchType.recordQuery</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="domainQuery" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AuditSearchType.domainQuery</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="interval" type="xsd:duration" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AuditSearchType.interval</a:displayName>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -16667,10 +16645,23 @@
             <xsd:enumeration value="exception">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Errors are indicated as exceptions.
+                        Errors are indicated as exceptions. (Unless handled by an error handler.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXCEPTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="forcedException">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Errors are indicated as exceptions. "Object not found" error handler is disabled.
+                        Currently all the other ones are kept enabled. This is because we always need the
+                        processing of e.g. communication exceptions. We are only interested in skipping handling
+                        "object not found" cases. (Maybe the name of this option should be changed.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FORCED_EXCEPTION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -18829,6 +18820,27 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000510">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000511">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000512">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -21259,11 +21271,66 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="storeExportedWidgetData" type="tns:StoreExportedWidgetDataType" minOccurs="0" default="onlyFile">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of storing exported widget data.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:displayName>DashboardReportEngineConfigurationType.storeExportedData</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- TODO: other elements to configure the report -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:simpleType name="StoreExportedWidgetDataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of storing exported widget data. Specification where will be stored widget data.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="onlyWidget">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONLY_WIDGET"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Exported widget data will be stored only in element of widget.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="onlyFile">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONLY_FILE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Exported widget data will be stored only in file.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="widgetAndFile">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WIDGET_AND_FILE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Exported widget data will be stored only in element of widget and file.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ObjectCollectionReportEngineConfigurationType">
         <xsd:annotation>
@@ -21411,6 +21478,43 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:NodeType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="parentRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parent report data object. If present it means that this object contains only a partial
+                                information that should be eventually aggregated into the parent report data - and deleted.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ReportDataType</a:objectReferenceTargetType>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.4</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="sequentialNumber" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Sequential number of partial report data. Can be present if and only if parentRef is specified.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.4</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="data" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Full data of the report. TEMPORARY!!!
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.4</a:since>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -22528,6 +22632,20 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.3</a:since>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.4</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activityPath" type="tns:ActivityPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the activity whose execution resulted in this record. Necessary to distinguish between
+                        results of various activities within a task. Currently supported only for complex operations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

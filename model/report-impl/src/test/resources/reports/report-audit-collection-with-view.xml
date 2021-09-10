@@ -14,14 +14,14 @@
         <view>
             <column>
                 <name>timeColumn</name>
-                <path>time</path>
+                <path>timestamp</path>
                 <display>
                     <label>Time</label>
                 </display>
             </column>
             <column>
                 <name>timeColumn2</name>
-                <path>time</path>
+                <path>timestamp</path>
                 <display>
                     <label>Time2</label>
                 </display>
@@ -30,7 +30,8 @@
                     <expression>
                         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
                             <code>
-                                return "Test name: " + object;
+                                str = "Test name: "
+                                return str + object;
                             </code>
                         </script>
                     </expression>

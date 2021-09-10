@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -359,6 +360,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> sendOid(Consumer<String> consumer) {
+        consumer.accept(getOid());
+        return this;
+    }
+
     public String getOid() {
         return getObject().getOid();
     }
@@ -474,6 +480,21 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
             fail("Too many archetypes while archetypeRefs "+expectedArchetypeOid+" expected: "+archetypeRefs);
         }
         assertEquals("Wrong archetypeRef in "+desc(), expectedArchetypeOid, archetypeRefs.get(0).getOid());
+        return this;
+    }
+
+    public PrismObjectAsserter<O, RA> assertArchetypeRefs(int size) {
+        assertEquals("Unexepcted number of archetypes: ", size, getArchetypeRefs().size());
+        return this;
+    }
+
+    public PrismObjectAsserter<O, RA> assertHasArchetype(String expectedArchetypeOid) {
+        for (ObjectReferenceType archetypeRef : getArchetypeRefs()) {
+            if (expectedArchetypeOid.equals(archetypeRef.getOid())) {
+                return this;
+            }
+        }
+        fail("No archetype with oid " + expectedArchetypeOid + " found");
         return this;
     }
 

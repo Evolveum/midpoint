@@ -212,8 +212,8 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         assertTask(TASK_RECON_DUMMY_OID, "after")
                 .display(); // TODO
 
-        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
-        ShadowAsserter.forShadow(shadow)
+        assertRepoShadow(ACCOUNT_BEFORE_SCRIPT_OID)
+                .display()
                 .assertDead()
                 .assertIsNotExists();
 

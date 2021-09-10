@@ -253,11 +253,6 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("OrgTreeAssignablePanel.selectOrg");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

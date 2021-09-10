@@ -9,12 +9,12 @@
 <task oid="d1320df4-e5b7-43ec-af53-f74ee0b62345"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>Non-existing owner</name>
+    <name>task-non-existing-owner</name>
 
     <ownerRef oid="8e6943e0-848d-4bf0-8c9e-4ba6bdf6c518" type="c:UserType"/> <!-- does not exist -->
     <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
 
     <executionStatus>runnable</executionStatus>
-    <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
     <recurrence>single</recurrence>
 </task>

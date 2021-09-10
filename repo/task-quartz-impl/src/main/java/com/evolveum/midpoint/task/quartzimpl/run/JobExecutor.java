@@ -192,14 +192,13 @@ public class JobExecutor implements InterruptableJob {
 
     private TaskHandler getHandler(OperationResult result) throws StopJobException {
         String handlerUri = task.getHandlerUri();
-        String effectiveHandlerUri = handlerUri != null ? handlerUri : beans.handlerRegistry.getDefaultHandlerUri();
 
-        TaskHandler handler = beans.handlerRegistry.getHandler(effectiveHandlerUri);
+        TaskHandler handler = beans.handlerRegistry.getHandler(handlerUri);
         if (handler != null) {
             return handler;
         }
 
-        LOGGER.error("No handler for URI '{}', task {} - closing it.", effectiveHandlerUri, task);
+        LOGGER.error("No handler for URI '{}', task {} - closing it.", handlerUri, task);
         closeFlawedTaskRecordingResult(result);
         throw new StopJobException();
     }
@@ -292,8 +291,8 @@ public class JobExecutor implements InterruptableJob {
     private void fetchTheTask(String oid, OperationResult result) throws StopJobException {
         try {
             TaskQuartzImpl taskWithResult = beans.taskRetriever.getTaskWithResult(oid, result);
-            Task rootTask = beans.taskRetriever.getRootTask(taskWithResult, result);
-            task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, rootTask);
+            ParentAndRoot parentAndRoot = taskWithResult.getParentAndRoot(result);
+            task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, parentAndRoot.root, parentAndRoot.parent);
         } catch (ObjectNotFoundException e) {
             beans.localScheduler.deleteTaskFromQuartz(oid, false, result);
             throw new StopJobException(ERROR, "Task with OID %s no longer exists. "

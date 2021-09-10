@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.tasks.scanner;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.schema.util.task.work.*;
@@ -37,11 +36,13 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
         } else {
             FocusValidityScanWorkDefinitionType typedDefinition = (FocusValidityScanWorkDefinitionType)
                     ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            objects = typedDefinition.getObjects() != null ?
-                    typedDefinition.getObjects() : new ObjectSetType(PrismContext.get());
+            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
             queryStyle = typedDefinition.getQueryStyle();
             validityConstraint = typedDefinition.getValidityConstraint();
         }
+        // We allow user to use types above FocusType if he needs to check e.g. assignments validity
+        // on AssignmentHolderType objects.
+        ObjectSetUtil.applyDefaultObjectType(objects, FocusType.COMPLEX_TYPE);
     }
 
     @Override

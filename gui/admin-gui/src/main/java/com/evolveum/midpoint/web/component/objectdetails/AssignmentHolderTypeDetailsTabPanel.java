@@ -38,9 +38,8 @@ public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderTyp
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderTypeDetailsTabPanel.class);
 
-    public AssignmentHolderTypeDetailsTabPanel(String id, MidpointForm<PrismObjectWrapper<AHT>> mainForm,
-            LoadableModel<PrismObjectWrapper<AHT>> focusWrapperModel) {
-        super(id, mainForm, focusWrapperModel);
+    public AssignmentHolderTypeDetailsTabPanel(String id, LoadableModel<PrismObjectWrapper<AHT>> focusWrapperModel) {
+        super(id, focusWrapperModel);
 
     }
 

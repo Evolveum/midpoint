@@ -10,8 +10,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -20,17 +23,22 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
@@ -49,7 +57,7 @@ public class QAccessCertificationCaseMapping
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAccessCertificationCaseMapping initAccessCertificationCaseMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QAccessCertificationCaseMapping(repositoryContext);
         }
         return instance;
@@ -218,7 +226,7 @@ public class QAccessCertificationCaseMapping
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         PrismContainer<AccessCertificationCaseType> caseContainer =
-                (PrismContainer) updateContext.findItem(AccessCertificationCampaignType.F_CASE);
+                updateContext.findValueOrItem(AccessCertificationCampaignType.F_CASE);
         // row in context already knows its CID
         PrismContainerValue<AccessCertificationCaseType> caseContainerValue =
                 caseContainer.findValue(updateContext.row().cid);
@@ -226,8 +234,11 @@ public class QAccessCertificationCaseMapping
         updateContext.set(updateContext.entityPath().fullObject, fullObject);
     }
 
-    public void storeWorkItems(@NotNull MAccessCertificationCampaign campaignRow,
-            @NotNull MAccessCertificationCase caseRow, @NotNull AccessCertificationCaseType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
+    public void storeWorkItems(
+            @NotNull MAccessCertificationCampaign campaignRow,
+            @NotNull MAccessCertificationCase caseRow,
+            @NotNull AccessCertificationCaseType schemaObject,
+            @NotNull JdbcSession jdbcSession) throws SchemaException {
 
         List<AccessCertificationWorkItemType> wis = schemaObject.getWorkItem();
         if (!wis.isEmpty()) {
@@ -235,5 +246,35 @@ public class QAccessCertificationCaseMapping
                 QAccessCertificationWorkItemMapping.get().insert(wi, campaignRow, caseRow, jdbcSession);
             }
         }
+    }
+
+    @Override
+    public ResultListRowTransformer<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> createRowTransformer(
+            SqlQueryContext<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> sqlQueryContext,
+            JdbcSession jdbcSession) {
+        Map<UUID, PrismObject<AccessCertificationCampaignType>> cache = new HashMap<>();
+        return (tuple, entityPath, options) -> {
+            Long cid = Objects.requireNonNull(tuple.get(entityPath.cid));
+            UUID ownerOid = Objects.requireNonNull(tuple.get(entityPath.ownerOid));
+            PrismObject<AccessCertificationCampaignType> owner = cache.get(ownerOid);
+            if (owner == null) {
+                owner = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext).loadObject(jdbcSession, AccessCertificationCampaignType.class, ownerOid, options);
+                cache.put(ownerOid, owner);
+            }
+            try {
+                // Container could be null (since it is skipItem in campain)
+                PrismContainer<AccessCertificationCaseType> container = owner.findOrCreateContainer(AccessCertificationCampaignType.F_CASE);
+                PrismContainerValue<AccessCertificationCaseType> value = container.findValue(cid);
+                if (value == null) {
+                    // value is not present, load it from full object
+                    AccessCertificationCaseType valueObj = toSchemaObject(tuple, entityPath, options);
+                    value = valueObj.asPrismContainerValue();
+                    container.add(value);
+                }
+                return value.asContainerable();
+            } catch (SchemaException e) {
+                throw new SystemException(e);
+            }
+        };
     }
 }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -82,10 +83,6 @@ public class PageRoles extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<RoleType> table = new MainObjectListPanel<RoleType>(ID_TABLE, RoleType.class) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, RoleType role) {
-                PageRoles.this.roleDetailsPerformed(target, role.getOid());
-            }
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -109,10 +106,10 @@ public class PageRoles extends PageAdmin {
                 return listInlineMenuHelper.createRowActions(getType());
             }
 
-            @Override
-            protected List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {
-                return ColumnUtils.getDefaultRoleColumns();
-            }
+//            @Override
+//            protected List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {
+//                return ColumnUtils.getDefaultRoleColumns();
+//            }
 
             @Override
             protected List<ItemPath> getFixedSearchItems() {
@@ -125,12 +122,6 @@ public class PageRoles extends PageAdmin {
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
-    }
-
-    private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageRole.class, parameters);
     }
 
     private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){

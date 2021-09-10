@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -27,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainerWrapperImpl<O> implements PrismObjectWrapper<O> {
 
     private static final long serialVersionUID = 1L;
+
+    private List<ReferenceDelta> shadowDeltas = new ArrayList<>();
 
     public PrismObjectWrapperImpl(PrismObject<O> item, ItemStatus status) {
         super(null, item, status);
@@ -63,7 +67,15 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
                 break;
         }
 
+        if (!shadowDeltas.isEmpty()) {
+            objectDelta.addModifications(shadowDeltas);
+        }
+
         return objectDelta;
+    }
+
+    public void addShadowDelta(ReferenceDelta shadowRefDelta) {
+        shadowDeltas.add(shadowRefDelta);
     }
 
     @Override

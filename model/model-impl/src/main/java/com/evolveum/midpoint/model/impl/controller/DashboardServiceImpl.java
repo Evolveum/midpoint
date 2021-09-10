@@ -9,7 +9,8 @@ package com.evolveum.midpoint.model.impl.controller;
 import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 
 import java.util.*;
-import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.ModelAuditService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -17,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.CollectionStats;
@@ -32,7 +32,6 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -61,10 +60,11 @@ public class DashboardServiceImpl implements DashboardService {
     private static final Trace LOGGER = TraceManager.getTrace(DashboardServiceImpl.class);
 
     private static final String VAR_PROPORTIONAL = "proportional";
+    private static final String VAR_STORED_DATA = "storedData";
     private static final String VAR_POLICY_SITUATIONS = "policySituations";
 
     @Autowired private TaskManager taskManager;
-    @Autowired private AuditService auditService;
+    @Autowired private ModelAuditService modelAuditService;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
     @Autowired private ModelInteractionService modelInteractionService;
@@ -75,13 +75,13 @@ public class DashboardServiceImpl implements DashboardService {
     @Autowired private SchemaService schemaService;
 
     @Override
-    public DashboardWidget createWidgetData(DashboardWidgetType widget, Task task, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+    public DashboardWidget createWidgetData(DashboardWidgetType widget, boolean useDisplaySource, Task task, OperationResult result)
+            throws CommonException {
 
         Validate.notNull(widget, "Widget is null");
 
         DashboardWidget data = new DashboardWidget();
-        getNumberMessage(widget, data, task, result);
+        getNumberMessage(widget, data, useDisplaySource, task, result);
         data.setWidget(widget);
         if (data.getDisplay() == null) {
             data.setDisplay(widget.getDisplay());
@@ -163,16 +163,19 @@ public class DashboardServiceImpl implements DashboardService {
         return combinedDisplay;
     }
 
-    public DashboardWidgetSourceTypeType getSourceType(DashboardWidgetType widget) {
+    private DashboardWidgetSourceTypeType getSourceTypeForNumberMessage(DashboardWidgetType widget, boolean useDisplaySource) {
+        if (!isDisplaySourceTypeOfDataNull(widget) && useDisplaySource) {
+            return widget.getData().getDisplaySourceType();
+        }
         if (isSourceTypeOfDataNull(widget)) {
             return null;
         }
         return widget.getData().getSourceType();
     }
 
-    private String getNumberMessage(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
-        DashboardWidgetSourceTypeType sourceType = getSourceType(widget);
+    private String getNumberMessage(DashboardWidgetType widget, DashboardWidget data, boolean useDisplaySource, Task task, OperationResult result)
+            throws CommonException {
+        DashboardWidgetSourceTypeType sourceType = getSourceTypeForNumberMessage(widget, useDisplaySource);
         DashboardWidgetPresentationType presentation = widget.getPresentation();
         switch (sourceType) {
             case OBJECT_COLLECTION:
@@ -190,8 +193,28 @@ public class DashboardServiceImpl implements DashboardService {
                     return generateNumberMessageForObject(widget, data, task, result);
                 }
                 break;
+            case WIDGET_DATA:
+                if (!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+                    return generateNumberMessageForWidgetData(widget, data, task, result);
+                }
+                break;
         }
         return null;
+    }
+
+    private String generateNumberMessageForWidgetData(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result) {
+        String storedData = widget.getData().getStoredData();
+        if (StringUtils.isEmpty(storedData)) {
+            return null;
+        }
+
+        try {
+            evaluateVariation(widget, createVariables(null, null, null, storedData), data);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        data.setNumberMessage(storedData);
+        return storedData;
     }
 
     private String generateNumberMessageForObject(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
@@ -200,68 +223,36 @@ public class DashboardServiceImpl implements DashboardService {
         if (object == null) {
             return null;
         }
-        return generateNumberMessage(widget, createVariables(object.asPrismObject(), null, null), data);
+        return generateNumberMessage(widget, createVariables(object.asPrismObject(), null, null, null), data);
     }
 
     private String generateNumberMessageForAuditSearch(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws CommonException {
         ObjectCollectionType collection = getObjectCollectionType(widget, task, result);
         CollectionRefSpecificationType collectionRef = getCollectionRefSpecificationType(widget, task, result);
         if (collection == null && collectionRef.getFilter() == null) {
             return null;
         }
-        AuditSearchType auditSearch = collection != null ? collection.getAuditSearch() : null;
-        SearchFilterType filter = collectionRef.getFilter() != null ? collectionRef.getFilter() : null;
-        filter = collection != null ? collection.getFilter() : filter;
-        Integer value = 0;
         Integer domainValue = null;
-        if (filter != null) {
-            value = countAuditEvents(collectionRef, collection, task, result);
-            if (value == null) {
-                return null;
-            }
-            if (collection != null && collection.getDomain() != null && collection.getDomain().getCollectionRef() != null
-                    && collection.getDomain().getCollectionRef().getOid() != null) {
-                @NotNull PrismObject<ObjectCollectionType> domainCollection = modelService.getObject(ObjectCollectionType.class, collection.getDomain().getCollectionRef().getOid(),
-                        null, task, result);
-                domainValue = countAuditEvents(collection.getDomain(), domainCollection.asObjectable(), task, result);
-            }
-        } else if (auditSearch != null) {
-            if (auditSearch.getRecordQuery() == null) {
-                LOGGER.error("RecordQuery of auditSearch is not defined in widget " +
-                        widget.getIdentifier());
-                return null;
-            }
-
-            Map<String, Object> parameters = new HashMap<>();
-            String query = getQueryForCount(createQuery(collection,
-                    parameters, false, clock));
-            LOGGER.debug("Parameters for select: " + parameters);
-            value = (int) auditService.countObjects(
-                    query, parameters);
-            domainValue = null;
-            if (auditSearch.getDomainQuery() == null) {
-                LOGGER.error("DomainQuery of auditSearch is not defined");
-            } else {
-                parameters = new HashMap<>();
-                query = getQueryForCount(createQuery(collection,
-                        parameters, true, clock));
-                LOGGER.debug("Parameters for select: " + parameters);
-                domainValue = (int) auditService.countObjects(
-                        query, parameters);
-            }
-        } else {
-            LOGGER.error("Filter or auditSearch of ObjectCollection is not found in widget " +
+        Integer value = countAuditEvents(collectionRef, collection, task, result);
+        if (value == null) {
+            LOGGER.error("Filter of ObjectCollection is not found in widget " +
                     widget.getIdentifier());
             return null;
         }
+        if (collection != null && collection.getDomain() != null && collection.getDomain().getCollectionRef() != null
+                && collection.getDomain().getCollectionRef().getOid() != null) {
+            @NotNull PrismObject<ObjectCollectionType> domainCollection = modelService.getObject(ObjectCollectionType.class, collection.getDomain().getCollectionRef().getOid(),
+                    null, task, result);
+            domainValue = countAuditEvents(collection.getDomain(), domainCollection.asObjectable(), task, result);
+        }
         LOGGER.debug("Value: {}, Domain value: {}", value, domainValue);
         IntegerStatType statType = generateIntegerStat(value, domainValue);
-        return generateNumberMessage(widget, createVariables(null, statType, null), data);
+        return generateNumberMessage(widget, createVariables(null, statType, null, null), data);
     }
 
-    public Integer countAuditEvents(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    public Integer countAuditEvents(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection,
+            Task task, OperationResult result) throws CommonException {
 
         if (collectionRef == null ||
                 ((collectionRef.getCollectionRef() == null || collectionRef.getCollectionRef().getOid() == null)
@@ -292,7 +283,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
         @NotNull Collection<SelectorOptions<GetOperationOptions>> option = combineAuditOption(collectionRef, collection, task, result);
 
-        return auditService.countObjects(query, option, result);
+        return modelAuditService.countObjects(query, option, task, result);
     }
 
     private @NotNull Collection<SelectorOptions<GetOperationOptions>> combineAuditOption(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)
@@ -349,14 +340,6 @@ public class DashboardServiceImpl implements DashboardService {
         return prismContext.getQueryConverter().parseFilter(filter, AuditEventRecordType.class);
     }
 
-    private String getQueryForCount(String query) {
-        int index = query.toLowerCase().indexOf("from");
-        query = "select count(*) " + query.substring(index);
-        query = query.split("order")[0];
-        LOGGER.debug("Query for select: " + query);
-        return query;
-    }
-
     private String generateNumberMessageForCollection(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
         CollectionRefSpecificationType collectionSpec = getCollectionRefSpecificationType(widget, task, result);
@@ -383,7 +366,7 @@ public class DashboardServiceImpl implements DashboardService {
                     policySituations.add(evalPolicyRule.getPolicySituation());
                 }
             }
-            return generateNumberMessage(widget, createVariables(null, statType, policySituations), data);
+            return generateNumberMessage(widget, createVariables(null, statType, policySituations, null), data);
 
         } else {
             LOGGER.error("CollectionRefSpecificationType is null in widget " + widget.getIdentifier());
@@ -392,7 +375,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private static VariablesMap createVariables(PrismObject<? extends ObjectType> object,
-            IntegerStatType statType, Collection<String> policySituations) {
+            IntegerStatType statType, Collection<String> policySituations, String storedData) {
         VariablesMap variables = new VariablesMap();
         if (statType != null || policySituations != null) {
             VariablesMap variablesMap = new VariablesMap();
@@ -408,6 +391,9 @@ public class DashboardServiceImpl implements DashboardService {
         }
         if (object != null) {
             variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
+        }
+        if (storedData != null) {
+            variables.put(VAR_STORED_DATA, storedData, String.class);
         }
 
         return variables;

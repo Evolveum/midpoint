@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.common;
 
+import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -48,8 +49,9 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
         // CID is not mapped directly, it is used by path resolver elsewhere
     }
 
-    /** Implemented for searchable containers. */
-    @Override
+    /**
+     * Implemented for searchable containers that do not use fullObject for their recreation.
+     */
     public S toSchemaObject(R row) {
         throw new UnsupportedOperationException(
                 "Container search not supported for schema type " + schemaType());
@@ -86,5 +88,9 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     @Override
     public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
         throw new UnsupportedOperationException("Missing insert() implementation in " + getClass());
+    }
+
+    public Predicate containerIdentityPredicate(Q entityPath, S container) {
+        return entityPath.cid.eq(container.asPrismContainerValue().getId());
     }
 }

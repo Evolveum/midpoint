@@ -7,11 +7,7 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
-import ch.qos.logback.classic.Level;
-
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
@@ -19,24 +15,20 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 /**
- *
+ * Implementation of a "running task" i.e. a task that is being executed either under Quartz or as a LAT.
+ * (For the latter case see {@link RunningLightweightTaskImpl}.)
  */
 public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask {
 
@@ -53,6 +45,12 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      */
     @Experimental
     @NotNull private final Task rootTask;
+
+    /**
+     * Immediate parent. It is not guaranteed to be current. It is initialized when the task is started.
+     */
+    @Experimental
+    @Nullable private final Task parentTask;
 
     /**
      * Lightweight asynchronous subtasks.
@@ -73,22 +71,15 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private volatile Thread executingThread;
 
     /**
-     * How many objects were seen by this task. This is to determine whether interval-based profiling is to be started.
-     */
-    private final AtomicInteger objectsSeen = new AtomicInteger(0);
-
-    /** TODO */
-    private Level originalProfilingLevel;
-
-    /**
      * Execution context. Currently used to store activity execution during item processing in worker tasks.
      */
     private ExecutionSupport executionSupport;
 
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
-            @NotNull Task rootTask) {
+            @NotNull Task rootTask, @Nullable Task parentTask) {
         super(taskManager, taskPrism);
         this.rootTask = rootTask;
+        this.parentTask = parentTask;
     }
 
     //region Task execution (canRun, executing thread)
@@ -175,6 +166,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      * Now we are going to remove these LATs. We have to preserve the data somehow.
      *
      * The easiest way seems to be:
+     *
      * 1. Compute current state of the statistics (using standard method).
      * 2. Store this state as new "initial values" into {@link Statistics} class.
      *
@@ -182,7 +174,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      */
     private void migrateStatisticsFromLightweightSubtasks() {
         updateOperationalStatsInTaskPrism();
-        statistics.restartCollectingStatistics(this, beans.sqlPerformanceMonitorsCollection);
+        statistics.restartCollectingStatisticsFromStoredValues(this, beans.sqlPerformanceMonitorsCollection);
     }
     //endregion
 
@@ -211,35 +203,41 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     private void updateOperationalStatsInTaskPrism() {
-        setOperationStatsTransient(getAggregatedLiveOperationStats());
+        setOperationStatsTransient(
+                getAggregatedLiveOperationStats());
     }
 
     @Override
-    public void storeStatisticsIntoRepositoryIfTimePassed(Runnable additionalUpdater, OperationResult result) {
-        if (lastOperationStatsUpdateTimestamp == null ||
-                System.currentTimeMillis() - lastOperationStatsUpdateTimestamp > operationStatsUpdateInterval) {
+    public boolean storeStatisticsIntoRepositoryIfTimePassed(Runnable additionalUpdater, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        if (lastOperationStatsUpdateTimestamp != null &&
+                System.currentTimeMillis() - lastOperationStatsUpdateTimestamp <= operationStatsUpdateInterval) {
+            return false;
+        } else {
             if (additionalUpdater != null) {
                 additionalUpdater.run();
             }
             storeStatisticsIntoRepository(result);
+            return true;
         }
     }
 
     @Override
-    public void storeStatisticsIntoRepository(OperationResult result) {
+    public void storeStatisticsIntoRepository(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        addPendingModification(createContainerDeltaIfPersistent(TaskType.F_OPERATION_STATS, getStoredOperationStatsOrClone()));
+        addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getLegacyProgress()));
+        addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_EXPECTED_TOTAL, getExpectedTotal()));
         try {
-            addPendingModification(createContainerDeltaIfPersistent(TaskType.F_OPERATION_STATS, getStoredOperationStatsOrClone()));
-            addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getProgress()));
-            addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_EXPECTED_TOTAL, getExpectedTotal()));
             flushPendingModifications(result);
-            lastOperationStatsUpdateTimestamp = System.currentTimeMillis();
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, this);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new SystemException("Unexpected ObjectAlreadyExistsException: " + e.getMessage(), e);
         }
+        lastOperationStatsUpdateTimestamp = System.currentTimeMillis();
     }
 
     @Override
-    public void updateAndStoreStatisticsIntoRepository(boolean updateThreadLocalStatistics, OperationResult result) {
+    public void updateAndStoreStatisticsIntoRepository(boolean updateThreadLocalStatistics, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
         updateStatisticsInTaskPrism(updateThreadLocalStatistics);
         storeStatisticsIntoRepository(result);
     }
@@ -250,8 +248,9 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public void incrementProgressAndStoreStatisticsIfTimePassed(OperationResult result) {
-        incrementProgressTransient();
+    public void incrementLegacyProgressAndStoreStatisticsIfTimePassed(OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        incrementLegacyProgressTransient();
         updateStatisticsInTaskPrism(true);
         storeStatisticsIntoRepositoryIfTimePassed(null, result);
     }
@@ -287,79 +286,17 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         statistics.startCollectingStatistics(this, strategy, beans.sqlPerformanceMonitorsCollection);
     }
 
+    @Override
+    public void restartCollectingStatisticsFromZero() {
+        statistics.restartCollectingStatisticsFromZero(beans.sqlPerformanceMonitorsCollection);
+    }
+
     private Statistics getStatistics() {
         return statistics;
     }
 
     //endregion
 
-    //region Tracing and profiling
-    @Override
-    public int getAndIncrementObjectsSeen() {
-        return objectsSeen.getAndIncrement();
-    }
-
-    @Override
-    public void startDynamicProfilingIfNeeded(RunningTask coordinatorTask, int objectsSeen) {
-        Integer interval = coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_PROFILING_INTERVAL);
-        if (interval != null && interval != 0 && objectsSeen%interval == 0) {
-            LOGGER.info("Starting dynamic profiling for object number {} (interval is {})", objectsSeen, interval);
-            originalProfilingLevel = OperationExecutionLogger.getLocalOperationInvocationLevelOverride();
-            OperationExecutionLogger.setLocalOperationInvocationLevelOverride(Level.TRACE);
-        }
-    }
-
-    @Override
-    public void stopDynamicProfiling() {
-        OperationExecutionLogger.setLocalOperationInvocationLevelOverride(originalProfilingLevel);
-    }
-
-    @Override
-    public boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot) {
-        ProcessTracingConfigurationType config = coordinatorTask.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING);
-        int interval;
-        if (config != null) {
-            interval = defaultIfNull(config.getInterval(), 1);
-        } else {
-            // the old way
-            interval = defaultIfNull(
-                    coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_INTERVAL), 0);
-        }
-
-        if (interval != 0 && objectsSeen % interval == 0) {
-            TracingProfileType tracingProfileConfigured;
-            Collection<TracingRootType> pointsConfigured;
-            if (config != null) {
-                tracingProfileConfigured = config.getTracingProfile();
-                pointsConfigured = config.getTracingPoint();
-            } else {
-                // the old way
-                tracingProfileConfigured = coordinatorTask
-                        .getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
-                PrismProperty<TracingRootType> tracingRootProperty = coordinatorTask
-                        .getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_ROOT);
-                pointsConfigured = tracingRootProperty != null ? tracingRootProperty.getRealValues() : emptyList();
-            }
-
-            LOGGER.info("Starting tracing for object number {} (interval is {})", this.objectsSeen, interval);
-
-            TracingProfileType tracingProfile =
-                    tracingProfileConfigured != null ? tracingProfileConfigured : beans.tracer.getDefaultProfile();
-            Collection<TracingRootType> points = pointsConfigured.isEmpty() ? singleton(defaultTracingRoot) : pointsConfigured;
-
-            points.forEach(this::addTracingRequest);
-            setTracingProfile(tracingProfile);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public void stopTracing() {
-        removeTracingRequests();
-        setTracingProfile(null);
-    }
     //endregion
 
     //region Switching to waiting state
@@ -394,6 +331,17 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @NotNull
     public Task getRootTask() {
         return rootTask;
+    }
+
+    @Nullable
+    @Override
+    public Task getParentTask() {
+        return parentTask;
+    }
+
+    @Override
+    public @NotNull ParentAndRoot getParentAndRoot(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new ParentAndRoot(getParentTask(), getRootTask());
     }
 
     @Override

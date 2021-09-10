@@ -260,11 +260,6 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
     }
 
     @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("ExportingPopupPanel.title");
-    }
-
-    @Override
     public Component getComponent() {
         return this;
     }

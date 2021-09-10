@@ -14,5 +14,5 @@
     <description>Top-level org</description>
     <displayName>TOP</displayName>
     <identifier>0000</identifier>
-    <orgType>functional</orgType>
+    <subtype>functional</subtype>
 </org>

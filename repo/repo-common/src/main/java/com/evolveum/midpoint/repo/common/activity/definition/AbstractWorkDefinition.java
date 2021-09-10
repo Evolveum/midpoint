@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class AbstractWorkDefinition implements WorkDefinition {
 
-    @NotNull private ExecutionModeType executionMode = ExecutionModeType.EXECUTE;
+    @NotNull private ExecutionModeType executionMode = ExecutionModeType.FULL;
 
     /**
      * TODO decide if the tailoring should be here or in {@link ActivityDefinition}.
@@ -36,7 +36,7 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
     }
 
     public void setExecutionMode(ExecutionModeType executionMode) {
-        this.executionMode = MoreObjects.firstNonNull(executionMode, ExecutionModeType.EXECUTE);
+        this.executionMode = MoreObjects.firstNonNull(executionMode, ExecutionModeType.FULL);
     }
 
     @Override

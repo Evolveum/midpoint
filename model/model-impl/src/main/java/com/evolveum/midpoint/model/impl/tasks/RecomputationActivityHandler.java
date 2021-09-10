@@ -10,42 +10,45 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext;
-import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityExecution;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
+import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Executes specified deltas on specified set of objects.
  */
 @Component
 public class RecomputationActivityHandler
-        extends SimpleActivityHandler<ObjectType, RecomputationActivityHandler.MyWorkDefinition, ExecutionContext> {
+        extends SimpleActivityHandler<
+            ObjectType,
+            RecomputationActivityHandler.MyWorkDefinition,
+            RecomputationActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.RECOMPUTE_HANDLER_URI;
     private static final Trace LOGGER = TraceManager.getTrace(RecomputationActivityHandler.class);
@@ -69,6 +72,11 @@ public class RecomputationActivityHandler
     }
 
     @Override
+    protected @NotNull SearchBasedSpecificsSupplier<ObjectType, MyWorkDefinition, RecomputationActivityHandler> getSpecificSupplier() {
+        return MyExecutionSpecifics::new;
+    }
+
+    @Override
     protected @NotNull String getLegacyHandlerUri() {
         return LEGACY_HANDLER_URI;
     }
@@ -84,31 +92,45 @@ public class RecomputationActivityHandler
     }
 
     @Override
-    public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        return new ActivityReportingOptions()
-                .enableActionsExecutedStatistics(true);
+    public String getIdentifierPrefix() {
+        return "recomputation";
     }
 
-    @Override
-    public boolean processItem(PrismObject<ObjectType> object, ItemProcessingRequest<PrismObject<ObjectType>> request,
-            SimpleActivityExecution<ObjectType, MyWorkDefinition, ExecutionContext> activityExecution,
-            RunningTask workerTask, OperationResult result) throws CommonException {
-        boolean simulate = activityExecution.isSimulate();
-        String action = simulate ? "Simulated recomputation" : "Recomputation";
+    static class MyExecutionSpecifics extends
+            BaseSearchBasedExecutionSpecificsImpl<ObjectType, MyWorkDefinition, RecomputationActivityHandler> {
 
-        LOGGER.trace("{} of object {}", action, object);
-
-        LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(object,
-                activityExecution.getWorkDefinition().getExecutionOptions(), workerTask, result);
-        LOGGER.trace("{} of object {}: context:\n{}", action, object, syncContext.debugDumpLazily());
-
-        if (simulate) {
-            clockwork.previewChanges(syncContext, null, workerTask, result);
-        } else {
-            clockwork.run(syncContext, workerTask, result);
+        MyExecutionSpecifics(
+                @NotNull SearchBasedActivityExecution<ObjectType, MyWorkDefinition, RecomputationActivityHandler, ?> activityExecution) {
+            super(activityExecution);
         }
-        LOGGER.trace("{} of object {}: {}", action, object, result.getStatus());
-        return true;
+
+        @Override
+        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
+            return super.getDefaultReportingOptions()
+                    .enableActionsExecutedStatistics(true);
+        }
+
+        @Override
+        public boolean processObject(@NotNull PrismObject<ObjectType> object,
+                @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
+                throws CommonException, ActivityExecutionException {
+            boolean simulate = activityExecution.isPreview();
+            String action = simulate ? "Simulated recomputation" : "Recomputation";
+
+            LOGGER.trace("{} of object {}", action, object);
+
+            LensContext<FocusType> syncContext = getActivityHandler().contextFactory.createRecomputeContext(object,
+                    getWorkDefinition().getExecutionOptions(), workerTask, result);
+            LOGGER.trace("{} of object {}: context:\n{}", action, object, syncContext.debugDumpLazily());
+
+            if (simulate) {
+                getActivityHandler().clockwork.previewChanges(syncContext, null, workerTask, result);
+            } else {
+                getActivityHandler().clockwork.run(syncContext, workerTask, result);
+            }
+            LOGGER.trace("{} of object {}: {}", action, object, result.getStatus());
+            return true;
+        }
     }
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
@@ -124,8 +146,8 @@ public class RecomputationActivityHandler
                 ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_LEGACY_SPEC);
             } else {
                 RecomputationWorkDefinitionType typedDefinition = (RecomputationWorkDefinitionType)
-                        ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = typedDefinition.getObjects();
+                        ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
                 executionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
                 ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC);
             }

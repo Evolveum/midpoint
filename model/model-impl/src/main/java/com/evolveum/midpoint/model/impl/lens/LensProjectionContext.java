@@ -415,6 +415,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         throw new UnsupportedOperationException("Archetypes are not supported for projections.");
     }
 
+    @Override
+    public List<ArchetypeType> getArchetypes() {
+        throw new UnsupportedOperationException("Archetypes are not supported for projections.");
+    }
+
     public ResourceType getResource() {
         return resource;
     }

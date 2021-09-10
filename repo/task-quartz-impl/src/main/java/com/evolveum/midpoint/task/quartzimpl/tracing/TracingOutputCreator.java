@@ -47,6 +47,8 @@ public class TracingOutputCreator {
                 .profile(tracingProfile);
         output.setEnvironment(createTracingEnvironmentDescription(task, tracingProfile));
 
+        result.checkLogRecorderFlushed();
+
         OperationResultType resultBean = result.createOperationResultType();
         new LogCompressor().compressResult(resultBean);
 
@@ -60,8 +62,8 @@ public class TracingOutputCreator {
 
     private List<TraceDictionaryType> extractDictionaries(OperationResult result) {
         return result.getResultStream()
-                .filter(r -> r.getExtractedDictionary() != null)
                 .map(OperationResult::getExtractedDictionary)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -149,7 +151,7 @@ public class TracingOutputCreator {
             PrismObject<? extends ObjectType> objectToStore = stripFetchResult(object);
 
             for (TraceDictionaryEntryType entry : dictionary.getEntry()) {
-                PrismObject dictionaryObject = entry.getObject().asReferenceValue().getObject();
+                PrismObject<?> dictionaryObject = entry.getObject().asReferenceValue().getObject();
                 if (java.util.Objects.equals(objectToStore.getOid(), dictionaryObject.getOid()) &&
                         Objects.equals(objectToStore.getVersion(), dictionaryObject.getVersion())) {
                     comparisons++;
@@ -184,6 +186,7 @@ public class TracingOutputCreator {
         }
 
         // These objects are equal. They hashcodes should be also. This is a helping hand given to tests. See MID-5851.
+        @SuppressWarnings("rawtypes")
         private void checkHashCodes(PrismObject object1, PrismObject object2) {
             int hash1 = object1.hashCode();
             int hash2 = object2.hashCode();

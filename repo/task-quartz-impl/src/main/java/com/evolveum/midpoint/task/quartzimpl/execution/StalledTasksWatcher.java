@@ -85,7 +85,7 @@ public class StalledTasksWatcher {
                 realProgress = heartbeatProgressInfo;
             } else {
                 try {
-                    realProgress = taskRetriever.getTaskPlain(task.getOid(), result).getProgress();
+                    realProgress = taskRetriever.getTaskPlain(task.getOid(), result).getLegacyProgress();
                 } catch (ObjectNotFoundException e) {
                     LoggingUtils.logException(LOGGER, "Task {} cannot be checked for staleness because it is gone", e, task);
                     continue;

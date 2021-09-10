@@ -64,7 +64,7 @@ public class RunningLightweightTaskImpl extends RunningTaskQuartzImpl implements
 
     public RunningLightweightTaskImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrismObject,
             @NotNull Task rootTask, @NotNull RunningTaskQuartzImpl parent, @NotNull LightweightTaskHandler handler) {
-        super(taskManager, taskPrismObject, rootTask);
+        super(taskManager, taskPrismObject, rootTask, parent);
         this.parent = parent;
         lightweightTaskHandler = handler;
     }

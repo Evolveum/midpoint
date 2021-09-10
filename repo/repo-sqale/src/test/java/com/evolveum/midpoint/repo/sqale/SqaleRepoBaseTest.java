@@ -51,14 +51,15 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     @Autowired protected SqaleRepositoryService repositoryService;
     @Autowired protected SqaleRepoContext sqlRepoContext;
+    @Autowired protected SqaleRepositoryConfiguration repositoryConfiguration;
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
 
-    private static boolean uriCacheCleared = false;
+    private static boolean cacheTablesCleared = false;
 
     @BeforeClass
     public void clearDatabase() {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
 
             jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
@@ -72,16 +73,15 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             display("Deleted " + count + " objects from DB");
             */
             jdbcSession.commit();
+            display("OBJECT tables cleared");
         }
 
         // this is "suite" scope code, but @BeforeSuite can't use injected fields
-        if (!uriCacheCleared) {
-            QUri u = QUri.DEFAULT;
-            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-                jdbcSession.newDelete(u)
-                        // We could skip default relation ID with .where(u.id.gt(0)),
-                        // but it must work even when it's gone.
-                        .execute();
+        if (!cacheTablesCleared) {
+            try (JdbcSession jdbcSession = startTransaction()) {
+                // We could skip default relation ID with .where(u.id.gt(0)), but it must work.
+                jdbcSession.newDelete(QUri.DEFAULT).execute();
+                jdbcSession.newDelete(QExtItem.DEFAULT).execute();
                 jdbcSession.commit();
             }
 
@@ -89,7 +89,18 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
             // It would work with URI cache cleared before every class, but that's not
             // how midPoint will work either.
-            uriCacheCleared = true;
+            cacheTablesCleared = true;
+            display("URI cache and Extension item catalog tables cleared");
+        }
+        // TODO m_ext_item is not deleted now, do we want it too? session scope like URI cache?
+    }
+
+    // Called on demand
+    public void clearAudit() {
+        try (JdbcSession jdbcSession = startTransaction()) {
+            jdbcSession.executeStatement("TRUNCATE ma_audit_event CASCADE;");
+            jdbcSession.commit();
+            display("AUDIT tables cleared");
         }
     }
 
@@ -130,7 +141,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> long count(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             SQLQuery<?> query = jdbcSession.newQuery()
                     .from(path)
                     .where(conditions);
@@ -145,7 +156,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> List<R> select(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             return jdbcSession.newQuery()
                     .from(path)
                     .where(conditions)
@@ -163,7 +174,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> @Nullable R selectOneNullable(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             return jdbcSession.newQuery()
                     .from(path)
                     .where(conditions)
@@ -252,16 +263,26 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                 && cachedUriById(ref.relationId).equals(QNameUtil.qNameToUri(relation));
     }
 
-    protected void assertSingleOperationRecorded(SqlPerformanceMonitorImpl pm, String opKind) {
+    protected void assertSingleOperationRecorded(String opKind) {
+        assertOperationRecordedCount(opKind, 1);
+    }
+
+    protected void assertOperationRecordedCount(String opKind, int count) {
+        // TODO see comment in SqaleServiceBase.registerOperationStart
+        opKind = "SqaleRepositoryService." + opKind;
         Map<String, OperationPerformanceInformation> pmAllData =
-                pm.getGlobalPerformanceInformation().getAllData();
-        assertThat(pmAllData).hasSize(1);
-        Map.Entry<String, OperationPerformanceInformation> perfEntry =
-                pmAllData.entrySet().iterator().next();
-        assertThat(perfEntry.getKey()).isEqualTo(opKind);
-        OperationPerformanceInformation operationInfo = perfEntry.getValue();
-        assertThat(operationInfo.getInvocationCount()).isEqualTo(1);
-        assertThat(operationInfo.getExecutionCount()).isEqualTo(1);
+                repositoryService.getPerformanceMonitor()
+                        .getGlobalPerformanceInformation().getAllData();
+        OperationPerformanceInformation operationInfo = pmAllData.get(opKind);
+        if (count != 0) {
+            assertThat(operationInfo)
+                    .withFailMessage("OperationPerformanceInformation for opKind '%s'", opKind)
+                    .isNotNull();
+            assertThat(operationInfo.getInvocationCount()).isEqualTo(count);
+            assertThat(operationInfo.getExecutionCount()).isEqualTo(count);
+        } else {
+            assertThat(operationInfo).isNull();
+        }
     }
 
     /** Creates a reference with specified type and default relation. */
@@ -314,7 +335,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
         MExtItem.Key key = MExtItem.keyFrom(def, holder);
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             QExtItem ei = QExtItem.DEFAULT;
             return jdbcSession.newQuery()
                     .from(ei)
@@ -326,6 +347,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                     .fetchFirst()
                     .toString();
         }
+    }
+
+    protected void clearPerformanceMonitor() {
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
     }
 
     /**
@@ -391,4 +418,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
     // endregion
+
+    protected JdbcSession startTransaction() {
+        return sqlRepoContext.newJdbcSession().startTransaction();
+    }
+
+    protected JdbcSession startReadOnlyTransaction() {
+        return sqlRepoContext.newJdbcSession().startReadOnlyTransaction();
+    }
 }

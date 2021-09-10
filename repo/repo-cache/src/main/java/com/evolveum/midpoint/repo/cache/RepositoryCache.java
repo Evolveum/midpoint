@@ -15,6 +15,7 @@ import java.util.List;
 import javax.annotation.PreDestroy;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -188,6 +189,20 @@ public class RepositoryCache implements RepositoryService, Cache {
         return modificationOpHandler.modifyObject(type, oid, modifications, precondition, options, parentResult);
     }
 
+    @Override
+    public @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions,
+            @NotNull ModificationsSupplier<T> modificationsSupplier,
+            @Nullable RepoModifyOptions modifyOptions,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        // TODO implement properly, currently only to support tests, probably not used via cache in normal code
+        return repositoryService.modifyObjectDynamically(
+                type, oid, getOptions, modificationsSupplier, modifyOptions, parentResult);
+    }
+
     @NotNull
     @Override
     public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult)
@@ -248,33 +263,22 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
-    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids)
+    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String ancestorOrgOid)
             throws SchemaException {
         Long startTime = repoOpStart();
         try {
-            return repositoryService.isAnySubordinate(upperOrgOid, lowerObjectOids);
+            return repositoryService.isDescendant(object, ancestorOrgOid);
         } finally {
             repoOpEnd(startTime);
         }
     }
 
     @Override
-    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid)
+    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String descendantOrgOid)
             throws SchemaException {
         Long startTime = repoOpStart();
         try {
-            return repositoryService.isDescendant(object, orgOid);
-        } finally {
-            repoOpEnd(startTime);
-        }
-    }
-
-    @Override
-    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid)
-            throws SchemaException {
-        Long startTime = repoOpStart();
-        try {
-            return repositoryService.isAncestor(object, oid);
+            return repositoryService.isAncestor(object, descendantOrgOid);
         } finally {
             repoOpEnd(startTime);
         }

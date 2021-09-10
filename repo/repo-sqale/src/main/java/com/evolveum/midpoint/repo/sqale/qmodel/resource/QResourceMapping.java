@@ -34,9 +34,7 @@ public class QResourceMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QResourceMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QResourceMapping(repositoryContext);
-        }
+        instance = new QResourceMapping(repositoryContext);
         return instance;
     }
 

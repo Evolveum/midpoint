@@ -50,10 +50,10 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     private static String sourceFilePath;
 
     private static final File SHADOW_RUR_FILE = new File(TEST_DIR, "shadow-rur.xml");
-    private static final String SHADOW_RUR_OID = "shadow00-0000-0000-0000-111111111111";
+    private static final String SHADOW_RUR_OID = "77777700-0000-0000-0000-111111111111";
 
     private static final File SHADOW_CHAPPIE_FILE = new File(TEST_DIR, "shadow-chappie.xml");
-    private static final String SHADOW_CHAPPIE_OID = "shadow00-0000-0000-0000-111111111112";
+    private static final String SHADOW_CHAPPIE_OID = "77777700-0000-0000-0000-111111111112";
 
     private static final String NS_RESOURCE_CSV = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector";
 

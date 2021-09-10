@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
@@ -140,11 +140,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return assignmentIdi;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAssignmentType()
-     */
     @Override
-    public AssignmentType getAssignmentType() {
+    public AssignmentType getAssignment() {
         return asContainerable(assignmentIdi.getSingleValue(evaluatedOld));
     }
 
@@ -155,16 +152,13 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @Override
-    public AssignmentType getAssignmentType(boolean old) {
+    public AssignmentType getAssignment(boolean old) {
         return asContainerable(assignmentIdi.getSingleValue(old));
     }
 
     private ObjectReferenceType getTargetRef() {
-        AssignmentType assignmentType = getAssignmentType();
-        if (assignmentType == null) {
-            return null;
-        }
-        return assignmentType.getTargetRef();
+        AssignmentType assignment = getAssignment();
+        return assignment != null ? assignment.getTargetRef() : null;
     }
 
     @Override
@@ -174,9 +168,9 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @Override
-    public QName getNormalizedRelation(RelationRegistry relationRegistry) {
+    public QName getNormalizedRelation() {
         ObjectReferenceType targetRef = getTargetRef();
-        return targetRef != null ? relationRegistry.normalizeRelation(targetRef.getRelation()) : null;
+        return targetRef != null ? SchemaService.get().normalizeRelation(targetRef.getRelation()) : null;
     }
 
     @NotNull
@@ -453,7 +447,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     private boolean processRuleExceptions(EvaluatedAssignmentImpl<AH> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         boolean hasException = false;
-        for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
+        for (PolicyExceptionType policyException: evaluatedAssignment.getAssignment().getPolicyException()) {
             if (policyException.getRuleName().equals(rule.getName())) {
                 LensUtil.processRuleWithException(rule, triggers, policyException);
                 hasException = true;

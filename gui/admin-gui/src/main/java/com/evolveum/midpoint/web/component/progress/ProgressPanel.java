@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
@@ -376,6 +377,25 @@ public class ProgressPanel extends BasePanel {
         //todo implement
     }
 
+    public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto executeOptions, Task task, OperationResult result, AjaxRequestTarget target) {
+        ModelExecuteOptions options = createOptions(executeOptions, previewOnly);
+        LOGGER.debug("Using execute options {}.", options);
+        if (executeOptions.isSaveInBackground() && !previewOnly) {
+            executeChangesInBackground(deltas, previewOnly, options, task, result, target);
+            return;
+        }
+
+        executeChanges(deltas, previewOnly, options, task, result, target);
+    }
+
+    private ModelExecuteOptions createOptions(ExecuteChangeOptionsDto executeChangeOptionsDto, boolean previewOnly) {
+        ModelExecuteOptions options = executeChangeOptionsDto.createOptions(getPrismContext());
+        if (previewOnly) {
+            options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
+        }
+        return options;
+    }
+
     /**
      * Executes changes on behalf of the parent page. By default, changes are executed asynchronously (in
      * a separate thread). However, when set in the midpoint configuration, changes are executed synchronously.
@@ -397,7 +417,7 @@ public class ProgressPanel extends BasePanel {
             aware.startProcessing(target, result);
         }
 
-        if (reporter.isAsynchronousExecution()) {
+        if (reporter.isAsynchronousExecution() && page instanceof ProgressReportingAwarePage) {
             reporter.setAsyncOperationResult(null);
 
             clearProgressPanel();
@@ -679,7 +699,7 @@ public class ProgressPanel extends BasePanel {
             }
         };
 
-        result.recordInProgress(); // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
+        result.setInProgress(); // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
 
         AsyncWebProcessManager manager = application.getAsyncWebProcessManager();
         manager.submit(reporterModel.getId(), execution);

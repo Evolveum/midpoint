@@ -142,9 +142,11 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
         ctx.addEvent(event);
 
         ApprovalStageDefinitionType level = ctx.getCurrentStageDefinition();
-        engine.triggerHelper.createTriggersForTimedActions(ctx.getCurrentCase(), workItem.getId(), escalationLevel,
-                XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
-                XmlTypeConverter.toDate(workItem.getDeadline()), level.getTimedActions(), result);
+        if (level != null) {
+            engine.triggerHelper.createTriggersForTimedActions(ctx.getCurrentCase(), workItem.getId(), escalationLevel,
+                    XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
+                    XmlTypeConverter.toDate(workItem.getDeadline()), level.getTimedActions(), result);
+        }
 
         List<ObjectReferenceType> assigneesAndDeputiesAfter = engine.miscHelper.getAssigneesAndDeputies(workItem, ctx.getTask(), result);
         WorkItemAllocationChangeOperationInfo operationInfoAfter =

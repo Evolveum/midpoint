@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.task.quartzimpl.tasks;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,12 +35,18 @@ public class TaskStateManager {
     @Autowired private CloseHelper closeHelper;
     @Autowired private UnpauseHelper unpauseHelper;
     @Autowired private ScheduleNowHelper scheduleNowHelper;
+    @Autowired private NodeFoundDeadHelper nodeFoundDeadHelper;
 
     //region Task suspension and deletion
     public boolean suspendTask(String taskOid, long waitTime, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         TaskQuartzImpl task = taskRetriever.getTaskPlain(taskOid, result);
         return suspendAndDeleteHelper.suspendTask(task, waitTime, result);
+    }
+
+    public void markClosedTaskSuspended(String taskOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        suspendAndDeleteHelper.markClosedTaskSuspended(taskOid, result);
     }
 
     public boolean suspendTask(TaskQuartzImpl task, long waitTime, OperationResult result)
@@ -137,6 +144,10 @@ public class TaskStateManager {
         OperationResult emptyTaskResult = new OperationResult("run");
         emptyTaskResult.setStatus(OperationResultStatus.IN_PROGRESS);
         ((TaskQuartzImpl) task).setResultImmediate(emptyTaskResult, result);
+    }
+
+    public void markTasksAsNotRunning(Set<String> nodes, OperationResult result) throws SchemaException {
+        nodeFoundDeadHelper.markTasksAsNotRunning(nodes, result);
     }
     //endregion
 }

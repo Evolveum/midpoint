@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 /**
- * TODO
+ * Execution for the simple custom mock activity (custom = not plain iterative nor search-based nor even composite).
  */
 class SimpleMockActivityExecution
         extends LocalActivityExecution<SimpleMockWorkDefinition, SimpleMockActivityHandler, AbstractActivityWorkStateType> {
@@ -53,7 +53,7 @@ class SimpleMockActivityExecution
                 .recordOperationStart(new IterativeOperationStartInfo(
                         new IterationItemInformation(message, null, null, null)));
 
-        MiscUtil.sleepIgnoringInterruptedException(10); // to avoid wall clock time of 0 (failing throughput-assuming tests)
+        MiscUtil.sleepCatchingInterruptedException(10); // to avoid wall clock time of 0 (failing throughput-assuming tests)
 
         LOGGER.info("Message: {}", message);
         getRecorder().recordExecution(message);
@@ -91,17 +91,17 @@ class SimpleMockActivityExecution
     }
 
     @Override
-    public boolean supportsStatistics() {
+    public boolean doesSupportStatistics() {
         return true;
     }
 
     @Override
-    public boolean supportsSynchronizationStatistics() {
+    public boolean doesSupportSynchronizationStatistics() {
         return false;
     }
 
     @Override
-    public boolean supportsActionsExecuted() {
+    public boolean doesSupportActionsExecuted() {
         return false;
     }
 }

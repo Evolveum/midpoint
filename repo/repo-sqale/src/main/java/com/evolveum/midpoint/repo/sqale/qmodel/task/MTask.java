@@ -37,6 +37,8 @@ public class MTask extends MObject {
     public String parent;
     public TaskRecurrenceType recurrence;
     public OperationResultStatusType resultStatus;
+    public TaskSchedulingStateType schedulingState;
+    public TaskAutoScalingModeType autoScalingMode; // autoScaling/mode
     public ThreadStopActionType threadStopAction;
     public TaskWaitingReasonType waitingReason;
     public String[] dependentTaskIdentifiers;

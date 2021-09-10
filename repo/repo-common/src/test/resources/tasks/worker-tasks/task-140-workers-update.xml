@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="8ef8e606-3c3e-45c7-bca7-e64eb47de1e4"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-140</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
+    <executionStatus>runnable</executionStatus>
+    <activity>
+        <work>
+            <noOp>
+                <!-- must run for a long time -->
+                <steps>100000</steps>
+                <delay>100</delay>
+                <stepInterruptibility>full</stepInterruptibility>
+            </noOp>
+        </work>
+        <distribution>
+            <buckets>
+                <implicitSegmentation>
+                    <numberOfBuckets>20</numberOfBuckets>
+                </implicitSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>4</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+    </activity>
+</task>

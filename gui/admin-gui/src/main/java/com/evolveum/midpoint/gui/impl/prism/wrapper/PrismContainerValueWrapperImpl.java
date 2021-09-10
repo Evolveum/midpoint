@@ -25,10 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -150,7 +147,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     public void addItem(ItemWrapper<?, ?> newItem) {
         items.add(newItem);
         if (newItem instanceof PrismContainerWrapper) {
-            containers.add((PrismContainerWrapper) newItem);
+            if (!((PrismContainerWrapper) newItem).isVirtual()) {
+                containers.add((PrismContainerWrapper) newItem);
+            }
         } else {
             nonContainers.add(newItem);
         }
@@ -232,11 +231,28 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
             collectExtensionItems(container, true, containers);
 
-            if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName())) {
+            if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName()) && !((PrismContainerWrapper) container).isVirtual()) {
                 containers.add((PrismContainerWrapper) container);
             }
         }
         return containers;
+    }
+
+    @Override
+    public List<PrismContainerWrapper<? extends Containerable>> getContainers(ContainerPanelConfigurationType config) {
+        List<PrismContainerWrapper<? extends Containerable>> basicContainers = new ArrayList<>(getContainers());
+        if (config == null) {
+            return basicContainers;
+        }
+        for (VirtualContainersSpecificationType virtualContainer : config.getContainer()) {
+            if (virtualContainer.getIdentifier() != null) {
+                PrismContainerWrapper<? extends Containerable> pcw = findContainer(virtualContainer.getIdentifier());
+                if (pcw != null) {
+                    basicContainers.add(pcw);
+                }
+            }
+        }
+        return basicContainers;
     }
 
     @Override
@@ -325,8 +341,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             PrismContainerValueWrapper<ExtensionType> extension = (PrismContainerValueWrapper<ExtensionType>) item.getValue();
             List<? extends ItemWrapper<?, ?>> extensionItems = extension.getItems();
             for (ItemWrapper<?, ?> extensionItem : extensionItems) {
+                if (extensionItem.isShowInVirtualContainer()) {
+                    continue;
+                }
                 if (extensionItem instanceof PrismContainerWrapper) {
-                    if (containers) {
+                    if (containers && !((PrismContainerWrapper) extensionItem).isVirtual()) {
                         ((List)itemWrappers).add(extensionItem);
                     }
                     continue;
@@ -361,6 +380,60 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         return findItem(path, PrismContainerWrapper.class);
     }
 
+    @Override
+    public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier) {
+        List<PrismContainerWrapper<? extends Containerable>> containers = new ArrayList<>();
+        List<PrismContainerWrapper<? extends Containerable>> basicContainers = getContainers();
+        if (CollectionUtils.isNotEmpty(basicContainers)) {
+            containers.addAll(basicContainers);
+        }
+
+
+        addVirtualContainers(containers);
+
+//        List<PrismContainerWrapper<? extends Containerable>> virtualContainers = collectVirtualContainers();
+//        if (CollectionUtils.isNotEmpty(virtualContainers)) {
+//            containers.addAll(virtualContainers);
+//        }
+
+        for (PrismContainerWrapper<? extends Containerable> container : containers) {
+            if (identifier.equals(container.getIdentifier())) {
+                return (PrismContainerWrapper<T>) container;
+            }
+        }
+
+        for (PrismContainerWrapper<? extends Containerable> container : containers) {
+            PrismContainerWrapper<T> foundContainer = container.findContainer(identifier);
+            if (foundContainer != null) {
+                return foundContainer;
+            }
+        }
+        return null;
+    }
+
+    private void addVirtualContainers(List<PrismContainerWrapper<?>> containers) {
+        if (this instanceof PrismObjectValueWrapper) {
+            addVirtualContainersFrom((PrismObjectValueWrapper) this, containers);
+            return;
+        }
+        if (getParent() == null) {
+            return;
+        }
+        PrismObjectWrapper<?> objectWrapper = getParent().findObjectWrapper();
+        if (objectWrapper == null) {
+            return;
+        }
+        PrismObjectValueWrapper<?> objectValue = objectWrapper.getValue();
+        addVirtualContainersFrom(objectValue, containers);
+    }
+
+    private void addVirtualContainersFrom(PrismObjectValueWrapper<?> objectValue, List<PrismContainerWrapper<?>> containers) {
+        for (ItemWrapper<?, ?> itemWrapper : objectValue.getItems()) {
+            if (itemWrapper instanceof PrismContainerWrapper && ((PrismContainerWrapper) itemWrapper).isVirtual()) {
+                containers.add((PrismContainerWrapper<?>) itemWrapper);
+            }
+        }
+    }
     @Override
     public <IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException {
         Object first = path.first();

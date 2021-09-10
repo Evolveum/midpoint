@@ -84,9 +84,7 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(TaskType.F_COMPLETION_TIMESTAMP, "TaskType.currentRunTime"),
                         new ColumnWrapper(TaskType.F_PROGRESS),
                         new ColumnWrapper(TaskType.F_SCHEDULE, "pageTasks.task.scheduledToRunAgain"),
-                        new ColumnWrapper(ItemPath.create(TaskType.F_OPERATION_STATS,
-                                OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                                IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT), "pageTasks.task.errors"), // TODO MID-6850
+                        // TODO re-add total failure count
                         new ColumnWrapper(TaskType.F_RESULT_STATUS)))
                 .put(ShadowType.class, Arrays.asList(
                         new ColumnWrapper(ShadowType.F_NAME),
@@ -103,7 +101,8 @@ public class DefaultColumnUtils {
     private static List<ColumnWrapper> getColumnsForType(Class<? extends Containerable> type) {
         if (type.equals(RoleType.class)
                 || type.equals(OrgType.class)
-                || type.equals(ServiceType.class)) {
+                || type.equals(ServiceType.class)
+                || type.equals(ArchetypeType.class)) {
             return COLUMNS_DEF.get(AbstractRoleType.class);
         }
         if (COLUMNS_DEF.containsKey(type)) {
@@ -125,6 +124,8 @@ public class DefaultColumnUtils {
             return getDefaultOrgView();
         } else if (ServiceType.class.equals(type)) {
             return getDefaultServiceView();
+        } else if (ArchetypeType.class.equals(type)) {
+            return getDefaultArchetypeView();
         } else if (TaskType.class.equals(type)) {
             return getDefaultTaskView();
         } else if (ResourceType.class.equals(type)) {
@@ -163,6 +164,10 @@ public class DefaultColumnUtils {
 
     public static GuiObjectListViewType getDefaultServiceView() {
         return getDefaultView(ServiceType.COMPLEX_TYPE, "default-service", ServiceType.class);
+    }
+
+    public static GuiObjectListViewType getDefaultArchetypeView() {
+        return getDefaultView(ArchetypeType.COMPLEX_TYPE, "default-archetype", ArchetypeType.class);
     }
 
     public static GuiObjectListViewType getDefaultOrgView() {
@@ -222,12 +227,16 @@ public class DefaultColumnUtils {
 
     public static String processSpecialColumn(
             ItemPath itemPath, PrismContainer<? extends Containerable> object, LocalizationService localization) {
-        @Nullable Class<? extends Containerable> type = object.getCompileTimeClass();
-        if (type == null || itemPath == null) {
+        return processSpecialColumn(itemPath, object.getRealValue(), localization);
+    }
+
+    public static String processSpecialColumn(
+            ItemPath itemPath, Containerable object, LocalizationService localization) {
+        if (itemPath == null) {
             return null;
         }
-        if (type.isAssignableFrom(TaskType.class)) {
-            TaskType task = (TaskType) object.getRealValue();
+        if (object instanceof TaskType) {
+            TaskType task = (TaskType) object;
             if (itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)) {
                 XMLGregorianCalendar timestamp = task.getCompletionTimestamp();
                 if (timestamp != null && task.getExecutionStatus() == TaskExecutionStateType.CLOSED) {
@@ -256,8 +265,8 @@ public class DefaultColumnUtils {
                     return "";
                 }
             }
-        } else if (type.isAssignableFrom(AuditEventRecordType.class)) {
-            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object.getValue().asContainerable()).getCustomColumnProperty()) {
+        } else if (object instanceof AuditEventRecordType) {
+            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object).getCustomColumnProperty()) {
                 if (customColumn.getName().equals(itemPath.toString())) {
                     return customColumn.getValue();
                 }
@@ -269,19 +278,16 @@ public class DefaultColumnUtils {
         return null;
     }
 
-    public static boolean isSpecialColumn(ItemPath itemPath, PrismContainer<? extends Containerable> object) {
-        @Nullable Class<? extends Containerable> type = object.getCompileTimeClass();
-        if (type == null || itemPath == null) {
+    public static boolean isSpecialColumn(ItemPath itemPath, Containerable value) {
+        if (value == null || itemPath == null) {
             return false;
         }
-        if (type.isAssignableFrom(TaskType.class)) {
+        if (value instanceof TaskType) {
             return itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)
                     || itemPath.equivalent(TaskType.F_SCHEDULE)
-                    || itemPath.equivalent(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                    IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT)) // TODO MID-6850
-                    || itemPath.equivalent(TaskType.F_PROGRESS);
-        } else if (type.isAssignableFrom(AuditEventRecordType.class)) {
-            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object.getValue().asContainerable()).getCustomColumnProperty()) {
+                    || itemPath.equivalent(TaskType.F_PROGRESS); // TODO also total failure count
+        } else if (value instanceof AuditEventRecordType) {
+            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)value).getCustomColumnProperty()) {
                 if (customColumn.getName().equals(itemPath.toString())) {
                     return true;
                 }

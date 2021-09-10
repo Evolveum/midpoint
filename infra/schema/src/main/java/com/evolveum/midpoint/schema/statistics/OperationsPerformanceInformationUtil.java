@@ -21,12 +21,12 @@ import java.util.*;
  *
  */
 public class OperationsPerformanceInformationUtil {
+
     public static OperationsPerformanceInformationType toOperationsPerformanceInformationType(
             @NotNull OperationsPerformanceInformation methodsInfo) {
         OperationsPerformanceInformationType rv = new OperationsPerformanceInformationType();
         methodsInfo.getAllData().forEach((cache, info) -> rv.getOperation().add(toSingleMethodPerformanceInformationType(cache, info)));
         return rv;
-
     }
 
     private static SingleOperationPerformanceInformationType toSingleMethodPerformanceInformationType(String method,

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.task.api;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -292,7 +294,7 @@ public interface TaskManager {
     Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     @VisibleForTesting // TODO
-    void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    void closeTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns a task with a given identifier.
@@ -325,12 +327,12 @@ public interface TaskManager {
      * @param closedTasksPolicy specifies which tasks are to be deleted, e.g. how old they have to be
      * @param task task, within which context the cleanup executes (used to test for interruptions)
      */
-    void cleanupTasks(CleanupPolicyType closedTasksPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
+    void cleanupTasks(CleanupPolicyType closedTasksPolicy, RunningTask task, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Deletes dead nodes, i.e. ones that were not checked-in for a given time period.
      */
-    void cleanupNodes(DeadNodeCleanupPolicyType deadNodesPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
+    void cleanupNodes(DeadNodeCleanupPolicyType deadNodesPolicy, RunningTask task, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
     //endregion
 
     //region Remotely invokable methods
@@ -369,7 +371,7 @@ public interface TaskManager {
      *
      * On error conditions does NOT throw an exception.
      */
-    boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SchemaException;
+    boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult);
 
     /**
      * Suspends a task. The same as above except that on error condition it DOES throw appropriate exception.
@@ -382,6 +384,14 @@ public interface TaskManager {
      */
     boolean suspendTask(String taskOid, long waitTime, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException;
+
+    /**
+     * Brings a closed task to suspended state. This is to allow later resumption of the task.
+     *
+     * Not very clean solution, so don't use unless really needed.
+     */
+    @Experimental
+    void markClosedTaskSuspended(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Suspends tasks and deletes them.
@@ -474,7 +484,7 @@ public interface TaskManager {
     /**
      * Returns identifier for current node.
      */
-    String getNodeId();
+    @NotNull String getNodeId();
 
     /**
      * Checks whether supplied node is the current node.
@@ -488,6 +498,17 @@ public interface TaskManager {
      * (Checks whether the node is not up before deleting it.)
      */
     void deleteNode(String nodeOid, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    /**
+     * Registers current node as "up". Normally this is done after midPoint starting up;
+     * but should be done explicitly in tests.
+     */
+    @VisibleForTesting
+    void registerNodeUp(OperationResult result);
+
+    /** Retrieves the cluster state needed e.g. for workers reconciliation. */
+    @Experimental
+    @NotNull ClusterStateType determineClusterState(OperationResult result) throws SchemaException;
     //endregion
 
     //region Managing state of the scheduler(s)
@@ -736,6 +757,14 @@ public interface TaskManager {
      * Should be called only from the thread that created the children - to avoid race conditions.
      */
     void waitForTransientChildrenAndCloseThem(RunningTask task, OperationResult result);
+
+    /**
+     * Returns hikari pool statistics (active, idle, waiting, total, max number of DB connections)
+     * Return null if pool is unavailable.
+     *
+     * TODO move to more appropriate place
+     */
+    Number[] getDBPoolStats();
 
     //endregion
 }

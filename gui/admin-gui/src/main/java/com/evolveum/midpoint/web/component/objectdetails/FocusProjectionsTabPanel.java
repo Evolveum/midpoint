@@ -27,7 +27,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -76,7 +75,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -105,9 +103,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
     private final LoadableModel<List<ShadowWrapper>> projectionModel;
 
-    public FocusProjectionsTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel,
+    public FocusProjectionsTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel,
             LoadableModel<List<ShadowWrapper>> projectionModel) {
-        super(id, mainForm, focusModel);
+        super(id, focusModel);
         Validate.notNull(projectionModel, "Null projection model");
         this.projectionModel = projectionModel;
     }
@@ -368,7 +366,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 //            @Override
 //            protected WebMarkupContainer getSpecificContainers(String contentAreaId) {
-//                Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, FocusProjectionsTabPanel.this);
+//                Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, FocusProjectionsPanel.this);
 //
 //                ShadowPanel shadowPanel = new ShadowPanel(ID_SHADOW_PANEL, getParentModel(getModel()));
 //                specificContainers.add(shadowPanel);
@@ -854,4 +852,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         }
         target.add(getMultivalueContainerListPanel());
     }
+
+
 }

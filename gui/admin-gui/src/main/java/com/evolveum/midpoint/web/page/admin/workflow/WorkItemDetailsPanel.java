@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
@@ -49,6 +50,7 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -90,9 +92,6 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
 
     private IModel<SceneDto> sceneModel;
-    private String approverCommentValue = null;
-    private byte[] evidenceFile = null;
-
     public WorkItemDetailsPanel(String id, IModel<CaseWorkItemType> caseWorkItemTypeIModel) {
         super(id, caseWorkItemTypeIModel);
     }
@@ -117,7 +116,6 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
                 }
             }
         };
-        evidenceFile = WorkItemTypeUtil.getEvidence(getModelObject());
     }
 
     private void initLayout(){
@@ -148,9 +146,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         requestedFor.setOutputMarkupId(true);
         add(requestedFor);
 
-        LinkedReferencePanel approver = new LinkedReferencePanel(ID_APPROVER,
-                getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
-                Model.of(getModelObject().getAssigneeRef().get(0)) : Model.of());
+        LinkedReferencePanel approver = new LinkedReferencePanel(ID_APPROVER, getApproverModel());
         approver.setOutputMarkupId(true);
         add(approver);
 
@@ -246,23 +242,23 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
         Form evidenceForm = new Form(ID_CASE_WORK_ITEM_EVIDENCE_FORM);
         evidenceForm.add(new VisibleBehaviour(() -> CaseTypeUtil.isManualProvisioningCase(parentCase) &&
-                (!SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState()) || WorkItemTypeUtil.getEvidence(getModelObject()) != null)));
+                (!isParentCaseClosed() || WorkItemTypeUtil.getEvidence(getModelObject()) != null)));
         evidenceForm.setMultiPart(true);
         add(evidenceForm);
 
-        UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, parentCase != null &&
-                SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState()) && WorkItemTypeUtil.getEvidence(getModelObject()) != null){
+        UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, isParentCaseClosed() && WorkItemTypeUtil.getEvidence(getModelObject()) != null){
             private static final long serialVersionUID = 1L;
 
             @Override
             public void updateValue(byte[] file) {
                 if (file != null) {
-                    evidenceFile = Arrays.copyOf(file, file.length);
+                    WorkItemTypeUtil.setEvidence(getModelObject(), file);
                 }
             }
 
             @Override
             public InputStream getStream() {
+                byte[] evidenceFile = WorkItemTypeUtil.getEvidence(getModelObject());
                 return evidenceFile != null ? new ByteArrayInputStream((byte[]) evidenceFile) : new ByteArrayInputStream(new byte[0]);
             }
 
@@ -290,19 +286,8 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         commentContainer.add(new VisibleBehaviour(() -> isAuthorizedForActions()));
         add(commentContainer);
 
-        TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void setObject(String newValue) {
-                approverCommentValue = newValue;
-            }
-
-            @Override
-            public String getObject() {
-                return approverCommentValue;
-            }
-        });
+        TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
+        approverComment.add(new EnableBehaviour(() -> !isParentCaseClosed()));
         approverComment.setOutputMarkupId(true);
         approverComment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         commentContainer.add(approverComment);
@@ -368,15 +353,22 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         return focus;
     }
 
-    public String getApproverComment(){
-        return approverCommentValue;
-    }
-
-    public byte[] getWorkItemEvidence(){
-        return evidenceFile;
-    }
-
     public Component getCustomForm(){
         return get(createComponentPath(ID_ADDITIONAL_ATTRIBUTES, ID_CUSTOM_FORM));
+    }
+
+    private boolean isParentCaseClosed() {
+        CaseType parentCase = CaseTypeUtil.getCase(getModelObject());
+        return parentCase != null && SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState());
+    }
+
+    private IModel<ObjectReferenceType> getApproverModel() {
+        if (isParentCaseClosed()) {
+            return getModelObject() != null && getModelObject().getPerformerRef() != null ?
+                    Model.of(getModelObject().getPerformerRef()) : Model.of();
+        } else {
+            return getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
+                    Model.of(getModelObject().getAssigneeRef().get(0)) : Model.of();
+        }
     }
 }

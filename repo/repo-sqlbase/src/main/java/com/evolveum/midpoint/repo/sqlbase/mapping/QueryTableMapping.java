@@ -21,12 +21,10 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
@@ -36,7 +34,6 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -164,7 +161,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, StringPath> origMapping,
             Function<Q, StringPath> normMapping) {
         return new DefaultItemSqlMapper<>(ctx ->
-                new PolyStringItemFilterProcessor(ctx, origMapping, normMapping), origMapping);
+                new PolyStringItemFilterProcessor<>(ctx, origMapping, normMapping), origMapping);
     }
 
     /**
@@ -192,12 +189,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     protected <TQ extends FlexibleRelationalPathBase<TR>, TR> BiFunction<Q, TQ, Predicate> joinOn(
             BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         return joinOnPredicateFunction;
-    }
-
-    public final @Nullable Path<?> primarySqlPath(
-            ItemName itemName, SqlQueryContext<S, Q, R> context)
-            throws RepositoryException {
-        return itemMapper(itemName).itemPrimaryPath(context.path());
     }
 
     public String tableName() {
@@ -258,21 +249,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Returns {@link SqlDetailFetchMapper} registered for the specified {@link ItemName}.
-     * TODO remove in 2022 if not used
-     */
-    public final SqlDetailFetchMapper<R, ?, ?, ?> detailFetchMapper(ItemName itemName)
-            throws QueryException {
-        SqlDetailFetchMapper<R, ?, ?, ?> mapper =
-                QNameUtil.getByQName(detailFetchMappers, itemName);
-        if (mapper == null) {
-            throw new QueryException("Missing detail fetch mapping for " + itemName
-                    + " in mapping " + getClass().getSimpleName());
-        }
-        return mapper;
-    }
-
-    /**
      * Registers extension columns. At this moment all are treated as strings.
      */
     public synchronized void addExtensionColumn(
@@ -287,8 +263,8 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * By default uses {@link #selectExpressionsWithCustomColumns} and does not use options.
-     * Can be overridden to fulfil other needs, e.g. to select just full object..
+     * By default, uses {@link #selectExpressionsWithCustomColumns} and does not use options.
+     * Can be overridden to fulfil other needs, e.g. to select just full object.
      */
     public @NotNull Path<?>[] selectExpressions(
             Q entity,
@@ -327,17 +303,31 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * This allows loading also dynamically defined columns (like extensions).
      * This is what is used by default in {@link SqlQueryContext}.
      */
-    public abstract S toSchemaObject(Tuple row, Q entityPath,
+    public S toSchemaObject(Tuple row, Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException;
+            throws SchemaException {
+        throw new UnsupportedOperationException("Not implemented for " + getClass());
+    }
 
-    public S toSchemaObjectSafe(Tuple tuple, Q entityPath,
+    public ResultListRowTransformer<S, Q, R> createRowTransformer(
+            SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
+        return (tuple, entityPath, options) -> {
+            try {
+                return toSchemaObject(tuple, entityPath, options);
+            } catch (SchemaException e) {
+                throw new RepositoryMappingException(e);
+            }
+        };
+    }
+
+    /**
+     * Override for additional processing of result, e.g. fetching detail entities, etc.
+     * This is called inside read-only transaction.
+     */
+    @SuppressWarnings("unused")
+    public void processResult(List<Tuple> data, Q entityPath, JdbcSession jdbcSession,
             Collection<SelectorOptions<GetOperationOptions>> options) {
-        try {
-            return toSchemaObject(tuple, entityPath, options);
-        } catch (SchemaException e) {
-            throw new RepositoryMappingException(e);
-        }
+        // nothing by default
     }
 
     @Override

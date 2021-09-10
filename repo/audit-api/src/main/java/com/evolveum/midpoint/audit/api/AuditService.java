@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,8 +7,6 @@
 package com.evolveum.midpoint.audit.api;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,9 +14,11 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
@@ -32,6 +32,14 @@ public interface AuditService {
     int MAX_MESSAGE_SIZE = 1024;
     int MAX_PROPERTY_SIZE = 1024;
 
+    String OP_AUDIT = "audit";
+    String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
+    String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
+    String OP_COUNT_OBJECTS = "countObjects";
+    String OP_SEARCH_OBJECTS = "searchObjects";
+    String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
+    String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
+
     void audit(AuditEventRecord record, Task task, OperationResult result);
 
     /**
@@ -40,26 +48,6 @@ public interface AuditService {
      * @param policy Records will be deleted base on this policy.
      */
     void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult);
-
-    /**
-     * @throws UnsupportedOperationException if object retrieval is not supported
-     * @deprecated use {@link #searchObjects(ObjectQuery, Collection, OperationResult)} instead
-     */
-    List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result);
-
-    /**
-     * Reindex audit record - <b>currently does nothing</b>.
-     * Previously it effectively created missing changed items detail entities,
-     * which is less and less useful nowadays.
-     * TODO: In the future we may consider reindexing of new columns, but the functionality
-     * is currently not fully specified.
-     */
-    void reindexEntry(AuditEventRecord record);
-
-    /**
-     * @throws UnsupportedOperationException if object retrieval is not supported
-     */
-    long countObjects(String query, Map<String, Object> params);
 
     /**
      * Returns true if retrieval of objects from the audit trail is supported.
@@ -103,4 +91,20 @@ public interface AuditService {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult)
             throws SchemaException;
+
+    /**
+     * Executes iterative search using the provided `handler` to process each object.
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param options get options to use for the search
+     * @param parentResult parent OperationResult (in/out)
+     * @return summary information about the search result
+     */
+    @Experimental
+    SearchResultMetadata searchObjectsIterative(
+            @Nullable ObjectQuery query,
+            @NotNull AuditResultHandler handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException;
 }

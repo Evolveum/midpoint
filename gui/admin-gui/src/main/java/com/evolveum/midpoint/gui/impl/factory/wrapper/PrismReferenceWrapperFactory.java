@@ -14,8 +14,11 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceWrapperImpl;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -66,7 +69,11 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
     protected PrismReferenceWrapper<R> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismReference item,
             ItemStatus status, WrapperContext ctx) {
 
-        return new PrismReferenceWrapperImpl<>(parent, item, status);
+        PrismReferenceWrapperImpl<R> referenceWrapper = new PrismReferenceWrapperImpl<>(parent, item, status);
+        if (QNameUtil.match(FocusType.F_LINK_REF, item.getElementName())) {
+            referenceWrapper.setOnlyForDeltaComputation(true);
+        }
+        return referenceWrapper;
     }
 
 

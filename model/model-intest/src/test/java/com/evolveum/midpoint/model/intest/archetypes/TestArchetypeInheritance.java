@@ -1,13 +1,18 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.archetypes;
 
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import java.io.File;
 
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -16,13 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestArchetypeInheritance extends AbstractInitializedModelIntegrationTest {
 
@@ -30,7 +29,8 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
 
     private static final File ARCHETYPE_TASK_BASIC_FILE = new File(TEST_DIR, "archetype-task-basic.xml");
 
-    private static final File ARCHETYPE_RESOURCE_OPERATION_TASK_FILE = new File(TEST_DIR, "archetype-resource-operation-task.xml");
+    private static final File ARCHETYPE_RESOURCE_OPERATION_TASK_FILE =
+            new File(TEST_DIR, "archetype-resource-operation-task.xml");
 
     private static final File ARCHETYPE_RECON_TASK_FILE = new File(TEST_DIR, "archetype-recon-task.xml");
     private static final String ARCHETYPE_RECON_TASK_OID = "00000000-0000-0000-0000-000000000541";
@@ -38,10 +38,11 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
     private static final File ARCHETYPE_LIVE_SYNC_FILE = new File(TEST_DIR, "archetype-liveSync-task.xml");
     private static final String ARCHETYPE_LIVE_SYNC_TASK_OID = "00000000-0000-0000-0000-000000000531";
 
-    private static final String TASK_RECON_OID = "00000000-task-0000-0000-000000000001";
-    private static final String TASK_LIVE_SYNC_OID = "00000000-task-0000-0000-000000000002";
+    private static final String TASK_RECON_OID = "7461736b-0000-0000-0000-000000000001";
+    private static final String TASK_LIVE_SYNC_OID = "7461736b-0000-0000-0000-000000000002";
 
-    private static final ItemName SYNC_TOKEN = new ItemName("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3", "token");
+    private static final ItemName SYNC_TOKEN = new ItemName(
+            "http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3", "token");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -60,6 +61,7 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
                 .name("Recon task")
                 .assignment(new AssignmentType(prismContext).targetRef(ARCHETYPE_RECON_TASK_OID, ArchetypeType.COMPLEX_TYPE));
 
+        // @formatter:off
         assertArchetypePolicy(reconTask.asPrismObject())
                 .displayType()
                     .assertLabel("Reconciliation task")
@@ -100,6 +102,8 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
                 .adminGuiConfig()
                     .objectDetails()
                         .assertType(TaskType.COMPLEX_TYPE)
+                        .panel()
+                            .byIdentifier("basic")
                         .container()
                             .byIdentifier("resourceOperationOptions")
                                 .displayType()
@@ -127,8 +131,7 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
                             .byDisplayName("Advanced options")
                                 .assertItems(4)
                                 .assertDisplayOrder(150);
-
-
+        // @formatter:on
     }
 
     @Test
@@ -137,6 +140,7 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
                 .name("Sync task")
                 .assignment(new AssignmentType(prismContext).targetRef(ARCHETYPE_LIVE_SYNC_TASK_OID, ArchetypeType.COMPLEX_TYPE));
 
+        // @formatter:off
         assertArchetypePolicy(syncTask.asPrismObject())
                 .displayType()
                     .assertLabel("Live synchronization task")
@@ -179,6 +183,7 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
                 .adminGuiConfig()
                     .objectDetails()
                         .assertType(TaskType.COMPLEX_TYPE)
+                        .panel().byIdentifier("basic")
                         .container()
                             .byIdentifier("resourceOperationOptions")
                                 .displayType()
@@ -201,8 +206,7 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
                                     .assertItem(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS))
                                     .assertItem(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND))
                                     .assertItem(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
-
-
+        // @formatter:on
     }
 
     @Test
@@ -234,5 +238,4 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
                 .assertCategory(TaskCategory.LIVE_SYNCHRONIZATION)
                 .assertBinding(TaskBindingType.TIGHT);
     }
-
 }

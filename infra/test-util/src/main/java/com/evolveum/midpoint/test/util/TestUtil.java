@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.test.util;
 
 import static org.testng.Assert.assertFalse;
@@ -22,19 +21,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -66,7 +61,11 @@ public class TestUtil {
     public static final String TEST_LOG_SECTION_PREFIX = "----- ";
     public static final String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
 
-    private static final Pattern JAVA_VERSION_PATTERN = Pattern.compile("1\\.(\\d+)\\.\\d+_\\d+");
+    /**
+     * Obviously, don't create objects with this OID.
+     * This is not random so it can be used also in XMLs, e.g. for refs to nonexistent objects.
+     */
+    public static final String NON_EXISTENT_OID = "4e4f4e5f-4558-4953-5445-4e545f4f4944";
 
     public static boolean checkResults = true;
 
@@ -76,6 +75,7 @@ public class TestUtil {
 
     private static final Random RND = new Random();
 
+    @SuppressWarnings("unchecked")
     public static <T> void assertPropertyValueSetEquals(Collection<PrismPropertyValue<T>> actual, T... expected) {
         Set<T> set = new HashSet<>();
         for (PrismPropertyValue<T> value : actual) {
@@ -84,15 +84,15 @@ public class TestUtil {
         assertSetEquals(set, expected);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> void assertSetEquals(Collection<T> actual, T... expected) {
         assertSetEquals(null, actual, expected);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> void assertSetEquals(String message, Collection<T> actual, T... expected) {
-        Set<T> expectedSet = new HashSet<>();
-        expectedSet.addAll(Arrays.asList(expected));
-        Set<T> actualSet = new HashSet<>();
-        actualSet.addAll(actual);
+        Set<T> expectedSet = new HashSet<>(Arrays.asList(expected));
+        Set<T> actualSet = new HashSet<>(actual);
         if (message != null) {
             assertEquals(message, expectedSet, actualSet);
         } else {
@@ -105,23 +105,12 @@ public class TestUtil {
                 MiscUtil.unorderedArrayEquals(actual, expected));
     }
 
-    public static String getNodeOid(Node node) {
-        Node oidNode = null;
-        if ((null == node.getAttributes())
-                || (null == (oidNode = node.getAttributes().getNamedItem(
-                SchemaConstants.C_OID_ATTRIBUTE.getLocalPart())))
-                || (StringUtils.isEmpty(oidNode.getNodeValue()))) {
-            return null;
-        }
-        String oid = oidNode.getNodeValue();
-        return oid;
-    }
-
     public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName,
             PrismContext prismContext, String value) throws SchemaException {
         PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        ResourceAttributeDefinition attrDef = ObjectFactory.createResourceAttributeDefinition(attrName, typeName, prismContext);
-        ResourceAttribute attribute = attrDef.instantiate();
+        ResourceAttributeDefinition<String> attrDef =
+                ObjectFactory.createResourceAttributeDefinition(attrName, typeName, prismContext);
+        ResourceAttribute<String> attribute = attrDef.instantiate();
         attribute.setRealValue(value);
         attributesContainer.add(attribute);
     }
@@ -210,10 +199,6 @@ public class TestUtil {
      * level=0 - check only the top-level
      * level=1 - check one level below top-level
      * ...
-     *
-     * @param message
-     * @param result
-     * @param level
      */
     public static void assertSuccess(String message, OperationResult result, int level) {
         assertSuccess(message, result, result, level, 0, false);
@@ -251,6 +236,7 @@ public class TestUtil {
             if (result.getStatus() != OperationResultStatusType.SUCCESS
                     && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE
                     && result.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
+                LOGGER.error("Failing operation result:\n{}", OperationResult.createOperationResult(result).debugDump(1));
                 fail(message + ": " + result.getMessage() + " (" + result.getStatus() + ")");
             }
         }
@@ -266,7 +252,7 @@ public class TestUtil {
                 // HANDLED_ERROR means there might be an error (partial/fatal) inside.
                 continue;
             }
-            assertSuccess(message, subResult, currentLevel+1, stopLevel);
+            assertSuccess(message, subResult, currentLevel + 1, stopLevel);
         }
     }
 
@@ -351,7 +337,7 @@ public class TestUtil {
 
     public static void assertPartialError(OperationResultType result) {
         assertTrue("Expected that operation " + result.getOperation() +
-                " fails partially, but the result was " + result.getStatus(),
+                        " fails partially, but the result was " + result.getStatus(),
                 result.getStatus() == OperationResultStatusType.PARTIAL_ERROR);
     }
 
@@ -385,7 +371,7 @@ public class TestUtil {
 
     public static void assertNoUnknown(OperationResult result) {
         if (result.isUnknown()) {
-            AssertJUnit.fail("Unkwnown status for operation " + result.getOperation());
+            AssertJUnit.fail("Unknown status for operation " + result.getOperation());
         }
         for (OperationResult subresult : result.getSubresults()) {
             assertNoUnknown(subresult);
@@ -394,7 +380,7 @@ public class TestUtil {
 
     public static void assertNoUnknown(OperationResultType result) {
         if (result.getStatus() == OperationResultStatusType.UNKNOWN) {
-            AssertJUnit.fail("Unkwnown status for operation " + result.getOperation());
+            AssertJUnit.fail("Unknown status for operation " + result.getOperation());
         }
         for (OperationResultType subresult : result.getPartialResults()) {
             assertNoUnknown(subresult);
@@ -485,8 +471,8 @@ public class TestUtil {
         if (result == null) {
             return;            // should not occur actually
         }
-        for (int i = 0; i < operationNames.length; i++) {
-            if (operationNames[i].equals(result.getOperation())) {
+        for (String operationName : operationNames) {
+            if (operationName.equals(result.getOperation())) {
                 retval.add(result);
                 break;
             }
@@ -508,7 +494,7 @@ public class TestUtil {
         LOGGER.debug("Command exit code: {}", exitCode);
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         StringBuilder output = new StringBuilder();
-        String line = null;
+        String line;
         while ((line = reader.readLine()) != null) {
             output.append(line);
         }
@@ -549,7 +535,7 @@ public class TestUtil {
 
     public static void assertEqualsTimestamp(String message, XMLGregorianCalendar expected, XMLGregorianCalendar actual) {
         assertNotNull(message + "; expected " + expected, actual);
-        assertTrue(message + "; expected " + expected + " but was " + actual, expected.compare(actual) == 0);
+        assertEquals(message + "; expected " + expected + " but was " + actual, 0, expected.compare(actual));
     }
 
     public static void assertCreateTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
@@ -590,17 +576,6 @@ public class TestUtil {
             }
         }
         return datatypeFactory;
-    }
-
-    public static int getJavaMajorVersion() {
-        String javaVersionString = System.getProperty("java.version");
-        Matcher matcher = JAVA_VERSION_PATTERN.matcher(javaVersionString);
-        if (matcher.matches()) {
-            return Integer.parseInt(matcher.group(1));
-        } else {
-            throw new IllegalStateException("Cannot match java version string '" + javaVersionString + "'");
-        }
-
     }
 
     public static void assertMessageContains(String message, String expectedSubstring) {

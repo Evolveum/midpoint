@@ -11,13 +11,15 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -34,7 +36,7 @@ import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements Popupable{
+public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> implements Popupable{
 
     private static final String ID_OBJECT_TYPE = "type";
     private static final String ID_RELATION = "relation";
@@ -43,16 +45,14 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
     private static final String ID_INFO_MESSAGE = "infoMessage";
     private static final String ID_WARNING_FEEDBACK = "warningFeedback";
     private static final String ID_RELATION_REQUIRED = "relationRequired";
-
-    private IModel<String> messageModel = null;
+    private static final String ID_CONFIGURE_TASK = "configureTask";
 
     public ChooseFocusTypeAndRelationDialogPanel(String id) {
         this(id, null);
     }
 
     public ChooseFocusTypeAndRelationDialogPanel(String id, IModel<String> messageModel) {
-        super(id);
-        this.messageModel = messageModel;
+        super(id, messageModel);
     }
 
     @Override
@@ -67,30 +67,28 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
         warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
         add(warningMessage);
 
-        DropDownFormGroup<QName> type = new DropDownFormGroup<QName>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()),
+        DropDownFormGroup<QName> type = new DropDownFormGroup<>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()),
                 new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"),
                 "chooseFocusTypeAndRelationDialogPanel.tooltip.type", "col-md-4", "col-md-8", true);
         type.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         type.setOutputMarkupId(true);
-        type.add(new VisibleBehaviour(() -> isFocusTypeSelectorVisible()));
+        type.add(new VisibleBehaviour(this::isFocusTypeSelectorVisible));
         add(type);
 
             IModel<Map<String, String>> options = new Model(null);
-            Map<String, String> optionsMap = new HashMap<>();
-//            optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
-            options.setObject(optionsMap);
-        ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<QName>(ID_RELATION, Model.ofList(getDefaultRelations()),
-                new ListModel<QName>(getSupportedRelations()), WebComponentUtil.getRelationChoicesRenderer(getPageBase()), options);
+            options.setObject(new HashMap<>());
+        ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<>(ID_RELATION, Model.ofList(getDefaultRelations()),
+                new ListModel<>(getSupportedRelations()), WebComponentUtil.getRelationChoicesRenderer(getPageBase()), options);
         relation.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relation.setOutputMarkupId(true);
         add(relation);
 
         WebMarkupContainer relationRequired = new WebMarkupContainer(ID_RELATION_REQUIRED);
-        relationRequired.add(new VisibleBehaviour((() -> isRelationRequired())));
+        relationRequired.add(new VisibleBehaviour((this::isRelationRequired)));
         add(relationRequired);
 
-        Label label = new Label(ID_INFO_MESSAGE, messageModel);
-        label.add(new VisibleBehaviour(() -> messageModel != null && messageModel.getObject() != null));
+        Label label = new Label(ID_INFO_MESSAGE, getModel());
+        label.add(new VisibleBehaviour(() -> getModel() != null && getModelObject() != null));
         add(label);
 
         AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
@@ -99,10 +97,10 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                DropDownFormGroup<QName> type = (DropDownFormGroup<QName>) getParent().get(ID_OBJECT_TYPE);
+                DropDownFormGroup<QName> type = getTypePanel(getParent());
                 QName typeChosen = type.getModelObject();
 
-                ListMultipleChoicePanel<QName> relation = (ListMultipleChoicePanel<QName>) getParent().get(ID_RELATION);
+                ListMultipleChoicePanel<QName> relation = getRelationPanel(getParent());
                 Collection<QName> relationChosen = relation.getModelObject();
                 ChooseFocusTypeAndRelationDialogPanel.this.okPerformed(typeChosen, relationChosen, target);
                 getPageBase().hideMainPopup(target);
@@ -122,6 +120,46 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
         };
         add(cancelButton);
 
+        AjaxButton configuredButton = new AjaxButton(ID_CONFIGURE_TASK,
+                new StringResourceModel("ConfigureTaskConfirmationPanel.configure", this, null)) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                DropDownFormGroup<QName> type = getTypePanel(getParent());
+                QName typeChosen = type.getModelObject();
+
+                ListMultipleChoicePanel<QName> relation = getRelationPanel(getParent());
+                Collection<QName> relationChosen = relation.getModelObject();
+                PrismObject<TaskType> task = getTask(typeChosen, relationChosen, target);
+                if (task == null) {
+                    return;
+                }
+                ((PageBase) getPage()).hideMainPopup(target);
+                WebComponentUtil.dispatchToObjectDetailsPage(
+                        task, true, ChooseFocusTypeAndRelationDialogPanel.this);
+            }
+        };
+        configuredButton.add(new VisibleBehaviour(this::isTaskConfigureButtonVisible));
+        add(configuredButton);
+
+    }
+
+    private ListMultipleChoicePanel<QName> getRelationPanel(Component parent) {
+        return (ListMultipleChoicePanel<QName>) parent.get(ID_RELATION);
+    }
+
+    private DropDownFormGroup<QName> getTypePanel(Component parent) {
+        return (DropDownFormGroup<QName>) parent.get(ID_OBJECT_TYPE);
+    }
+
+    protected boolean isTaskConfigureButtonVisible() {
+        return false;
+    }
+
+    protected PrismObject<TaskType> getTask(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+        return null;
     }
 
     protected IModel<String> getWarningMessageModel() {
@@ -179,11 +217,6 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
     @Override
     public String getHeightUnit(){
         return "px";
-    }
-
-    @Override
-    public StringResourceModel getTitle() {
-        return new StringResourceModel("ChooseFocusTypeDialogPanel.chooseType");
     }
 
     @Override

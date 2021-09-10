@@ -97,8 +97,8 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
             if (conflictingPath != null) {
                 rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
             }
-            if (options.isIncludeAssignmentsContent() && conflictingAssignment.getAssignmentType() != null) {
-                rv.setConflictingAssignment(conflictingAssignment.getAssignmentType().clone());
+            if (options.isIncludeAssignmentsContent() && conflictingAssignment.getAssignment() != null) {
+                rv.setConflictingAssignment(conflictingAssignment.getAssignment().clone());
             }
         }
         return rv;

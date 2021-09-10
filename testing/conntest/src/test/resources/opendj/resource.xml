@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -24,7 +24,7 @@
         <filter>
             <q:and>
                 <q:equal>
-                    <q:path>c:connectorType</q:path>
+                    <q:path>connectorType</q:path>
                     <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
                 </q:equal>
             </q:and>
@@ -38,12 +38,27 @@
             <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
             <icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
             <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+
             <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
-             <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
-             <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
-             <icfcldap:enableExtraTests>false</icfcldap:enableExtraTests> <!-- MID-3477 -->
+
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+
+            <!-- Setting short global timeout, then set reasonable operation-specific timeouts.
+                 Global timeout should be completely overridden. -->
+            <icfcldap:timeout>1</icfcldap:timeout>
+            <icfcldap:connectTimeout>500</icfcldap:connectTimeout>
+            <icfcldap:writeOperationTimeout>2000</icfcldap:writeOperationTimeout>
+            <icfcldap:readOperationTimeout>1000</icfcldap:readOperationTimeout>
+            <icfcldap:closeTimeout>300</icfcldap:closeTimeout>
+            <icfcldap:sendTimeout>5</icfcldap:sendTimeout>
+
+            <!-- No practical way to test keepalive in this automatic test. But we can at least that the config option is there. -->
+            <icfcldap:tcpKeepAlive>true</icfcldap:tcpKeepAlive>
+
+            <icfcldap:enableExtraTests>false</icfcldap:enableExtraTests> <!-- MID-3477 -->
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>

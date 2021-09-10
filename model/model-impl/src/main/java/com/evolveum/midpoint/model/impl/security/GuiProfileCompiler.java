@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.schema.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -18,10 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
@@ -74,6 +71,8 @@ public class GuiProfileCompiler {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
+    @Autowired private GuiProfileCompilerRegistry guiProfileCompilerRegistry;
+
     public void compileUserProfile(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -87,7 +86,7 @@ public class GuiProfileCompiler {
         if (compiledGuiProfile != null) {
             setupUserPhoto(principal, compiledGuiProfile, result);
         }
-
+        guiProfileCompilerRegistry.invokeCompiler(compiledGuiProfile);
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
 
@@ -189,6 +188,9 @@ public class GuiProfileCompiler {
         }
         if (adminGuiConfiguration.isEnableExperimentalFeatures() != null) {
             composite.setEnableExperimentalFeatures(adminGuiConfiguration.isEnableExperimentalFeatures());
+        }
+        if (adminGuiConfiguration.isUseNewDesign() != null) {
+            composite.setUseNewDesign(adminGuiConfiguration.isUseNewDesign());
         }
         if (adminGuiConfiguration.getDefaultExportSettings() != null) {
             composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
@@ -342,41 +344,20 @@ public class GuiProfileCompiler {
             // want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
             // This is also handled somewhere up the call stack. But we want to handle it also here. Otherwise an error in one collection would
             // mean that entire configuration processing will be stopped. We do not want that. We want to skip processing of just that one wrong view.
-            LOGGER.error("Error compiling user profile, view '{}': {}", determineViewIdentifier(objectListViewType), e.getMessage(), e);
+            LOGGER.error("Error compiling user profile, view '{}': {}", collectionProcessor.determineViewIdentifier(objectListViewType), e.getMessage(), e);
         }
     }
 
 
     private CompiledObjectCollectionView findOrCreateMatchingView(CompiledGuiProfile composite, GuiObjectListViewType objectListViewType) {
         QName objectType = objectListViewType.getType();
-        String viewIdentifier = determineViewIdentifier(objectListViewType);
+        String viewIdentifier = collectionProcessor.determineViewIdentifier(objectListViewType);
         CompiledObjectCollectionView existingView = composite.findObjectCollectionView(objectType, viewIdentifier);
         if (existingView == null) {
             existingView = new CompiledObjectCollectionView(objectType, viewIdentifier);
             composite.getObjectCollectionViews().add(existingView);
         }
         return existingView;
-    }
-
-    private String determineViewIdentifier(GuiObjectListViewType objectListViewType) {
-        String viewIdentifier = objectListViewType.getIdentifier();
-        if (viewIdentifier != null) {
-            return viewIdentifier;
-        }
-        String viewName = objectListViewType.getName();
-        if (viewName != null) {
-            // legacy, deprecated
-            return viewName;
-        }
-        CollectionRefSpecificationType collection = objectListViewType.getCollection();
-        if (collection == null) {
-            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
-        }
-        ObjectReferenceType collectionRef = collection.getCollectionRef();
-        if (collectionRef == null) {
-            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
-        }
-        return collectionRef.getOid();
     }
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)

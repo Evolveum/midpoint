@@ -58,7 +58,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     // region static init/get methods
     public static <Q extends QObject<R>, R extends MObject>
     QObjectReferenceMapping<Q, R> initForArchetype(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceArchetype == null) {
+        if (needsInitialization(instanceArchetype, repositoryContext)) {
             instanceArchetype = new QObjectReferenceMapping<>(
                     "m_ref_archetype", "refa", repositoryContext,
                     new RefTableTargetResolver<>(QArchetypeMapping::getArchetypeMapping));
@@ -74,7 +74,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     public static <Q extends QObject<R>, R extends MObject>
     QObjectReferenceMapping<Q, R> initForDelegated(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceDelegated == null) {
+        if (needsInitialization(instanceDelegated, repositoryContext)) {
             instanceDelegated = new QObjectReferenceMapping<>(
                     "m_ref_delegated", "refd", repositoryContext,
                     new RefTableTargetResolver<>(QFocusMapping::getFocusMapping));
@@ -90,7 +90,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     public static QObjectReferenceMapping<QObjectTemplate, MObject> initForInclude(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instanceInclude == null) {
+        if (needsInitialization(instanceInclude, repositoryContext)) {
             instanceInclude = new QObjectReferenceMapping<>(
                     "m_ref_include", "refi", repositoryContext,
                     new RefTableTargetResolver<>(QObjectTemplateMapping::getObjectTemplateMapping));
@@ -104,7 +104,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<Q, R>
     initForProjection(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceProjection == null) {
+        if (needsInitialization(instanceProjection, repositoryContext)) {
             instanceProjection = new QObjectReferenceMapping<>(
                     "m_ref_projection", "refpj", repositoryContext,
                     new RefTableTargetResolver<>(QShadowMapping::getShadowMapping));
@@ -120,7 +120,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<Q, R>
     initForCreateApprover(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceCreateApprover == null) {
+        if (needsInitialization(instanceCreateApprover, repositoryContext)) {
             instanceCreateApprover = new QObjectReferenceMapping<>(
                     "m_ref_object_create_approver", "refca", repositoryContext,
                     new RefTableTargetResolver<>(QUserMapping::getUserMapping));
@@ -136,7 +136,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<Q, R>
     initForModifyApprover(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceModifyApprover == null) {
+        if (needsInitialization(instanceModifyApprover, repositoryContext)) {
             instanceModifyApprover = new QObjectReferenceMapping<>(
                     "m_ref_object_modify_approver", "refma", repositoryContext,
                     new RefTableTargetResolver<>(QUserMapping::getUserMapping));
@@ -152,7 +152,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<Q, R>
     initForParentOrg(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceParentOrg == null) {
+        if (needsInitialization(instanceParentOrg, repositoryContext)) {
             instanceParentOrg = new QObjectReferenceMapping<>(
                     "m_ref_object_parent_org", "refpo", repositoryContext,
                     new RefTableTargetResolver<>(QOrgMapping::getOrgMapping));
@@ -168,7 +168,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     public static <Q extends QObject<R>, R extends MObject>
     QObjectReferenceMapping<Q, R> initForPersona(@NotNull SqaleRepoContext repositoryContext) {
-        if (instancePersona == null) {
+        if (needsInitialization(instancePersona, repositoryContext)) {
             instancePersona = new QObjectReferenceMapping<>(
                     "m_ref_persona", "refp", repositoryContext,
                     new RefTableTargetResolver<>(QFocusMapping::getFocusMapping));
@@ -184,7 +184,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     public static QObjectReferenceMapping<QResource, MResource>
     initForResourceBusinessConfigurationApprover(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceResourceBusinessConfigurationApprover == null) {
+        if (needsInitialization(instanceResourceBusinessConfigurationApprover, repositoryContext)) {
             instanceResourceBusinessConfigurationApprover = new QObjectReferenceMapping<>(
                     "m_ref_resource_business_configuration_approver", "refrbca", repositoryContext,
                     new RefTableTargetResolver<>(QObjectMapping::getObjectMapping));
@@ -199,7 +199,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<Q, R>
     initForRoleMembership(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceRoleMembership == null) {
+        if (needsInitialization(instanceRoleMembership, repositoryContext)) {
             instanceRoleMembership = new QObjectReferenceMapping<>(
                     "m_ref_role_membership", "refrm", repositoryContext,
                     new RefTableTargetResolver<>(QAbstractRoleMapping::getAbstractRoleMapping));

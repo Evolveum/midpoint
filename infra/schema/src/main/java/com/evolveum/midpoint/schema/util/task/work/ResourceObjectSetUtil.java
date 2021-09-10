@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.schema.util.task.work;
 
-import static com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil.getQueryLegacy;
-import static com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil.getSearchOptionsLegacy;
+import static com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil.*;
 
 import javax.xml.namespace.QName;
 
@@ -36,7 +35,8 @@ public class ResourceObjectSetUtil {
                 .kind(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_KIND, ShadowKindType.class))
                 .intent(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_INTENT, String.class))
                 .query(getQueryLegacy(source))
-                .searchOptions(getSearchOptionsLegacy(extension));
+                .searchOptions(getSearchOptionsLegacy(extension))
+                .failedObjectsSelector(getFailedObjectsSelector(extension));
     }
 
     // TODO move to PCV
@@ -55,5 +55,9 @@ public class ResourceObjectSetUtil {
         if (set.getQueryApplication() == null) {
             set.setQueryApplication(mode);
         }
+    }
+
+    public static @NotNull ResourceObjectSetType fromConfiguration(ResourceObjectSetType resourceObjects) {
+         return resourceObjects != null ? resourceObjects : new ResourceObjectSetType(PrismContext.get());
     }
 }

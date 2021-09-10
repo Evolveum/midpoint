@@ -439,7 +439,9 @@ th.cog, td.cog {
 }
 
 .info-box-icon.summary-panel-user {
-	#info-box-icon-summary-panel(@object-user-color);
+  #info-box-icon-summary-panel(@object-user-color);
+  line-height: 105px;
+  height: 105px;
 }
 
 .info-box-icon.summary-panel-role {
@@ -1190,6 +1192,7 @@ span.tree-content > table tr td:first-child {
 .modal-dialog-content {
   margin: 15px;
   min-height: 15vh !important;
+  max-width: none !important;
 }
 
 
@@ -1945,6 +1948,16 @@ th.composited-icon {
   box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
 
+.additionalButton {
+  width: 200px;
+  margin-bottom: 20px;
+}
+
+.additionalButton .row {
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+}
+
 .compositedButton {
   display: flex;
   flex-direction: column;
@@ -1992,3 +2005,164 @@ th.composited-icon {
   text-align: center;
   font-size: 10px;
 }
+
+@media screen and (min-width: @screen-lg) {
+  .details-menu {
+    height: 100%;
+    width: 100%;
+    //position: fixed;
+    z-index: 1;
+    //top: 0;
+    right: 0;
+    background-color: @sidebar-light-bg;
+    overflow-x: hidden;
+    padding-top: 16px;
+
+    & > li.navigation-details {
+      list-style: none;
+      margin: 0px 10px 0px 5px;
+
+      .navigation-details {
+        display: none;
+
+        &.active {
+          background-color: #eeeeee;  //TODO: change to constant
+        }
+        //&.open {
+        //  display: block;
+        //}
+      }
+
+      &.active {
+        background-color: #eeeeee;  //TODO change to constant
+        list-style: none;
+
+        .navigation-details {
+          display: block;
+        }
+      }
+      &.open {
+        display: block;
+
+        .navigation-details {
+          display: block;
+        }
+
+        > a > .pull-right-container > .fa-angle-left {
+          .rotate(-90deg);
+        }
+      }
+    }
+
+    .details-menu {
+      padding-top: 0px;
+      background-color: @sidebar-light-submenu-bg;
+    }
+  }
+}
+
+@media screen and (max-width: @screen-lg-min) {
+  .details-menu {
+    height: 100%;
+    width: 100%;
+    //position: fixed;
+    z-index: 1;
+    right: 0;
+    background-color: @sidebar-light-bg;
+    overflow-x: hidden;
+    padding-top: 16px;
+
+    & > li.navigation-details {
+      list-style: none;
+      margin: 0px 10px 0px 5px;
+
+      .navigation-details {
+        display: none;
+      }
+
+      &.active {
+        background-color: #eeeeee;
+        list-style: none;
+
+        .navigation-details {
+          display: block;
+        }
+      }
+    }
+
+    .details-menu {
+      padding-top: 0px;
+    }
+  }
+}
+
+@media screen and (max-width: @screen-lg-min) {
+  .details-menu a >
+  .details-menu-label {
+    display: none;
+  }
+}
+
+
+.details-menu a {
+  padding: 6px 8px 6px 5px;
+  text-decoration: none;
+  font-size: 15px;
+  color: @sidebar-light-color;
+  display: block;
+  cursor: pointer;
+
+  & > i {
+    padding-right: 5px;
+
+    &.fa {
+      width: 20px;
+    }
+
+    &.fe {
+      width: 20px;
+    }
+  }
+}
+
+.details-menu a:hover {
+  color: @sidebar-light-hover-color;
+  background-color: @sidebar-light-hover-bg;
+}
+
+ul.details-menu {
+  padding-inline-start: 13px;
+}
+
+.navigation-details {
+
+  .navigation-details {
+    display: none;
+  }
+}
+
+.navigation-details .active {
+  background-color: #eeeeee;
+
+  .navigation-details {
+    display: block;
+  }
+}
+
+fieldset.objectButtons {
+
+  border: 1px solid @legend-border-color;
+  padding: revert;
+  border-radius: 3px;
+  width: max-content;
+  margin-right: 10px;
+
+  > legend {
+    font-size: 13px;
+    border-bottom: none;
+    margin-bottom: auto;
+    width: auto;
+    color: @legend-color;
+  }
+}
+

@@ -44,6 +44,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private String defaultTimezone;
     private String preferredDataLanguage;
     private Boolean enableExperimentalFeatures;
+    private Boolean useNewDesign = true; //default
     private List<RichHyperlinkType> additionalMenuLink = new ArrayList<>();
     private List<RichHyperlinkType> userDashboardLink = new ArrayList<>();
     private List<CompiledObjectCollectionView> objectCollectionViews = new ArrayList<>();
@@ -82,6 +83,14 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public void setEnableExperimentalFeatures(Boolean enableExperimentalFeatures) {
         this.enableExperimentalFeatures = enableExperimentalFeatures;
+    }
+
+    public void setUseNewDesign(Boolean useNewDesign) {
+        this.useNewDesign = useNewDesign;
+    }
+
+    public Boolean isUseNewDesign() {
+        return useNewDesign;
     }
 
     @NotNull
@@ -249,12 +258,24 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return findObjectConfiguration(objectDetails.getObjectDetailsPage(), compileTimeClass);
     }
 
+    public <O extends ObjectType> GuiObjectDetailsPageType findObjectDetailsConfiguration(QName typeQName) {
+        if (objectDetails == null) {
+            return null;
+        }
+        return findObjectConfiguration(objectDetails.getObjectDetailsPage(), typeQName);
+    }
+
     private <T extends AbstractObjectTypeConfigurationType, O extends ObjectType> T findObjectConfiguration(
             List<T> list, Class<O> type) {
+        QName typeQName = ObjectTypes.getObjectType(type).getTypeQName();
+        return findObjectConfiguration(list, typeQName);
+    }
+
+    private <T extends AbstractObjectTypeConfigurationType> T findObjectConfiguration(
+            List<T> list, QName typeQName) {
         if (list == null) {
             return null;
         }
-        QName typeQName = ObjectTypes.getObjectType(type).getTypeQName();
         for (T item: list) {
             if (QNameUtil.match(item.getType(), typeQName)) {
                 return item;
@@ -384,6 +405,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelLn(sb, "defaultTimezone", defaultTimezone, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "preferredDataLanguage", preferredDataLanguage, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "enableExperimentalFeatures", enableExperimentalFeatures, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "enableExperimentalFeatures", useNewDesign, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "additionalMenuLink", additionalMenuLink, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "userDashboardLink", userDashboardLink, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectCollectionViews", objectCollectionViews, indent + 1);

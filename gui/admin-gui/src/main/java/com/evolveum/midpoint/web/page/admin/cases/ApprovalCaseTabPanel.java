@@ -39,8 +39,8 @@ public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
     private static final String ID_HISTORY_PANEL = "historyPanel";
     private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
 
-    public ApprovalCaseTabPanel(String id, MidpointForm<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
-        super(id, mainForm, objectWrapperModel);
+    public ApprovalCaseTabPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel) {
+        super(id, objectWrapperModel);
     }
 
     @Override

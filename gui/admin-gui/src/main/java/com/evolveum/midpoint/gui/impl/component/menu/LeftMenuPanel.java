@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
-import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplates;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.menu.*;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
@@ -53,6 +51,8 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
+import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
+import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplates;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
@@ -84,14 +84,14 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
     private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
 
-    private LoadableModel<String> workItemCountModel;
-    private LoadableModel<String> certWorkItemCountModel;
-    private LoadableModel<List<SideBarMenuItem>> sideBarMenuModel;
+    private final LoadableModel<String> workItemCountModel;
+    private final LoadableModel<String> certWorkItemCountModel;
+    private final LoadableModel<List<SideBarMenuItem>> sideBarMenuModel;
 
     public LeftMenuPanel(String id) {
         super(id);
 
-        sideBarMenuModel = new LoadableModel<List<SideBarMenuItem>>(false) {
+        sideBarMenuModel = new LoadableModel<>(false) {
 
             private static final long serialVersionUID = 1L;
 
@@ -101,7 +101,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         };
 
-        workItemCountModel = new LoadableModel<String>(false) {
+        workItemCountModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -110,7 +110,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                     Task task = getPageBase().createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
                     S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPageBase().getPrincipal(),
-                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPageBase().getRelationRegistry())
+                                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPageBase().getRelationRegistry())
                             .and()
                             .item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
                             .isNull()
@@ -126,7 +126,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 }
             }
         };
-        certWorkItemCountModel = new LoadableModel<String>(false) {
+        certWorkItemCountModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -135,11 +135,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
                     AccessCertificationService acs = getPageBase().getCertificationService();
                     Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
                     OperationResult result = task.getResult();
-                    Integer openCertWorkItems = acs.countOpenWorkItems(getPrismContext().queryFactory().createQuery(), true, null, task, result);
-                    if (openCertWorkItems == null || openCertWorkItems == 0) {
+                    int openCertWorkItems = acs.countOpenWorkItems(getPrismContext().queryFactory().createQuery(), true, null, task, result);
+                    if (openCertWorkItems == 0) {
                         return null;
                     }
-                    return openCertWorkItems.toString();
+                    return Integer.toString(openCertWorkItems);
                 } catch (Exception e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
                     return null;
@@ -191,8 +191,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.selfService", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.selfDashboard", GuiStyleConstants.CLASS_ICON_DASHBOARD,
                 PageSelfDashboard.class));
+        PageParameters pageParameters = new PageParameters();
+        pageParameters.add(OnePageParameterEncoder.PARAMETER, WebModelServiceUtils.getLoggedInFocusOid());
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.profile", GuiStyleConstants.CLASS_ICON_PROFILE,
-                WebComponentUtil.resolveSelfPage()));
+                WebComponentUtil.resolveSelfPage(), pageParameters));
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.credentials", GuiStyleConstants.CLASS_ICON_CREDENTIALS,
                 PageSelfCredentials.class));
         if (WebModelServiceUtils.getLoggedInFocus() instanceof UserType) {
@@ -444,12 +446,24 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         if (PageTypes.CASE != pageDesc) {
             createFocusPageNewEditMenu(mainMenuItem, "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".new",
-                    "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".edit", pageDesc.getDetailsPage());
+                    "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".edit", getDetailsPage(pageDesc));
         }
+    }
+
+    private Class<? extends PageBase> getDetailsPage(PageTypes pageDesc) {
+        CompiledGuiProfile guiProfile = getPageBase().getCompiledGuiProfile();
+        if (guiProfile.isUseNewDesign()) {
+            return pageDesc.getDetailsPage();
+        }
+        return pageDesc.getOldDetailsPage();
     }
 
     private boolean isEditForAdminObjectDetails() {
         PageBase pageBase = getPageBase();
+        if (pageBase instanceof AbstractPageObjectDetails) {
+            AbstractPageObjectDetails page = (AbstractPageObjectDetails) pageBase;
+            return page.isEditObject();
+        }
         if (pageBase instanceof PageAdminObjectDetails) {
             PageAdminObjectDetails page = (PageAdminObjectDetails) pageBase;
             return page.isOidParameterExists() || page.isEditingFocus();
@@ -468,17 +482,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return false;
     }
 
-    private boolean isAddForResourceWizzard() {
-        PageBase pageBase = getPageBase();
-        if (!(pageBase instanceof PageResourceWizard)) {
-            return false;
-        }
-
-        return ((PageResourceWizard) pageBase).isNewResource();
-    }
-
     private void createFocusPageNewEditMenu(MainMenuItem mainMenuItem, String newKey, String editKey,
-            final Class<? extends PageAdmin> newPageClass) {
+            final Class<? extends PageBase> newPageClass) {
 
         boolean addActive = classMatches(newPageClass) && !isEditForAdminObjectDetails() && !isEditForResourceWizzard();
         MenuItem newMenu = new MenuItem(newKey,
@@ -681,6 +686,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
     private MainMenuItem createMainMenuItem(String key, String icon, Class<? extends PageBase> page) {
         return new MainMenuItem(key, icon, page);
+    }
+
+    private MainMenuItem createMainMenuItem(String key, String icon, Class<? extends PageBase> page, PageParameters params) {
+        return new MainMenuItem(key, icon, page, params);
     }
 
     public List<SideBarMenuItem> getItems() {

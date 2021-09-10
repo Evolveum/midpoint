@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Objects;
 
@@ -208,10 +208,8 @@ public class Statistics {
         environmentalPerformanceInformation.recordState(message);
     }
 
-    public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
-            ProvisioningOperation operation, boolean success, int count, long duration) {
-        environmentalPerformanceInformation
-                .recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
+    public void recordProvisioningOperation(@NotNull ConnIdOperation operation) {
+        environmentalPerformanceInformation.recordProvisioningOperation(operation);
     }
 
     public void recordNotificationOperation(String transportName, boolean success, long duration) {
@@ -247,25 +245,32 @@ public class Statistics {
 
     public void startCollectingStatistics(@NotNull RunningTask task,
             @NotNull StatisticsCollectionStrategy strategy, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
-        OperationStatsType initialOperationStats = getOrCreateInitialOperationStats(task);
-        startOrRestartCollectingRegularOperationStats(initialOperationStats);
+        OperationStatsType initialOperationStats = getOrCreateInitialOperationStats(task, strategy.isStartFromZero());
+        startOrRestartCollectingRegularStatistics(initialOperationStats);
         startOrRestartCollectingThreadLocalStatistics(initialOperationStats, sqlPerformanceMonitors);
     }
 
-    public void restartCollectingStatistics(@NotNull RunningTask task, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
-        OperationStatsType newInitialValues = getOrCreateInitialOperationStats(task);
-        startOrRestartCollectingRegularOperationStats(newInitialValues);
+    public void restartCollectingStatisticsFromStoredValues(@NotNull RunningTask task,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
+        OperationStatsType newInitialValues = getOrCreateInitialOperationStats(task, false);
+        startOrRestartCollectingRegularStatistics(newInitialValues);
         startOrRestartCollectingThreadLocalStatistics(newInitialValues, sqlPerformanceMonitors);
-        // Structured progress restart is not needed, as it is not maintained in LATs.
+    }
+
+    public void restartCollectingStatisticsFromZero(SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
+        OperationStatsType newInitialValues = new OperationStatsType(PrismContext.get());
+        startOrRestartCollectingRegularStatistics(newInitialValues);
+        startOrRestartCollectingThreadLocalStatistics(newInitialValues, sqlPerformanceMonitors);
     }
 
     @NotNull
-    private OperationStatsType getOrCreateInitialOperationStats(@NotNull RunningTask task) {
-        OperationStatsType stored = task.getStoredOperationStatsOrClone();
-        return stored != null ? stored : new OperationStatsType(PrismContext.get());
+    private OperationStatsType getOrCreateInitialOperationStats(@NotNull RunningTask task, boolean fromZero) {
+        OperationStatsType initialValue =
+                fromZero ? null : task.getStoredOperationStatsOrClone();
+        return initialValue != null ? initialValue : new OperationStatsType(PrismContext.get());
     }
 
-    private void startOrRestartCollectingRegularOperationStats(OperationStatsType initialOperationStats) {
+    private void startOrRestartCollectingRegularStatistics(OperationStatsType initialOperationStats) {
         resetEnvironmentalPerformanceInformation(initialOperationStats.getEnvironmentalPerformanceInformation());
     }
 

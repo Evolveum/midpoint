@@ -254,52 +254,58 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addParam("object", object);
         result.addArbitraryObjectAsParam("scripts", scripts);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-        String oid;
-        if (object.canRepresent(ShadowType.class)) {
-            try {
-                // calling shadow cache to add object
-                //noinspection unchecked
-                oid = shadowsFacade.addResourceObject((PrismObject<ShadowType>) object, scripts, options, task, result);
-                LOGGER.trace("Added shadow object {}", oid);
-                // Status might be set already (e.g. by consistency mechanism)
-                result.computeStatusIfUnknown();
-            } catch (GenericFrameworkException ex) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object " + object + ". Reason: " + ex.getMessage(), ex);
-                throw new ConfigurationException(ex.getMessage(), ex);
-            } catch (ObjectAlreadyExistsException ex) {
-                result.computeStatus();
-                if (!result.isSuccess() && !result.isHandledError()) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Object already exist: " + ex.getMessage(), ex);
-                } else {
-                    result.recordSuccess();
+        try {
+            String oid;
+            if (object.canRepresent(ShadowType.class)) {
+                try {
+                    // calling shadow cache to add object
+                    //noinspection unchecked
+                    oid = shadowsFacade.addResourceObject((PrismObject<ShadowType>) object, scripts, options, task, result);
+                    LOGGER.trace("Added shadow object {}", oid);
+                    // Status might be set already (e.g. by consistency mechanism)
+                    result.computeStatusIfUnknown();
+                } catch (GenericFrameworkException ex) {
+                    ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object " + object + ". Reason: " + ex.getMessage(), ex);
+                    throw new ConfigurationException(ex.getMessage(), ex);
+                } catch (ObjectAlreadyExistsException ex) {
+                    result.computeStatus();
+                    if (!result.isSuccess() && !result.isHandledError()) {
+                        ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Object already exist: " + ex.getMessage(), ex);
+                    } else {
+                        result.recordSuccess();
+                    }
+                    result.cleanupResult(ex);
+                    throw new ObjectAlreadyExistsException("Couldn't add object. Object already exists: " + ex.getMessage(), ex);
+                } catch (EncryptionException e) {
+                    ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+                    throw new SystemException(e.getMessage(), e);
+                } catch (Exception | Error e) {
+                    ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+                    throw e;
                 }
-                result.cleanupResult(ex);
-                throw new ObjectAlreadyExistsException("Couldn't add object. Object already exists: " + ex.getMessage(), ex);
-            } catch (EncryptionException e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-                throw new SystemException(e.getMessage(), e);
-            } catch (Exception | Error e) {
-                ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-                throw e;
+            } else {
+                RepoAddOptions addOptions = null;
+                if (ProvisioningOperationOptions.isOverwrite(options)) {
+                    addOptions = RepoAddOptions.createOverwrite();
+                }
+                try {
+                    oid = cacheRepositoryService.addObject(object, addOptions, result);
+                } catch (Throwable t) {
+                    result.recordFatalError(t);
+                    throw t;
+                } finally {
+                    result.computeStatusIfUnknown();
+                }
             }
-        } else {
-            RepoAddOptions addOptions = null;
-            if (ProvisioningOperationOptions.isOverwrite(options)) {
-                addOptions = RepoAddOptions.createOverwrite();
-            }
-            try {
-                oid = cacheRepositoryService.addObject(object, addOptions, result);
-            } catch (Throwable t) {
-                result.recordFatalError(t);
-                throw t;
-            } finally {
-                result.computeStatusIfUnknown();
-            }
-        }
 
-        result.cleanupResult();
-        return oid;
+            result.cleanupResult();
+            return oid;
+        } catch (Throwable t) {
+            result.recordFatalError(t); // just for sure
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown(); // just for sure
+        }
     }
 
     @Override
@@ -581,14 +587,15 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addArbitraryObjectAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        LOGGER.trace("modifyObject: object modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
-
-        // getting object to modify
-        PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);
-
-        LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDumpLazily());
-
         try {
+
+            LOGGER.trace("modifyObject: object modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
+
+            // getting object to modify
+            PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);
+
+            LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDumpLazily());
+
 
             if (ShadowType.class.isAssignableFrom(type)) {
                 // calling shadow cache to modify object
@@ -616,6 +623,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         } catch (ObjectAlreadyExistsException e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: object after modification would conflict with another existing object: " + e.getMessage(), e);
             throw e;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
         result.cleanupResult();
@@ -904,7 +916,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     private ObjectQuery simplifyQueryFilter(ObjectQuery query) {
         if (query != null) {
             ObjectFilter filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
-            ObjectQuery clone = query.cloneEmpty();
+            ObjectQuery clone = query.cloneWithoutFilter();
             clone.setFilter(filter);
             return clone;
         } else {

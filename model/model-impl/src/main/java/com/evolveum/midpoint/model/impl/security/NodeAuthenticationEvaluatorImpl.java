@@ -117,7 +117,7 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
         List<PrismObject<NodeType>> matchingNodes = new ArrayList<>();
         for (PrismObject<NodeType> node : knownNodes) {
             NodeType actualNode = node.asObjectable();
-            if (actualNode.getOperationalStatus() == NodeOperationalStateType.DOWN) {
+            if (actualNode.getOperationalState() == NodeOperationalStateType.DOWN) {
                 // Note that we consider nodes that are STARTING as eligible for authentication (they can issue REST calls)
                 LOGGER.trace("Skipping {} because it has operationalState=DOWN", actualNode);
             } else if (remoteName != null && remoteName.equalsIgnoreCase(actualNode.getHostname())) {

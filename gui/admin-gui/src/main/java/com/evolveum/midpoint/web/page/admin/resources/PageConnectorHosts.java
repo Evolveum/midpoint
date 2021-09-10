@@ -113,9 +113,6 @@ public class PageConnectorHosts extends PageAdmin {
         MainObjectListPanel<ConnectorHostType> table = new MainObjectListPanel<ConnectorHostType>(ID_TABLE, ConnectorHostType.class, getQueryOptions()) {
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ConnectorHostType host) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, host.getOid());
-                navigateToNext(PageUser.class, parameters);
             }
 
             @Override

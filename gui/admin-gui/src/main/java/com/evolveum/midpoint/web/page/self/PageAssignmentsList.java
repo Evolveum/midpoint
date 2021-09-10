@@ -236,12 +236,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
                 }
             }
 
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
-            }
-
         };
         requestAssignments.add(new VisibleEnableBehaviour() {
             @Override
@@ -537,9 +531,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
         PrismObject<F> exclusionTargetObj = (PrismObject<F>) conflictingAssignment.getTarget();
 
         AssignmentConflictDto<F> dto1 = new AssignmentConflictDto<>(exclusionTargetObj,
-                conflictingAssignment.getAssignmentType(true) != null);
+                conflictingAssignment.getAssignment(true) != null);
         AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
-                evaluatedAssignment.getAssignmentType(true) != null);
+                evaluatedAssignment.getAssignment(true) != null);
         ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
         String oid1 = exclusionTargetObj.getOid();
         String oid2 = addedAssignmentTargetObj.getOid();

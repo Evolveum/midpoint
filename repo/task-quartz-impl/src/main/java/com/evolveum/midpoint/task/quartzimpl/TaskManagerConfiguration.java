@@ -6,11 +6,16 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static java.util.Map.entry;
+
 import java.util.*;
+
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 
 import com.google.common.base.Strings;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -85,6 +90,7 @@ public class TaskManagerConfiguration {
 
     private static final String LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY = "localNodeClusteringEnabled";
 
+    // The following are deprecated.
     private static final String WORK_ALLOCATION_MAX_RETRIES_ENTRY = "workAllocationMaxRetries";
     private static final String WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY = "workAllocationRetryIntervalBase";
     private static final String WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY = "workAllocationRetryIntervalLimit";
@@ -104,14 +110,6 @@ public class TaskManagerConfiguration {
     @Deprecated private static final int JMX_PORT_DEFAULT = 20001;
     @Deprecated private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
     private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
-    private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
-    private static final int NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT = 120;
-    private static final int NODE_ALIVENESS_TIMEOUT_DEFAULT = 900;              // node should be down for 900 seconds before declaring as dead in the repository
-    private static final int NODE_STARTUP_TIMEOUT_DEFAULT = 900;              // node should be not checking in for 900 seconds before reporting it as starting too long
-    private static final int NODE_TIMEOUT_DEFAULT = 30;
-    private static final int NODE_STARTUP_DELAY_DEFAULT = 0;
-    private static final long QUARTZ_CLUSTER_CHECKIN_INTERVAL_DEFAULT = 7500;
-    private static final long QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_DEFAULT = 7500;
     private static final boolean CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT = false;
     private static final boolean USE_JMX_DEFAULT = false;
     @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
@@ -121,12 +119,6 @@ public class TaskManagerConfiguration {
     private static final int STALLED_TASKS_THRESHOLD_DEFAULT = 600;             // if a task does not advance its progress for 10 minutes, it is considered stalled
     private static final int STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_DEFAULT = 3600;
     private static final boolean RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_DEFAULT = false;
-
-    private static final int WORK_ALLOCATION_MAX_RETRIES_DEFAULT = 40;
-    private static final long WORK_ALLOCATION_RETRY_INTERVAL_DEFAULT = 1000L;
-    private static final int WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_DEFAULT = 7;
-    private static final long WORK_ALLOCATION_INITIAL_DELAY_DEFAULT = 5000L;
-    private static final long WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT = 20000L;
 
     private boolean stopOnInitializationFailure;
     private int threads;
@@ -140,14 +132,73 @@ public class TaskManagerConfiguration {
     @Deprecated private String jmxHostName;
     @Deprecated private int jmxPort;
     @Deprecated private int jmxConnectTimeout;
-    private int nodeRegistrationCycleTime;                  // How often should node register itself in repository
-    private int nodeTimeout;                                // After what time should be node considered (temporarily) down.
-    private int nodeAlivenessTimeout;                       // After what time should be node considered (permanently) down and recorded as such in the repository.
-    private int nodeStartupTimeout;                         // After what time the node start-up is considered to be "too long".
-    private int nodeAlivenessCheckInterval;                 // How often to check for down nodes.
-    private int nodeStartupDelay;                           // # of seconds after which we declare the node as started and announce it as a part of the cluster
-    private long quartzClusterCheckinInterval;               // How often Quartz node registers itself in Quartz database (in milliseconds)
-    private long quartzClusterCheckinGracePeriod;            // How long can be Quartz node "unresponsive" (not checking in) (in milliseconds)
+
+    /**
+     * How often should node register itself in repository. In seconds.
+     */
+    private int nodeRegistrationCycleTime;
+
+    private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
+
+    /**
+     * After what time should be node considered (temporarily) down. In seconds.
+     */
+    private int nodeTimeout;
+
+    private static final int NODE_TIMEOUT_DEFAULT = 30;
+
+    /**
+     * After what time (of not checking in) should be node considered permanently down
+     * and recorded as such in the repository. In seconds.
+     */
+    private int nodeAlivenessTimeout;
+
+    private static final int NODE_ALIVENESS_TIMEOUT_DEFAULT = 900;
+
+    /**
+     * After what time (of not checking in) the node start-up is considered to be "too long". In seconds.
+     *
+     * Note that we currently do nothing after this timeout occurs, except for logging a warning message.
+     */
+    private int nodeStartupTimeout;
+
+    private static final int NODE_STARTUP_TIMEOUT_DEFAULT = 900;
+
+    /**
+     * How often this node checks for other nodes being down (in seconds).
+     *
+     * The check is based on last check in time and {@link #nodeAlivenessTimeout}.
+     * See {@link ClusterManager#checkNodeAliveness(OperationResult)}.
+     */
+    private int nodeAlivenessCheckInterval;
+
+    private static final int NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT = 120;
+
+    /**
+     * Number of seconds after which we declare the node as started and announce it as a part of the cluster.
+     */
+    private int nodeStartupDelay;
+
+    private static final int NODE_STARTUP_DELAY_DEFAULT = 0;
+
+    /**
+     * How often Quartz node registers itself in Quartz database (in milliseconds).
+     *
+     * This has nothing to do with midPoint cluster state determination. It is a parameter internal to Quartz scheduler.
+     */
+    private long quartzClusterCheckinInterval;
+
+    private static final long QUARTZ_CLUSTER_CHECKIN_INTERVAL_DEFAULT = 7500;
+
+    /**
+     * How long can be Quartz node "unresponsive" (not checking in) (in milliseconds).
+     *
+     * This has nothing to do with midPoint cluster state determination. It is a parameter internal to Quartz scheduler.
+     */
+    private long quartzClusterCheckinGracePeriod;
+
+    private static final long QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_DEFAULT = 7500;
+
     private boolean checkForTaskConcurrentExecution;
     private UseThreadInterrupt useThreadInterrupt;
     private int waitingTasksCheckInterval;
@@ -157,13 +208,6 @@ public class TaskManagerConfiguration {
     private boolean runNowKeepsOriginalSchedule;
     private boolean schedulerInitiallyStopped;
     private boolean localNodeClusteringEnabled;
-
-    private int workAllocationMaxRetries;
-    private long workAllocationRetryIntervalBase;
-    private Long workAllocationRetryIntervalLimit;
-    private int workAllocationRetryExponentialThreshold;
-    private long workAllocationInitialDelay;
-    private long workAllocationDefaultFreeBucketWaitInterval;
 
     private TaskExecutionLimitationsType taskExecutionLimitations;
 
@@ -203,8 +247,8 @@ public class TaskManagerConfiguration {
      */
     private boolean midPointTestMode = false;
 
-    private static final List<String> KNOWN_KEYS = Arrays.asList(
-            MidpointConfiguration.MIDPOINT_HOME_PROPERTY,            // probably can be removed from this list
+    private static final List<String> KNOWN_KEYS = List.of(
+            MidpointConfiguration.MIDPOINT_HOME_PROPERTY, // probably can be removed from this list
             STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY,
             THREADS_CONFIG_ENTRY,
             CLUSTERED_CONFIG_ENTRY,
@@ -235,18 +279,21 @@ public class TaskManagerConfiguration {
             RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY,
             SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY,
             LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY,
-            WORK_ALLOCATION_MAX_RETRIES_ENTRY,
-            WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY,
-            WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY,
-            WORK_ALLOCATION_INITIAL_DELAY_ENTRY,
-            WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY,
-            WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
             TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY,
             CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY,
             NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY,
             NODE_STARTUP_TIMEOUT_CONFIG_ENTRY,
             NODE_STARTUP_DELAY_CONFIG_ENTRY,
             NODE_ALIVENESS_CHECK_INTERVAL_CONFIG_ENTRY
+    );
+
+    private static final List<String> DEPRECATED_KEYS = List.of(
+            WORK_ALLOCATION_MAX_RETRIES_ENTRY,
+            WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY,
+            WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY,
+            WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY,
+            WORK_ALLOCATION_INITIAL_DELAY_ENTRY,
+            WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY
     );
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
@@ -257,6 +304,7 @@ public class TaskManagerConfiguration {
     // todo copied from WfConfiguration -- refactor
     private void checkAllowedKeys(Configuration c) throws TaskManagerConfigurationException {
         Set<String> knownKeysSet = new HashSet<>(TaskManagerConfiguration.KNOWN_KEYS);
+        Set<String> deprecatedKeysSet = new HashSet<>(TaskManagerConfiguration.DEPRECATED_KEYS);
 
         Iterator<String> keyIterator = c.getKeys();
         while (keyIterator.hasNext()) {
@@ -271,7 +319,9 @@ public class TaskManagerConfiguration {
             if (colon != -1) {
                 normalizedKeyName = normalizedKeyName.substring(colon + 1);
             }
-            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) {
+            if (deprecatedKeysSet.contains(keyName) || deprecatedKeysSet.contains(normalizedKeyName)) {
+                LOGGER.warn("Key {} in task manager configuration is deprecated and has no effect.", keyName);
+            } else if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) {
                 // ...we need to test both because of keys like 'midpoint.home'
                 throw new TaskManagerConfigurationException("Unknown key " + keyName + " in task manager configuration");
             }
@@ -354,14 +404,6 @@ public class TaskManagerConfiguration {
         schedulerInitiallyStopped = c.getBoolean(SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY, false);
         localNodeClusteringEnabled = c.getBoolean(LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY, false);
 
-        workAllocationMaxRetries = c.getInt(WORK_ALLOCATION_MAX_RETRIES_ENTRY, WORK_ALLOCATION_MAX_RETRIES_DEFAULT);
-        workAllocationRetryIntervalBase = c.getLong(WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY, WORK_ALLOCATION_RETRY_INTERVAL_DEFAULT);
-        workAllocationRetryIntervalLimit = c.getLong(WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY, null);
-        workAllocationRetryExponentialThreshold = c.getInt(WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY, WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_DEFAULT);
-        workAllocationInitialDelay = c.getLong(WORK_ALLOCATION_INITIAL_DELAY_ENTRY, WORK_ALLOCATION_INITIAL_DELAY_DEFAULT);
-        workAllocationDefaultFreeBucketWaitInterval = c.getLong(WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
-                WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT);
-
         if (c.containsKey(TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY)) {
             taskExecutionLimitations = parseExecutionLimitations(c.getString(TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY));
         }
@@ -407,29 +449,22 @@ public class TaskManagerConfiguration {
         }
     }
 
-    private static final Map<SupportedDatabase, String> SCHEMAS = new HashMap<>();
-    private static final Map<SupportedDatabase, String> DELEGATES = new HashMap<>();
+    private static final Map<SupportedDatabase, String> SCHEMAS = Map.ofEntries(
+            entry(SupportedDatabase.H2, "tables_h2.sql"),
+            entry(SupportedDatabase.MYSQL, "tables_mysql_innodb.sql"),
+            entry(SupportedDatabase.MARIADB, "tables_mysql_innodb.sql"),
+            entry(SupportedDatabase.POSTGRESQL, "tables_postgres.sql"),
+            entry(SupportedDatabase.ORACLE, "tables_oracle.sql"),
+            entry(SupportedDatabase.SQLSERVER, "tables_sqlServer.sql"));
 
-    private static void addDbInfo(SupportedDatabase database, String schema, String delegate) {
-        SCHEMAS.put(database, schema);
-        DELEGATES.put(database, delegate);
-    }
-
-    static {
-        addDbInfo(SupportedDatabase.H2,
-                "tables_h2.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(SupportedDatabase.MYSQL,
-                "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(SupportedDatabase.MARIADB,
-                "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(SupportedDatabase.POSTGRESQL,
-                "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
-        addDbInfo(SupportedDatabase.ORACLE,
-                // TODO shouldn't we use OracleDelegate?
-                "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(SupportedDatabase.SQLSERVER,
-                "tables_sqlServer.sql", "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
-    }
+    private static final Map<SupportedDatabase, String> DELEGATES = Map.ofEntries(
+            entry(SupportedDatabase.H2, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
+            entry(SupportedDatabase.MYSQL, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
+            entry(SupportedDatabase.MARIADB, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
+            entry(SupportedDatabase.POSTGRESQL, "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate"),
+            // TODO shouldn't we use OracleDelegate?
+            entry(SupportedDatabase.ORACLE, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
+            entry(SupportedDatabase.SQLSERVER, "org.quartz.impl.jdbcjobstore.MSSQLDelegate"));
 
     void setJdbcJobStoreInformation(
             MidpointConfiguration masterConfig, JdbcRepositoryConfiguration jdbcConfig) {
@@ -555,8 +590,8 @@ public class TaskManagerConfiguration {
         return clustered;
     }
 
-    public String getNodeId() {
-        return nodeId;
+    public @NotNull String getNodeId() {
+        return Objects.requireNonNull(nodeId, "No node ID");
     }
 
     public int getJmxPort() {
@@ -718,30 +753,6 @@ public class TaskManagerConfiguration {
     @SuppressWarnings("WeakerAccess")
     public boolean isLocalNodeClusteringEnabled() {
         return localNodeClusteringEnabled;
-    }
-
-    public int getWorkAllocationMaxRetries() {
-        return workAllocationMaxRetries;
-    }
-
-    public long getWorkAllocationRetryIntervalBase() {
-        return workAllocationRetryIntervalBase;
-    }
-
-    public Long getWorkAllocationRetryIntervalLimit() {
-        return workAllocationRetryIntervalLimit;
-    }
-
-    public int getWorkAllocationRetryExponentialThreshold() {
-        return workAllocationRetryExponentialThreshold;
-    }
-
-    public long getWorkAllocationInitialDelay() {
-        return workAllocationInitialDelay;
-    }
-
-    public long getWorkAllocationDefaultFreeBucketWaitInterval() {
-        return workAllocationDefaultFreeBucketWaitInterval;
     }
 
     public TaskExecutionLimitationsType getTaskExecutionLimitations() {

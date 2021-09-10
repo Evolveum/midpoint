@@ -7,12 +7,15 @@
 package com.evolveum.midpoint.model.test;
 
 import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
+import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +29,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.task.reports.ActivityExecutionReportUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -94,6 +103,7 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
+import com.evolveum.midpoint.repo.common.task.work.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -128,6 +138,7 @@ import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -203,6 +214,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired(required = false)
     protected GuiProfiledPrincipalManager focusProfileService;
 
+    @Autowired protected CommonTaskBeans commonTaskBeans;
+
     protected DummyResourceCollection dummyResourceCollection;
 
     protected DummyAuditService dummyAuditService;
@@ -226,7 +239,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 
         // This is generally useful in tests, to avoid long waiting for bucketed tasks.
-        bucketingManager.setFreeBucketWaitIntervalOverride(100L);
+        BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(100L);
 
         // We generally do not import all the archetypes for all kinds of tasks (at least not now).
         genericTaskHandler.setAvoidAutoAssigningArchetypes(true);
@@ -564,6 +577,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyPath, newRealValue);
         executeChanges(objectDelta, options, task, result);
+    }
+
+    protected <O extends ObjectType> void modifyObjectReplaceReference(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Referencable newRealValue)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+        ObjectDelta<O> objectDelta = prismContext.deltaFactory().object()
+                .createModificationReplaceReference(type, oid, propertyPath, newRealValue.asReferenceValue());
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+        modelService.executeChanges(deltas, null, task, result);
     }
 
     protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue)
@@ -3320,7 +3342,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 if (heartbeat != null) {
                     displayValue("Heartbeat", heartbeat);
                 }
-                long progress = heartbeat != null ? heartbeat : freshRepoTask.getProgress();
+                long progress = heartbeat != null ? heartbeat : freshRepoTask.getLegacyProgress();
                 boolean extraTestSuccess = extraTest != null && Boolean.TRUE.equals(extraTest.get());
                 return extraTestSuccess ||
                         freshRepoTask.getExecutionState() == TaskExecutionStateType.SUSPENDED ||
@@ -3385,7 +3407,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             long waiting = (System.currentTimeMillis() - start) / 1000;
             String description =
                     freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionState() + ", rs:" +
-                            freshRootTask.getResultStatus() + ", p:" + freshRootTask.getProgress() + ", n:" +
+                            freshRootTask.getResultStatus() + ", p:" + freshRootTask.getLegacyProgress() + ", n:" +
                             freshRootTask.getNode() + "] (waiting for: " + waiting + " seconds)";
             // was the whole task tree refreshed at least once after we were called?
             long lastRunStartTimestamp = or0(freshRootTask.getLastRunStartTimestamp());
@@ -3682,6 +3704,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         for (File file : files) {
             addObject(file);
         }
+    }
+
+    protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result,
+            Consumer<PrismObject<T>> customizer) throws CommonException, IOException {
+        return addObject(resource.file, task, result, customizer);
     }
 
     protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result)
@@ -5109,57 +5136,76 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Wrong executionStatus in " + task, TaskExecutionStateType.CLOSED, task.getExecutionState());
     }
 
-    @Deprecated
-    protected List<AuditEventRecord> getAllAuditRecords(Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Map<String, Object> params = new HashMap<>();
-        return modelAuditService.listRecords("select * from m_audit_event as aer order by aer.timestampValue asc", params, task, result);
+    protected List<AuditEventRecordType> getAllAuditRecords(Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .asc(F_TIMESTAMP)
+                        .build(),
+                null, task, result);
     }
 
-    protected List<AuditEventRecord> getAuditRecords(int maxRecords, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("setMaxResults", maxRecords);
-        return modelAuditService.listRecords("select * from m_audit_event as aer order by aer.timestampValue asc", params, task, result);
+    protected SearchResultList<AuditEventRecordType> getAuditRecords(
+            int maxRecords, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .asc(F_TIMESTAMP)
+                        .maxSize(maxRecords)
+                        .build(),
+                null, task, result);
     }
 
-    protected List<AuditEventRecord> getObjectAuditRecords(String oid)
+    protected @NotNull SearchResultList<AuditEventRecordType> getObjectAuditRecords(String oid)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Task task = createTask("getObjectAuditRecords");
         OperationResult result = task.getResult();
-        Map<String, Object> params = new HashMap<>();
-        params.put("targetOid", oid);
-        return modelAuditService.listRecords("select * from m_audit_event as aer"
-                        + " where (aer.targetOid = :targetOid) order by aer.timestampValue asc",
-                params, task, result);
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_TARGET_REF).ref(oid)
+                        .asc(F_TIMESTAMP)
+                        .build(),
+                null, task, result);
     }
 
-    protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("from", from);
-        params.put("to", to);
-        return modelAuditService.listRecords("select * from m_audit_event as aer where (aer.timestampValue >= :from) and (aer.timestampValue <= :to) order by aer.timestampValue asc",
-                params, task, result);
+    protected List<AuditEventRecordType> getAuditRecordsFromTo(
+            XMLGregorianCalendar from, XMLGregorianCalendar to, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(F_TIMESTAMP).ge(from)
+                        .and()
+                        .item(F_TIMESTAMP).le(to)
+                        .asc(AuditEventRecordType.F_PARAMETER)
+                        .build(),
+                null, task, result);
     }
 
-    protected List<AuditEventRecord> getAuditRecordsAfterId(
+    protected SearchResultList<AuditEventRecordType> getAuditRecordsAfterId(
             long afterId, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return modelAuditService.listRecords(
-                "select * from m_audit_event as aer where aer.id > :id order by aer.id asc",
-                Map.of("id", afterId), task, result);
+        return modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_REPO_ID).gt(afterId)
+                        .asc(AuditEventRecordType.F_REPO_ID)
+                        .build(),
+                null, task, result);
     }
 
     protected long getAuditRecordsMaxId(Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        List<AuditEventRecord> latestEvent = modelAuditService.listRecords(
-                "select * from m_audit_event as aer order by aer.id desc",
-                // Search for "setMaxResult" to discover its secrets, sorry, but neither of the
-                // defined constants is available here (repo is hidden, GUI is higher).
-                // It's not a nice contract, but at least it shields from various DB implementations.
-                // Also, the map must be mutable (param is removed later), hence the wrapping.
-                new HashMap<>(Map.of("setMaxResults", 1)), task, result);
+        List<AuditEventRecordType> latestEvent = modelAuditService.searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .desc(AuditEventRecordType.F_REPO_ID)
+                        .maxSize(1)
+                        .build(),
+                null, task, result);
         return latestEvent.size() == 1 ? latestEvent.get(0).getRepoId() : 0;
     }
 
@@ -6414,6 +6460,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return ModelExecuteOptions.create(prismContext);
     }
 
+    protected String determineSingleInducedRuleId(String roleOid, OperationResult result)
+            throws CommonException {
+        RoleType role = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable();
+        List<AssignmentType> ruleInducements = role.getInducement().stream()
+                .filter(i -> i.getPolicyRule() != null)
+                .collect(Collectors.toList());
+        assertThat(ruleInducements).as("policy rule inducements in " + role).hasSize(1);
+        Long id = ruleInducements.get(0).getId();
+        argCheck(id != null, "Policy rule inducement in %s has no PCV ID", roleOid);
+        return roleOid + ":" + id;
+    }
+
     public interface TracedFunctionCall<X> {
         X execute() throws CommonException, PreconditionViolationException;
     }
@@ -6483,8 +6541,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid, String message)
             throws SchemaException, ObjectNotFoundException {
+        return assertProgress(rootOid, InformationSource.TREE_OVERVIEW_PREFERRED, message);
+    }
+
+    protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid,
+            @NotNull InformationSource source, String message)
+            throws SchemaException, ObjectNotFoundException {
         return assertProgress(
-                activityManager.getProgressInformation(rootOid, getTestOperationResult()),
+                activityManager.getProgressInformation(rootOid, source, getTestOperationResult()),
                 message);
     }
 
@@ -6493,5 +6557,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertPerformance(
                 activityManager.getPerformanceInformation(rootOid, getTestOperationResult()),
                 message);
+    }
+
+    protected @NotNull String getBucketReportDataOid(TaskType taskAfter, ActivityPath path) {
+        return requireNonNull(
+                ActivityExecutionReportUtil.getReportDataOid(taskAfter.getActivityState(), path,
+                        ActivityReportsType.F_BUCKETS, taskManager.getNodeId()),
+                () -> "no bucket report data in " + taskAfter + " (activity path " + path.toDebugName() + ")");
     }
 }

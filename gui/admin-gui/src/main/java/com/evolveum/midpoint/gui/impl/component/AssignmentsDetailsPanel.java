@@ -48,6 +48,11 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
         this.isEntitledAssignemnt = isEntitledAssignment;
     }
 
+    public AssignmentsDetailsPanel(String id, IModel<PrismContainerValueWrapper<AssignmentType>> model, boolean isEntitledAssignment, ContainerPanelConfigurationType config) {
+        super(id, model, !isEntitledAssignment, config);
+        this.isEntitledAssignemnt = isEntitledAssignment;
+    }
+
     @NotNull
     @Override
     protected List<ITab> createTabs() {
@@ -198,6 +203,9 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
     private ItemVisibility getContainerVisibility(ItemWrapper<?, ?> wrapper) {
         if (wrapper instanceof PrismContainerWrapper) {
+            if (((PrismContainerWrapper) wrapper).isVirtual()) {
+                return ItemVisibility.AUTO;
+            }
             return ItemVisibility.HIDDEN;
         }
         return ItemVisibility.AUTO;

@@ -16,5 +16,5 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 public class MTrigger extends MContainer {
 
     public Integer handlerUriId;
-    public Instant timestampValue;
+    public Instant timestamp;
 }

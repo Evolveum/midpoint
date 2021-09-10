@@ -360,7 +360,7 @@ where exists (select 1 from jsonb_array_elements(ext->'polys') val WHERE val->>'
 
 -- See: https://wiki.postgresql.org/wiki/Disk_Usage
 
--- top 20 biggest tables or their TOAST (large object storage) from public schema
+-- top 50 biggest objects, tables, their TOASTs large object storage, indexes... from public schema
 SELECT
     t.oid,
     CASE
@@ -382,7 +382,7 @@ vacuum full analyze;
 -- database size
 SELECT pg_size_pretty(pg_database_size('midpoint'));
 
--- show tables + their toast tables ordered from the largest toast table
+-- show tables + their toast tables ordered from the largest total size
 -- t = table, tt = toast table
 select t.oid as table_oid,
     t.relname as table_name,

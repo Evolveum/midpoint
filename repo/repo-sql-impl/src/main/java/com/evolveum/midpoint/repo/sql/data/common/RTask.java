@@ -19,6 +19,7 @@ import org.hibernate.annotations.*;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RTaskAutoScaling;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAutoScalingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @Entity
@@ -62,6 +64,8 @@ public class RTask extends RObject implements OperationResultFull {
     private RThreadStopAction threadStopAction;
     private Set<String> dependent;
     private RTaskWaitingReason waitingReason;
+    private RTaskSchedulingState schedulingState;
+    private RTaskAutoScaling autoScaling;
 
     @ElementCollection
     @ForeignKey(name = "fk_task_dependent")
@@ -76,6 +80,19 @@ public class RTask extends RObject implements OperationResultFull {
     @Enumerated(EnumType.ORDINAL)
     public RTaskWaitingReason getWaitingReason() {
         return waitingReason;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public RTaskSchedulingState getSchedulingState() {
+        return schedulingState;
+    }
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "mode", column = @Column(name = "autoScalingMode"))
+    })
+    public RTaskAutoScaling getAutoScaling() {
+        return autoScaling;
     }
 
     public String getCategory() {
@@ -256,6 +273,14 @@ public class RTask extends RObject implements OperationResultFull {
         this.waitingReason = waitingReason;
     }
 
+    public void setSchedulingState(RTaskSchedulingState schedulingState) {
+        this.schedulingState = schedulingState;
+    }
+
+    public void setAutoScaling(RTaskAutoScaling autoScaling) {
+        this.autoScaling = autoScaling;
+    }
+
     // dynamically called
     public static void copyFromJAXB(TaskType jaxb, RTask repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
@@ -278,7 +303,15 @@ public class RTask extends RObject implements OperationResultFull {
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), repositoryContext.relationRegistry));
         repo.setOwnerRefTask(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.relationRegistry));
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
+        repo.setSchedulingState(RUtil.getRepoEnumValue(jaxb.getSchedulingState(), RTaskSchedulingState.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
+
+        TaskAutoScalingType autoScaling = jaxb.getAutoScaling();
+        if (autoScaling != null) {
+            RTaskAutoScaling rAutoScaling = new RTaskAutoScaling();
+            RTaskAutoScaling.fromJaxb(autoScaling, rAutoScaling);
+            repo.setAutoScaling(rAutoScaling);
+        }
 
         RUtil.copyResultFromJAXB(TaskType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
     }

@@ -10,7 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>4.2 runnable</name>
+    <name>task-42-runnable</name>
 
     <taskIdentifier>e3a64c81-5dd0-4b66-bc5a-572425eb5a63</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"/>
@@ -18,6 +18,6 @@
 
     <executionStatus>runnable</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
     <recurrence>single</recurrence>
 </task>

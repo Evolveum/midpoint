@@ -33,8 +33,8 @@ public class ManualCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
     private static final String ID_MANUAL_CASE_DETAILS_PANEL = "manualCaseDetailsPanel";
     private IModel<SceneDto> sceneModel;
 
-    public ManualCaseTabPanel(String id, MidpointForm<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
-        super(id, mainForm, objectWrapperModel);
+    public ManualCaseTabPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
+        super(id, objectWrapperModel);
     }
 
     @Override

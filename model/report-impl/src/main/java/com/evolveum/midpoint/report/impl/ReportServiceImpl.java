@@ -11,19 +11,18 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 
-import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.ObjectUtils;
@@ -32,9 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -72,7 +68,8 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private SchemaService schemaService;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
-    @Autowired private AuditService auditService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private ModelAuditService modelAuditService;
     @Autowired private FunctionLibrary logFunctionLibrary;
     @Autowired private FunctionLibrary basicFunctionLibrary;
     @Autowired private FunctionLibrary midpointFunctionLibrary;
@@ -89,9 +86,9 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private ScriptingService scriptingService;
 
     @Override
-    public Object evaluateScript(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
-                    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Object o;
+    public Collection<? extends PrismValue> evaluateScript(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
         if (expression.getExpressionEvaluator().size() == 1
                 && expression.getExpressionEvaluator().get(0).getValue() instanceof ScriptExpressionEvaluatorType) {
             ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
@@ -101,7 +98,7 @@ public class ReportServiceImpl implements ReportService {
             context.setResult(result);
             setupExpressionProfiles(context, report);
 
-            ScriptExpressionEvaluatorType expressionType = (ScriptExpressionEvaluatorType)expression.getExpressionEvaluator().get(0).getValue();
+            ScriptExpressionEvaluatorType expressionType = (ScriptExpressionEvaluatorType) expression.getExpressionEvaluator().get(0).getValue();
             if (expressionType.getObjectVariableMode() == null) {
                 ScriptExpressionEvaluatorConfigurationType defaultScriptConfiguration = report.asObjectable().getDefaultScriptConfiguration();
                 expressionType.setObjectVariableMode(defaultScriptConfiguration == null ? ObjectVariableModeType.OBJECT : defaultScriptConfiguration.getObjectVariableMode());
@@ -115,36 +112,22 @@ public class ReportServiceImpl implements ReportService {
                     context.getResult());
 
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context.getTask(), context.getResult()));
-            @NotNull List<PrismValue> expressionResult;
             try {
-                expressionResult = scriptExpression.evaluate(context);
+                return scriptExpression.evaluate(context);
             } finally {
                 ModelExpressionThreadLocalHolder.popExpressionEnvironment();
             }
-
-            if (expressionResult.isEmpty()) {
-                return null;
-            }
-            if (expressionResult.size() > 1) {
-                throw new ExpressionEvaluationException("Too many results from expression "+context.getContextDescription());
-            }
-            if (expressionResult.get(0) == null ) {
-                return null;
-            }
-            return expressionResult.get(0).getRealValue();
-
         } else {
-            o = ExpressionUtil.evaluateExpression(null, variables, null, expression,
+            return ExpressionUtil.evaluateExpressionNative(null, variables, null, expression,
                     determineExpressionProfile(report, result), expressionFactory, shortDesc, task, result);
         }
-        return o;
     }
 
     private Collection<FunctionLibrary> createFunctionLibraries() {
         FunctionLibrary midPointLib = new FunctionLibrary();
         midPointLib.setVariableName("report");
         midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-        ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaService, model, taskManager, auditService);
+        ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaService, model, taskManager, modelAuditService);
         midPointLib.setGenericFunctions(reportFunctions);
 
         Collection<FunctionLibrary> functions = new ArrayList<>();
@@ -168,7 +151,7 @@ public class ReportServiceImpl implements ReportService {
 
     private void setupExpressionProfiles(ScriptExpressionEvaluationContext context, PrismObject<ReportType> report) throws SchemaException, ConfigurationException {
         ExpressionProfile expressionProfile = determineExpressionProfile(report, context.getResult());
-        LOGGER.trace("Using expression profile '"+(expressionProfile==null?null:expressionProfile.getIdentifier())+"' for report evaluation, determined from: {}", report);
+        LOGGER.trace("Using expression profile '" + (expressionProfile == null ? null : expressionProfile.getIdentifier()) + "' for report evaluation, determined from: {}", report);
         context.setExpressionProfile(expressionProfile);
         context.setScriptExpressionProfile(findScriptExpressionProfile(expressionProfile, report));
     }
@@ -196,84 +179,89 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        AuthorizationParameters<ReportType,ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
+        AuthorizationParameters<ReportType, ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
         return securityEnforcer.isAuthorized(ModelAuthorizationAction.RUN_REPORT.getUrl(), null, params, null, task, result);
     }
 
     @Override
     public boolean isAuthorizedToImportReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        AuthorizationParameters<ReportType,ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
+        AuthorizationParameters<ReportType, ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
         return securityEnforcer.isAuthorized(ModelAuthorizationAction.IMPORT_REPORT.getUrl(), null, params, null, task, result);
     }
 
-    public VariablesMap getParameters(Task task) {
-        VariablesMap variables = new VariablesMap();
-        PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItemOrClone(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
-        if (reportParams != null) {
-            PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
-            Collection<Item<?, ?>> items = reportParamsValues.getItems();
-            for (Item item : items) {
-                String paramName = item.getPath().lastName().getLocalPart();
-                Object value = null;
-                if (!item.getRealValues().isEmpty()) {
-                    value = item.getRealValues().iterator().next();
-                }
-                if (item.getRealValue() instanceof RawType){
-                    try {
-                        ObjectReferenceType parsedRealValue = ((RawType) item.getRealValue()).getParsedRealValue(ObjectReferenceType.class);
-                        variables.put(paramName, new TypedValue(parsedRealValue, ObjectReferenceType.class));
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't parse ObjectReferenceType from raw type. " + item.getRealValue());
-                    }
-                } else {
-                    variables.put(paramName, new TypedValue(value, item.getRealValue().getClass()));
-                }
+    public CompiledObjectCollectionView createCompiledView(DashboardReportEngineConfigurationType dashboardConfig,
+            DashboardWidgetType widget, Task task, OperationResult result) throws CommonException {
+        MiscUtil.stateCheck(dashboardConfig != null, "Dashboard engine in report couldn't be null.");
+
+        DashboardWidgetPresentationType presentation = widget.getPresentation();
+        MiscUtil.stateCheck(!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation),
+                "DataField of presentation couldn't be null.");
+        DashboardWidgetSourceTypeType sourceType = DashboardUtils.getSourceType(widget);
+        MiscUtil.stateCheck(sourceType != null, "No source type specified in " + widget);
+
+        CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
+        if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
+            getModelInteractionService().applyView(compiledCollection, widget.getPresentation().getView());
+        }
+        CollectionRefSpecificationType collectionRefSpecification =
+                getDashboardService().getCollectionRefSpecificationType(widget, task, result);
+        if (collectionRefSpecification != null) {
+            @NotNull CompiledObjectCollectionView compiledCollectionRefSpec = getModelInteractionService().compileObjectCollectionView(
+                    collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+            getModelInteractionService().applyView(compiledCollectionRefSpec, compiledCollection.toGuiObjectListViewType());
+            compiledCollection = compiledCollectionRefSpec;
+        }
+
+        GuiObjectListViewType reportView = getReportViewByType(
+                dashboardConfig, ObjectUtils.defaultIfNull(compiledCollection.getContainerType(), ObjectType.COMPLEX_TYPE));
+        if (reportView != null) {
+            getModelInteractionService().applyView(compiledCollection, reportView);
+        }
+
+        if (compiledCollection.getColumns().isEmpty()) {
+           Class<Containerable> type = resolveTypeForReport(compiledCollection);
+           getModelInteractionService().applyView(
+                   compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
+        }
+        return compiledCollection;
+    }
+
+    private GuiObjectListViewType getReportViewByType(DashboardReportEngineConfigurationType dashboardConfig, QName type) {
+        for (GuiObjectListViewType view : dashboardConfig.getView()) {
+            if (QNameUtil.match(view.getType(), type)) {
+                return view;
             }
         }
-        return variables;
+        return null;
     }
 
     public CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         Validate.notNull(collectionConfig, "Collection engine in report couldn't be null.");
-        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
-        ObjectReferenceType ref = null;
-        if (collectionRefSpecification != null) {
-            ref = collectionRefSpecification.getCollectionRef();
-        }
-        ObjectCollectionType collection = null;
-        if (ref != null && ref.getOid() != null) {
-            Class<ObjectType> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
-            collection = (ObjectCollectionType) getModelService()
-                    .getObject(type, ref.getOid(), null, task, result)
-                    .asObjectable();
-        }
-        CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-        if (!Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
-            if (collection != null) {
-                getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
-                if (compiledCollection.getContainerType() == null) {
-                    compiledCollection.setContainerType(collection.getType());
-                }
-            } else if (collectionRefSpecification != null && collectionRefSpecification.getBaseCollectionRef() != null
-                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null
-                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef().getOid() != null) {
-                ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
-                getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
-                if (compiledCollection.getContainerType() == null) {
-                    compiledCollection.setContainerType(baseCollection.getType());
-                }
-            }
-        }
 
+        CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
         GuiObjectListViewType reportView = collectionConfig.getView();
         if (reportView != null) {
             getModelInteractionService().applyView(compiledCollection, reportView);
         }
+
+        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
+        if (collectionRefSpecification != null) {
+            @NotNull CompiledObjectCollectionView compiledCollectionRefSpec = getModelInteractionService().compileObjectCollectionView(
+                    collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+
+            if (Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
+                compiledCollectionRefSpec.getColumns().clear();
+            }
+            getModelInteractionService().applyView(compiledCollectionRefSpec, compiledCollection.toGuiObjectListViewType());
+            compiledCollection = compiledCollectionRefSpec;
+        }
+
         if (compiledCollection.getColumns().isEmpty()) {
             if (useDefaultView) {
-                Class<Containerable> type = resolveTypeForReport(collectionRefSpecification, compiledCollection);
-                getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
+                Class<Containerable> type = resolveTypeForReport(compiledCollection);
+                getModelInteractionService().applyView(
+                        compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
             } else {
                 return null;
             }
@@ -281,54 +269,30 @@ public class ReportServiceImpl implements ReportService {
         return compiledCollection;
     }
 
-    public Class<Containerable> resolveTypeForReport(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
-        QName type = resolveTypeQNameForReport(collectionRef, compiledCollection);
+    public Class<Containerable> resolveTypeForReport(CompiledObjectCollectionView compiledCollection) {
+        QName type = compiledCollection.getContainerType();
         ComplexTypeDefinition def = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(type);
         if (def != null) {
             Class<?> clazz = def.getCompileTimeClass();
-            if (Containerable.class.isAssignableFrom(clazz)) {
+            if (clazz != null && Containerable.class.isAssignableFrom(clazz)) {
                 return (Class<Containerable>) clazz;
             }
         }
         throw new IllegalArgumentException("Couldn't define type for QName " + type);
     }
 
-    public QName resolveTypeQNameForReport(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
-        QName type;
-        if (collectionRef.getCollectionRef() != null && collectionRef.getCollectionRef().getOid() != null) {
-            ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getCollectionRef()).asObjectable();
-            if (collection.getAuditSearch() != null) {
-                type = AuditEventRecordType.COMPLEX_TYPE;
-            } else {
-                type = collection.getType();
-            }
-        } else if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null
-                && collectionRef.getBaseCollectionRef().getCollectionRef().getOid() != null) {
-            ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getBaseCollectionRef().getCollectionRef()).asObjectable();
-            type = collection.getType();
-        } else {
-            type = compiledCollection.getContainerType();
-        }
-        if (type == null) {
-            LOGGER.error("Couldn't define type for objects");
-            throw new IllegalArgumentException("Couldn't define type for objects");
-        }
-        return type;
-    }
-
-    public PrismObject<ObjectType> getObjectFromReference(Referencable ref) {
-        Task task = getTaskManager().createTaskInstance("Get object");
-        Class<ObjectType> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
+    public <O extends ObjectType> PrismObject<O> getObjectFromReference(Referencable ref, Task task, OperationResult result) {
+        Class<O> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
 
         if (ref.asReferenceValue().getObject() != null) {
             return ref.asReferenceValue().getObject();
         }
 
-        PrismObject<ObjectType> object = null;
+        PrismObject<O> object = null;
         try {
-            object = getModelService().getObject(type, ref.getOid(), null, task, task.getResult());
+            object = getModelService().getObject(type, ref.getOid(), null, task, result.createSubresult("get ref object"));
         } catch (Exception e) {
-            LOGGER.error("Couldn't get object from objectRef " + ref, e);
+            LOGGER.debug("Couldn't get object from objectRef " + ref, e);
         }
         return object;
     }
@@ -337,24 +301,26 @@ public class ReportServiceImpl implements ReportService {
         VariablesMap subreportVariable = new VariablesMap();
         if (report != null && report.asObjectable().getObjectCollection() != null
                 && report.asObjectable().getObjectCollection().getSubreport() != null
-                && !report.asObjectable().getObjectCollection().getSubreport().isEmpty()){
-            List<SubreportParameterType> sortedSubreports = new ArrayList<>();
+                && !report.asObjectable().getObjectCollection().getSubreport().isEmpty()) {
             Collection<SubreportParameterType> subreports = report.asObjectable().getObjectCollection().getSubreport();
-            sortedSubreports.addAll(subreports);
+            List<SubreportParameterType> sortedSubreports = new ArrayList<>(subreports);
             sortedSubreports.sort(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)));
             for (SubreportParameterType subreport : sortedSubreports) {
                 if (subreport.getExpression() == null || subreport.getName() == null) {
                     continue;
                 }
-                Object subreportParameter;
                 ExpressionType expression = subreport.getExpression();
                 try {
-                    subreportParameter = evaluateScript(report, expression, variables, "subreport parameter", task, result);
+                    Collection<? extends PrismValue> subreportParameter = evaluateScript(report, expression, variables, "subreport parameter", task, result);
                     Class<?> subreportParameterClass;
                     if (subreport.getType() != null) {
                         subreportParameterClass = getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());
                     } else {
-                        subreportParameterClass = subreportParameter.getClass();
+                        if (subreportParameter != null && !subreportParameter.isEmpty()) {
+                            subreportParameterClass = subreportParameter.iterator().next().getRealClass();
+                        } else {
+                            subreportParameterClass = Object.class;
+                        }
                     }
                     subreportVariable.put(subreport.getName(), subreportParameter, subreportParameterClass);
                 } catch (Exception e) {
@@ -378,12 +344,20 @@ public class ReportServiceImpl implements ReportService {
         return modelService;
     }
 
+    public ModelAuditService getModelAuditService() {
+        return modelAuditService;
+    }
+
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }
 
     public ObjectResolver getObjectResolver() {
         return objectResolver;
+    }
+
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
     }
 
     public DashboardService getDashboardService() {

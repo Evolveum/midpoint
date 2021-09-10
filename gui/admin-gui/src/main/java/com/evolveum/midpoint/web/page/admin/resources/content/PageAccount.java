@@ -188,7 +188,7 @@ public class PageAccount extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ShadowDetailsTabPanel(panelId, form, (LoadableModel) accountModel);
+                return new ShadowDetailsTabPanel(panelId, (LoadableModel) accountModel);
             }
         });
 
@@ -261,10 +261,6 @@ public class PageAccount extends PageAdmin {
                         navigateToNext(PageDebugView.class, parameters);
                     }
 
-                    @Override
-                    public StringResourceModel getTitle() {
-                        return new StringResourceModel("pageUsers.message.confirmActionPopupTitle");
-                    }
                 };
 
                 showMainPopup(confirmationPanel, target);

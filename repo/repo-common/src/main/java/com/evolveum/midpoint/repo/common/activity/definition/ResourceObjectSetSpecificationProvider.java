@@ -7,12 +7,19 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedObjectsSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 /**
  * Work definition that can provide object set specification.
  */
-public interface ResourceObjectSetSpecificationProvider {
+public interface ResourceObjectSetSpecificationProvider extends FailedObjectsSelectorProvider {
 
     ResourceObjectSetType getResourceObjectSetSpecification();
+
+    @Override
+    default FailedObjectsSelectorType getFailedObjectsSelector() {
+        ResourceObjectSetType set = getResourceObjectSetSpecification();
+        return set != null ? set.getFailedObjectsSelector() : null;
+    }
 }

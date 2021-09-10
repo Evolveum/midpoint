@@ -32,7 +32,7 @@ public class QTriggerMapping<OR extends MObject>
 
     public static <OR extends MObject> QTriggerMapping<OR> init(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QTriggerMapping<>(repositoryContext);
         }
         return get();
@@ -55,7 +55,7 @@ public class QTriggerMapping<OR extends MObject>
                         (q, p) -> q.ownerOid.eq(p.oid)));
 
         addItemMapping(TriggerType.F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
-        addItemMapping(TriggerType.F_TIMESTAMP, timestampMapper(q -> q.timestampValue));
+        addItemMapping(TriggerType.F_TIMESTAMP, timestampMapper(q -> q.timestamp));
     }
 
     @Override
@@ -80,7 +80,7 @@ public class QTriggerMapping<OR extends MObject>
         MTrigger row = initRowObject(schemaObject, ownerRow);
 
         row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
-        row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
+        row.timestamp = MiscUtil.asInstant(schemaObject.getTimestamp());
 
         insert(row, jdbcSession);
         return row;

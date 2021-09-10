@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRo
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
@@ -19,6 +18,8 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.querydsl.core.QueryFlag.Position;
+import com.querydsl.core.types.Predicate;
 
 /**
  * Mapping between {@link QLookupTableRow} and {@link LookupTableRowType}.
@@ -32,7 +33,7 @@ public class QLookupTableRowMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QLookupTableRowMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QLookupTableRowMapping(repositoryContext);
         }
         return instance;
@@ -77,10 +78,26 @@ public class QLookupTableRowMapping
         return row;
     }
 
+
+    @Override
+    protected void insert(MLookupTableRow row, JdbcSession jdbcSession) {
+        // This is bit weird, but according to https://docs.evolveum.com/midpoint/devel/guides/development-with-lookuptable/
+        // Insert into lookup table is actually insert or replace based on key
+        jdbcSession.newInsert(defaultAlias())
+        .populate(row)
+        // QueryDSL does not support PostgreSQL syntax for upsert so it needs to be added as positional flag at the end of query
+        .addFlag(Position.END, " ON CONFLICT (owneroid, key)"
+                +" DO UPDATE SET "
+                + " value = EXCLUDED.value,"
+                + " labelOrig = EXCLUDED.labelOrig,"
+                + " labelNorm = EXCLUDED.labelNorm,"
+                + " lastChangeTimestamp = EXCLUDED.lastChangeTimestamp")
+        .execute();
+    }
+
     @Override
     public MLookupTableRow insert(LookupTableRowType lookupTableRow,
             MLookupTable ownerRow, JdbcSession jdbcSession) {
-
         MLookupTableRow row = initRowObject(lookupTableRow, ownerRow);
         row.key = lookupTableRow.getKey();
         row.value = lookupTableRow.getValue();
@@ -89,5 +106,16 @@ public class QLookupTableRowMapping
 
         insert(row, jdbcSession);
         return row;
+    }
+
+    @Override
+    public Predicate containerIdentityPredicate(QLookupTableRow entityPath, LookupTableRowType container) {
+        if (container.getId() != null) {
+            return super.containerIdentityPredicate(entityPath, container);
+        }
+        if (container.getKey() != null) {
+            return entityPath.key.eq(container.getKey());
+        }
+        throw new IllegalArgumentException("id or key must be specified for lookup table row");
     }
 }

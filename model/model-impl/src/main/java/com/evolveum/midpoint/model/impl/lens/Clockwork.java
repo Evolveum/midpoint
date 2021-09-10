@@ -191,7 +191,7 @@ public class Clockwork {
                     HookOperationMode mode = click(context, task, result);
 
                     if (mode == HookOperationMode.BACKGROUND) {
-                        result.recordInProgress();
+                        result.setInProgress();
                         return mode;
                     } else if (mode == HookOperationMode.ERROR) {
                         return mode;

@@ -1,0 +1,54 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="5ab8f8c6-df1a-4580-af8b-a899f240b44f">
+    <name>distributed-export</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>closed</executionStatus>
+
+    <activity>
+        <work>
+            <distributedReportExport>
+                <reportRef oid="oid" />
+            </distributedReportExport>
+        </work>
+        <tailoring>
+            <change>
+                <reference>data-creation</reference>
+                <distribution>
+                    <!-- We cannot use OID based segmentation because of the random ordering of objects found -->
+                    <buckets>
+                        <stringSegmentation>
+                            <discriminator>name</discriminator>
+                            <boundary>
+                                <position>1</position>
+                                <characters>u</characters>
+                            </boundary>
+                            <boundary>
+                                <position>2</position>
+                                <position>3</position>
+                                <position>4</position>
+                                <characters>0</characters>
+                            </boundary>
+                            <boundary>
+                                <position>5</position>
+                                <characters>0-9</characters>
+                            </boundary>
+                            <boundary>
+                                <position>6</position>
+                                <characters>05</characters>
+                            </boundary>
+                        </stringSegmentation>
+                    </buckets>
+                    <workerThreads>4</workerThreads>
+                </distribution>
+            </change>
+        </tailoring>
+    </activity>
+</task>

@@ -7,11 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
-import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
-
-import com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper;
-
-import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,12 +15,14 @@ import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionRes
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics.Operation;
+import com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
@@ -65,7 +63,8 @@ public abstract class MockComponentActivityExecution
         RunningTask task = taskExecution.getRunningTask();
 
         if (delay > 0) {
-            sleep(task, delay);
+            LOGGER.trace("Sleeping for {} msecs", delay);
+            MiscUtil.sleepWatchfully(System.currentTimeMillis() + delay, 100, task::canRun);
         }
 
         result.recordSuccess();
@@ -94,23 +93,6 @@ public abstract class MockComponentActivityExecution
         return activity.getHandler().getRecorder();
     }
 
-    private void sleep(RunningTask task, long delay) {
-        LOGGER.trace("Sleeping for {} msecs", delay);
-        long end = System.currentTimeMillis() + delay;
-        while (task.canRun() && System.currentTimeMillis() < end) {
-            try {
-                //noinspection BusyWait
-                Thread.sleep(100);
-            } catch (InterruptedException ignored) {
-            }
-        }
-    }
-
-    @Override
-    public @NotNull GenericTaskExecution getTaskExecution() {
-        return taskExecution;
-    }
-
     abstract String getMockSubActivity();
 
     @Override
@@ -119,17 +101,17 @@ public abstract class MockComponentActivityExecution
     }
 
     @Override
-    public boolean supportsStatistics() {
+    public boolean doesSupportStatistics() {
         return true;
     }
 
     @Override
-    public boolean supportsSynchronizationStatistics() {
+    public boolean doesSupportSynchronizationStatistics() {
         return false;
     }
 
     @Override
-    public boolean supportsActionsExecuted() {
+    public boolean doesSupportActionsExecuted() {
         return false;
     }
 }

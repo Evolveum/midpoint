@@ -185,9 +185,14 @@ public class OperationsHelper {
             }
         }
         if (task instanceof RunningTask) {
-            ((RunningTask) task).incrementProgressAndStoreStatisticsIfTimePassed(result);
+            try {
+                ((RunningTask) task).incrementLegacyProgressAndStoreStatisticsIfTimePassed(result);
+            } catch (SchemaException | ObjectNotFoundException e) {
+                throw new SystemException("Unexpected exception when recording"
+                        + " progress/statistics into the task: " + e.getMessage(), e);
+            }
         } else {
-            task.setProgress(task.getProgress() + 1);
+            task.setLegacyProgress(task.getLegacyProgress() + 1);
         }
     }
 

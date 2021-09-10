@@ -9,18 +9,31 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 /**
@@ -35,7 +48,7 @@ public class QAccessCertificationWorkItemMapping
 
     public static QAccessCertificationWorkItemMapping init(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QAccessCertificationWorkItemMapping(repositoryContext);
         }
         return get();
@@ -82,6 +95,7 @@ public class QAccessCertificationWorkItemMapping
     @Override
     public AccessCertificationWorkItemType toSchemaObject(MAccessCertificationWorkItem row) {
         AccessCertificationWorkItemType acwi = new AccessCertificationWorkItemType(prismContext())
+                .id(row.cid)
                 .closeTimestamp(asXMLGregorianCalendar(row.closeTimestamp))
                 .iteration(row.campaignIteration)
                 .outputChangeTimestamp(asXMLGregorianCalendar(row.outputChangeTimestamp))
@@ -149,5 +163,40 @@ public class QAccessCertificationWorkItemMapping
                 QAccessCertificationWorkItemReferenceMapping.getForCaseWorkItemCandidate(), jdbcSession);
 
         return row;
+    }
+
+    @Override
+    public ResultListRowTransformer<AccessCertificationWorkItemType, QAccessCertificationWorkItem, MAccessCertificationWorkItem> createRowTransformer(
+            SqlQueryContext<AccessCertificationWorkItemType, QAccessCertificationWorkItem, MAccessCertificationWorkItem> sqlQueryContext,
+            JdbcSession jdbcSession) {
+        Map<UUID, PrismObject<AccessCertificationCampaignType>> cache = new HashMap<>();
+        return (tuple, entityPath, options) -> {
+            MAccessCertificationWorkItem row = Objects.requireNonNull(tuple.get(entityPath));
+            UUID ownerOid = row.ownerOid;
+            PrismObject<AccessCertificationCampaignType> owner = cache.get(ownerOid);
+            // FIXME: Should we load cases we need, instead of all cases?
+            options = SchemaService.get().getOperationOptionsBuilder().retrieve().build();
+            if (owner == null) {
+                owner = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext).loadObject(jdbcSession, AccessCertificationCampaignType.class, ownerOid, options);
+                cache.put(ownerOid, owner);
+            }
+            PrismContainer<AccessCertificationCaseType> caseContainer = owner.findContainer(AccessCertificationCampaignType.F_CASE);
+            if (caseContainer == null) {
+                throw new SystemException("Campaing" + owner + " has no cases even if it should have " + tuple);
+            }
+            PrismContainerValue<AccessCertificationCaseType> aCase = caseContainer .findValue(row.accessCertCaseCid);
+            if (aCase == null) {
+                throw new SystemException("Campaing " + owner + " has no cases with ID " + row.accessCertCaseCid);
+            }
+            PrismContainer<AccessCertificationWorkItemType> container = aCase.findContainer(AccessCertificationCaseType.F_WORK_ITEM);
+            if (container == null) {
+                throw new SystemException("Campaing " + owner + "has no work item for case with ID " + row.accessCertCaseCid);
+            }
+            PrismContainerValue<AccessCertificationWorkItemType> value = container.findValue(row.cid);
+            if (value == null) {
+                throw new SystemException("Campaing " + owner + "has no work item with ID " + row.cid);
+            }
+            return value.asContainerable();
+        };
     }
 }

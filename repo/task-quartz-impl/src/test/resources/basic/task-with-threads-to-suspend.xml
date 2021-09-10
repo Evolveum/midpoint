@@ -10,7 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>Testing single task 0105</name>
+    <name>task-with-threads-to-suspend</name>
 
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30105</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"/>

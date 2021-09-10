@@ -2184,54 +2184,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="ProcessTracingConfigurationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configuration for tracing execution of a process involving repeated processing of a set of items
-                (repo objects, resource objects, changes, and so on).
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.0.1</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="interval" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Traces processing of each N-th item.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>Tracing interval</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="tracingProfile" type="c:TracingProfileType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Tracing profile to be used.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>Tracing profile</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="tracingPoint" type="c:TracingRootType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Point(s) to be traced.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>Tracing root</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="processTracingConfiguration" type="tns:ProcessTracingConfigurationType"/>
-
     <xsd:complexType name="TracingProfileType">
         <xsd:annotation>
             <xsd:documentation>

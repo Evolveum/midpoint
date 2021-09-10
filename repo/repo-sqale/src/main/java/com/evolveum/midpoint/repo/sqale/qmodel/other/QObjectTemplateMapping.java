@@ -33,9 +33,7 @@ public class QObjectTemplateMapping
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectTemplateMapping initObjectTemplateMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QObjectTemplateMapping(repositoryContext);
-        }
+        instance = new QObjectTemplateMapping(repositoryContext);
         return instance;
     }
 

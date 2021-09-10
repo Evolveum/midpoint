@@ -48,7 +48,8 @@ public class TaskCleaner {
     @Autowired private TaskInstantiator taskInstantiator;
     @Autowired private TaskStateManager taskStateManager;
 
-    public void cleanupTasks(CleanupPolicyType policy, RunningTask executionTask, OperationResult result) throws SchemaException {
+    public void cleanupTasks(CleanupPolicyType policy, RunningTask executionTask, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
         if (policy.getMaxAge() == null) {
             return;
         }
@@ -119,7 +120,7 @@ public class TaskCleaner {
                 throw t;
             }
             // structured progress is incremented with iterative operation reporting
-            executionTask.incrementProgressAndStoreStatisticsIfTimePassed(result);
+            executionTask.incrementLegacyProgressAndStoreStatisticsIfTimePassed(result);
         }
 
         LOGGER.info("Task cleanup procedure " + (interrupted ? "was interrupted" : "finished")

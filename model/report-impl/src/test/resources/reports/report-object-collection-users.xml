@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report oid="64e13165-21e5-419a-8d8b-732895109f84" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Object Collection: users</name>
+    <objectCollection>
+        <subreport>
+            <name>testRole</name>
+            <type>string</type>
+            <expression>
+                <script>
+                    <code>
+                        List list = new ArrayList();
+                        list.add("TestRole1230");
+                        list.add("TestRole123010");
+                        return list;
+                    </code>
+                </script>
+            </expression>
+        </subreport>
+        <view>
+            <type>UserType</type>
+            <column>
+                <name>nameColumn</name>
+                <path>name</path>
+                <display>
+                    <label>Name</label>
+                </display>
+            </column>
+            <column>
+                <name>nameColumn2</name>
+                <path>name</path>
+                <display>
+                    <label>Name2</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                return testRole;
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+        </view>
+        <useOnlyReportView>true</useOnlyReportView>
+    </objectCollection>
+</report>

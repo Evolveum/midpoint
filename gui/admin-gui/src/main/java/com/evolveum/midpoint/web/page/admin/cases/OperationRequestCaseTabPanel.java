@@ -41,8 +41,8 @@ public class OperationRequestCaseTabPanel extends AbstractObjectTabPanel<CaseTyp
     private static final String ID_OPERATIONAL_REQUEST_CASE_PANEL = "operationRequestCasePanel";
     private IModel<List<SceneDto>> sceneModel;
 
-    public OperationRequestCaseTabPanel(String id, MidpointForm<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
-        super(id, mainForm, objectWrapperModel);
+    public OperationRequestCaseTabPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
+        super(id, objectWrapperModel);
     }
 
     @Override

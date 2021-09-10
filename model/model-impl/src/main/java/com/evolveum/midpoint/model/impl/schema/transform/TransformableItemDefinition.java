@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -19,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.deleg.ItemDefinitionDelegator;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.google.common.base.Preconditions;
 
@@ -357,4 +360,10 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         return "Transformable:" + delegate.toString();
     }
 
+    @Override
+    public @NotNull I instantiate(QName name) throws SchemaException {
+        var deleg = delegate().instantiate(name);
+        ((Item<?,ItemDefinition>)deleg).setDefinition(this);
+        return deleg;
+    }
 }

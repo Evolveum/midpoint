@@ -7,6 +7,14 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -25,8 +33,8 @@ public class FocusApplicablePoliciesTabPanel<F extends FocusType> extends Abstra
     private static final String ID_APPLICABLE_POLICIES_CONTAINER = "applicablePoliciesContainer";
     private static final String ID_APPLICABLE_POLICIES_PANEL = "applicablePolicyPanel";
 
-    public FocusApplicablePoliciesTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
-        super(id, mainForm, focusWrapperModel);
+    public FocusApplicablePoliciesTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
+        super(id, focusWrapperModel);
         initLayout();
     }
 

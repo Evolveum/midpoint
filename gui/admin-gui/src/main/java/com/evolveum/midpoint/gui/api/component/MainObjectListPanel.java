@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -111,17 +112,20 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
         if (collectionView == null) {
             collectionView = getObjectCollectionView();
-        }
-
-        List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
+         }
         try {
             WebComponentUtil.initNewObjectWithReference(getPageBase(),
-                    WebComponentUtil.classToQName(getPrismContext(), getType()),
-                    archetypeRef);
+                    relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
+                            relation.getObjectTypes().get(0) : WebComponentUtil.classToQName(getPrismContext(), getType()),
+                    getNewObjectReferencesList(collectionView, relation));
         } catch (SchemaException ex) {
             getPageBase().getFeedbackMessages().error(MainObjectListPanel.this, ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }
+    }
+
+    protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView, AssignmentObjectRelation relation) {
+        return ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
     }
 
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
@@ -155,38 +159,48 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return buttonsList;
     }
 
-    private AjaxIconButton createNewObjectButton(String buttonId) {
-        AjaxIconButton newObjectButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
-                createStringResource("MainObjectListPanel.newObject")) {
+    private Component createNewObjectButton(String buttonId) {
+        DisplayType newObjectButtonDisplayType = getNewObjectButtonStandardDisplayType();
+        CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon(WebComponentUtil.getIconCssClass(newObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                .appendColorHtmlValue(WebComponentUtil.getIconColor(newObjectButtonDisplayType));
+        if (isCollectionViewPanel()) {
+            IconType plusIcon = new IconType();
+            plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
+            plusIcon.setColor("green");
+            builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
+        }
+        String iconTitle = WebComponentUtil.getDisplayTypeTitle(newObjectButtonDisplayType);
+        AjaxCompositedIconButton createNewObjectButton = new AjaxCompositedIconButton(buttonId, builder.build(),
+                createStringResource(StringUtils.isEmpty(iconTitle) ? "MainObjectListPanel.newObject" : iconTitle)) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-
-
                 if (isCollectionViewPanelForCompiledView()) {
                     newObjectPerformed(target, null, getObjectCollectionView());
                     return;
                 }
 
-                MultiCompositedButtonPanel buttonsPanel = new MultiCompositedButtonPanel(getPageBase().getMainPopupBodyId(), new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
+                NewObjectCreationPopup buttonsPanel = new NewObjectCreationPopup(getPageBase().getMainPopupBodyId(), new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                         getPageBase().hideMainPopup(target);
-                        MainObjectListPanel.this.newObjectPerformed(target, relationSepc, collectionViews);
+                        MainObjectListPanel.this.newObjectPerformed(target, relationSpec, collectionViews);
                     }
 
                 };
 
                 getPageBase().showMainPopup(buttonsPanel, target);
 //                navigateToNew(compiledObjectCollectionViews, target);
-            }
+                }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        return newObjectButton;
+        createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
+        createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        return createNewObjectButton;
     }
 
     protected LoadableModel<MultiFunctinalButtonDto> loadButtonDescriptions() {
@@ -562,4 +576,15 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
     }
+
+    @Override
+    protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
+        if (WebComponentUtil.hasDetailsPage(object.getClass())) {
+            WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
+        } else {
+            error("Could not find proper response page");
+            throw new RestartResponseException(getPageBase());
+        }
+    }
+
 }

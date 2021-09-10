@@ -8,22 +8,20 @@
 package com.evolveum.midpoint.repo.common.activity.execution;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
-
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.schema.util.OperationResultUtil;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionStateType;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySimplifiedRealizationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
@@ -32,10 +30,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
  */
 public class ActivityExecutionResult implements ShortDumpable {
 
-    /** TODO */
+    private static final Trace LOGGER = TraceManager.getTrace(ActivityExecutionResult.class);
+
+    /** Final operation result status to be reported and recorded. */
     private OperationResultStatus operationResultStatus;
 
-    /** TODO */
+    /** Indicates what to do with the task - what kind of error or execution situation has been occurred. */
     private TaskRunResultStatus runResultStatus;
 
     public ActivityExecutionResult() {
@@ -44,6 +44,26 @@ public class ActivityExecutionResult implements ShortDumpable {
     public ActivityExecutionResult(OperationResultStatus operationResultStatus, TaskRunResultStatus runResultStatus) {
         this.runResultStatus = runResultStatus;
         this.operationResultStatus = operationResultStatus;
+    }
+
+    /**
+     * Handles unexpected exception that occurred during execution of an activity
+     * at a place that expects {@link ActivityExecutionResult} to be returned.
+     *
+     * @param e Exception to be handled
+     * @param context Instance of activity execution (or other object) in which the exception is converted
+     */
+    static @NotNull ActivityExecutionResult handleException(@NotNull Exception e, Object context) {
+        if (e instanceof ActivityExecutionException) {
+            ActivityExecutionException aee = (ActivityExecutionException) e;
+            if (aee.getOpResultStatus() != SUCCESS) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, context);
+            }
+            return aee.toActivityExecutionResult();
+        } else {
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, context);
+            return ActivityExecutionResult.exception(FATAL_ERROR, PERMANENT_ERROR, e);
+        }
     }
 
     public TaskRunResult createTaskRunResult() {
@@ -114,37 +134,6 @@ public class ActivityExecutionResult implements ShortDumpable {
         sb.append(", runStatus: ").append(runResultStatus);
     }
 
-    // TODO move to AbstractCompositeActivityExecution?
-    void updateRunResultStatus(@NotNull ActivityExecutionResult childExecutionResult, boolean canRun) {
-        assert runResultStatus == null;
-        if (childExecutionResult.isInterrupted() || !canRun) {
-            runResultStatus = INTERRUPTED;
-        } else if (childExecutionResult.isPermanentError()) {
-            runResultStatus = PERMANENT_ERROR;
-        } else if (childExecutionResult.isTemporaryError()) {
-            runResultStatus = TEMPORARY_ERROR;
-        } else if (childExecutionResult.isWaiting()) {
-            runResultStatus = IS_WAITING;
-        }
-    }
-
-    // TODO move to AbstractCompositeActivityExecution?
-    void updateOperationResultStatus(List<ActivityExecutionResult> childResults) {
-        if (isWaiting() || isInterrupted()) {
-            operationResultStatus = IN_PROGRESS;
-            return;
-        }
-
-        Set<OperationResultStatus> statuses = childResults.stream()
-                .map(r -> r.operationResultStatus)
-                .collect(Collectors.toSet());
-
-        // Note that we intentionally do not check the _run_result_ being error here.
-        // We rely on the fact that in the case of temporary/permanent error the appropriate
-        // operation result status should be set as well.
-        operationResultStatus = OperationResultUtil.aggregateFinishedResults(statuses);
-    }
-
     public boolean isError() {
         return runResultStatus == PERMANENT_ERROR || runResultStatus == TEMPORARY_ERROR;
     }
@@ -173,7 +162,7 @@ public class ActivityExecutionResult implements ShortDumpable {
         return isFinished() ? ActivitySimplifiedRealizationStateType.COMPLETE : ActivitySimplifiedRealizationStateType.IN_PROGRESS;
     }
 
-    public ActivityExecutionStateType getExecutionState() {
-        return isFinished() ? ActivityExecutionStateType.COMPLETE : ActivityExecutionStateType.NOT_EXECUTING;
+    public OperationResultStatusType getOperationResultStatusBean() {
+        return createStatusType(operationResultStatus);
     }
 }

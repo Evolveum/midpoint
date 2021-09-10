@@ -51,6 +51,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.MLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRow;
+import com.evolveum.midpoint.repo.sqale.qmodel.node.MNode;
+import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.MReportData;
@@ -66,7 +68,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -259,12 +260,13 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(count(QUser.class)).isEqualTo(baseCount + 1); // no change in count
         MUser row = selectObjectByOid(QUser.class, user2.getOid());
         assRows = select(qa, qa.ownerOid.eq(UUID.fromString(user2.getOid())));
-        assertThat(assRows).hasSize(1)
-                .anyMatch(aRow -> aRow.resourceRefTargetOid == null // removed
-                        && aRow.resourceRefTargetType == null // removed
-                        && aRow.resourceRefRelationId == null // removed
-                        && aRow.targetRefTargetOid != null // added
-                        && aRow.targetRefTargetType == MObjectType.ROLE);
+        assertThat(assRows).hasSize(1);
+        MAssignment assRow = assRows.get(0);
+        assertThat(assRow.resourceRefTargetOid).isNull(); // removed
+        assertThat(assRow.resourceRefTargetType).isNull(); // removed
+        assertThat(assRow.resourceRefRelationId).isNull(); // removed
+        assertThat(assRow.targetRefTargetOid).isNotNull(); // added
+        assertThat(assRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
 
         and("provided version for overwrite is ignored");
         assertThat(row.version).isEqualTo(2);
@@ -356,16 +358,14 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         given("object to add and cleared performance information");
         UserType userType = new UserType(prismContext).name("user" + getTestNumber());
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("object is added to the repository");
         repositoryService.addObject(userType.asPrismObject(), null, result);
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT);
+        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT);
     }
 
     @Test
@@ -377,16 +377,14 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         UserType userType = new UserType(prismContext).name("user" + getTestNumber());
         repositoryService.addObject(userType.asPrismObject(), null, result);
 
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("object is added to the repository");
         repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT_OVERWRITE);
+        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT_OVERWRITE);
     }
 
     @Test
@@ -521,7 +519,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         QName approverRelation = QName.valueOf("{https://random.org/ns}conn-rel");
         UserType user = new UserType(prismContext)
                 .name(userName)
-                .assignment(new AssignmentType()
+                .assignment(new AssignmentType(prismContext)
                         .metadata(new MetadataType()
                                 .createApproverRef(approverRef1.toString(),
                                         UserType.COMPLEX_TYPE, approverRelation)
@@ -547,35 +545,60 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test208AddObjectWithRefWithoutTypeImpliedByDefault()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("object with ref without specified target type");
+        String userName = "user" + getTestNumber();
+        UUID approverRef1 = UUID.randomUUID();
+        UserType user = new UserType(prismContext)
+                .name(userName)
+                .metadata(new MetadataType().creatorRef(
+                        new ObjectReferenceType().oid(approverRef1.toString())));
+
+        when("adding it to the repository");
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("object and its reference rows are created");
+        assertThatOperationResult(result).isSuccess();
+
+        MUser userRow = selectObjectByOid(QUser.class, oid);
+        assertThat(userRow.oid).isNotNull();
+        assertThat(userRow.creatorRefTargetOid).isEqualTo(approverRef1);
+        assertThat(userRow.creatorRefTargetType).isEqualTo(MObjectType.USER); // default from def
+    }
+
+    @Test
     public void test290DuplicateCidInsideOneContainerIsCaughtByPrism() {
         expect("object construction with duplicate CID inside container fails immediately");
         assertThatThrownBy(() -> new UserType(prismContext)
-                .assignment(new AssignmentType()
+                .assignment(new AssignmentType(prismContext)
                         .targetRef("ref1", RoleType.COMPLEX_TYPE).id(1L))
-                .assignment(new AssignmentType()
+                .assignment(new AssignmentType(prismContext)
                         .targetRef("ref2", RoleType.COMPLEX_TYPE).id(1L)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Attempt to add a container value with an id that already exists: 1");
     }
 
     @Test
-    public void test291DuplicateCidInDifferentContainersIsCaughtByRepo() {
+    public void test291DuplicateCidInDifferentContainersIsTolerated()
+            throws SchemaException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
         long previousUserCount = count(QUser.class);
 
         given("object with duplicate CID in different containers");
         UserType user = new UserType(prismContext)
                 .name("user" + getTestNumber())
-                .assignment(new AssignmentType().id(1L))
+                .assignment(new AssignmentType(prismContext).id(1L))
                 .operationExecution(new OperationExecutionType().id(1L));
 
-        expect("adding object to repository throws exception");
-        assertThatThrownBy(() -> repositoryService.addObject(user.asPrismObject(), null, result))
-                .isInstanceOf(SchemaException.class)
-                .hasMessageStartingWith("CID 1 is used repeatedly in the object:");
+        when("adding object to repository throws exception");
+        repositoryService.addObject(user.asPrismObject(), null, result);
 
-        and("no new object is created in the database (transaction is rolled back)");
-        assertThat(count(QUser.class)).isEqualTo(previousUserCount);
+        then("operation is success");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(count(QUser.class)).isEqualTo(previousUserCount + 1);
     }
     // endregion
 
@@ -691,7 +714,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(extensionContainer, "int", 1);
         addExtensionValue(extensionContainer, "short", (short) 2);
         addExtensionValue(extensionContainer, "long", 3L);
-        addExtensionValue(extensionContainer, "integer", 4);
+        addExtensionValue(extensionContainer, "integer", BigInteger.valueOf(4));
         addExtensionValue(extensionContainer, "decimal",
                 new BigDecimal("12345678901234567890.12345678901234567890"));
         addExtensionValue(extensionContainer, "decimal-2", new BigDecimal("12345678901234567890"));
@@ -719,7 +742,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .containsEntry(extensionKey(extensionContainer, "int"), 1)
                 .containsEntry(extensionKey(extensionContainer, "short"), 2) // returned as Integer
                 .containsEntry(extensionKey(extensionContainer, "long"), 3) // returned as Integer
-                .containsEntry(extensionKey(extensionContainer, "integer"), 4)
+                .containsEntry(extensionKey(extensionContainer, "integer"), 4) // returned as Integer
                 .containsEntry(extensionKey(extensionContainer, "decimal"),
                         new BigDecimal("12345678901234567890.12345678901234567890"))
                 .containsEntry(extensionKey(extensionContainer, "decimal-2"),
@@ -845,7 +868,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .assignment(assignment);
         ExtensionType extensionContainer = assignment.getExtension();
         addExtensionValue(extensionContainer, "string-mv", "string-value1", "string-value2");
-        addExtensionValue(extensionContainer, "integer", 1);
+        addExtensionValue(extensionContainer, "integer", BigInteger.valueOf(1));
         String targetOid = UUID.randomUUID().toString();
         addExtensionValue(extensionContainer, "ref", ref(targetOid, UserType.COMPLEX_TYPE));
 
@@ -862,7 +885,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(Jsonb.toMap(row.ext))
                 .containsEntry(extensionKey(extensionContainer, "string-mv"),
                         List.of("string-value1", "string-value2"))
-                .containsEntry(extensionKey(extensionContainer, "integer"), 1)
+                .containsEntry(extensionKey(extensionContainer, "integer"), 1) // returned as Integer
                 .containsEntry(extensionKey(extensionContainer, "ref"),
                         Map.of("o", targetOid,
                                 "t", MObjectType.USER.name(),
@@ -884,7 +907,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(extensionContainer, "string", "string-value");
 
         ShadowAttributesType attributesContainer = new ShadowAttributesHelper(object)
-                .set(new QName("http://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
+                .set(new QName("https://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
                         "string-value1", "string-value2")
                 .attributesContainer();
 
@@ -999,12 +1022,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         MTrigger containerRow = containers.get(0);
         assertThat(containerRow.cid).isEqualTo(3); // assigned in advance
         assertCachedUri(containerRow.handlerUriId, "trigger-1-handler-uri");
-        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(containerRow.timestamp).isEqualTo(Instant.ofEpochMilli(1));
 
         containerRow = containers.get(1);
         assertThat(containerRow.cid).isEqualTo(4); // next CID assigned by repo
         assertCachedUri(containerRow.handlerUriId, "trigger-2-handler-uri");
-        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
+        assertThat(containerRow.timestamp).isEqualTo(Instant.ofEpochMilli(2));
 
         MObject objectRow = selectObjectByOid(
                 QSystemConfiguration.class, systemConfiguration.getOid());
@@ -1056,12 +1079,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(containerRow.taskRefTargetOid).isEqualTo(taskRefOid);
         assertThat(containerRow.taskRefTargetType).isEqualTo(MObjectType.TASK);
         assertCachedUri(containerRow.taskRefRelationId, taskRelation);
-        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(containerRow.timestamp).isEqualTo(Instant.ofEpochMilli(1));
 
         containerRow = containers.get(1);
         assertThat(containerRow.cid).isEqualTo(2);
         assertThat(containerRow.status).isEqualTo(OperationResultStatusType.UNKNOWN);
-        assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
+        assertThat(containerRow.timestamp).isEqualTo(Instant.ofEpochMilli(2));
 
         // this time we didn't test assigned CID or CID SEQ value on owner (see test801)
     }
@@ -1114,7 +1137,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 .modifyChannel("modify-channel")
                                 .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L))))
                 // one more just to see it stores multiple assignments
-                .assignment(new AssignmentType().order(1));
+                .assignment(new AssignmentType(prismContext).order(1));
 
         when("adding it to the repository");
         repositoryService.addObject(object.asPrismObject(), null, result);
@@ -1461,7 +1484,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(7L))
                         .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L))
                         .lockoutStatus(LockoutStatusType.NORMAL))
-                // this is the only additional persisted field for GenericObject
+                // this is the only additionally persisted field for GenericObject
                 .objectType("some-custom-object-type-uri");
 
         when("adding it to the repository");
@@ -1516,11 +1539,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .identifier("identifier")
                 .requestable(false)
                 .riskLevel("extremely-high")
-                // we don't need all attributes here, this is tested in TODO
-                .inducement(new AssignmentType()
+                // we don't need all attributes here, this is tested in test803ContainerAssignment
+                .inducement(new AssignmentType(prismContext)
                         .order(2)
                         .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE))
-                .inducement(new AssignmentType()
+                .inducement(new AssignmentType(prismContext)
                         .order(3)
                         .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
         // this is no additional attribute specific for archetype
@@ -1635,6 +1658,9 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .parent("parent")
                 .recurrence(TaskRecurrenceType.RECURRING)
                 .resultStatus(OperationResultStatusType.UNKNOWN)
+                .schedulingState(TaskSchedulingStateType.READY)
+                .autoScaling(new TaskAutoScalingType(prismContext)
+                        .mode(TaskAutoScalingModeType.DEFAULT))
                 .threadStopAction(ThreadStopActionType.RESCHEDULE)
                 .waitingReason(TaskWaitingReasonType.OTHER_TASKS)
                 .dependent("dep-task-1")
@@ -1665,10 +1691,34 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.parent).isEqualTo("parent");
         assertThat(row.recurrence).isEqualTo(TaskRecurrenceType.RECURRING);
         assertThat(row.resultStatus).isEqualTo(OperationResultStatusType.UNKNOWN);
+        assertThat(row.schedulingState).isEqualTo(TaskSchedulingStateType.READY);
+        assertThat(row.autoScalingMode).isEqualTo(TaskAutoScalingModeType.DEFAULT);
         assertThat(row.threadStopAction).isEqualTo(ThreadStopActionType.RESCHEDULE);
         assertThat(row.waitingReason).isEqualTo(TaskWaitingReasonType.OTHER_TASKS);
         assertThat(row.dependentTaskIdentifiers)
                 .containsExactlyInAnyOrder("dep-task-1", "dep-task-2");
+    }
+
+    @Test
+    public void test838Node() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("node");
+        String objectName = "node" + getTestNumber();
+        var node = new NodeType(prismContext)
+                .name(objectName)
+                .nodeIdentifier("node-47")
+                .operationalState(NodeOperationalStateType.STARTING);
+
+        when("adding it to the repository");
+        repositoryService.addObject(node.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MNode row = selectObjectByOid(QNode.class, node.getOid());
+        assertThat(row.nodeIdentifier).isEqualTo("node-47");
+        assertThat(row.operationalState).isEqualTo(NodeOperationalStateType.STARTING);
     }
 
     @Test
@@ -1800,8 +1850,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 .validFrom(MiscUtil.asXMLGregorianCalendar(validFrom))
                                 .validTo(MiscUtil.asXMLGregorianCalendar(validTo))
                                 .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(validityChangeTimestamp))
-                                .validityStatus(TimeIntervalStatusType.IN)
-                        )
+                                .validityStatus(TimeIntervalStatusType.IN))
                         .currentStageOutcome(case1CurrentStageOutcome)
                         // TODO campaignIteration
                         .iteration(case1Iteration)
@@ -1820,30 +1869,26 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 // TODO: iteration -> campaignIteration
                                 .iteration(81)
                                 .output(new AbstractWorkItemOutputType()
-                                        .outcome("almost, but not quite, entirely done")
-                                )
+                                        .outcome("almost, but not quite, entirely done"))
                                 .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi1OutputChangeTimestamp))
                                 .performerRef(performer1Oid.toString(), UserType.COMPLEX_TYPE, performer1Relation)
                                 .stageNumber(21)
                                 .assigneeRef(wi1AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1AssigneeRef1Relation)
                                 .assigneeRef(wi1AssigneeRef2Oid.toString(), UserType.COMPLEX_TYPE, wi1AssigneeRef2Relation)
-                                .candidateRef(wi1CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1CandidateRef1Relation)
-                        )
+                                .candidateRef(wi1CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1CandidateRef1Relation))
                         .workItem(new AccessCertificationWorkItemType(prismContext)
                                 .id(56L)
                                 .closeTimestamp(MiscUtil.asXMLGregorianCalendar(wi2CloseTimestamp))
                                 // TODO: iteration -> campaignIteration
                                 .iteration(82)
                                 .output(new AbstractWorkItemOutputType()
-                                        .outcome("A tad more than almost, but not quite, entirely done")
-                                )
+                                        .outcome("A tad more than almost, but not quite, entirely done"))
                                 .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi2OutputChangeTimestamp))
                                 .performerRef(performer2Oid.toString(), UserType.COMPLEX_TYPE, performer2Relation)
                                 .stageNumber(22)
                                 .assigneeRef(wi2AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi2AssigneeRef1Relation)
                                 .candidateRef(wi2CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi2CandidateRef1Relation)
-                                .candidateRef(wi2CandidateRef2Oid.toString(), OrgType.COMPLEX_TYPE, wi2CandidateRef2Relation)
-                        ))
+                                .candidateRef(wi2CandidateRef2Oid.toString(), OrgType.COMPLEX_TYPE, wi2CandidateRef2Relation)))
                 ._case(new AccessCertificationCaseType(prismContext)
                         .id(49L)
                         .currentStageOutcome(case2CurrentStageOutcome)
@@ -1859,14 +1904,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 // TODO: iteration -> campaignIteration
                                 .iteration(83)
                                 .output(new AbstractWorkItemOutputType()
-                                        .outcome("certainly not quite done")
-                                )
+                                        .outcome("certainly not quite done"))
                                 .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi3OutputChangeTimestamp))
                                 .performerRef(performer3Oid.toString(), UserType.COMPLEX_TYPE, performer3Relation)
                                 .stageNumber(21)
                                 .assigneeRef(wi3AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi3AssigneeRef1Relation)
-                                .candidateRef(wi3CandidateRef1Oid.toString(), OrgType.COMPLEX_TYPE, wi3CandidateRef1Relation)
-                        ));
+                                .candidateRef(wi3CandidateRef1Oid.toString(), OrgType.COMPLEX_TYPE, wi3CandidateRef1Relation)));
 
         when("adding it to the repository");
         repositoryService.addObject(accessCertificationCampaign.asPrismObject(), null, result);
@@ -2378,16 +2421,14 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         given("object to delete and cleared performance information");
         UUID userOid = randomExistingOid(QUser.class);
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("object is deleted from the repository");
         repositoryService.deleteObject(FocusType.class, userOid.toString(), result);
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_DELETE_OBJECT);
+        assertSingleOperationRecorded(RepositoryService.OP_DELETE_OBJECT);
     }
 
     @Test

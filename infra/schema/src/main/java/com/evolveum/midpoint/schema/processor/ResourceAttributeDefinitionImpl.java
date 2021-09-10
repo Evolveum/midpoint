@@ -57,7 +57,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
     @Override
     public ResourceAttribute<T> instantiate(QName name) {
         name = addNamespaceIfApplicable(name, this.itemName);
-        return new ResourceAttributeImpl<>(name, this, prismContext);
+        return new ResourceAttributeImpl<>(name, this, getPrismContext());
     }
 
     @Override
@@ -188,6 +188,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
         return Objects.hash(super.hashCode(), nativeAttributeName, frameworkAttributeName, returnedByDefault);
     }
 
+    @Override
     protected void extendToString(StringBuilder sb) {
         super.extendToString(sb);
         if (getNativeAttributeName()!=null) {
@@ -207,6 +208,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     protected String getDebugDumpClassName() {
         return "RAD";
     }

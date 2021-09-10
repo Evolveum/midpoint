@@ -124,9 +124,9 @@ public class QueryUtils {
                 .ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
     }
 
-    public static S_AtomicFilterExit filterForCasesOverUser(S_FilterEntryOrEmpty q, String userOid){
+    public static S_AtomicFilterExit filterForCasesOverObject(S_FilterEntryOrEmpty q, String objectOid){
         return q
-                .item(CaseType.F_OBJECT_REF).ref(userOid)
+                .item(CaseType.F_OBJECT_REF).ref(objectOid)
                 .and()
                 .item(CaseType.F_ARCHETYPE_REF)
                 .ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
