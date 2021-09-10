@@ -78,10 +78,9 @@ public abstract class IterativeActivityExecution<
         I,
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
-        WS extends AbstractActivityWorkStateType,
-        AE extends IterativeActivityExecution<I, WD, AH, ?, ?, ?>,
-        AES extends IterativeActivityExecutionSpecifics>
-        extends LocalActivityExecution<WD, AH, WS> implements ExecutionSupport {
+        WS extends AbstractActivityWorkStateType>
+        extends LocalActivityExecution<WD, AH, WS>
+        implements ExecutionSupport, IterativeActivityExecutionSpecifics {
 
     private static final Trace LOGGER = TraceManager.getTrace(IterativeActivityExecution.class);
 
@@ -154,13 +153,10 @@ public abstract class IterativeActivityExecution<
      * It is like a simplified version of {@link ActivityItemProcessingStatistics} that cover all the executions
      * (and sometimes all the realizations) of an activity.
      */
-    @NotNull final TransientActivityExecutionStatistics transientExecutionStatistics;
+    @NotNull protected final TransientActivityExecutionStatistics transientExecutionStatistics;
 
     /** Useful Spring beans. */
     @NotNull protected final CommonTaskBeans beans;
-
-    /** Custom execution logic and state. */
-    @NotNull protected final AES executionSpecifics;
 
     /**
      * Listener for ConnId operations that occur outside item processing (e.g. during search and pre-processing).
@@ -172,24 +168,20 @@ public abstract class IterativeActivityExecution<
      */
     private Integer numberOfBucketsAnnounced;
 
-    public IterativeActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
-            @NotNull String shortName,
-            @NotNull SpecificsSupplier<AE, AES> specificsSupplier) {
+    public IterativeActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context, @NotNull String shortName) {
         super(context);
         this.transientExecutionStatistics = new TransientActivityExecutionStatistics();
         this.shortName = shortName;
         this.contextDescription = "";
         this.beans = taskExecution.getBeans();
-        //noinspection unchecked
-        this.executionSpecifics = specificsSupplier.supply((AE) this);
-        this.reportingOptions = executionSpecifics.getDefaultReportingOptions()
+        this.reportingOptions = getDefaultReportingOptions()
                 .cloneWithConfiguration(context.getActivity().getDefinition().getReportingDefinition().getBean());
         this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(getActivity(), getRunningTask(),
                 getDefaultErrorAction(), beans);
         this.globalConnIdOperationsListener = new GlobalConnIdOperationsListener();
     }
 
-    protected @NotNull ActivityExecutionResult executeLocal(OperationResult result)
+    protected final @NotNull ActivityExecutionResult executeLocal(OperationResult result)
             throws ActivityExecutionException, CommonException {
 
         LOGGER.trace("{}: Starting with local coordinator task {}", shortName, getRunningTask());
@@ -199,9 +191,9 @@ public abstract class IterativeActivityExecution<
 
             transientExecutionStatistics.recordExecutionStart();
 
-            executionSpecifics.beforeExecution(result);
+            beforeExecution(result);
             doExecute(result);
-            executionSpecifics.afterExecution(result);
+            afterExecution(result);
 
             ActivityExecutionResult executionResult = createExecutionResult();
 
@@ -300,7 +292,7 @@ public abstract class IterativeActivityExecution<
                     .withFreeBucketWaitTime(FREE_BUCKET_WAIT_TIME)
                     .withCanRun(task::canRun)
                     .withExecuteInitialWait(initialExecution)
-                    .withImplicitSegmentationResolver(executionSpecifics)
+                    .withImplicitSegmentationResolver(this)
                     .withIsScavenger(isScavenger(task))
                     .withBucketProgressConsumer(bucketProgressHolder)
                     .build();
@@ -420,7 +412,7 @@ public abstract class IterativeActivityExecution<
 
         BucketExecutionRecord record = new BucketExecutionRecord(getLiveItemProcessing());
 
-        executionSpecifics.beforeBucketExecution(result);
+        beforeBucketExecution(result);
 
         setExpectedInCurrentBucket(result);
 
@@ -435,7 +427,7 @@ public abstract class IterativeActivityExecution<
             coordinator.finishProcessing(result);
         }
 
-        executionSpecifics.afterBucketExecution(result);
+        afterBucketExecution(result);
 
         boolean complete = canRun() && !errorState.wasStoppingExceptionEncountered();
 
@@ -571,8 +563,10 @@ public abstract class IterativeActivityExecution<
      *
      * @return null if no value could be determined or is not applicable
      */
-    protected abstract @Nullable Integer determineOverallSize(OperationResult result)
-            throws CommonException, ActivityExecutionException;
+    public @Nullable Integer determineOverallSize(OperationResult result)
+            throws CommonException, ActivityExecutionException {
+        return null;
+    }
 
     /**
      * Determines the current bucket size.
@@ -580,7 +574,9 @@ public abstract class IterativeActivityExecution<
      *
      * @return null if no value could be determined or is not applicable
      */
-    protected abstract @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException;
+    public @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
+        return null;
+    }
 
     /**
      * Starts the item source (e.g. `searchObjectsIterative` call or `synchronize` call) and begins processing items
@@ -603,11 +599,11 @@ public abstract class IterativeActivityExecution<
         return coordinator;
     }
 
-    public long getStartTimeMillis() {
+    public final long getStartTimeMillis() {
         return transientExecutionStatistics.startTimeMillis;
     }
 
-    public boolean isMultithreaded() {
+    public final boolean isMultithreaded() {
         return coordinator.isMultithreaded();
     }
 
@@ -618,7 +614,7 @@ public abstract class IterativeActivityExecution<
     /**
      * Fails if worker threads are defined. To be used in tasks that do not support multithreading.
      */
-    public void ensureNoWorkerThreads() {
+    protected final void ensureNoWorkerThreads() {
         int threads = getWorkerThreadsCount();
         if (threads != 0) {
             throw new UnsupportedOperationException("Unsupported number of worker threads: " + threads +
@@ -627,30 +623,30 @@ public abstract class IterativeActivityExecution<
         }
     }
 
-    public @NotNull String getShortName() {
+    public final @NotNull String getShortName() {
         return shortName;
     }
 
-    public @NotNull String getShortNameUncapitalized() {
+    public final @NotNull String getShortNameUncapitalized() {
         return StringUtils.uncapitalize(shortName);
     }
 
-    public @NotNull String getContextDescription() {
+    public final @NotNull String getContextDescription() {
         return contextDescription;
     }
 
     /**
      * Inserts a space before context description if it's not empty.
      */
-    public @NotNull String getContextDescriptionSpaced() {
+    public final @NotNull String getContextDescriptionSpaced() {
         return !contextDescription.isEmpty() ? " " + contextDescription : "";
     }
 
-    public void setContextDescription(String value) {
+    public final void setContextDescription(String value) {
         this.contextDescription = ObjectUtils.defaultIfNull(value, "");
     }
 
-    ErrorHandlingStrategyExecutor.FollowUpAction handleError(@NotNull OperationResultStatus status,
+    final ErrorHandlingStrategyExecutor.FollowUpAction handleError(@NotNull OperationResultStatus status,
             @NotNull Throwable exception, ItemProcessingRequest<?> request, OperationResult result) {
         return errorHandlingStrategyExecutor.handleError(status, exception, request.getObjectOidToRecordRetryTrigger(), result);
     }
@@ -660,15 +656,15 @@ public abstract class IterativeActivityExecution<
      */
     protected @NotNull abstract ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction();
 
-    public @NotNull ActivityReportingOptions getReportingOptions() {
+    public final @NotNull ActivityReportingOptions getReportingOptions() {
         return reportingOptions;
     }
 
-    public @NotNull String getRootTaskOid() {
+    public final @NotNull String getRootTaskOid() {
         return getRunningTask().getRootTaskOid();
     }
 
-    protected @NotNull Task getRootTask(OperationResult result) throws SchemaException {
+    protected final @NotNull Task getRootTask(OperationResult result) throws SchemaException {
         String rootTaskOid = getRootTaskOid();
         RunningTask task = getRunningTask();
         if (task.getOid().equals(rootTaskOid)) {
@@ -684,25 +680,21 @@ public abstract class IterativeActivityExecution<
     }
 
     @Override
-    public boolean doesSupportStatistics() {
+    public final boolean doesSupportStatistics() {
         return true;
     }
 
     @Override
-    public boolean doesSupportSynchronizationStatistics() {
+    public final boolean doesSupportSynchronizationStatistics() {
         return reportingOptions.isEnableSynchronizationStatistics();
     }
 
     @Override
-    public boolean doesSupportActionsExecuted() {
+    public final boolean doesSupportActionsExecuted() {
         return reportingOptions.isEnableActionsExecutedStatistics();
     }
 
-    public ProcessingCoordinator<I> getCoordinator() {
-        return coordinator;
-    }
-
-    @NotNull public TransientActivityExecutionStatistics getTransientExecutionStatistics() {
+    @NotNull public final TransientActivityExecutionStatistics getTransientExecutionStatistics() {
         return transientExecutionStatistics;
     }
 
@@ -710,10 +702,10 @@ public abstract class IterativeActivityExecution<
             OperationResult result) throws ActivityExecutionException, CommonException;
 
     @Override
-    protected @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
+    protected final @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
-        ActivityState explicit = executionSpecifics.useOtherActivityStateForCounters(result);
+        ActivityState explicit = useOtherActivityStateForCounters(result);
         if (explicit != null) {
             return explicit;
         }
@@ -737,15 +729,11 @@ public abstract class IterativeActivityExecution<
                 beans);
     }
 
-    public @NotNull AES getExecutionSpecifics() {
-        return executionSpecifics;
-    }
-
-    @NotNull ItemsReport getItemsReport() {
+    @NotNull final ItemsReport getItemsReport() {
         return activityState.getItemsReport();
     }
 
-    @NotNull ConnIdOperationsReport getConnIdOperationsReport() {
+    @NotNull final ConnIdOperationsReport getConnIdOperationsReport() {
         return activityState.getConnIdOperationsReport();
     }
 
@@ -781,25 +769,19 @@ public abstract class IterativeActivityExecution<
         return activityState.getBucketsReport().isEnabled();
     }
 
-    boolean shouldReportItems() {
+    final boolean shouldReportItems() {
         return activityState.getItemsReport().isEnabled();
     }
 
-    boolean shouldReportConnIdOperations() {
+    final boolean shouldReportConnIdOperations() {
         return activityState.getConnIdOperationsReport().isEnabled();
     }
 
-    boolean shouldReportInternalOperations() {
+    final boolean shouldReportInternalOperations() {
         return activityState.getInternalOperationsReport().isEnabled();
     }
 
-    @FunctionalInterface
-    public interface SpecificsSupplier<AE extends IterativeActivityExecution<?, ?, ?, ?, ?, ?>,
-            AES extends IterativeActivityExecutionSpecifics> {
-        AES supply(AE activityExecution);
-    }
-
-    public WorkBucketType getBucket() {
+    public final WorkBucketType getBucket() {
         return bucket;
     }
 
@@ -808,6 +790,18 @@ public abstract class IterativeActivityExecution<
             return BucketingSituation.worker(getRunningTask());
         } else {
             return BucketingSituation.standalone(getRunningTask());
+        }
+    }
+
+    final void enableGlobalConnIdOperationsListener() {
+        if (shouldReportConnIdOperations()) {
+            getRunningTask().registerConnIdOperationsListener(globalConnIdOperationsListener);
+        }
+    }
+
+    final void disableGlobalConnIdOperationsListener() {
+        if (shouldReportConnIdOperations()) {
+            getRunningTask().unregisterConnIdOperationsListener(globalConnIdOperationsListener);
         }
     }
 
@@ -871,18 +865,6 @@ public abstract class IterativeActivityExecution<
 
         private long getDuration() {
             return endTimestamp - startTimestamp;
-        }
-    }
-
-    void enableGlobalConnIdOperationsListener() {
-        if (shouldReportConnIdOperations()) {
-            getRunningTask().registerConnIdOperationsListener(globalConnIdOperationsListener);
-        }
-    }
-
-    void disableGlobalConnIdOperationsListener() {
-        if (shouldReportConnIdOperations()) {
-            getRunningTask().unregisterConnIdOperationsListener(globalConnIdOperationsListener);
         }
     }
 

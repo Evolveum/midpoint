@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ public interface PlainIterativeActivityExecutionSpecifics<I>
      *
      * Note that the bucket can be obtained from the activity execution. It is included here simply for convenience.
      */
-    void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult opResult) throws CommonException;
+    void iterateOverItemsInBucket(OperationResult opResult) throws CommonException;
 
     /**
      * Determines the expected total progress.
@@ -49,7 +50,7 @@ public interface PlainIterativeActivityExecutionSpecifics<I>
      * Majority of current plain iterative activities do not know the number of items: for example, ConnId SyncOp does not
      * provide information about how many changes are on the resource. But there might be some activities that do.
      */
-    default @Nullable Integer determineOverallSize(OperationResult result) throws CommonException {
+    default @Nullable Integer determineOverallSize(OperationResult result) throws CommonException, ActivityExecutionException {
         return null;
     }
 
@@ -59,7 +60,7 @@ public interface PlainIterativeActivityExecutionSpecifics<I>
      * Not applicable to the majority of current plain iterative activities, just like
      * {@link #determineOverallSize(OperationResult)}.
      */
-    default @Nullable Integer determineCurrentBucketSize(WorkBucketType bucket, OperationResult result) throws CommonException {
+    default @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
         return null;
     }
 

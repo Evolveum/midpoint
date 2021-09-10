@@ -13,8 +13,8 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -28,32 +28,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Code common to all three reconciliation sub-activities: operation completion, resource reconciliation,
  * and remaining shadows reconciliation.
  */
-public abstract class PartialReconciliationActivityExecutionSpecifics
-        extends BaseSearchBasedExecutionSpecificsImpl
+public abstract class PartialReconciliationActivityExecution
+        extends SearchBasedActivityExecution
         <ShadowType,
                 ReconciliationWorkDefinition,
-                ReconciliationActivityHandler> {
+                ReconciliationActivityHandler,
+                ReconciliationWorkStateType> {
 
     ResourceObjectClassSpecification objectClassSpec;
     SynchronizationObjectsFilterImpl objectsFilter;
 
-    PartialReconciliationActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType,
-            ReconciliationWorkDefinition, ReconciliationActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    PartialReconciliationActivityExecution(
+            @NotNull ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> activityExecution,
+            String shortNameCapitalized) {
+        super(activityExecution, shortNameCapitalized);
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult) throws CommonException, ActivityExecutionException {
+    public void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
         objectClassSpec = getModelBeans().syncTaskHelper
-                .createObjectClassSpec(resourceObjectSet, getRunningTask(), opResult);
+                .createObjectClassSpec(resourceObjectSet, getRunningTask(), result);
         objectsFilter = objectClassSpec.getObjectFilter(resourceObjectSet);
 
         objectClassSpec.checkNotInMaintenance();
 
-        activityExecution.setContextDescription(activityExecution.getShortName() + " on " +
-                objectClassSpec.getContextDescription()); // TODO?
+        setContextDescription(getShortName() + " on " + objectClassSpec.getContextDescription()); // TODO?
     }
 
     protected @NotNull ResourceObjectSetType getResourceObjectSet() {

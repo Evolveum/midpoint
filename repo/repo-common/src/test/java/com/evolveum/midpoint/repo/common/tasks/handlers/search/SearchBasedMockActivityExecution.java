@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.search;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.*;
 
 import com.evolveum.midpoint.schema.SchemaService;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.NotNull;
@@ -34,19 +36,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
- * TODO
+ * Execution of a search-based mock activity.
  */
-class SearchBasedMockActivityExecutionSpecifics
-        extends BaseSearchBasedExecutionSpecificsImpl
-        <ObjectType, SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler> {
+class SearchBasedMockActivityExecution
+        extends SearchBasedActivityExecution
+        <ObjectType, SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler, AbstractActivityWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SearchBasedMockActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SearchBasedMockActivityExecution.class);
 
     @NotNull private final Lazy<ObjectFilter> failOnFilter = Lazy.from(this::parseFailOnFilter);
 
-    SearchBasedMockActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ObjectType,
-            SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    SearchBasedMockActivityExecution(
+            @NotNull ExecutionInstantiationContext<SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler> context) {
+        super(context, "Search-iterative mock activity");
     }
 
     @Override
@@ -77,7 +79,7 @@ class SearchBasedMockActivityExecutionSpecifics
             return;
         }
 
-        boolean scavenger = activityExecution.isWorker() && !activityExecution.isNonScavengingWorker();
+        boolean scavenger = isWorker() && !isNonScavengingWorker();
         if (scavenger) {
             LOGGER.warn("Freezing because we are a scavenger");
             MiscUtil.sleepWatchfully(Long.MAX_VALUE, 100, () -> getRunningTask().canRun());
@@ -103,7 +105,7 @@ class SearchBasedMockActivityExecutionSpecifics
         if (failOnBean != null) {
             try {
                 return PrismContext.get().getQueryConverter()
-                        .parseFilter(failOnBean, activityExecution.getSearchSpecificationRequired().getObjectType());
+                        .parseFilter(failOnBean, getSearchSpecificationRequired().getObjectType());
             } catch (SchemaException e) {
                 throw new SystemException(e);
             }

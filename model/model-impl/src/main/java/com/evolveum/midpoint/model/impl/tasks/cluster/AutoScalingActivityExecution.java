@@ -7,15 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.tasks.cluster;
 
+import java.util.Collection;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,13 +32,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
-
-public class AutoScalingExecutionSpecifics extends
-        BaseSearchBasedExecutionSpecificsImpl<TaskType, AutoScalingWorkDefinition, AutoScalingActivityHandler> {
+public class AutoScalingActivityExecution extends
+        SearchBasedActivityExecution<TaskType, AutoScalingWorkDefinition, AutoScalingActivityHandler, ActivityAutoScalingWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AutoScalingActivityHandler.class);
 
@@ -41,9 +42,9 @@ public class AutoScalingExecutionSpecifics extends
      */
     private ReconciliationLatch latch;
 
-    AutoScalingExecutionSpecifics(
-            @NotNull SearchBasedActivityExecution<TaskType, AutoScalingWorkDefinition, AutoScalingActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    AutoScalingActivityExecution(
+            @NotNull ExecutionInstantiationContext<AutoScalingWorkDefinition, AutoScalingActivityHandler> activityExecution) {
+        super(activityExecution, "Auto-scaling");
     }
 
     @Override
@@ -53,10 +54,10 @@ public class AutoScalingExecutionSpecifics extends
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult) throws CommonException, ActivityExecutionException {
+    public void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
         XMLGregorianCalendar now = getActivityHandler().getModelBeans().clock.currentTimeXMLGregorianCalendar();
         latch = new ReconciliationLatch(getActivity(), getActivityState(), now);
-        latch.determineSituation(opResult);
+        latch.determineSituation(result);
     }
 
     @Override

@@ -1,7 +1,9 @@
 package com.evolveum.midpoint.model.impl.tasks;
 
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.task.ObjectPreprocessor;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -11,6 +13,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
@@ -26,10 +30,13 @@ public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowFetchingPreprocessor.class);
 
-    private final ModelSearchBasedActivityExecution<?, ?, ?, ?> activityExecution;
+    @NotNull private final SearchBasedActivityExecution<?, ?, ?, ?> activityExecution;
+    @NotNull private final ModelObjectResolver modelObjectResolver;
 
-    ShadowFetchingPreprocessor(ModelSearchBasedActivityExecution<?, ?, ?, ?> activityExecution) {
+    ShadowFetchingPreprocessor(@NotNull SearchBasedActivityExecution<?, ?, ?, ?> activityExecution,
+            @NotNull ModelObjectResolver modelObjectResolver) {
         this.activityExecution = activityExecution;
+        this.modelObjectResolver = modelObjectResolver;
     }
 
     @Override
@@ -41,7 +48,7 @@ public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType
         Collection<SelectorOptions<GetOperationOptions>> options = adaptSearchOptions(activityExecution.getSearchOptions());
 
         LOGGER.trace("Fetching {} with options: {}", originalObject, options);
-        return activityExecution.getModelBeans().modelObjectResolver
+        return modelObjectResolver
                 .getObject(ShadowType.class, oid, options, task, result)
                 .asPrismObject();
     }

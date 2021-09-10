@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 
 import com.evolveum.midpoint.report.impl.ReportUtils;
@@ -31,11 +32,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Activity execution specifics for classical collection report export.
  */
-public class ClassicCollectionReportExportActivityExecutionSpecifics
-        extends BasePlainIterativeExecutionSpecificsImpl
+public class ClassicCollectionReportExportActivityExecution
+        extends PlainIterativeActivityExecution
         <Containerable,
                 ClassicReportExportWorkDefinition,
-                ClassicReportExportActivityHandler> {
+                ClassicReportExportActivityHandler,
+                ReportExportWorkStateType> {
 
     @NotNull private final ExportCollectionActivitySupport support;
 
@@ -43,7 +45,7 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
     @NotNull private final ReportServiceImpl reportService;
 
     /**
-     * Data writer which completize context of report.
+     * Data writer which completes the content of the report.
      */
     private ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
 
@@ -58,13 +60,12 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
      */
     private ContainerableReportDataSource searchSpecificationHolder;
 
-    ClassicCollectionReportExportActivityExecutionSpecifics(
-            @NotNull PlainIterativeActivityExecution<Containerable, ClassicReportExportWorkDefinition,
-                    ClassicReportExportActivityHandler, ?> activityExecution) {
-        super(activityExecution);
-        reportService = activityExecution.getActivity().getHandler().reportService;
-        support = new ExportCollectionActivitySupport(activityExecution, activityExecution.getActivityHandler().reportService,
-                activityExecution.getActivityHandler().objectResolver, activityExecution.getActivity().getWorkDefinition());
+    ClassicCollectionReportExportActivityExecution(
+            ExecutionInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context) {
+        super(context, "Collection report export");
+        reportService = getActivityHandler().reportService;
+        support = new ExportCollectionActivitySupport(this, reportService,
+                getActivityHandler().objectResolver, getWorkDefinition());
     }
 
     @Override
@@ -107,7 +108,7 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
     }
 
     @Override
-    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) throws CommonException {
+    public void iterateOverItemsInBucket(OperationResult result) throws CommonException {
         // Issue the search to audit or model/repository
         // And use the following handler to handle the results
 
@@ -115,15 +116,16 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
 
         Handler<Containerable> handler = record -> {
             ItemProcessingRequest<Containerable> request = new ContainerableProcessingRequest<>(
-                    sequence.getAndIncrement(), record, activityExecution);
-            getProcessingCoordinator().submit(request, result);
+                    sequence.getAndIncrement(), record, this);
+            coordinator.submit(request, result);
             return true;
         };
         searchSpecificationHolder.run(handler, result);
     }
 
     @Override
-    public boolean processItem(ItemProcessingRequest<Containerable> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ItemProcessingRequest<Containerable> request, @NotNull RunningTask workerTask,
+            OperationResult result)
             throws CommonException, ActivityExecutionException {
         Containerable record = request.getItem();
         controller.handleDataRecord(request.getSequentialNumber(), record, workerTask, result);

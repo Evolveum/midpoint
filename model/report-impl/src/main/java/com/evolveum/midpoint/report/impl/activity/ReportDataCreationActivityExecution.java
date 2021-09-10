@@ -13,9 +13,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionType
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.report.impl.controller.*;
 
 import com.evolveum.midpoint.repo.common.task.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -43,13 +46,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
  * 2. processes objects found by feeding them into the export controller,
  * 3. finally, instructs the controller to write the (potentially partial) report.
  */
-public class ReportDataCreationExecutionSpecifics
-        extends BaseSearchBasedExecutionSpecificsImpl
+public class ReportDataCreationActivityExecution
+        extends SearchBasedActivityExecution
         <ObjectType,
                 DistributedReportExportWorkDefinition,
-                DistributedReportExportActivityHandler> {
+                DistributedReportExportActivityHandler,
+                ReportExportWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ReportDataCreationExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReportDataCreationActivityExecution.class);
 
     /**
      * Execution object (~ controller) that is used to translate objects found into report data.
@@ -68,12 +72,11 @@ public class ReportDataCreationExecutionSpecifics
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
 
-    ReportDataCreationExecutionSpecifics(
-            @NotNull SearchBasedActivityExecution<ObjectType, DistributedReportExportWorkDefinition,
-                    DistributedReportExportActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    ReportDataCreationActivityExecution(
+            @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
+        super(context, "Report data creation");
         reportService = getActivity().getHandler().reportService;
-        support = new DistributedReportExportActivitySupport(activityExecution);
+        support = new DistributedReportExportActivitySupport(this);
     }
 
     /**
@@ -123,7 +126,7 @@ public class ReportDataCreationExecutionSpecifics
      * down to simple search specification - and this is done exactly in this method.
      */
     @Override
-    public @NotNull SearchSpecification<ObjectType> createSearchSpecification(OperationResult result) {
+    public @NotNull SearchSpecification<ObjectType> createCustomSearchSpecification(OperationResult result) {
         return masterSearchSpecification.clone();
     }
 
@@ -137,12 +140,12 @@ public class ReportDataCreationExecutionSpecifics
 
     @Override
     public void beforeBucketExecution(OperationResult result) {
-        controller.beforeBucketExecution(activityExecution.getBucket().getSequentialNumber(), result);
+        controller.beforeBucketExecution(bucket.getSequentialNumber(), result);
     }
 
     @Override
     public void afterBucketExecution(OperationResult result) throws CommonException {
-        controller.afterBucketExecution(activityExecution.getBucket().getSequentialNumber(), result);
+        controller.afterBucketExecution(bucket.getSequentialNumber(), result);
     }
 
     private static class SearchSpecificationHolder implements ReportDataSource<ObjectType> {

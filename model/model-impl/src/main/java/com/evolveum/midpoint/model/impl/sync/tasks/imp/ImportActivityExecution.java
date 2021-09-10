@@ -9,9 +9,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.repo.common.task.*;
-
-import com.evolveum.midpoint.repo.common.task.work.ItemDefinitionProvider;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -22,6 +20,10 @@ import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.work.ItemDefinitionProvider;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -29,20 +31,20 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class ImportActivityExecutionSpecifics
-        extends BaseSearchBasedExecutionSpecificsImpl<ShadowType, ImportWorkDefinition, ImportActivityHandler> {
+public class ImportActivityExecution
+        extends SearchBasedActivityExecution<ShadowType, ImportWorkDefinition, ImportActivityHandler, AbstractActivityWorkStateType> {
 
     private ResourceObjectClassSpecification resourceObjectClassSpecification;
     private SynchronizationObjectsFilterImpl objectsFilter;
     private Synchronizer synchronizer;
 
-    ImportActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType, ImportWorkDefinition,
-            ImportActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    ImportActivityExecution(ExecutionInstantiationContext<ImportWorkDefinition, ImportActivityHandler> context) {
+        super(context, "Import");
     }
 
     @Override
@@ -53,11 +55,11 @@ public class ImportActivityExecutionSpecifics
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult) throws ActivityExecutionException, CommonException {
+    public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
         ResourceObjectSetType resourceObjectSet = getWorkDefinition().getResourceObjectSetSpecification();
 
         resourceObjectClassSpecification = getModelBeans().syncTaskHelper
-                .createObjectClassSpec(resourceObjectSet, getRunningTask(), opResult);
+                .createObjectClassSpec(resourceObjectSet, getRunningTask(), result);
         objectsFilter = this.resourceObjectClassSpecification.getObjectFilter(resourceObjectSet);
         synchronizer = createSynchronizer();
 
@@ -71,7 +73,7 @@ public class ImportActivityExecutionSpecifics
                 objectsFilter,
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_IMPORT,
-                activityExecution.isPreview(),
+                isPreview(),
                 true);
     }
 

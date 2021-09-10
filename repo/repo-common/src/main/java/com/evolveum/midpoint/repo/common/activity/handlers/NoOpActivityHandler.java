@@ -69,15 +69,15 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
     public AbstractActivityExecution<MyWorkDefinition, NoOpActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<MyWorkDefinition, NoOpActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PlainIterativeActivityExecution<>(context, "NoOp", MyExecutionSpecifics::new);
+        return new MyExecution(context);
     }
 
-    private static class MyExecutionSpecifics
-            extends BasePlainIterativeExecutionSpecificsImpl<Integer, MyWorkDefinition, NoOpActivityHandler> {
+    private static class MyExecution
+            extends PlainIterativeActivityExecution<Integer, MyWorkDefinition, NoOpActivityHandler, AbstractActivityWorkStateType> {
 
-        MyExecutionSpecifics(
-                @NotNull PlainIterativeActivityExecution<Integer, MyWorkDefinition, NoOpActivityHandler, ?> activityExecution) {
-            super(activityExecution);
+        MyExecution(
+                @NotNull ExecutionInstantiationContext<MyWorkDefinition, NoOpActivityHandler> context) {
+            super(context, "NoOp");
         }
 
         @Override
@@ -96,39 +96,39 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
 
         @Override
         public @Nullable Integer determineOverallSize(OperationResult result) throws CommonException {
-            return activityExecution.getActivity().getWorkDefinition().getInterval().getSize();
+            return getWorkDefinition().getInterval().getSize();
         }
 
         @Override
-        public @Nullable Integer determineCurrentBucketSize(WorkBucketType bucket, OperationResult result) throws CommonException {
+        public @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
             return NumericIntervalBucketUtil.getNarrowedInterval(
                             bucket,
-                            activityExecution.getActivity().getWorkDefinition().getInterval())
+                            getWorkDefinition().getInterval())
                     .getSize();
         }
 
         @Override
-        public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) {
-            MyWorkDefinition def = activityExecution.getActivity().getWorkDefinition();
-            Interval narrowed = NumericIntervalBucketUtil.getNarrowedInterval(bucket, def.getInterval());
+        public void iterateOverItemsInBucket(OperationResult result) {
+            Interval narrowed = NumericIntervalBucketUtil.getNarrowedInterval(bucket, getWorkDefinition().getInterval());
 
             for (int step = narrowed.from; step < narrowed.to; step++) {
-                ItemProcessingRequest<Integer> request = new GenericProcessingRequest<>(step, step, activityExecution);
-                if (!activityExecution.getCoordinator().submit(request, result)) {
+                ItemProcessingRequest<Integer> request = new GenericProcessingRequest<>(step, step, this);
+                if (!coordinator.submit(request, result)) {
                     break;
                 }
             }
         }
 
         @Override
-        public void afterExecution(OperationResult opResult) throws CommonException, ActivityExecutionException {
+        public void afterExecution(OperationResult result) throws CommonException, ActivityExecutionException {
             LOGGER.info("Execution stopping; canRun = {}", canRun());
         }
 
         @Override
-        public boolean processItem(ItemProcessingRequest<Integer> request, RunningTask workerTask, OperationResult result) {
+        public boolean processItem(@NotNull ItemProcessingRequest<Integer> request, @NotNull RunningTask workerTask,
+                @NotNull OperationResult result) {
             MyWorkDefinition def = getWorkDefinition();
-            Interval interval = NumericIntervalBucketUtil.getNarrowedInterval(activityExecution.getBucket(), def.getInterval());
+            Interval interval = NumericIntervalBucketUtil.getNarrowedInterval(bucket, def.getInterval());
 
             LOGGER.info("Executing step #{} (numbered from zero) of {} in bucket [{}-{}) in task {}",
                     request.getItem(), def.steps, interval.from, interval.to, getRunningTask());
@@ -151,10 +151,6 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
                 default:
                     throw new AssertionError(def.stepInterruptibility);
             }
-        }
-
-        private boolean canRun() {
-            return getRunningTask().canRun();
         }
 
         @Override

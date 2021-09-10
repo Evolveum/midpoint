@@ -7,41 +7,44 @@
 
 package com.evolveum.midpoint.model.impl.tasks.scanner;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType.NONE;
+
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType.NONE;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemCountingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
 
 /**
  * Things that we want to remember for all task scanners, like scanning timestamps.
  */
-public abstract class ScanActivityExecutionSpecifics<
+public abstract class ScanActivityExecution<
         O extends ObjectType,
         WD extends WorkDefinition,
         MAH extends ModelActivityHandler<WD, MAH>>
-        extends BaseSearchBasedExecutionSpecificsImpl<O, WD, MAH> {
+        extends SearchBasedActivityExecution<O, WD, MAH, ScanWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ScanActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ScanActivityExecution.class);
 
     XMLGregorianCalendar lastScanTimestamp;
     protected XMLGregorianCalendar thisScanTimestamp;
 
-    public ScanActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<O, WD, MAH, ?> activityExecution) {
-        super(activityExecution);
+    public ScanActivityExecution(@NotNull ExecutionInstantiationContext<WD, MAH> context, String shortNameCapitalized) {
+        super(context, shortNameCapitalized);
     }
 
     @Override
@@ -54,7 +57,7 @@ public abstract class ScanActivityExecutionSpecifics<
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult) {
+    public void beforeExecution(OperationResult result) {
         lastScanTimestamp = getActivityState().getWorkStatePropertyRealValue(ScanWorkStateType.F_LAST_SCAN_TIMESTAMP,
                 XMLGregorianCalendar.class);
         thisScanTimestamp = getModelBeans().clock.currentTimeXMLGregorianCalendar();
@@ -62,7 +65,7 @@ public abstract class ScanActivityExecutionSpecifics<
     }
 
     @Override
-    public void afterExecution(OperationResult opResult) throws SchemaException, ActivityExecutionException {
+    public void afterExecution(OperationResult result) throws SchemaException, ActivityExecutionException {
         if (getRunningTask().canRun()) {
             /*
              *  We want to update last scan timestamp only if the task has finished its current duties.
@@ -75,7 +78,7 @@ public abstract class ScanActivityExecutionSpecifics<
              *     not requested by any scanner task handlers."
              */
             getActivityState().setWorkStateItemRealValues(ScanWorkStateType.F_LAST_SCAN_TIMESTAMP, thisScanTimestamp);
-            getActivityState().flushPendingTaskModificationsChecked(opResult);
+            getActivityState().flushPendingTaskModificationsChecked(result);
         }
     }
 
@@ -87,8 +90,7 @@ public abstract class ScanActivityExecutionSpecifics<
         return thisScanTimestamp;
     }
 
-    @NotNull
-    public ModelBeans getModelBeans() {
+    public @NotNull ModelBeans getModelBeans() {
         return getActivityHandler().getModelBeans();
     }
 }

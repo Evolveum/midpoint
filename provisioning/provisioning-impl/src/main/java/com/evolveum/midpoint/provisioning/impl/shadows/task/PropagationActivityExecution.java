@@ -8,6 +8,9 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -26,15 +29,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Execution specifics of a propagation activity.
  */
-public class PropagationActivityExecutionSpecifics
-        extends BaseSearchBasedExecutionSpecificsImpl<ShadowType, PropagationWorkDefinition, PropagationActivityHandler> {
+public class PropagationActivityExecution
+        extends SearchBasedActivityExecution<
+            ShadowType,
+            PropagationWorkDefinition,
+            PropagationActivityHandler,
+            AbstractActivityWorkStateType> {
 
     /** Fetched resource object. */
     private PrismObject<ResourceType> resource;
 
-    PropagationActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType, PropagationWorkDefinition,
-            PropagationActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    PropagationActivityExecution(
+            @NotNull ExecutionInstantiationContext<PropagationWorkDefinition, PropagationActivityHandler> context) {
+        super(context, "Propagation");
     }
 
     @Override
@@ -45,18 +52,18 @@ public class PropagationActivityExecutionSpecifics
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult) throws CommonException {
+    public void beforeExecution(OperationResult result) throws CommonException {
         String resourceOid = MiscUtil.requireNonNull(
                 getWorkDefinition().getResourceOid(),
                 () -> "No resource specified");
         resource = getActivityHandler().provisioningService
-                .getObject(ResourceType.class, resourceOid, null, getRunningTask(), opResult);
-        activityExecution.setContextDescription("to " + resource);
+                .getObject(ResourceType.class, resourceOid, null, getRunningTask(), result);
+        setContextDescription("to " + resource);
     }
 
     @Override
     @NotNull
-    public SearchSpecification<ShadowType> createSearchSpecification(OperationResult result) {
+    public SearchSpecification<ShadowType> createCustomSearchSpecification(OperationResult result) {
         return new SearchSpecification<>(
                 ShadowType.class,
                 PrismContext.get().queryFor(ShadowType.class)

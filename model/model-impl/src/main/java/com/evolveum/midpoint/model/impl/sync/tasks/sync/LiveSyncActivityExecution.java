@@ -9,13 +9,12 @@ package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.provisioning.api.*;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemCountingOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -30,20 +29,20 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
 import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.FollowUpAction.STOP;
 
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 
-public class LiveSyncActivityExecutionSpecifics
-        extends BasePlainIterativeExecutionSpecificsImpl
+public class LiveSyncActivityExecution
+        extends PlainIterativeActivityExecution
         <LiveSyncEvent,
                 LiveSyncWorkDefinition,
-                LiveSyncActivityHandler> {
+                LiveSyncActivityHandler,
+                LiveSyncWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(LiveSyncActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LiveSyncActivityExecution.class);
 
     /**
      * Local sequence number of a change that is being processed in the current thread.
@@ -56,9 +55,9 @@ public class LiveSyncActivityExecutionSpecifics
 
     private ResourceObjectClassSpecification objectClassSpecification;
 
-    public LiveSyncActivityExecutionSpecifics(@NotNull PlainIterativeActivityExecution<LiveSyncEvent, LiveSyncWorkDefinition,
-                    LiveSyncActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    public LiveSyncActivityExecution(
+            @NotNull ExecutionInstantiationContext<LiveSyncWorkDefinition, LiveSyncActivityHandler> activityExecution) {
+        super(activityExecution, "LiveSync");
     }
 
     @Override
@@ -72,27 +71,27 @@ public class LiveSyncActivityExecutionSpecifics
     }
 
     @Override
-    public void beforeExecution(OperationResult opResult) throws ActivityExecutionException, CommonException {
-        RunningTask runningTask = activityExecution.getRunningTask();
+    public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
+        RunningTask runningTask = getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
         objectClassSpecification = getModelBeans().syncTaskHelper
-                .createObjectClassSpec(resourceObjectSet, runningTask, opResult);
+                .createObjectClassSpec(resourceObjectSet, runningTask, result);
 
         objectClassSpecification.checkNotInMaintenance();
     }
 
     @Override
-    public void afterExecution(OperationResult opResult) throws SchemaException {
-        int itemsProcessed = activityExecution.getTransientExecutionStatistics().getItemsProcessed();
+    public void afterExecution(OperationResult result) throws SchemaException {
+        int itemsProcessed = transientExecutionStatistics.getItemsProcessed();
         LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {}); changes processed: {}",
                 objectClassSpecification.resource, itemsProcessed);
-        opResult.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS)
+        result.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS)
                 .recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + itemsProcessed);
     }
 
     @Override
-    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult opResult)
+    public void iterateOverItemsInBucket(OperationResult opResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
 
@@ -100,18 +99,18 @@ public class LiveSyncActivityExecutionSpecifics
             @Override
             public boolean handle(LiveSyncEvent event, OperationResult opResult) {
                 SyncItemProcessingRequest<LiveSyncEvent> request =
-                        new SyncItemProcessingRequest<>(event, activityExecution);
-                return getProcessingCoordinator().submit(request, opResult);
+                        new SyncItemProcessingRequest<>(event, LiveSyncActivityExecution.this);
+                return coordinator.submit(request, opResult);
             }
 
             @Override
             public void allEventsSubmitted(OperationResult result) {
-                getProcessingCoordinator().finishProcessing(result);
+                coordinator.finishProcessing(result);
             }
         };
 
         LiveSyncOptions options = createLiveSyncOptions();
-        ActivityTokenStorageImpl tokenStorage = new ActivityTokenStorageImpl(activityExecution);
+        ActivityTokenStorageImpl tokenStorage = new ActivityTokenStorageImpl(this);
 
         ModelImplUtils.clearRequestee(getRunningTask());
         getModelBeans().provisioningService
@@ -125,7 +124,8 @@ public class LiveSyncActivityExecutionSpecifics
     }
 
     @Override
-    public boolean processItem(ItemProcessingRequest<LiveSyncEvent> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ItemProcessingRequest<LiveSyncEvent> request, @NotNull RunningTask workerTask,
+            @NotNull OperationResult result)
             throws CommonException, ActivityExecutionException {
         LiveSyncEvent event = request.getItem();
 
@@ -134,7 +134,7 @@ public class LiveSyncActivityExecutionSpecifics
             if (event.isComplete()) {
                 ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
                 changeDescription.setItemProcessingIdentifier(request.getIdentifier()); // hack?
-                changeDescription.setSimulate(activityExecution.isPreview());
+                changeDescription.setSimulate(isPreview());
                 getModelBeans().eventDispatcher.notifyChange(changeDescription, workerTask, result);
             } else if (event.isNotApplicable()) {
                 result.recordNotApplicable();

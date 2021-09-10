@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 public class ContainerableProcessingRequest<C extends Containerable> extends ItemProcessingRequest<C> {
 
     public ContainerableProcessingRequest(int sequentialNumber, C item,
-            @NotNull IterativeActivityExecution<C, ?, ?, ?, ?, ?> activityExecution) {
+            @NotNull IterativeActivityExecution<C, ?, ?, ?> activityExecution) {
         super(sequentialNumber, item, activityExecution);
     }
 

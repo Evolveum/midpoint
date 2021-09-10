@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 
@@ -22,11 +23,10 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemCountingOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -39,13 +39,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Activity execution for report import.
  */
-class ClassicReportImportActivityExecutionSpecifics
-        extends BasePlainIterativeExecutionSpecificsImpl
+class ClassicReportImportActivityExecution
+        extends PlainIterativeActivityExecution
         <InputReportLine,
                 ClassicReportImportWorkDefinition,
-                ClassicReportImportActivityHandler> {
+                ClassicReportImportActivityHandler,
+                AbstractActivityWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ClassicReportImportActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ClassicReportImportActivityExecution.class);
 
     @NotNull private final ImportActivitySupport support;
 
@@ -57,12 +58,11 @@ class ClassicReportImportActivityExecutionSpecifics
 
     private ImportController controller;
 
-    ClassicReportImportActivityExecutionSpecifics(
-            @NotNull PlainIterativeActivityExecution<InputReportLine,
-                    ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler, ?> activityExecution) {
-        super(activityExecution);
+    ClassicReportImportActivityExecution(
+            @NotNull ExecutionInstantiationContext<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> activityExecution) {
+        super(activityExecution, "Report import");
         reportService = activityExecution.getActivity().getHandler().reportService;
-        support = new ImportActivitySupport(activityExecution);
+        support = new ImportActivitySupport(this);
     }
 
     @Override
@@ -95,12 +95,12 @@ class ClassicReportImportActivityExecutionSpecifics
     }
 
     @Override
-    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) {
+    public void iterateOverItemsInBucket(OperationResult result) {
         BiConsumer<Integer, VariablesMap> handler = (lineNumber, variables) -> {
             InputReportLine line = new InputReportLine(lineNumber, variables);
 
-            getProcessingCoordinator().submit(
-                    new InputReportLineProcessingRequest(line, activityExecution),
+            coordinator.submit(
+                    new InputReportLineProcessingRequest(line, this),
                     result);
         };
         AtomicInteger sequence = new AtomicInteger(1);
@@ -110,7 +110,8 @@ class ClassicReportImportActivityExecutionSpecifics
     }
 
     @Override
-    public boolean processItem(ItemProcessingRequest<InputReportLine> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ItemProcessingRequest<InputReportLine> request, @NotNull RunningTask workerTask,
+            OperationResult result)
             throws CommonException, ActivityExecutionException {
         InputReportLine line = request.getItem();
         controller.handleDataRecord(line, workerTask, result);
