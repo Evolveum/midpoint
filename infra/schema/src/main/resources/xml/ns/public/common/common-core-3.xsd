@@ -13917,6 +13917,15 @@
             </xsd:element>
             <xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="incomplete" type="xsd:boolean">
+            <xsd:annotation>
+                <xsd:documentation>
+                    This is just to make XML parsers happy when they see a task with incomplete operation result.
+                    (See MID-7023.) Not a particularly clean solution, but should do no harm. Please DO NOT USE this
+                    attribute for any purpose!
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
     </xsd:complexType>
     <xsd:element name="operationResult" type="tns:OperationResultType"/>
 
