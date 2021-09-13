@@ -11,5 +11,4 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
  */
 public class MGenericObject extends MFocus {
 
-    public Integer genericObjectTypeId;
 }

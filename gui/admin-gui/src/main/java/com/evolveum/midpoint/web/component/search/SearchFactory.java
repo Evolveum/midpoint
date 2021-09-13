@@ -111,9 +111,9 @@ public class SearchFactory {
                 ItemPath.create(OrgType.F_PARENT_ORG_REF),
                 ItemPath.create(OrgType.F_LOCALITY)
         ));
-        SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
-                ItemPath.create(GenericObjectType.F_OBJECT_TYPE)
-        ));
+//        SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
+//                ItemPath.create(GenericObjectType.F_OBJECT_TYPE)
+//        ));
         SEARCHABLE_OBJECTS.put(NodeType.class, Arrays.asList(
                 ItemPath.create(NodeType.F_NODE_IDENTIFIER)
         ));

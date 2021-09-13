@@ -742,28 +742,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FocusType">
                 <xsd:sequence>
-                    <xsd:element name="objectType" type="xsd:anyURI">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                Type of the stored object.
-                                This attribute contains URI defining the type (class) of
-                                stored object. The URI that maps to a QName of an object
-                                XML element should be used if possible (see QName
-                                mapping above). However this is not mandatory and the
-                                implementation must be able to work with any URI.
-                                </p>
-
-                                <p>
-                                This property is DEPRECATED. It has been made obsolete by archetypes.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

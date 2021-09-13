@@ -153,7 +153,6 @@ public class TestJaxbParsing extends AbstractSchemaTest {
         prism.checkConsistence();
         assertPropertyValue(prism, GenericObjectType.F_NAME, PrismTestUtil.createPolyString("My Sample Config Object"));
         assertPropertyValue(prism, GenericObjectType.F_DESCRIPTION, "Sample description");
-        assertPropertyValue(prism, GenericObjectType.F_OBJECT_TYPE, "http://midpoint.evolveum.com/xml/ns/test/extension#SampleConfigType");
         //assert extension
         PrismContainer<?> extension = prism.findContainer(GenericObjectType.F_EXTENSION);
         assertNotNull(extension);
