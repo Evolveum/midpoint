@@ -795,7 +795,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 return 0;
             }
 
-            return executeCountObject(type, query, options);
+            return executeCountObjects(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -806,7 +806,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    private <T extends ObjectType> int executeCountObject(
+    private <T extends ObjectType> int executeCountObjects(
             @NotNull Class<T> type,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
@@ -846,7 +846,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 return new SearchResultList<>();
             }
 
-            return executeSearchObject(type, query, options, OP_SEARCH_OBJECTS);
+            return executeSearchObjects(type, query, options, OP_SEARCH_OBJECTS);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -857,7 +857,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    private <T extends ObjectType> SearchResultList<PrismObject<T>> executeSearchObject(
+    private <T extends ObjectType> SearchResultList<PrismObject<T>> executeSearchObjects(
             @NotNull Class<T> type,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
@@ -1002,7 +1002,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
                 // we don't call public searchObject to avoid subresults and query simplification
                 logSearchInputParameters(type, pagedQuery, "Search object iterative page");
-                List<PrismObject<T>> objects = executeSearchObject(
+                List<PrismObject<T>> objects = executeSearchObjects(
                         type, pagedQuery, options, OP_SEARCH_OBJECTS_ITERATIVE_PAGE);
 
                 // process page results
@@ -1303,7 +1303,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     .item(FocusType.F_LINK_REF).ref(shadowOid)
                     .build();
             SearchResultList<PrismObject<FocusType>> result =
-                    executeSearchObject(FocusType.class, query, options, OP_SEARCH_SHADOW_OWNER);
+                    executeSearchObjects(FocusType.class, query, options, OP_SEARCH_SHADOW_OWNER);
 
             if (result == null || result.isEmpty()) {
                 // account shadow owner was not found
@@ -1900,10 +1900,5 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } else {
             return true;
         }
-    }
-
-    @Override
-    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
-        return performanceMonitor;
     }
 }

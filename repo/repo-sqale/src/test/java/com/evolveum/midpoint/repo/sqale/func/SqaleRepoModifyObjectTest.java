@@ -3407,7 +3407,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_MODIFY_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_MODIFY_OBJECT);
     }
 
     @Test()
@@ -3423,7 +3423,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_MODIFY_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_MODIFY_OBJECT);
     }
 
     @Test(enabled = true)

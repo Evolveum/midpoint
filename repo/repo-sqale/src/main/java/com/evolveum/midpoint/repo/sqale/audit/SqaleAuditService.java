@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
@@ -31,12 +32,17 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqale.*;
@@ -544,6 +550,16 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         }
     }
 
+    /*
+    TODO: We should try to unify iterative search for repo and audit.
+     There are some obvious differences - like the provider of the page results - the differences need to be
+     captured before the common functionality.
+     Then there are little nuances in filter/ordering:
+     In repo there is no potential collision between provided filter/ordering and additional "technical" one for OID.
+     In audit these can collide, but perhaps not every situation needs to be optimized and we can let DB do the work
+     (e.g. superfluous timestamp conditions).
+     See also iterativeSearchCondition() comment and ideas there.
+     */
     private SearchResultMetadata executeSearchObjectsIterative(
             ObjectQuery originalQuery,
             AuditResultHandler handler,
@@ -555,7 +571,13 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             // this is total requested size of the search
             Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
 
-            IterativeSearchOrdering ordering = new IterativeSearchOrdering(originalPaging);
+            List<? extends ObjectOrdering> providedOrdering = originalPaging != null
+                    ? originalPaging.getOrderingInstructions()
+                    : null;
+            if (providedOrdering != null && providedOrdering.size() > 1) {
+                throw new RepositoryException("searchObjectsIterative() does not support ordering"
+                        + " by multiple paths (yet): " + providedOrdering);
+            }
 
             ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
             ObjectPaging paging = prismContext().queryFactory().createPaging();
@@ -563,6 +585,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 originalPaging.getOrderingInstructions().forEach(o ->
                         paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
             }
+            // TODO check of provided ordering
             paging.addOrderingInstruction(AuditEventRecordType.F_REPO_ID, OrderDirection.ASCENDING);
             pagedQuery.setPaging(paging);
 
@@ -581,9 +604,10 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 }
 
                 // filterAnd() is quite null safe, even for both nulls
+                ObjectFilter originalFilter = originalQuery != null ? originalQuery.getFilter() : null;
                 pagedQuery.setFilter(ObjectQueryUtil.filterAnd(
-                        originalQuery != null ? originalQuery.getFilter() : null,
-                        lastOidCondition(lastProcessedObject, ordering),
+                        originalFilter,
+                        iterativeSearchCondition(lastProcessedObject, providedOrdering),
                         prismContext()));
 
                 // we don't call public searchObject to avoid subresults and query simplification
@@ -623,69 +647,63 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         }
     }
 
-    private void checkProvidedOrdering(List<? extends ObjectOrdering> providedOrdering) throws RepositoryException {
-        if (providedOrdering != null && providedOrdering.size() > 1) {
-            throw new RepositoryException("searchObjectsIterative() does not support ordering"
-                    + " by multiple paths (yet): " + providedOrdering);
-        }
-    }
-
-    private class IterativeSearchOrdering {
-
-        private final List<? extends ObjectOrdering> providedOrdering;
-
-        private IterativeSearchOrdering(ObjectPaging originalPaging) throws RepositoryException {
-            providedOrdering = originalPaging != null
-                    ? originalPaging.getOrderingInstructions()
-                    : null;
-
-//            if (providedOrdering != null) {
-//                 TODO
-//                if (providedOrdering.stream().anyMatch(o -> QNameUtil.equals()o.getOrderBy()))
-//                checkProvidedOrdering(providedOrdering);
-//            }
-        }
-    }
-
     /**
-     * Without requested ordering, this is easy: `WHERE id > lastId AND timestamp > lastTimestamp`.
-     * Timestamp is used to help with partition pruning and is part of the PK anyway.
+     * Similar to {@link SqaleRepositoryService#lastOidCondition}.
      *
-     * But with outside ordering we need to respect it and for ordering by X, Y, Z use:
+     * TODO, lots of possible improvements:
      *
-     * ----
-     * -- the first part of WHERE with original conditions is taken care of outside of this method
-     * ... WHERE original conditions AND (
-     * X > last.X
-     * OR (X = last.X AND Y > last.Y)
-     * OR (X = last.X AND Y = last.Y AND Z > last.Z)
-     * OR (X = last.X AND Y = last.Y ...if all equal
-     * AND id > lastId AND timestamp > lastTimestamp) -- only here is ID + timestamp
-     * ----
+     * * Just like in repo iterative search this is added to the original filter with `AND`.
+     * However, if `timestamp` is used in the original filter, it could be replaced by stricter
+     * `timestamp` condition based on the `lastProcessedObject` - this is not implemented yet.
+     * ** TODO: If provided, do we want to add another timestamp condition?
+     * Would it help with partitions?
+     * Probably, with ID condition + ordering, it's not a big deal to leave it out.
      *
-     * This can be further complicated by the fact that both ID (F_REPO_ID) and timestamp
-     * (F_TIMESTAMP) can be part of custom ordering, in which case it must be omitted
-     * from the internally added conditions and ordering.
+     * * Support for multiple order specifications from the client is not supported.
+     * Perhaps some short-term stateful filter/order object would be better to construct this,
+     * especially if it could be used in both repo and audit (with strict order attribute
+     * provided in constructor for example).
      *
-     * This is suddenly much more fun, isn't it?
-     * Of course the condition `>` or `<` depends on `ASC` vs `DESC`.
+     * [NOTE]
+     * ====
+     * Both `timestamp` and `repoId` is used for iterative search condition, but *only `repoId`*
+     * is used for additional ordering to assure strict reliable ordering.
+     * This can be further complicated by the fact that both `repoId` and `timestamp`
+     * can be part of custom ordering from client (this is different from repository, where `oid`
+     * is not valid for filter and ordering on the model level, even when it's usable for repository).
+     * If used on the top-level `AND` group, they can be be replaced by next iteration condition,
+     * which is likely more selective.
+     *
+     * As for the ordering, if multiple ordering is used (*not supported yet*) if `repoId` is used,
+     * anything after it can be omitted as irrelevant.
+     * ====
      *
      * TODO: Currently, single path ordering is supported. Finish multi-path too.
      * TODO: What about nullable columns?
      */
     @Nullable
-    private <T extends ObjectType> ObjectFilter lastOidCondition(
-            AuditEventRecordType lastProcessedObject, IterativeSearchOrdering providedOrdering) {
-        /*
+    private ObjectFilter iterativeSearchCondition(
+            @Nullable AuditEventRecordType lastProcessedObject,
+            List<? extends ObjectOrdering> providedOrdering) {
         if (lastProcessedObject == null) {
             return null;
         }
 
-        String lastProcessedOid = lastProcessedObject.getOid();
+        // TODO inspect originalFilter to detect timestamp/repoId conditions.
+        //  Only top level AND filter should be checked, anything else is irrelevant
+        //  for the decision whether to skip additional timestamp condition.
+        //  BTW: We CANNOT skip repoId condition, that one is CRITICAL for proper iterating.
+
+        Long lastProcessedId = lastProcessedObject.getRepoId();
+        XMLGregorianCalendar lastProcessedTimestamp = lastProcessedObject.getTimestamp();
         if (providedOrdering == null || providedOrdering.isEmpty()) {
             return prismContext()
-                    .queryFor(lastProcessedObject.getCompileTimeClass())
-                    .item(OID_PATH).gt(lastProcessedOid).buildFilter();
+                    .queryFor(AuditEventRecordType.class)
+                    .item(AuditEventRecordType.F_REPO_ID).gt(lastProcessedId)
+                    .and()
+                    // timestamp of the next entry can be the same, we need greater-or-equal here
+                    .item(AuditEventRecordType.F_TIMESTAMP).ge(lastProcessedTimestamp)
+                    .buildFilter();
         }
 
         if (providedOrdering.size() == 1) {
@@ -693,10 +711,11 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             ItemPath orderByPath = objectOrdering.getOrderBy();
             boolean asc = objectOrdering.getDirection() == OrderDirection.ASCENDING;
             S_ConditionEntry filter = prismContext()
-                    .queryFor(lastProcessedObject.getCompileTimeClass())
+                    .queryFor(AuditEventRecordType.class)
                     .item(orderByPath);
-            //noinspection rawtypes
-            Item<PrismValue, ItemDefinition> item = lastProcessedObject.findItem(orderByPath);
+            @SuppressWarnings("unchecked")
+            Item<PrismValue, ItemDefinition<?>> item =
+                    lastProcessedObject.asPrismContainerValue().findItem(orderByPath);
             if (item.size() > 1) {
                 throw new IllegalArgumentException(
                         "Multi-value property for ordering is forbidden - item: " + item);
@@ -712,39 +731,15 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                         .block()
                         .item(orderByPath).eq(item.getRealValue())
                         .and()
-                        .item(OID_PATH);
-                return (asc ? filter.gt(lastProcessedOid) : filter.lt(lastProcessedOid))
+                        .item(AuditEventRecordType.F_REPO_ID);
+                return (asc ? filter.gt(lastProcessedId) : filter.lt(lastProcessedId))
                         .endBlock()
                         .buildFilter();
             }
         }
-        */
 
         throw new IllegalArgumentException(
                 "Shouldn't get here with check in executeSearchObjectsIterative()");
-        /*
-        TODO: Unfinished - this is painful with fluent API. Should I call
-         prismContext().queryFor(lastProcessedObject.getCompileTimeClass()) for each component
-         and then use ObjectQueryUtil.filterAnd/Or?
-        // we need to handle the complicated case with externally provided ordering
-        S_FilterEntryOrEmpty orBlock = prismContext()
-                .queryFor(lastProcessedObject.getCompileTimeClass()).block();
-        orLoop:
-        for (ObjectOrdering orMasterOrdering : providedOrdering) {
-            Iterator<? extends ObjectOrdering> iterator = providedOrdering.iterator();
-            while (iterator.hasNext()) {
-                S_FilterEntryOrEmpty andBlock = orBlock.block();
-                ObjectOrdering ordering = iterator.next();
-                if (ordering.equals(orMasterOrdering)) {
-                    // ...
-                    continue orLoop;
-                }
-                orBlock = andBlock.endBlock();
-            }
-
-        }
-        return orBlock.endBlock().buildFilter();
-       */
     }
 
     protected long registerOperationStart(String kind) {
