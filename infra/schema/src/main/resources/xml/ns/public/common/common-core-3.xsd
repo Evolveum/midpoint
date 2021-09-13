@@ -14337,6 +14337,18 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="cluster" type="tns:ClusterManagementConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Cluster management configuration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="adminGuiConfiguration" type="tns:AdminGuiConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -15576,6 +15588,64 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="internalsConfiguration" type="tns:InternalsConfigurationType"/>
+
+    <xsd:complexType name="ClusterManagementConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="extensionMode" type="tns:ClusterExtensionModeType" minOccurs="0" default="noRestrictions">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How is cluster extended?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ClusterExtensionModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How is cluster extended?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="noRestrictions">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Each node that connects to the cluster, is automatically registered and can take part in it.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NO_RESTRICTIONS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fixed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Only nodes that already exist in repository can take part in the cluster.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FIXED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="MemoryDiagnosticsConfigurationType">
         <xsd:annotation>

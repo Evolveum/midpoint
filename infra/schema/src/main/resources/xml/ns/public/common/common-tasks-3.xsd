@@ -4627,7 +4627,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="internalNodeIdentifier" type="xsd:string">
+                    <xsd:element name="internalNodeIdentifier" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Internal (generated) node identifier, used primarily to detect whether
@@ -4635,7 +4635,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="executionState" type="tns:NodeExecutionStateType">
+                    <xsd:element name="administrativeStatus" type="tns:NodeAdministrativeStatusType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Node can be disabled (temporarily or permanently) by setting this property to DISABLED.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executionState" type="tns:NodeExecutionStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Actual node state from the point of executing tasks.
@@ -4644,7 +4655,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="errorState" type="tns:NodeErrorStateType">
+                    <xsd:element name="errorState" type="tns:NodeErrorStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 More detailed characterization of the error state.
@@ -4704,6 +4715,39 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="node" type="tns:NodeType" substitutionGroup="c:object"/>
+
+    <xsd:simpleType name="NodeAdministrativeStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Whether the node is supposed to run or not.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="disabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="TaskExecutionLimitationsType">
         <xsd:annotation>

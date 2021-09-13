@@ -148,6 +148,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     private GlobalTracingOverride globalTracingOverride;
 
     private InfrastructureConfigurationType infrastructureConfiguration;
+    private ClusterManagementConfigurationType clusterManagementConfiguration;
 
     /** Cached task prism definition. */
     private PrismObjectDefinition<TaskType> taskPrismDefinition;
@@ -771,6 +772,10 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     public TaskThreadsDumper getExecutionManager() {
         return taskThreadsDumper;
     }
+
+    public ClusterManagementConfigurationType getClusterManagementConfiguration() {
+        return clusterManagementConfiguration;
+    }
     //endregion
 
     //region TODO
@@ -1134,6 +1139,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Override
     public void update(@Nullable SystemConfigurationType value) {
         infrastructureConfiguration = value != null ? value.getInfrastructure() : null;
+        clusterManagementConfiguration = value != null ? value.getCluster() : null;
     }
 
     @Override

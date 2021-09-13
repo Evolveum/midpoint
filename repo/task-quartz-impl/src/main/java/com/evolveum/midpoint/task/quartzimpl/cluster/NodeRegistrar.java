@@ -146,6 +146,9 @@ public class NodeRegistrar implements Cache {
 
         if (nodesInRepo.size() == 1) {
             PrismObject<NodeType> nodeInRepo = nodesInRepo.get(0);
+
+            checkExistingNodeCanBeStarted(nodeInRepo);
+
             // copy all information that need to be preserved from the repository
             if (configuration.getTaskExecutionLimitations() != null) {
                 // In this (special) case, we overwrite repository information by statically configured values.
@@ -174,6 +177,8 @@ public class NodeRegistrar implements Cache {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update node object on system initialization; will re-create the node", e);
             }
         }
+
+        checkNewNodeCanBeAdded();
 
         // either there is no node, more nodes, or there was some problem during updating the node
 
@@ -205,6 +210,19 @@ public class NodeRegistrar implements Cache {
 
         LOGGER.debug("Node was successfully registered (created) in the repository.");
         return nodeToBe;
+    }
+
+    private void checkExistingNodeCanBeStarted(PrismObject<NodeType> nodeInRepo) {
+        if (nodeInRepo.asObjectable().getAdministrativeStatus() == NodeAdministrativeStatusType.DISABLED) {
+            throw new SystemException("Node cannot be started, because it is administratively disabled");
+        }
+    }
+
+    private void checkNewNodeCanBeAdded() {
+        ClusterManagementConfigurationType clusterMgmtConfig = taskManager.getClusterManagementConfiguration();
+        if (clusterMgmtConfig != null && clusterMgmtConfig.getExtensionMode() == ClusterExtensionModeType.FIXED) {
+            throw new SystemException("Node cannot be added to the cluster because the extension mode is FIXED");
+        }
     }
 
     private boolean shouldRenewSecret(NodeType nodeInRepo) {
