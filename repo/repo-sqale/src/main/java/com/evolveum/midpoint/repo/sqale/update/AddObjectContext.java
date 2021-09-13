@@ -50,18 +50,14 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
      */
     public String execute()
             throws SchemaException, ObjectAlreadyExistsException {
-        try {
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()){
             object.setVersion("1"); // initial add always uses 1 as version number
-            Class<S> schemaObjectClass = object.getCompileTimeClass();
-            objectType = MObjectType.fromSchemaType(schemaObjectClass);
-            rootMapping = repositoryContext.getMappingBySchemaType(schemaObjectClass);
-            root = rootMapping.defaultAlias();
-
+            initContexts();
             if (object.getOid() == null) {
-                return addObjectWithoutOid();
+                return addObjectWithoutOid(jdbcSession);
             } else {
                 // this also handles overwrite after ObjectNotFoundException
-                return addObjectWithOid();
+                return addObjectWithOid(jdbcSession);
             }
         } catch (QueryException e) { // Querydsl exception, not ours
             Throwable cause = e.getCause();
@@ -72,9 +68,29 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
         }
     }
 
-    private String addObjectWithOid() throws SchemaException {
+    public String executeReindexed(JdbcSession jdbcSession)
+            throws SchemaException, ObjectAlreadyExistsException {
+        try {
+            initContexts();
+            return addObjectWithOid(jdbcSession);
+        } catch (QueryException e) { // Querydsl exception, not ours
+            Throwable cause = e.getCause();
+            if (cause instanceof PSQLException) {
+                SqaleUtils.handlePostgresException((PSQLException) cause);
+            }
+            throw e;
+        }
+    }
+
+    private void initContexts() {
+        Class<S> schemaObjectClass = object.getCompileTimeClass();
+        objectType = MObjectType.fromSchemaType(schemaObjectClass);
+        rootMapping = repositoryContext.getMappingBySchemaType(schemaObjectClass);
+        root = rootMapping.defaultAlias();
+    }
+
+    private String addObjectWithOid(JdbcSession jdbcSession) throws SchemaException {
         long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
-        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
             row.containerIdSeq = lastCid + 1;
@@ -91,11 +107,9 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
             jdbcSession.commit();
             return Objects.requireNonNull(oid, "OID of inserted object can't be null")
                     .toString();
-        }
     }
 
-    private String addObjectWithoutOid() throws SchemaException {
-        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+    private String addObjectWithoutOid(JdbcSession jdbcSession) throws SchemaException {
             S schemaObject = object.asObjectable();
             R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 
@@ -125,6 +139,5 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
 
             jdbcSession.commit();
             return oidString;
-        }
     }
 }

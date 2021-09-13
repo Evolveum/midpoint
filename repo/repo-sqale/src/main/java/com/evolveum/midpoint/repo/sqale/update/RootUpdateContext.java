@@ -83,7 +83,11 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     public Collection<? extends ItemDelta<?, ?>> execute(
             Collection<? extends ItemDelta<?, ?>> modifications)
             throws SchemaException, RepositoryException {
-
+        return execute(modifications, true);
+    }
+    public Collection<? extends ItemDelta<?, ?>> execute(
+            Collection<? extends ItemDelta<?, ?>> modifications, boolean updateTables)
+            throws SchemaException, RepositoryException {
         PrismObject<S> prismObject = getPrismObject();
 
         // I reassign here, we DON'T want original modifications to be used further by accident
@@ -101,7 +105,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
 
         for (ItemDelta<?, ?> modification : modifications) {
             try {
-                processModification(modification);
+                processModification(modification, updateTables);
             } catch (IllegalArgumentException e) {
                 logger.warn("Modification failed with '{}': {}", e, modification);
                 throw new SystemException("Modification failed: " + modification, e);
@@ -114,13 +118,14 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         return modifications;
     }
 
-    private void processModification(ItemDelta<?, ?> modification)
+    private void processModification(ItemDelta<?, ?> modification, boolean updateTables)
             throws RepositoryException, SchemaException {
         cidGenerator.processModification(modification);
         resolveContainerIdsForValuesToDelete(modification);
         modification.applyTo(getPrismObject());
-
-        new DelegatingItemDeltaProcessor(this).process(modification);
+        if (updateTables) {
+            new DelegatingItemDeltaProcessor(this).process(modification);
+        }
     }
 
     private void resolveContainerIdsForValuesToDelete(ItemDelta<?, ?> modification) {
