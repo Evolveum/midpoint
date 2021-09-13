@@ -85,6 +85,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             throws SchemaException, RepositoryException {
         return execute(modifications, true);
     }
+
     public Collection<? extends ItemDelta<?, ?>> execute(
             Collection<? extends ItemDelta<?, ?>> modifications, boolean updateTables)
             throws SchemaException, RepositoryException {

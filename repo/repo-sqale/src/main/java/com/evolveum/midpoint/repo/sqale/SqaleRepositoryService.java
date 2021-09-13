@@ -603,15 +603,15 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // remove additional rows, which may not be present in full object
             // after desync
             updateContext.jdbcSession().newDelete(updateContext.entityPath())
-                .where(updateContext.entityPath().oid.eq(updateContext.objectOid()))
-                .execute();
+                    .where(updateContext.entityPath().oid.eq(updateContext.objectOid()))
+                    .execute();
             try {
                 // We add object again, this will ensure recreation of all indices and correct
                 // table rows again
                 new AddObjectContext<>(sqlRepoContext, updateContext.getPrismObject())
                         .executeReindexed(updateContext.jdbcSession());
             } catch (SchemaException | ObjectAlreadyExistsException e) {
-                throw new RepositoryException("Update with reindex failed",e);
+                throw new RepositoryException("Update with reindex failed", e);
             }
         } else {
             modifications = updateContext.execute(modifications);

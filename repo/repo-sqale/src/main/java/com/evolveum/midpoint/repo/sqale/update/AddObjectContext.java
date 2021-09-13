@@ -50,7 +50,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
      */
     public String execute()
             throws SchemaException, ObjectAlreadyExistsException {
-        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()){
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             object.setVersion("1"); // initial add always uses 1 as version number
             initContexts();
             if (object.getOid() == null) {
@@ -68,11 +68,11 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
         }
     }
 
-    public String executeReindexed(JdbcSession jdbcSession)
+    public void executeReindexed(JdbcSession jdbcSession)
             throws SchemaException, ObjectAlreadyExistsException {
         try {
             initContexts();
-            return addObjectWithOid(jdbcSession);
+            addObjectWithOid(jdbcSession);
         } catch (QueryException e) { // Querydsl exception, not ours
             Throwable cause = e.getCause();
             if (cause instanceof PSQLException) {
@@ -91,53 +91,53 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
 
     private String addObjectWithOid(JdbcSession jdbcSession) throws SchemaException {
         long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
-            S schemaObject = object.asObjectable();
-            R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
-            row.containerIdSeq = lastCid + 1;
-            rootMapping.setFullObject(row, schemaObject);
+        S schemaObject = object.asObjectable();
+        R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+        row.containerIdSeq = lastCid + 1;
+        rootMapping.setFullObject(row, schemaObject);
 
-            UUID oid = jdbcSession.newInsert(root)
-                    // default populate mapper ignores null, that's good, especially for objectType
-                    .populate(row)
-                    .executeWithKey(root.oid);
+        UUID oid = jdbcSession.newInsert(root)
+                // default populate mapper ignores null, that's good, especially for objectType
+                .populate(row)
+                .executeWithKey(root.oid);
 
-            row.objectType = objectType; // sub-entities can use it, now it's safe to set it
-            rootMapping.storeRelatedEntities(row, schemaObject, jdbcSession);
+        row.objectType = objectType; // sub-entities can use it, now it's safe to set it
+        rootMapping.storeRelatedEntities(row, schemaObject, jdbcSession);
 
-            jdbcSession.commit();
-            return Objects.requireNonNull(oid, "OID of inserted object can't be null")
-                    .toString();
+        jdbcSession.commit();
+        return Objects.requireNonNull(oid, "OID of inserted object can't be null")
+                .toString();
     }
 
     private String addObjectWithoutOid(JdbcSession jdbcSession) throws SchemaException {
-            S schemaObject = object.asObjectable();
-            R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+        S schemaObject = object.asObjectable();
+        R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 
-            // first insert without full object, because we don't know the OID yet
-            UUID oid = jdbcSession.newInsert(root)
-                    // default populate mapper ignores null, that's good, especially for objectType
-                    .populate(row)
-                    .executeWithKey(root.oid);
-            String oidString =
-                    Objects.requireNonNull(oid, "OID of inserted object can't be null")
-                            .toString();
-            object.setOid(oidString);
+        // first insert without full object, because we don't know the OID yet
+        UUID oid = jdbcSession.newInsert(root)
+                // default populate mapper ignores null, that's good, especially for objectType
+                .populate(row)
+                .executeWithKey(root.oid);
+        String oidString =
+                Objects.requireNonNull(oid, "OID of inserted object can't be null")
+                        .toString();
+        object.setOid(oidString);
 
-            long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
+        long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
 
-            // now to update full object with known OID
-            rootMapping.setFullObject(row, schemaObject);
-            jdbcSession.newUpdate(root)
-                    .set(root.fullObject, row.fullObject)
-                    .set(root.containerIdSeq, lastCid + 1)
-                    .where(root.oid.eq(oid))
-                    .execute();
+        // now to update full object with known OID
+        rootMapping.setFullObject(row, schemaObject);
+        jdbcSession.newUpdate(root)
+                .set(root.fullObject, row.fullObject)
+                .set(root.containerIdSeq, lastCid + 1)
+                .where(root.oid.eq(oid))
+                .execute();
 
-            row.oid = oid;
-            row.objectType = objectType; // sub-entities can use it, now it's safe to set it
-            rootMapping.storeRelatedEntities(row, schemaObject, jdbcSession);
+        row.oid = oid;
+        row.objectType = objectType; // sub-entities can use it, now it's safe to set it
+        rootMapping.storeRelatedEntities(row, schemaObject, jdbcSession);
 
-            jdbcSession.commit();
-            return oidString;
+        jdbcSession.commit();
+        return oidString;
     }
 }
