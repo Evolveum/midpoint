@@ -4833,6 +4833,13 @@ public final class WebComponentUtil {
         return QNameUtil.match(assignmentType.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE);
     }
 
+    public static boolean isDelegationAssignment(AssignmentType assignmentType) {
+        if (assignmentType.getTargetRef() == null) {
+            return false;
+        }
+        return QNameUtil.match(assignmentType.getTargetRef().getType(), UserType.COMPLEX_TYPE);
+    }
+
     public static <AH extends AssignmentHolderType> boolean hasArchetypeAssignment(AH assignmentHolder, String archetypeOid) {
         if (assignmentHolder.getAssignment() == null) {
             return false;

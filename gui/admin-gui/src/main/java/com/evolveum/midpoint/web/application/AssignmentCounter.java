@@ -39,7 +39,7 @@ public class AssignmentCounter<AH extends AssignmentHolderType> extends SimpleCo
         List<AssignmentType> assignments = object.getAssignment();
         int count = 0;
         for (AssignmentType assignment : assignments) {
-            if (WebComponentUtil.isArchetypeAssignment(assignment)) {
+            if (WebComponentUtil.isArchetypeAssignment(assignment) || WebComponentUtil.isDelegationAssignment(assignment)) {
                 continue;
             }
             count++;
