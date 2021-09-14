@@ -22,17 +22,16 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.querydsl.core.QueryException;
 
 /**
  * Component hiding details of how QNames are stored in {@link QUri}.
  * Following prefixes are used for its methods:
  *
- * * `get` returns URI or ID for ID or URI, may return null, no DB access; TODO: later possible access when not found
+ * * `get` returns URI or ID for ID or URI, may return null, no DB access;
  * * `search` like `get` but returns {@link #UNKNOWN_ID} instead of null, used for query predicates,
- * no DB access by the URI cache itself; TODO: later possible access when not found
+ * no DB access by the URI cache itself;
  * * `resolve` returns URI/ID for ID/URI or throws exception if not found, this is for situations
- * where the entry for URI is expected to exist already, still no DB access required; TODO: later possible access when not found
+ * where the entry for URI is expected to exist already, still no DB access required;
  * * finally, {@link #processCacheableUri(Object)} accesses the database if the URI is not found
  * in the cache in order to write it there.
  *
@@ -208,16 +207,18 @@ public class UriCache {
             jdbcSession.commit();
 
             updateMaps(MUri.of(id, uriString));
-        } catch (QueryException e) {
-            // Insert failed, record probably exists, so lets try to retrieve it
-            Integer retId = retrieveIdFromDb(uriString);
-            if (retId == null) {
-                throw new IllegalStateException("Couldn't insert uri to cache and uri was not present in cache.", e);
-            }
-            return retId;
-        }
-        // TODO query when constraint violation
+        } catch (RuntimeException e) {
 
+            if (SqaleUtils.isUniqueConstraintViolation(e)) {
+                // Insert failed, record exists, so lets try to retrieve it
+                Integer retId = retrieveIdFromDb(uriString);
+                if (retId == null) {
+                    throw new IllegalStateException("Couldn't insert uri to cache and uri was not present in cache.", e);
+                }
+                return retId;
+            }
+            throw e;
+        }
         LOGGER.debug("URI cache inserted URI={} under ID={}", uri, id);
         return id;
     }
