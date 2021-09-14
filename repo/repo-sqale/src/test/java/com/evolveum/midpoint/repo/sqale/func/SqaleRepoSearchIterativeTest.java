@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * This tests {@link SqaleRepositoryService#searchObjectsIterative} in a gray-box style,
- * knowing that it uses {@link SqaleRepositoryService#searchObjects} internally.
+ * knowing that it uses {@link SqaleRepositoryService#executeSearchObjects} internally.
  * We're not only interested in the fact that it iterates over all the objects matching criteria,
  * but we also want to assure that the internal paging is strictly sequential.
  * Each test can take a bit longer (~500ms) because the handler updates the objects
@@ -69,7 +69,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test100SearchIterativeWithNoneFilter() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
 
         given("query with top level NONE filter");
@@ -86,15 +86,17 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(searchResultMetadata).isNotNull();
         assertThat(searchResultMetadata.getApproxNumberOfAllResults()).isZero();
         // this is not the main part, just documenting that currently we short circuit the operation
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 0);
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 0);
         // this is important - no actual search was called
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 0);
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 0);
     }
 
     @Test
     public void test110SearchIterativeWithEmptyFilter() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
 
         when("calling search iterative with null query");
@@ -110,7 +112,8 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
 
         and("search operations were called");
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("all objects of the specified type (here User) were processed");
@@ -120,7 +123,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test111SearchIterativeWithLastPageNotFull() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
         given("total result count not multiple of the page size");
         repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
@@ -138,7 +141,8 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
 
         and("search operations were called");
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("all objects of the specified type were processed");
@@ -148,11 +152,11 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test115SearchIterativeWithBreakingConditionCheckingOidOrdering() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
 
         String midOid = "80000000-0000-0000-0000-000000000000";
-        given("condition that breaks iterative based on UUID");
+        given("condition that breaks iterative search based on UUID");
         testHandler.setStoppingPredicate(u -> u.getOid().compareTo(midOid) >= 0);
 
         when("calling search iterative with null query");
@@ -164,7 +168,8 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(metadata.isPartialResults()).isTrue(); // extremely likely with enough items
 
         and("search operations were called");
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("all objects up to specified UUID were processed");
@@ -177,7 +182,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test120SearchIterativeWithMaxSize() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
 
         given("query with maxSize specified");
@@ -194,7 +199,8 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(metadata.isPartialResults()).isFalse();
 
         and("search operations were called");
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("specified amount of objects was processed");
@@ -204,7 +210,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
     @Test
     public void test125SearchIterativeWithCustomOrdering() throws Exception {
         OperationResult operationResult = createOperationResult();
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
 
         given("query with custom ordering");
@@ -223,7 +229,8 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(metadata.isPartialResults()).isFalse(); // everything was processed
 
         and("search operations were called");
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("all objects were processed in proper order");
@@ -264,7 +271,8 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         boolean lastRowCausingPartialResult = metadata.isPartialResults()
                 && metadata.getApproxNumberOfAllResults() % getConfiguredPageSize() == 0;
 
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE,
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE,
                 metadata.getApproxNumberOfAllResults() / getConfiguredPageSize()
                         + (lastRowCausingPartialResult ? 0 : 1));
     }

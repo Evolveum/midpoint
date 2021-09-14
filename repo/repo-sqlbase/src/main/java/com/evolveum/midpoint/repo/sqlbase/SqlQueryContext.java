@@ -227,8 +227,12 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         ItemPath path = orderByItemPath;
         QueryModelMapping<?, CQ, CR> mapping = (QueryModelMapping<?, CQ, CR>) entityPathMapping;
         SqlQueryContext<?, CQ, CR> context = (SqlQueryContext<?, CQ, CR>) this;
+
+        // We need definition for proper extension support.
+        // For other cases it's safe for this to become null.
         PrismContainerDefinition<?> containerDefinition =
                 (PrismContainerDefinition<?>) entityPathMapping.itemDefinition();
+
         while (path.size() > 1) {
             ItemRelationResolver<CQ, CR, ?, ?> resolver = mapping.relationResolver(path); // Resolves only first element
             ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(context);
@@ -236,16 +240,20 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 throw new QueryException("Item path '" + orderByItemPath
                         + "' cannot be used for ordering because subquery is used to resolve it.");
             }
-            // CQ/CR for the next loop may be actually different than before, but that's OK
+            // CQ/CR for the next loop may be actually different from before, but that's OK
             mapping = (QueryModelMapping<?, CQ, CR>) resolution.mapping;
             context = (SqlQueryContext<?, CQ, CR>) resolution.context;
-            containerDefinition = containerDefinition.findLocalItemDefinition(
-                    path.firstToName(), PrismContainerDefinition.class, false);
+
+            if (containerDefinition != null) {
+                containerDefinition = containerDefinition.findLocalItemDefinition(
+                        path.firstToName(), PrismContainerDefinition.class, false);
+            }
+
             path = path.rest();
         }
 
         QName first = path.firstToQName();
-        ItemDefinition<?> definition = first instanceof ItemName
+        ItemDefinition<?> definition = first instanceof ItemName && containerDefinition != null
                 ? containerDefinition.findItemDefinition((ItemName) first)
                 : null;
 
@@ -315,17 +323,6 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return (int) sqlQuery.clone(jdbcSession.connection())
                 // select not needed here, it would only initialize projection unnecessarily
                 .fetchCount();
-    }
-
-    /**
-     * Adds new LEFT JOIN, see {@link #leftJoin(QueryTableMapping, BiFunction)} for more.
-     *
-     * @param joinType entity path type for the JOIN
-     */
-    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> leftJoin(
-            @NotNull Class<TQ> joinType,
-            @NotNull BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
-        return leftJoin(sqlRepoContext.getMappingByQueryType(joinType), joinOnPredicateFunction);
     }
 
     /**

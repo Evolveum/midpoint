@@ -5,7 +5,7 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<dashboard oid="00000000-0000-0000-0001-000000kj1231">
+<dashboard oid="00000000-0000-0000-0001-000000aa1231">
     <name>test-dashboard-empty</name>
     <display>
         <label>Test dashboard</label>
@@ -54,7 +54,7 @@
         <data>
             <sourceType>auditSearch</sourceType>
             <collection>
-                <collectionRef oid="00000000-0000-0000-0001-000000gh1234" relation="default" type="ObjectCollectionType"/>
+                <collectionRef oid="00000000-0000-0000-0001-000000aa1234" relation="default" type="ObjectCollectionType"/>
             </collection>
         </data>
         <presentation>

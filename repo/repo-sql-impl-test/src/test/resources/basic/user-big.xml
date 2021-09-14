@@ -115,9 +115,9 @@
         <t:norm>userx123</t:norm>
     </familyName>
     <emailAddress>testuserX123@example.com</emailAddress>
-    <employeeType>e1</employeeType>
-    <employeeType>e2</employeeType>
-    <employeeType>e3</employeeType>
+    <subtype>e1</subtype>
+    <subtype>e2</subtype>
+    <subtype>e3</subtype>
     <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <t:orig>org 1</t:orig>
         <t:norm>org 1</t:norm>

@@ -14,7 +14,7 @@
     <oid>48174916-4137-9830-4442-abcdefabcdef</oid>
     <itemDelta>
         <t:modificationType>add</t:modificationType>
-        <t:path>c:orgType</t:path>
+        <t:path>c:subtype</t:path>
         <t:value>en1234</t:value>
     </itemDelta>
 </objectModification>

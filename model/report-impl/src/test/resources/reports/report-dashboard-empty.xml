@@ -5,9 +5,9 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a8eq2">
+<report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a8eee">
     <name>Dashboard report empty</name>
     <dashboard>
-        <dashboardRef oid="00000000-0000-0000-0001-000000kj1231" relation="default" type="DashboardType"/>
+        <dashboardRef oid="00000000-0000-0000-0001-000000aa1231" relation="default" type="DashboardType"/>
     </dashboard>
 </report>

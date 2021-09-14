@@ -482,8 +482,7 @@ CREATE INDEX m_ref_projectionTargetOidRelationId_idx
 CREATE TABLE m_generic_object (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED
-        CHECK (objectType = 'GENERIC_OBJECT'),
-    genericObjectTypeId INTEGER NOT NULL REFERENCES m_uri(id) -- GenericObjectType#objectType
+        CHECK (objectType = 'GENERIC_OBJECT')
 )
     INHERITS (m_focus);
 
@@ -525,8 +524,8 @@ CREATE TABLE m_user (
     nickNameNorm TEXT,
     titleOrig TEXT,
     titleNorm TEXT,
-    organizations JSONB, -- array of {o,n} objects
-    organizationUnits JSONB -- array of {o,n} objects
+    organizations JSONB, -- array of {o,n} objects (poly-strings)
+    organizationUnits JSONB -- array of {o,n} objects (poly-strings)
 )
     INHERITS (m_focus);
 
@@ -580,8 +579,7 @@ CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
 CREATE TABLE m_role (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE') STORED
-        CHECK (objectType = 'ROLE'),
-    roleType TEXT
+        CHECK (objectType = 'ROLE')
 )
     INHERITS (m_abstract_role);
 
@@ -1252,7 +1250,8 @@ CREATE TABLE m_case_wi_assignee (
     INHERITS (m_reference);
 
 ALTER TABLE m_case_wi_assignee ADD CONSTRAINT m_case_wi_assignee_id_fk
-    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid);
+    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
+        ON DELETE CASCADE;
 
 -- stores workItem/candidateRef
 CREATE TABLE m_case_wi_candidate (
@@ -1265,7 +1264,8 @@ CREATE TABLE m_case_wi_candidate (
     INHERITS (m_reference);
 
 ALTER TABLE m_case_wi_candidate ADD CONSTRAINT m_case_wi_candidate_id_fk
-    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid);
+    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
+        ON DELETE CASCADE;
 -- endregion
 
 -- region Access Certification object tables
@@ -1406,11 +1406,13 @@ CREATE TABLE m_access_cert_wi_assignee (
     INHERITS (m_reference);
 
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_case
-    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid);
+    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid)
+        ON DELETE CASCADE;
 
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
-        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid);
+        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
+        ON DELETE CASCADE;
 
 -- stores case/workItem/candidateRef
 CREATE TABLE m_access_cert_wi_candidate (
@@ -1424,12 +1426,13 @@ CREATE TABLE m_access_cert_wi_candidate (
     INHERITS (m_reference);
 
 ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_case
-    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid);
+    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid)
+        ON DELETE CASCADE;
 
 ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
         REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
-        ON DELETE CASCADE; -- TODO is the cascade needed?
+        ON DELETE CASCADE;
 
 /*
 CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (nameOrig);
@@ -1629,7 +1632,8 @@ CREATE TABLE m_assignment_ref_create_approver (
     INHERITS (m_reference);
 
 ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_create_approver_id_fk
-    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid);
+    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
+        ON DELETE CASCADE;
 
 -- TODO index targetOid, relationId?
 
@@ -1645,7 +1649,8 @@ CREATE TABLE m_assignment_ref_modify_approver (
     INHERITS (m_reference);
 
 ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_modify_approver_id_fk
-    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid);
+    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
+        ON DELETE CASCADE;
 
 -- TODO index targetOid, relationId?
 -- endregion
@@ -1719,38 +1724,12 @@ CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState
   ON m_object (lifecycleState);
-CREATE INDEX iExtensionBoolean
-  ON m_object_ext_boolean (booleanValue);
-CREATE INDEX iExtensionDate
-  ON m_object_ext_date (dateValue);
-CREATE INDEX iExtensionLong
-  ON m_object_ext_long (longValue);
-CREATE INDEX iExtensionPolyString
-  ON m_object_ext_poly (orig);
-CREATE INDEX iExtensionReference
-  ON m_object_ext_reference (targetoid);
-CREATE INDEX iExtensionString
-  ON m_object_ext_string (stringValue);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
   ON m_focus (effectiveStatus);
 CREATE INDEX iLocality
   ON m_focus (localityOrig);
-CREATE INDEX iFocusValidFrom
-  ON m_focus (validFrom);
-CREATE INDEX iFocusValidTo
-  ON m_focus (validTo);
-
-ALTER TABLE m_object_text_info
-  ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (ownerOid) REFERENCES m_object;
-ALTER TABLE m_user_organization
-  ADD CONSTRAINT fk_user_organization FOREIGN KEY (user_oid) REFERENCES m_user;
-ALTER TABLE m_user_organizational_unit
-  ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user;
-ALTER TABLE m_function_library
-  ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
-
 */
 
 -- region Schema versioning and upgrading

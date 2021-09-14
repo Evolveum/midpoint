@@ -45,7 +45,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnectorHost;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.MGenericObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
@@ -365,7 +365,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_ADD_OBJECT);
     }
 
     @Test
@@ -384,7 +384,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT_OVERWRITE);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_ADD_OBJECT_OVERWRITE);
     }
 
     @Test
@@ -1493,7 +1493,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored and relevant attributes are in columns");
         assertThatOperationResult(result).isSuccess();
 
-        MGenericObject row = selectObjectByOid(
+        MFocus row = selectObjectByOid(
                 QGenericObject.class, UUID.fromString(genericObject.getOid()));
         assertThat(row.costCenter).isEqualTo("cost-center");
         assertThat(row.emailAddress).isEqualTo("email-address");
@@ -1520,9 +1520,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.archiveTimestamp).isEqualTo(Instant.ofEpochMilli(8));
         assertThat(row.lockoutStatus).isEqualTo(LockoutStatusType.NORMAL);
 
-        // TODO: fix after objectType -> subtype change
-        // field specific to GenericObjectType
-        // assertCachedUri(row.genericObjectTypeId, "some-custom-object-type-uri");
+        assertThat(row.subtypes).containsExactlyInAnyOrder("some-custom-object-type-uri");
     }
 
     // This covers mapping of attributes in AbstractRole + Archetype + inducement mapping.
@@ -2429,7 +2427,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_DELETE_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_DELETE_OBJECT);
     }
 
     @Test
