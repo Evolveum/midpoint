@@ -8,8 +8,10 @@
 package com.evolveum.midpoint.repo.common.activity.execution;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_DELEGATED;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 
@@ -138,14 +140,26 @@ public class DelegatingActivityExecution<
     }
 
     private void delegate(OperationResult result) throws ActivityExecutionException, SchemaException, ObjectNotFoundException {
+        activityState.recordExecutionStart(startTimestamp);
+        activityState.recordRealizationStart(startTimestamp);
+        activityState.setResultStatus(IN_PROGRESS);
 
-        Task child = createOrFindTheChild(result);
-        childTask = child.getRawTaskObjectClonedIfNecessary().asObjectable();
+        // We want to have this written to the task before execution is switched to children
+        activityState.flushPendingTaskModificationsChecked(result);
 
-        helper.switchExecutionToChildren(List.of(child), result);
+        try {
+            Task child = createOrFindTheChild(result);
+            childTask = child.getRawTaskObjectClonedIfNecessary().asObjectable();
 
-        setTaskRef();
-        activityState.markInProgressDelegated(result);
+            helper.switchExecutionToChildren(List.of(child), result);
+
+            setTaskRef();
+            activityState.setRealizationState(IN_PROGRESS_DELEGATED); // We want to set this only after subtask is created
+        } finally {
+            noteEndTimestampIfNone();
+            activityState.recordExecutionEnd(endTimestamp);
+            activityState.flushPendingTaskModificationsChecked(result);
+        }
     }
 
     @NotNull

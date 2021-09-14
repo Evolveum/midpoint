@@ -10,14 +10,8 @@ import static java.util.Collections.singletonList;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-
-import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Page;
@@ -27,7 +21,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -38,6 +31,7 @@ import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.task.RootTaskLoader;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
@@ -45,7 +39,6 @@ import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -53,6 +46,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -653,7 +647,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     protected AbstractObjectMainPanel<TaskType> createMainPanel(String id) {
         taskTabsVisibility = new TaskTabsVisibility();
         taskTabsVisibility.computeAll(this, getObjectWrapper());
-        return new TaskMainPanel(id, getObjectModel(), this);
+        IModel<TaskType> rootTaskModel = RootTaskLoader.createRootTaskModel(this::getTask, () -> this);
+        return new TaskMainPanel(id, getObjectModel(), rootTaskModel, this);
     }
 
     TaskType getTask() {

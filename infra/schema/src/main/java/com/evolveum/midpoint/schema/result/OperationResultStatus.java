@@ -75,6 +75,7 @@ public enum OperationResultStatus {
      */
     IN_PROGRESS;
 
+    @Contract("null -> null; !null -> !null")
     public static @Nullable OperationResultStatus parseStatusType(
             @Nullable OperationResultStatusType statusType) {
         if (statusType == null) {

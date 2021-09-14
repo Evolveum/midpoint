@@ -115,4 +115,10 @@ public class AsyncUpdateActivityExecution
     public ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
         return ErrorHandlingStrategyExecutor.FollowUpAction.STOP; // We do not want to miss any change by default
     }
+
+    @Override
+    public boolean isExcludedFromStalenessChecking() {
+        // This task does not have regularly updated progress. It cannot be watched for staleness (for now).
+        return true;
+    }
 }

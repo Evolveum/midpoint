@@ -78,6 +78,13 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         return new ActivityProgressInformation(activityIdentifier, activityPath, RealizationState.UNKNOWN, null, null);
     }
 
+    /** Identifier is estimated from the path. Use only if it needs not be precise. */
+    static @NotNull ActivityProgressInformation unknown(ActivityPath activityPath) {
+        return unknown(
+                activityPath.isEmpty() ? activityPath.last() : null,
+                activityPath);
+    }
+
     /**
      * Prepares the information from a root task. The task may or may not have its children resolved.
      */
@@ -210,25 +217,16 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
     }
 
     private String toHumanReadableStringForNonBucketed(boolean longForm) {
-        float percentage = itemsProgress.getPercentage();
-        if (Float.isNaN(percentage)) {
-            return String.valueOf(itemsProgress.getProgress());
-        }
-        if (longForm) {
-            return String.format("%.1f%% (%d of %d)", percentage * 100,
-                    itemsProgress.getProgress(), itemsProgress.getExpectedProgress());
-        } else {
-            return String.format("%.1f%%", percentage * 100);
-        }
+        return itemsProgress.toHumanReadableString(longForm);
     }
 
     private String toHumanReadableStringForNonLeaf(boolean longForm) {
-        if (isComplete()) {
-            return "Complete";
-        }
-
         if (children.size() == 1) {
             return children.get(0).toHumanReadableString(longForm);
+        }
+
+        if (isComplete()) {
+            return "Complete";
         }
 
         List<String> partials = new ArrayList<>();
@@ -283,6 +281,28 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         return children.stream()
                 .filter(c -> java.util.Objects.equals(c.getActivityIdentifier(), identifier))
                 .findFirst().orElse(null);
+    }
+
+    public int getErrorsRecursive() {
+        return getErrors() +
+                children.stream()
+                        .mapToInt(ActivityProgressInformation::getErrorsRecursive)
+                        .sum();
+    }
+
+    public int getErrors() {
+        return itemsProgress != null ? itemsProgress.getErrors() : 0;
+    }
+
+    public ActivityProgressInformation find(ActivityPath activityPath) {
+        ActivityProgressInformation current = this;
+        for (String identifier : activityPath.getIdentifiers()) {
+            current = current.getChild(identifier);
+            if (current == null) {
+                return null;
+            }
+        }
+        return current;
     }
 
     public enum RealizationState {

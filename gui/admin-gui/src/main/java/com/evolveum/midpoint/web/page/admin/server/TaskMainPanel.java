@@ -15,6 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
@@ -34,12 +35,19 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 
+import org.jetbrains.annotations.NotNull;
+
 public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private static final String ID_SAVE_AND_RUN = "saveAndRun";
 
-    public TaskMainPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> objectModel, PageAdminObjectDetails<TaskType> parentPage) {
+    /** The root of the task tree is needed to have activity tree overview. */
+    @NotNull private final IModel<TaskType> rootTaskModel;
+
+    TaskMainPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> objectModel,
+            @NotNull IModel<TaskType> rootTaskModel, PageAdminObjectDetails<TaskType> parentPage) {
         super(id, objectModel, parentPage);
+        this.rootTaskModel = rootTaskModel;
     }
 
     @Override
@@ -237,7 +245,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new TaskSubtasksAndThreadsTabPanel(panelId, getObjectModel());
+                return new TaskSubtasksAndThreadsTabPanel(panelId, getObjectModel(), rootTaskModel);
             }
 
         });

@@ -37,6 +37,9 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
     private int activeSessions;
     private List<String> nodes;
 
+    /** FIXME TEMPORARY */
+    private Object customData;
+
     /**
      * Result of object retrieval (or attempt of object retrieval). It case that it is not error the result is optional.
      */
@@ -143,4 +146,13 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
         return sb.toString();
     }
 
+    @Override
+    public Object getCustomData() {
+        return customData;
+    }
+
+    @Override
+    public void setCustomData(Object customData) {
+        this.customData = customData;
+    }
 }

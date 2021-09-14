@@ -2810,7 +2810,37 @@
             <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Operation result status of this activity. TODO
+                        Operation result status of this activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="realizationStartTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) realization start?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="realizationEndTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) realization end? If null, this means that the current realization
+                        is in progress.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionStartTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) execution start?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionEndTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) execution end? If null, this means that the current execution
+                        is in progress.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3241,6 +3271,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="node" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of a node where the task is executing or was executing last.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="bucketsProcessingRole" type="tns:BucketsProcessingRoleType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3253,6 +3290,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Is the activity really executing now?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If not null, this property denotes since what time is this activity execution (in given task) stalled.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3414,7 +3458,7 @@
             <xsd:enumeration value="executing">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Activity in the task is executing.
+                        Activity in the task is executing. (Or stalled.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXECUTING"/>

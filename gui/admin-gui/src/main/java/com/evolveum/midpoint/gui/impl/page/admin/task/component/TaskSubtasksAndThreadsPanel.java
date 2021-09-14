@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.task.RootTaskLoader;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.page.admin.server.TaskTablePanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.AttachedTaskInformation;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -36,6 +38,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -58,6 +61,15 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
     private static final String ID_SUBTASKS_LABEL = "subtasksLabel";
     private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
 
+    /**
+     * The root of the task tree is needed to have the activity tree overview. It is loaded on demand.
+     *
+     * TODO Eliminate repeated loading of the root task!
+     */
+    @NotNull private final LoadableModel<TaskType> rootTaskModel =
+            RootTaskLoader.createRootTaskModel(
+                    () -> getObjectWrapper().getObject().asObjectable(),
+                    this::getPageBase);
 
     public TaskSubtasksAndThreadsPanel(String id,
             ObjectDetailsModels<TaskType> taskWrapperModel, ContainerPanelConfigurationType config) {
@@ -65,11 +77,11 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
         setOutputMarkupId(true);
     }
 
-
     private String createTaskKindExpression() {
         return "none"; // FIXME
         //return SelectableBeanImpl.F_VALUE + "." + TaskType.F_WORK_MANAGEMENT.getLocalPart() + "." + TaskWorkManagementType.F_TASK_KIND.getLocalPart();
     }
+
     protected void initLayout() {
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
         add(subtasksLabel);
@@ -101,6 +113,11 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.TABLE_SUBTASKS;
             }
+
+            @Override
+            protected @NotNull AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return AttachedTaskInformation.getOrCreate(selectableTaskBean, rootTaskModel.getObject());
+            }
         };
 
         add(subtasksPanel);
@@ -123,6 +140,11 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             @Override
             protected boolean isHeaderVisible() {
                 return false;
+            }
+
+            @Override
+            protected @NotNull AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return AttachedTaskInformation.getOrCreate(selectableTaskBean, rootTaskModel.getObject());
             }
         };
         add(workerThreadsTable);
@@ -152,7 +174,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
     }
 
     private IModel<List<TaskType>> createWorkersModel() {
-        return (IModel<List<TaskType>>) () -> {
+        return () -> {
             PrismObject<TaskType> taskPrism = TaskSubtasksAndThreadsPanel.this.getObjectWrapper().getObject();
             PrismReference subtasks = taskPrism.findReference(TaskType.F_SUBTASK_REF);
 

@@ -77,17 +77,27 @@ public class ActivityStateOverviewUtil {
         }
     }
 
-    public static @NotNull ActivityStateOverviewType getOrCreateStateOverview(@NotNull TaskType taskBean) {
-        return taskBean.getActivityState() != null &&
-                taskBean.getActivityState().getTree() != null &&
-                taskBean.getActivityState().getTree().getActivity() != null ?
-                taskBean.getActivityState().getTree().getActivity() : new ActivityStateOverviewType();
+    public static @NotNull ActivityStateOverviewType getOrCreateStateOverview(@NotNull TaskType task) {
+        return task.getActivityState() != null &&
+                task.getActivityState().getTree() != null &&
+                task.getActivityState().getTree().getActivity() != null ?
+                task.getActivityState().getTree().getActivity() : new ActivityStateOverviewType();
     }
 
-    public static @Nullable ActivityStateOverviewType getStateOverview(@NotNull TaskType taskBean) {
-        return taskBean.getActivityState() != null &&
-                taskBean.getActivityState().getTree() != null ?
-                taskBean.getActivityState().getTree().getActivity() : null;
+    public static @Nullable ActivityStateOverviewType getStateOverview(@NotNull TaskType task) {
+        return task.getActivityState() != null &&
+                task.getActivityState().getTree() != null ?
+                task.getActivityState().getTree().getActivity() : null;
+    }
+
+    static @Nullable ActivityStateOverviewType getStateOverview(@NotNull TaskType task,
+            @NotNull ActivityPath activityPath) {
+        var root = getStateOverview(task);
+        return root != null ? findEntry(root, activityPath) : null;
+    }
+
+    static boolean hasStateOverview(@NotNull TaskType task) {
+        return getStateOverview(task) != null;
     }
 
     public static ActivityTaskStateOverviewType findOrCreateTaskEntry(@NotNull ActivityStateOverviewType entry,
@@ -107,5 +117,31 @@ public class ActivityStateOverviewUtil {
             throw new IllegalStateException("State overview entry " + entry + " contains " + matching.size() + " entries " +
                     "for task OID '" + taskRef.getOid() + "': " + matching);
         }
+    }
+
+    /**
+     * Visits activity state overview objects in depth-first manner.
+     *
+     * Similar to {@link ActivityTreeUtil#processStates(TaskType, TaskResolver, ActivityTreeUtil.ActivityStateProcessor)}.
+     * But this method has its life easier, because the structure of state overview objects is much simpler;
+     * and contained in a single object (does not cross task boundaries).
+     */
+    static void acceptStateOverviewVisitor(@NotNull TaskType rootTask, @NotNull StateOverviewVisitor visitor) {
+        ActivityStateOverviewType rootState = getStateOverview(rootTask);
+        if (rootState != null) {
+            acceptStateOverviewVisitor(rootState, visitor);
+        }
+    }
+
+    public static void acceptStateOverviewVisitor(@NotNull ActivityStateOverviewType state,
+            @NotNull StateOverviewVisitor visitor) {
+        visitor.visit(state);
+        state.getActivity().forEach(sub -> acceptStateOverviewVisitor(sub, visitor));
+    }
+
+    public interface StateOverviewVisitor {
+
+        /** Visits given state overview object. When needed, we may add ActivityPath argument here. */
+        void visit(@NotNull ActivityStateOverviewType state);
     }
 }

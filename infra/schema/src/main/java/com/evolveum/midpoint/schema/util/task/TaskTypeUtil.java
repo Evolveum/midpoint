@@ -15,6 +15,10 @@ import org.apache.commons.lang.time.DurationFormatUtils;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.hasStateOverview;
+
 /**
  * TODO
  */
@@ -96,5 +100,18 @@ public class TaskTypeUtil {
 
     public static boolean isAutoScalingDisabled(TaskType task) {
         return task.getAutoScaling() != null && task.getAutoScaling().getMode() == TaskAutoScalingModeType.DISABLED;
+    }
+
+    static boolean isActivityBasedRoot(@NotNull TaskType task) {
+        return task.getParent() == null &&
+                task.getOid() != null &&
+                hasStateOverview(task);
+    }
+
+    static boolean isActivityBasedPersistentSubtask(@NotNull TaskType task) {
+        return task.getParent() != null &&
+                task.getOid() != null &&
+                task.getActivityState() != null &&
+                task.getActivityState().getLocalRoot() != null;
     }
 }
