@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -42,9 +42,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import java.util.Collection;
 
-/**
- * @author lazyman
- */
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/reportNew")
@@ -62,8 +59,6 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     private static final String ID_TABLE_CONTAINER = "tableContainer";
     private static final String ID_TABLE_BOX = "tableBox";
     private static final String ID_REPORT_TABLE = "reportTable";
-
-    private Boolean runReport = false;
 
     public PageReport() {
         super();
@@ -122,13 +117,8 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         };
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
+    protected void initLayout() {
+        super.initLayout();
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.setOutputMarkupId(true);
@@ -145,9 +135,11 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         tableBox.add(reportTable);
     }
 
-    @Override
-    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
-        if (runReport && !result.isError()) {
+    public void saveAndRunPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult("saveAndRunReport");
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = saveOrPreviewPerformed(target, result, false);
+
+        if (!result.isError()) {
             showResult(result);
             Task task = createSimpleTask("run_task");
 
@@ -184,23 +176,12 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
                     }
                 };
                 showResult(result);
-                if (!isKeepDisplayingResults()) {
-                    redirectBack();
-                } else {
-                    target.add(getFeedbackPanel());
-                }
+                redirectBack();
                 showMainPopup(runReportPopupPanel, target);
             }
-            this.runReport = false;
-        } else if (!isKeepDisplayingResults()) {
             showResult(result);
             redirectBack();
         }
-    }
-
-    public void saveAndRunPerformed(AjaxRequestTarget target) {
-        this.runReport = true;
-        savePerformed(target);
     }
 
     private ReportObjectsListPanel<?> getReportTable() {

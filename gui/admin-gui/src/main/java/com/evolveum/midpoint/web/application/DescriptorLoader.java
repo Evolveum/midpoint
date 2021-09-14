@@ -65,7 +65,8 @@ public final class DescriptorLoader implements DebugDumpable {
             "com.evolveum.midpoint.gui.impl.page.admin.service",
             "com.evolveum.midpoint.gui.impl.page.admin.task",
             "com.evolveum.midpoint.gui.impl.page.admin.user",
-            "com.evolveum.midpoint.gui.impl.page.admin.report"
+            "com.evolveum.midpoint.gui.impl.page.admin.report",
+            "com.evolveum.midpoint.gui.impl.page.admin.focus"
     };
 
     // All could be final, but then Checkstyle complains about lower-case, although these are not constants.

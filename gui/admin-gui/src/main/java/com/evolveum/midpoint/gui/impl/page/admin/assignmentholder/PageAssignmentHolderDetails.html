@@ -8,8 +8,11 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <wicket:child />
 
+    <wicket:fragment wicket:id="templateView">
+        <div wicket:id="template"></div>
+    </wicket:fragment>
+    <wicket:child/>
 </wicket:extend>
 </body>
 </html>

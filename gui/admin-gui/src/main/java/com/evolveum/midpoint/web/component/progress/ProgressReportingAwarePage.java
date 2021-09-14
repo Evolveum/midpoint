@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,4 +32,7 @@ public interface ProgressReportingAwarePage {
     void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result);
 
     void continueEditing(AjaxRequestTarget target);
+
+    TaskManager getTaskManager();
+    PrismContext getPrismContext();
 }

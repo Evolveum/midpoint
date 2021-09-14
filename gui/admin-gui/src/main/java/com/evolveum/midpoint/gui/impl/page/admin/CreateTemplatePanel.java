@@ -1,69 +1,48 @@
 /*
- * Copyright (c) 2021 Evolveum and contributors
+ * Copyright (C) 2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-package com.evolveum.midpoint.web.page.admin;
+package com.evolveum.midpoint.gui.impl.page.admin;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
-@PageDescriptor(
-        urls = {
-                @Url(mountUrl = "/admin/template", matchUrlForSecurity = "/admin/template")
-        },
-        encoder = OnePageParameterEncoder.class,
-        action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
-                        label = "PageAdminUsers.auth.usersAll.label",
-                        description = "PageAdminUsers.auth.usersAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
-                        label = "PageUser.auth.user.label",
-                        description = "PageUser.auth.user.description")
-        })
-public class PageCreateFromTemplate extends PageAdmin {
+public class CreateTemplatePanel<O extends ObjectType> extends BasePanel<PrismObject<O>> {
 
     private static final String ID_TEMPLATE = "template";
 
-    public PageCreateFromTemplate(PageParameters pageParameters) {
-        super(pageParameters);
+    public CreateTemplatePanel(String id) {
+        super(id);
     }
 
     @Override
@@ -72,30 +51,29 @@ public class PageCreateFromTemplate extends PageAdmin {
         initLayout();
     }
 
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return createStringResource("PageCreateFromTemplate." + getType().getLocalPart() + ".title");
-    }
-
     private void initLayout() {
         MultiCompositedButtonPanel buttonsPanel = new MultiCompositedButtonPanel(ID_TEMPLATE, new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
-                List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionViews);
-                try {
-                    WebComponentUtil.initNewObjectWithReference(getPageBase(),
-                            getType(),
-                            archetypeRef);
-                } catch (SchemaException ex) {
-                    getPageBase().getFeedbackMessages().error(PageCreateFromTemplate.this, ex.getUserFriendlyMessage());
-                    target.add(getPageBase().getFeedbackPanel());
-                }
+                onTemplateChosePerformed(collectionViews, target);
             }
 
         };
         add(buttonsPanel);
+    }
+
+    protected void onTemplateChosePerformed(CompiledObjectCollectionView collectionViews, AjaxRequestTarget target) {
+        List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionViews);
+        try {
+            WebComponentUtil.initNewObjectWithReference(getPageBase(),
+                    getType(),
+                    archetypeRef);
+        } catch (SchemaException ex) {
+            getPageBase().getFeedbackMessages().error(getPageBase(), ex.getUserFriendlyMessage());
+            target.add(getPageBase().getFeedbackPanel());
+        }
     }
 
     protected LoadableModel<MultiFunctinalButtonDto> loadButtonDescriptions() {
@@ -105,7 +83,7 @@ public class PageCreateFromTemplate extends PageAdmin {
             protected MultiFunctinalButtonDto load() {
                 List<CompositedIconButtonDto> additionalButtons = new ArrayList<>();
 
-                Collection<CompiledObjectCollectionView> compiledObjectCollectionViews = getCompiledGuiProfile().findAllApplicableArchetypeViews(getType(), OperationTypeType.ADD);
+                Collection<CompiledObjectCollectionView> compiledObjectCollectionViews = findAllApplicableArchetypeViews();
 
                 if (CollectionUtils.isNotEmpty(compiledObjectCollectionViews)) {
                     compiledObjectCollectionViews.forEach(collection -> {
@@ -135,12 +113,15 @@ public class PageCreateFromTemplate extends PageAdmin {
                 return multifunctionalButton;
             }
         };
+    }
 
+    protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
+        return null;
     }
 
     //TODO copied from MainObjectListPanel
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
-        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, PageCreateFromTemplate.this);
+        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
@@ -168,11 +149,8 @@ public class PageCreateFromTemplate extends PageAdmin {
         return true;
     }
 
-    private QName getType() {
-        StringValue restType = getPageParameters().get("type");
-        if (restType == null || restType.toString() == null) {
-            throw redirectBackViaRestartResponseException();
-        }
-        return ObjectTypes.getTypeQNameFromRestType(restType.toString());
+    protected QName getType() {
+        return null;
     }
+
 }

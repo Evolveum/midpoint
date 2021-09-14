@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.application;
 
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.wicket.model.IModel;
 
@@ -17,6 +18,7 @@ public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
 
     private transient AsyncWebProcess<T> process;
     private String id;
+    private Task task;
 
     public AsyncWebProcessModel() {
         this(true, null);
@@ -71,5 +73,13 @@ public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
         id = process.getId();
 
         return process;
+    }
+
+    public void setTask(Task task) {
+        this.task = task;
+    }
+
+    public Task getTask() {
+        return task;
     }
 }
