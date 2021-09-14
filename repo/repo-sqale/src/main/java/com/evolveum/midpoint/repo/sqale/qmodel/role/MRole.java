@@ -10,5 +10,4 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
  * Querydsl "row bean" type related to {@link QRole}.
  */
 public class MRole extends MAbstractRole {
-
 }

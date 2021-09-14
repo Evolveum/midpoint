@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
  * Mapping between {@link QGenericObject} and {@link GenericObjectType}.
  */
 public class QGenericObjectMapping
-        extends QFocusMapping<GenericObjectType, QGenericObject, MGenericObject> {
+        extends QFocusMapping<GenericObjectType, QGenericObject, MFocus> {
 
     public static final String DEFAULT_ALIAS_NAME = "go";
 
@@ -35,14 +35,14 @@ public class QGenericObjectMapping
     }
 
     @Override
-    public MGenericObject newRowObject() {
-        return new MGenericObject();
+    public MFocus newRowObject() {
+        return new MFocus();
     }
 
     @Override
-    public @NotNull MGenericObject toRowObjectWithoutFullObject(
+    public @NotNull MFocus toRowObjectWithoutFullObject(
             GenericObjectType genericObject, JdbcSession jdbcSession) {
-        MGenericObject row = super.toRowObjectWithoutFullObject(genericObject, jdbcSession);
+        MFocus row = super.toRowObjectWithoutFullObject(genericObject, jdbcSession);
 
         return row;
     }
