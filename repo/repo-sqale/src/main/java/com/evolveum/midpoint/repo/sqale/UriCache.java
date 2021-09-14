@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.querydsl.core.QueryException;
 
 /**
  * Component hiding details of how QNames are stored in {@link QUri}.
@@ -64,7 +65,6 @@ public class UriCache {
      */
     public static final int UNKNOWN_ID = -1;
 
-    // TODO is this necessary? At this moment it's used only in tests, perhaps can be removed.
     private final Map<Integer, String> idToUri = new ConcurrentHashMap<>();
     private final Map<String, Integer> uriToId = new ConcurrentHashMap<>();
 
@@ -118,7 +118,7 @@ public class UriCache {
 
     /** Returns ID for string, possibly {@code null} - does not work with underlying database. */
     public @Nullable Integer getId(@NotNull String uri) {
-        Integer id = uriToId.get(uri);
+        Integer id = retrieveId(uri);
         LOGGER.trace("URI cache 'get' returned ID={} for URI={}", id, uri);
         return id;
     }
@@ -134,7 +134,10 @@ public class UriCache {
 
     /** Returns ID for string or {@link #UNKNOWN_ID} - does not work with underlying database. */
     public @NotNull Integer searchId(@NotNull String uri) {
-        Integer id = uriToId.getOrDefault(uri, UNKNOWN_ID);
+        Integer id = retrieveId(uri);
+        if (id == null) {
+            id = UNKNOWN_ID;
+        }
         LOGGER.trace("URI cache 'search' returned ID={} for URI={}", id, uri);
         return id;
     }
@@ -148,16 +151,32 @@ public class UriCache {
 
     /** Returns URI string for ID or {@code null} - does not work with underlying database. */
     public String getUri(Integer id) {
-        String uri = idToUri.get(id);
+        String uri = retrieveUri(id);
         LOGGER.trace("URI cache 'get' returned URI={} for ID={}", uri, id);
         return uri;
     }
 
     /** Returns URI string for ID or throws exception - does not work with underlying database. */
     public @NotNull String resolveToUri(Integer id) {
-        String uri = idToUri.get(id);
+        String uri = retrieveUri(id);
         LOGGER.trace("URI cache 'resolve' returned URI={} for ID={}", uri, id);
         return Objects.requireNonNull(uri, () -> "No URI cached under ID " + id);
+    }
+
+    private String retrieveUri(Integer id) {
+        String uri = idToUri.get(id);
+        if (uri == null) {
+            uri = retrieveUriFromDb(id);
+        }
+        return uri;
+    }
+
+    private Integer retrieveId(String uri) {
+        Integer id = uriToId.get(uri);
+        if (id == null) {
+            id = retrieveIdFromDb(uri);
+        }
+        return id;
     }
 
     /**
@@ -189,10 +208,43 @@ public class UriCache {
             jdbcSession.commit();
 
             updateMaps(MUri.of(id, uriString));
+        } catch (QueryException e) {
+            // Insert failed, record probably exists, so lets try to retrieve it
+            Integer retId = retrieveIdFromDb(uriString);
+            if (retId == null) {
+                throw new IllegalStateException("Couldn't insert uri to cache and uri was not present in cache.", e);
+            }
+            return retId;
         }
         // TODO query when constraint violation
 
         LOGGER.debug("URI cache inserted URI={} under ID={}", uri, id);
         return id;
+    }
+
+    private Integer retrieveIdFromDb(String uriString) {
+        MUri row = jdbcSessionSupplier.get().newQuery()
+            .select(QUri.DEFAULT)
+            .from(QUri.DEFAULT)
+            .where(QUri.DEFAULT.uri.eq(uriString))
+            .fetchOne();
+        if (row == null) {
+            return null;
+        }
+        updateMaps(row);
+        return row.id;
+    }
+
+    private String retrieveUriFromDb(Integer id) {
+        MUri row = jdbcSessionSupplier.get().newQuery()
+                .select(QUri.DEFAULT)
+                .from(QUri.DEFAULT)
+                .where(QUri.DEFAULT.id.eq(id))
+                .fetchOne();
+        if (row == null) {
+            return null;
+        }
+        updateMaps(row);
+        return row.uri;
     }
 }
