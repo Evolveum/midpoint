@@ -59,7 +59,7 @@ public class TestMappingStatic extends AbstractUnitTest {
     public void testValueMultiDeep() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
-                "mapping-value-multi-deep.xml", getTestNameShort(), "employeeType");
+                "mapping-value-multi-deep.xml", getTestNameShort(), "subtype");
 
         // THEN
         PrismAsserts.assertTripleZero(outputTriple, "12345", "67890");
@@ -71,7 +71,7 @@ public class TestMappingStatic extends AbstractUnitTest {
     public void testValueMultiShallow() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
-                "mapping-value-multi-shallow.xml", getTestNameShort(), "employeeType");
+                "mapping-value-multi-shallow.xml", getTestNameShort(), "subtype");
 
         // THEN
         PrismAsserts.assertTripleZero(outputTriple, "12345", "67890");
@@ -83,7 +83,7 @@ public class TestMappingStatic extends AbstractUnitTest {
     public void testPathNoSource() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
-                "mapping-path-system-variables-nosource.xml", getTestNameShort(), "employeeType");
+                "mapping-path-system-variables-nosource.xml", getTestNameShort(), "subtype");
 
         // THEN
         PrismAsserts.assertTripleZero(outputTriple, "jack");

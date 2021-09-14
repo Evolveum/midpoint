@@ -17,5 +17,5 @@
     <extension>
         <piracy:guns xsi:type="xsd:int">88</piracy:guns>
     </extension>
-    <objectType>http:///midpoint.evolveum.com/xml/ns/samples/piracy#ShipType</objectType>
+    <subtype>http:///midpoint.evolveum.com/xml/ns/samples/piracy#ShipType</subtype>
 </genericObject>

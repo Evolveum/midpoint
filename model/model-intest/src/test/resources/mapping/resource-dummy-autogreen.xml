@@ -116,12 +116,12 @@
                                                 role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
                                                 log.info("### (title) role name " + role.name.orig)
                                                 log.info("### (title) role.subtype " + role.subtype)
-                                                inRange = ('auto')?.equals(role.subtype)
+                                                inRange = role.subtype?.contains('auto')
                                                 log.info("########## (title) inRange: " + inRange)
                                                 return inRange
                                             } else {
                                                 log.info("### (title) target subtype " + assignment.targetRef.objectable.subtype)
-                                                inRange = 'auto'.equals(assignment.targetRef.objectable.subtype)
+                                                inRange = assignment.targetRef.objectable.subtype?.contains('auto')
                                                 log.info("########## (title) inRange: " + inRange)
                                                 return inRange
                                             }
@@ -183,12 +183,12 @@
                                                 role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
                                                 log.info("### (association) role name " + role.name.orig)
                                                 log.info("### (association) role.subtype " + role.subtype)
-                                                inRange = ('auto').equals(role.subtype)
+                                                inRange = role.subtype?.contains('auto')
                                                 log.info("########## (association) inRange: " + inRange)
                                                 return inRange
                                             } else {
                                                 log.info("### (association) target subtype " + assignment.targetRef.objectable.subtype)
-                                                inRange = 'auto'.equals(assignment.targetRef.objectable.subtype)
+                                                inRange = assignment.targetRef.objectable.subtype?.contains('auto')
                                                 log.info("########## (association) inRange: " + inRange)
                                                 return inRange
                                             }

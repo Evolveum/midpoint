@@ -28,7 +28,7 @@
     <emailAddress>jack.sparrow@evolveum.com</emailAddress>
     <telephoneNumber>555-1234</telephoneNumber>
     <employeeNumber>emp1234</employeeNumber>
-    <employeeType>CAPTAIN</employeeType>
+    <subtype>CAPTAIN</subtype>
     <organizationalUnit>Leaders</organizationalUnit>
     <organizationalUnit>Followers</organizationalUnit>
     <locality>Black Pearl</locality>
