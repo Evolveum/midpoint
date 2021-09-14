@@ -13,15 +13,14 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.DelegationTargetLimitationDialog;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -84,7 +83,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private List<UserType> usersToUpdate;
 
     public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel, boolean delegatedToMe,
-                                 List<AssignmentInfoDto> privilegesList, PageBase pageBase) {
+                                 List<AssignmentInfoDto> privilegesList) {
         super(id, delegationTargetObjectModel, delegatedToMe, new LoadableModel<List<AssignmentInfoDto>>(false) {
             @Override
             protected List<AssignmentInfoDto> load() {
@@ -94,7 +93,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     }
 
     public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel, boolean delegatedToMe,
-                                 LoadableModel<List<AssignmentInfoDto>> privilegesListModel, PageBase pageBase) {
+                                 LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
             super(id, delegationTargetObjectModel, delegatedToMe, privilegesListModel);
         }
 
@@ -160,7 +159,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         WebMarkupContainer delegatedToTypeImage = new WebMarkupContainer(ID_DELEGATED_TO_IMAGE);
         if (delegatedToMe){
             delegatedToTypeImage.add(AttributeModifier.append("class",
-                    WebComponentUtil.createDefaultIcon(((PageUser)pageBase).getObjectWrapper().getObject())));
+                    WebComponentUtil.createDefaultIcon(((PageUser)pageBase).getObjectDetailsModels().getObjectWrapperModel().getObject().getObject())));
         } else {
             if (getModelObject().getDelegationOwner() != null) {
                 delegatedToTypeImage.add(AttributeModifier.append("class",

@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
  * Mapping between {@link QAccessCertificationWorkItem} and {@link AccessCertificationWorkItemType}.
  */
 public class QAccessCertificationWorkItemMapping
-        extends QContainerMapping<AccessCertificationWorkItemType, QAccessCertificationWorkItem, MAccessCertificationWorkItem, MAccessCertificationCampaign> {
+        extends QContainerMapping<AccessCertificationWorkItemType, QAccessCertificationWorkItem, MAccessCertificationWorkItem, MAccessCertificationCase> {
 
     public static final String DEFAULT_ALIAS_NAME = "acwi";
 
@@ -64,7 +64,7 @@ public class QAccessCertificationWorkItemMapping
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
-                new TableRelationResolver<>(
+                TableRelationResolver.usingJoin(
                         QAccessCertificationCaseMapping::getAccessCertificationCaseMapping,
                         (q, p) -> q.ownerOid.eq(p.ownerOid)
                                 .and(q.accessCertCaseCid.eq(p.cid))));
@@ -121,9 +121,10 @@ public class QAccessCertificationWorkItemMapping
     }
 
     @Override
-    public MAccessCertificationWorkItem newRowObject(MAccessCertificationCampaign ownerRow) {
+    public MAccessCertificationWorkItem newRowObject(MAccessCertificationCase ownerRow) {
         MAccessCertificationWorkItem row = newRowObject();
-        row.ownerOid = ownerRow.oid;
+        row.ownerOid = ownerRow.ownerOid;
+        row.accessCertCaseCid = ownerRow.cid;
         return row;
     }
 
@@ -131,11 +132,9 @@ public class QAccessCertificationWorkItemMapping
     @SuppressWarnings("DuplicatedCode")
     public MAccessCertificationWorkItem insert(
             AccessCertificationWorkItemType workItem,
-            MAccessCertificationCampaign campaignRow,
             MAccessCertificationCase caseRow,
             JdbcSession jdbcSession) {
-        MAccessCertificationWorkItem row = initRowObject(workItem, campaignRow);
-        row.accessCertCaseCid = caseRow.cid;
+        MAccessCertificationWorkItem row = initRowObject(workItem, caseRow);
 
         row.closeTimestamp = MiscUtil.asInstant(workItem.getCloseTimestamp());
         // TODO: iteration -> campaignIteration
@@ -182,19 +181,19 @@ public class QAccessCertificationWorkItemMapping
             }
             PrismContainer<AccessCertificationCaseType> caseContainer = owner.findContainer(AccessCertificationCampaignType.F_CASE);
             if (caseContainer == null) {
-                throw new SystemException("Campaing" + owner + " has no cases even if it should have " + tuple);
+                throw new SystemException("Campaign" + owner + " has no cases even if it should have " + tuple);
             }
-            PrismContainerValue<AccessCertificationCaseType> aCase = caseContainer .findValue(row.accessCertCaseCid);
+            PrismContainerValue<AccessCertificationCaseType> aCase = caseContainer.findValue(row.accessCertCaseCid);
             if (aCase == null) {
-                throw new SystemException("Campaing " + owner + " has no cases with ID " + row.accessCertCaseCid);
+                throw new SystemException("Campaign " + owner + " has no cases with ID " + row.accessCertCaseCid);
             }
             PrismContainer<AccessCertificationWorkItemType> container = aCase.findContainer(AccessCertificationCaseType.F_WORK_ITEM);
             if (container == null) {
-                throw new SystemException("Campaing " + owner + "has no work item for case with ID " + row.accessCertCaseCid);
+                throw new SystemException("Campaign " + owner + "has no work item for case with ID " + row.accessCertCaseCid);
             }
             PrismContainerValue<AccessCertificationWorkItemType> value = container.findValue(row.cid);
             if (value == null) {
-                throw new SystemException("Campaing " + owner + "has no work item with ID " + row.cid);
+                throw new SystemException("Campaign " + owner + "has no work item with ID " + row.cid);
             }
             return value.asContainerable();
         };

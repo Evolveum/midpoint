@@ -22,6 +22,9 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
+ *
+ * @param <R> type of this container row
+ * @param <OR> type of the owner row
  */
 @SuppressWarnings("unused")
 public class QContainer<R extends MContainer, OR> extends FlexibleRelationalPathBase<R>

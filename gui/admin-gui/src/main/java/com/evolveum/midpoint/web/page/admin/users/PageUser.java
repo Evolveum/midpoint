@@ -264,7 +264,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                     @Override
                     public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
                         DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
-                                privilegesListModel, PageUser.this);
+                                privilegesListModel);
                         item.add(editor);
                     }
 

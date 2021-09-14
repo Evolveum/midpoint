@@ -82,7 +82,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
             @Override
             public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), false,
-                        privilegesListModel, getPageBase());
+                        privilegesListModel);
                 item.add(editor);
             }
 
