@@ -5,10 +5,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<user oid="00000001-d34d-b33f-f00d-LD1000000002">
+<user oid="00000001-d34d-b33f-f00d-ad1000000002">
     <name>lead1-deputy2</name>
     <assignment>
-        <targetRef oid="00000001-d34d-b33f-f00d-L00000000001" type="UserType" relation="deputy"/>
+        <targetRef oid="00000001-d34d-b33f-f00d-a00000000001" type="UserType" relation="deputy"/>
     </assignment>
     <fullName>Lead1 Deputy2</fullName>
     <familyName>Lead1 Deputy2</familyName>
