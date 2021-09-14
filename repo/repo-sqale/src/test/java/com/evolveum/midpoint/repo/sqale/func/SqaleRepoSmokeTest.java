@@ -169,7 +169,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(user.getOid()).isEqualTo(userOid);
         assertThat(selectObjectByOid(QUser.class, userOid)).isNotNull();
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_ADD_OBJECT);
     }
 
     @Test
@@ -193,7 +193,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(deleteResult).isNotNull();
         assertThatOperationResult(result).isSuccess();
         assertThat(selectNullableObjectByOid(QUser.class, userOid)).isNull();
-        assertSingleOperationRecorded(RepositoryService.OP_DELETE_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_DELETE_OBJECT);
     }
 
     @Test
@@ -214,7 +214,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         then("object is obtained and performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
         assertThat(object).isNotNull();
-        assertSingleOperationRecorded(RepositoryService.OP_GET_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_GET_OBJECT);
     }
 
     @Test
@@ -234,7 +234,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         then("non-null version string is obtained and performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
         assertThat(version).isNotNull();
-        assertSingleOperationRecorded(RepositoryService.OP_GET_VERSION);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_GET_VERSION);
     }
 
     @Test

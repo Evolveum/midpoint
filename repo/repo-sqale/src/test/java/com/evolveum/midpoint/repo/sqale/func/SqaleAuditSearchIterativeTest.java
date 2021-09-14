@@ -8,56 +8,84 @@ package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Random;
 import java.util.function.Predicate;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
+import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.init.AuditServiceProxy;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
-import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * This tests {@link SqaleRepositoryService#searchObjectsIterative} in a gray-box style,
- * knowing that it uses {@link SqaleRepositoryService#executeSearchObjects} internally.
- * We're not only interested in the fact that it iterates over all the objects matching criteria,
- * but we also want to assure that the internal paging is strictly sequential.
- * Each test can take a bit longer (~500ms) because the handler updates the objects
- * to mark them for later assertions, so there's actually a lot of repository calls.
+ * This tests {@link SqaleAuditService#searchObjectsIterative} in a gray-box style,
+ * knowing that it uses {@link SqaleAuditService#executeSearchObjects} internally.
+ * Inspired by {@link SqaleRepoSearchIterativeTest}.
  */
-public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
+public class SqaleAuditSearchIterativeTest extends SqaleRepoBaseTest {
 
     private final TestResultHandler testHandler = new TestResultHandler();
 
     // default page size for iterative search, reset before each test
     private static final int ITERATION_PAGE_SIZE = 100;
 
+    @Autowired private AuditService auditService;
+
+    private final long startTimestamp = System.currentTimeMillis();
+
+    // alias for queries, can't be static/final, the mapping it's not yet initialized
+    private QAuditEventRecord aer;
+    private SqlPerformanceMonitorImpl performanceMonitor;
+
     @BeforeClass
     public void initObjects() throws Exception {
+        performanceMonitor =
+                ((AuditServiceProxy) auditService).getImplementation(SqaleAuditService.class)
+                        .getPerformanceMonitor();
+
+        aer = QAuditEventRecordMapping.get().defaultAlias();
+        clearAudit();
+
         OperationResult result = createOperationResult();
+
+        long timestamp = startTimestamp;
+        Random random = new Random();
         // we will create two full "pages" of data
         for (int i = 1; i <= ITERATION_PAGE_SIZE * 2; i++) {
-            UserType user = new UserType(prismContext)
-                    .name(String.format("user-%05d", i))
-                    .costCenter(String.valueOf(i / 10)); // 10 per cost center
-            repositoryService.addObject(user.asPrismObject(), null, result);
+            AuditEventRecord record = new AuditEventRecord();
+            record.setParameter(paramString(i));
+            record.setTimestamp(timestamp);
+            auditService.audit(record, NullTaskImpl.INSTANCE, result);
+
+            // 50% chance to change the timestamp by up to a second
+            timestamp += random.nextInt(2) * random.nextInt(1000);
         }
+    }
+
+    // We need to pad the param string so it's possible to compare it.
+    private String paramString(int i) {
+        return String.format("%05d", i);
     }
 
     @BeforeMethod
@@ -87,10 +115,10 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(searchResultMetadata.getApproxNumberOfAllResults()).isZero();
         // this is not the main part, just documenting that currently we short circuit the operation
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 0);
+                AUDIT_OP_PREFIX + AuditService.OP_SEARCH_OBJECTS_ITERATIVE, 0);
         // this is important - no actual search was called
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 0);
+                AUDIT_OP_PREFIX + AuditService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 0);
     }
 
     @Test
@@ -106,18 +134,16 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         then("result metadata is not null and reports the handled objects");
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(metadata).isNotNull();
-        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.processedCount());
         assertThat(metadata.isPartialResults()).isFalse();
-        // page cookie is not null and it's OID in UUID format
-        assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
+        assertThat(metadata.getPagingCookie()).isNotNull();
 
         and("search operations were called");
-        assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertOperationRecordedCount(AUDIT_OP_PREFIX + AuditService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("all objects of the specified type (here User) were processed");
-        assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
+        assertThat(testHandler.processedCount()).isEqualTo(count(aer));
     }
 
     @Test
@@ -135,18 +161,16 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         then("result metadata is not null and reports the handled objects");
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(metadata).isNotNull();
-        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.processedCount());
         assertThat(metadata.isPartialResults()).isFalse();
-        // page cookie is not null and it's OID in UUID format
-        assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
+        assertThat(metadata.getPagingCookie()).isNotNull();
 
         and("search operations were called");
-        assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertOperationRecordedCount(AUDIT_OP_PREFIX + AuditService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("all objects of the specified type were processed");
-        assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
+        assertThat(testHandler.processedCount()).isEqualTo(count(aer));
     }
 
     @Test
@@ -155,28 +179,24 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
 
-        String midOid = "80000000-0000-0000-0000-000000000000";
-        given("condition that breaks iterative search based on UUID");
-        testHandler.setStoppingPredicate(u -> u.getOid().compareTo(midOid) >= 0);
+        given("condition that breaks iterative search based on parameter (count)");
+        testHandler.setStoppingPredicate(aer -> aer.getParameter().equals(paramString(ITERATION_PAGE_SIZE)));
 
         when("calling search iterative with null query");
         SearchResultMetadata metadata = searchObjectsIterative(null, operationResult);
 
         then("result metadata is not null and reports partial result (because of the break)");
         assertThat(metadata).isNotNull();
-        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.processedCount());
         assertThat(metadata.isPartialResults()).isTrue(); // extremely likely with enough items
 
         and("search operations were called");
-        assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertOperationRecordedCount(AUDIT_OP_PREFIX + AuditService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
-        and("all objects up to specified UUID were processed");
-        QUser u = aliasFor(QUser.class);
-        assertThat(testHandler.getCounter())
-                // first >= midOid was processed too
-                .isEqualTo(count(u, u.oid.lt(UUID.fromString(midOid))) + 1);
+        and("all objects up to specified parameter value were processed");
+        assertThat(testHandler.processedCount())
+                .isEqualTo(count(aer, aer.parameter.loe(paramString(ITERATION_PAGE_SIZE))));
     }
 
     @Test
@@ -195,16 +215,16 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
         then("result metadata is not null and reports partial result (because of the break)");
         assertThat(metadata).isNotNull();
-        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.processedCount());
         assertThat(metadata.isPartialResults()).isFalse();
 
         and("search operations were called");
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+                AUDIT_OP_PREFIX + AuditService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("specified amount of objects was processed");
-        assertThat(testHandler.getCounter()).isEqualTo(101);
+        assertThat(testHandler.processedCount()).isEqualTo(101);
     }
 
     @Test
@@ -214,9 +234,10 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         pm.clearGlobalPerformanceInformation();
 
         given("query with custom ordering");
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .asc(UserType.F_COST_CENTER)
-                .maxSize(47) // see the limit below
+        int limit = 47;
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .asc(AuditEventRecordType.F_PARAMETER)
+                .maxSize(limit)
                 .build();
 
         when("calling search iterative");
@@ -225,27 +246,19 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         then("result metadata is not null and reports partial result (because of the break)");
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(metadata).isNotNull();
-        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.processedCount());
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(limit);
         assertThat(metadata.isPartialResults()).isFalse(); // everything was processed
 
         and("search operations were called");
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+                AUDIT_OP_PREFIX + AuditService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
         assertTypicalPageOperationCount(metadata);
 
         and("all objects were processed in proper order");
-        QUser u = aliasFor(QUser.class);
-        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
-            List<String> result = jdbcSession.newQuery()
-                    .from(u)
-                    .orderBy(u.costCenter.asc(), u.oid.asc())
-                    .select(u.employeeNumber)
-                    .limit(47) // must match the maxSize above
-                    .fetch();
-
-            for (int i = 1; i < result.size(); i++) {
-                assertThat(result.get(i)).isEqualTo(getTestNumber() + "-" + i); // order matches
-            }
+        Iterator<AuditEventRecordType> processedItems = testHandler.processedEvents.iterator();
+        for (int i = 1; i < limit; i++) {
+            assertThat(processedItems.next().getParameter()).isEqualTo(paramString(i));
         }
     }
 
@@ -257,13 +270,11 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
             throws SchemaException {
 
         display("QUERY: " + query);
-        return repositoryService.searchObjectsIterative(
-                UserType.class,
+        return auditService.searchObjectsIterative(
                 query,
                 testHandler,
                 selectorOptions != null && selectorOptions.length != 0
                         ? List.of(selectorOptions) : null,
-                true, // this boolean is actually ignored (assumed to be true) by new repo
                 operationResult);
     }
 
@@ -272,7 +283,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                 && metadata.getApproxNumberOfAllResults() % getConfiguredPageSize() == 0;
 
         assertOperationRecordedCount(
-                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE,
+                AUDIT_OP_PREFIX + AuditService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE,
                 metadata.getApproxNumberOfAllResults() / getConfiguredPageSize()
                         + (lastRowCausingPartialResult ? 0 : 1));
     }
@@ -282,39 +293,33 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                 .getIterativeSearchByPagingBatchSize();
     }
 
-    private class TestResultHandler implements ResultHandler<UserType> {
+    private static class TestResultHandler implements AuditResultHandler {
 
-        private final AtomicInteger counter = new AtomicInteger();
-        private Predicate<UserType> stoppingPredicate;
+        private final List<AuditEventRecordType> processedEvents = new ArrayList<>();
+        private Predicate<AuditEventRecordType> stoppingPredicate;
 
         public void reset() {
-            counter.set(0);
+            processedEvents.clear();
             stoppingPredicate = o -> false;
         }
 
-        public int getCounter() {
-            return counter.get();
+        public int processedCount() {
+            return processedEvents.size();
         }
 
-        public void setStoppingPredicate(Predicate<UserType> stoppingPredicate) {
+        public void setStoppingPredicate(Predicate<AuditEventRecordType> stoppingPredicate) {
             this.stoppingPredicate = stoppingPredicate;
         }
 
         @Override
-        public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
-            UserType user = object.asObjectable();
-            try {
-                repositoryService.modifyObject(UserType.class, user.getOid(),
-                        prismContext.deltaFor(UserType.class)
-                                .item(UserType.F_EMPLOYEE_NUMBER)
-                                .replace(getTestNumber() + "-" + counter.getAndIncrement())
-                                .asObjectDelta(user.getOid())
-                                .getModifications(),
-                        parentResult);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            return !stoppingPredicate.test(user); // true means continue, so we need NOT
+        public boolean handle(AuditEventRecordType eventRecord, OperationResult parentResult) {
+            processedEvents.add(eventRecord);
+            return !stoppingPredicate.test(eventRecord); // true means continue, so we need NOT
         }
+    }
+
+    @Override
+    protected SqlPerformanceMonitorImpl getPerformanceMonitor() {
+        return performanceMonitor;
     }
 }

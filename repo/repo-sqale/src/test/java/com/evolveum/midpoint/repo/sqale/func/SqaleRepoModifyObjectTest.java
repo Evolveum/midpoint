@@ -9,15 +9,13 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -26,23 +24,25 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
@@ -53,8 +53,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -3398,7 +3400,171 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_MODIFY_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_MODIFY_OBJECT);
+    }
+
+    @Test
+    public void test950ModifyOperationWithReindexUpdatesPerformanceMonitor()
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        given("Full object was modified in database");
+        clearPerformanceMonitor();
+        when("object is modified in the repository");
+
+        RepoModifyOptions options = RepoModifyOptions.createForceReindex();
+        repositoryService.modifyObject(UserType.class, user1Oid, Collections.emptyList(), options, result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_MODIFY_OBJECT);
+    }
+
+    @Test
+    public void test951ReindexAfterManualChangeOfFullObject()
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+
+        UserType user = new UserType(prismContext).name("corrupted")
+                .beginAssignment()
+                .policySituation("kept")
+                .<UserType>end()
+                .beginAssignment()
+                .policySituation("removed")
+                .end();
+
+        String oid = repositoryService.addObject(user.asPrismObject(),
+                null, result);
+
+        when("full object is modified in the database (indices are desynced from full object)");
+
+        user = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+        user.getAssignment().remove(1); // remove removed
+        user.beginAssignment().policySituation("added");
+        QUserMapping mapping = QUserMapping.getUserMapping();
+        byte[] fullObject = mapping.createFullObject(user);
+        try (JdbcSession session = mapping.repositoryContext().newJdbcSession().startTransaction()) {
+            session.newUpdate(mapping.defaultAlias())
+                    .set(mapping.defaultAlias().fullObject, fullObject)
+                    .where(mapping.defaultAlias().oid.eq(SqaleUtils.oidToUUid(oid)))
+                    .execute();
+            session.commit();
+        }
+
+        assertPolicySituationFound("kept", 1, result);
+        assertPolicySituationFound("removed", 1, result);
+        assertPolicySituationFound("added", 0, result);
+
+        given("object is reindexed");
+
+        RepoModifyOptions options = RepoModifyOptions.createForceReindex();
+        repositoryService.modifyObject(UserType.class, oid, Collections.emptyList(), options, result);
+
+        then("indices are updated according new full object");
+
+        assertPolicySituationFound("kept", 1, result);
+        assertPolicySituationFound("removed", 0, result);
+        assertPolicySituationFound("added", 1, result);
+    }
+
+    private void assertPolicySituationFound(String situation, int count, OperationResult result) throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION).eq(situation)
+                .build();
+        SearchResultList<PrismObject<UserType>> found = repositoryService.searchObjects(UserType.class, query, null, result);
+        assertEquals(found.size(), count, "Found situation count does not match.");
+    }
+
+    @Test
+    public void test952ReindexFixingColumnsOutOfSync()
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+
+        given("user existing in the repository");
+        String name = "user" + getTestNumber();
+        UserType user = new UserType(prismContext).name(name)
+                .emailAddress(name + "@goodmail.com")
+                .subtype("subtype-1")
+                .subtype("subtype-2")
+                .assignment(new AssignmentType(prismContext)
+                        .order(1));
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        and("object aggregate is modified in the DB (simulating out-of-sync data)");
+        QAssignment<MObject> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
+        UUID oidUuid = UUID.fromString(oid);
+        try (JdbcSession jdbcSession = startTransaction()) {
+            jdbcSession.newInsert(a)
+                    .set(a.ownerOid, oidUuid)
+                    .set(a.cid, -1L)
+                    .set(a.containerType, MContainerType.ASSIGNMENT)
+                    .set(a.ownerType, MObjectType.USER)
+                    .set(a.orderValue, 952) // test number, hopefully unique
+                    .execute();
+
+            QUser u = QUserMapping.getUserMapping().defaultAlias();
+            jdbcSession.newUpdate(u)
+                    .set(u.emailAddress, "bad@badmail.com")
+                    .set(u.subtypes, new String[] { "subtype-952" })
+                    .set(u.costCenter, "invasive value")
+                    .where(u.oid.eq(oidUuid))
+                    .execute();
+
+            jdbcSession.commit();
+        }
+
+        and("search provides obviously bad results");
+        assertThat(repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_EMAIL_ADDRESS).eq(name + "@goodmail.com").build(), result))
+                .isEmpty(); // can't find by the original mail, that's wrong
+        assertThat(repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_COST_CENTER).eq("invasive value").build(), result))
+                .hasSize(1); // can find by bad value, that's wrong
+        assertThat(repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER).eq(952).build(), result))
+                .hasSize(1); // can find by wrong assignment
+        assertThat(repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_SUBTYPE).eq("subtype-952").build(), result))
+                .hasSize(1); // can find by wrong subtype
+
+        when("reindex is called to fix it");
+        repositoryService.modifyObject(UserType.class, oid, Collections.emptyList(),
+                RepoModifyOptions.createForceReindex(), result);
+
+        then("the searches work as expected");
+        assertThat(repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_EMAIL_ADDRESS).eq(name + "@goodmail.com").build(), result))
+                .hasSize(1)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(oid); // can find by the original mail, that's good!
+        assertThat(repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_COST_CENTER).eq("invasive value").build(), result))
+                .isEmpty(); // good
+        assertThat(repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER).eq(952).build(), result))
+                .isEmpty(); // good
+        assertThat(repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER).eq(1).build(), result))
+                .extracting(o -> o.getOid())
+                .contains(oid); // good, can have more results, but our user is there too
+
+        and("database values are as good as new");
+        MUser userRow = selectObjectByOid(QUser.class, oid);
+        assertThat(userRow.emailAddress).isEqualTo(name + "@goodmail.com"); // tested by search above as well
+        assertThat(userRow.costCenter).isNull();
+        assertThat(userRow.subtypes).containsExactlyInAnyOrder("subtype-1", "subtype-2");
+
+        List<MAssignment> assRows = select(a, a.ownerOid.eq(oidUuid));
+        // single row with proper order is returned, wrong row is gone
+        assertThat(assRows).hasSize(1);
+        assertThat(assRows.get(0).orderValue).isEqualTo(1);
     }
 
     @Test
