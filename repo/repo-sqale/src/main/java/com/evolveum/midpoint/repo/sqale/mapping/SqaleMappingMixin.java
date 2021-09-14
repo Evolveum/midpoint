@@ -84,7 +84,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
                 ctx -> new RefTableItemDeltaProcessor<>(ctx, referenceMapping)));
 
         // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @.
-        addRelationResolver(itemName, new TableRelationResolver<>(
+        addRelationResolver(itemName, TableRelationResolver.usingSubquery(
                 referenceMapping, referenceMapping.correlationPredicate()));
         return this;
     }

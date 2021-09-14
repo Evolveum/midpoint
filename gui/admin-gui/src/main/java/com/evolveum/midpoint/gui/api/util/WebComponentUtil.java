@@ -255,7 +255,7 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP_NEW.put(CaseType.class, com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ArchetypeType.class, PageArchetype.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageAccount.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, PageObjectCollection.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, PageObjectTemplate.class);
     }
 
@@ -4831,6 +4831,13 @@ public final class WebComponentUtil {
             return false;
         }
         return QNameUtil.match(assignmentType.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE);
+    }
+
+    public static boolean isDelegationAssignment(AssignmentType assignmentType) {
+        if (assignmentType.getTargetRef() == null) {
+            return false;
+        }
+        return QNameUtil.match(assignmentType.getTargetRef().getType(), UserType.COMPLEX_TYPE);
     }
 
     public static <AH extends AssignmentHolderType> boolean hasArchetypeAssignment(AH assignmentHolder, String archetypeOid) {

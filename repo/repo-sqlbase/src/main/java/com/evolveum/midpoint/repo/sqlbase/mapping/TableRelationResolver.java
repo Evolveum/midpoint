@@ -35,19 +35,52 @@ public class TableRelationResolver<
 
     protected final Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier;
     protected final BiFunction<Q, TQ, Predicate> correlationPredicate;
+    private final boolean useSubquery;
 
-    public TableRelationResolver(
+    public static <Q extends FlexibleRelationalPathBase<R>, R, TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    TableRelationResolver<Q, R, TS, TQ, TR> usingSubquery(
+            @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
+        return new TableRelationResolver<>(targetMapping, correlationPredicate);
+    }
+
+    /**
+     * Currently the decision to use `JOIN` is static in the mapping, but it can be more flexible.
+     * If the query does not order by such a path, `EXISTS` is more efficient and should be used.
+     * This would require order examination first and then using this info in {@link #resolve(SqlQueryContext)},
+     * perhaps accessible via the context parameter.
+     */
+    public static <Q extends FlexibleRelationalPathBase<R>, R, TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    TableRelationResolver<Q, R, TS, TQ, TR> usingJoin(
+            @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier,
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
+        return new TableRelationResolver<>(targetMappingSupplier, correlationPredicate);
+    }
+
+    /**
+     * Constructor for relation resolver using `EXISTS` subquery to the table.
+     * This is good for multi-value containers.
+     */
+    protected TableRelationResolver(
             @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
             @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
         this.targetMappingSupplier = () -> targetMapping;
         this.correlationPredicate = correlationPredicate;
+        this.useSubquery = true;
     }
 
-    public TableRelationResolver(
+    /**
+     * Constructor for table-stored relation resolver using `LEFT JOIN`.
+     * This is good when we know only one result will match the joining condition,
+     * e.g. owning object or object referenced by embedded (single-value) reference.
+     * Using `JOIN` is necessary if ordering by the target is required.
+     */
+    private TableRelationResolver(
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier,
             @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
         this.targetMappingSupplier = targetMappingSupplier;
         this.correlationPredicate = correlationPredicate;
+        this.useSubquery = false;
     }
 
     /**
@@ -58,10 +91,16 @@ public class TableRelationResolver<
      */
     @Override
     public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
-        SqlQueryContext<TS, TQ, TR> subcontext = context.subquery(targetMappingSupplier.get());
-        SQLQuery<?> subquery = subcontext.sqlQuery();
-        subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
+        if (useSubquery) {
+            SqlQueryContext<TS, TQ, TR> subcontext = context.subquery(targetMappingSupplier.get());
+            SQLQuery<?> subquery = subcontext.sqlQuery();
+            subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
 
-        return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
+            return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
+        } else {
+            SqlQueryContext<TS, TQ, TR> subcontext = context.leftJoin(
+                    targetMappingSupplier.get(), correlationPredicate);
+            return new ResolutionResult<>(subcontext, subcontext.mapping());
+        }
     }
 }

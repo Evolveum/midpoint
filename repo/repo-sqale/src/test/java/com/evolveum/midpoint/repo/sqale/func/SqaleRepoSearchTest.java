@@ -2006,7 +2006,7 @@ AND(
 
         then("performance monitor is updated");
         assertThatOperationResult(operationResult).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_SEARCH_OBJECTS);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS);
     }
 
     @Test
@@ -2151,24 +2151,6 @@ AND(
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
                 .isNotNull();
         return repositorySearchObjects(type, query, operationResult, selectorOptions);
-    }
-
-    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
-    @SafeVarargs
-    @NotNull
-    private <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
-            @NotNull Class<T> type,
-            ObjectQuery query,
-            OperationResult operationResult,
-            SelectorOptions<GetOperationOptions>... selectorOptions)
-            throws SchemaException {
-        return repositoryService.searchObjects(
-                        type,
-                        query,
-                        selectorOptions != null && selectorOptions.length != 0
-                                ? List.of(selectorOptions) : null,
-                        operationResult)
-                .map(p -> p.asObjectable());
     }
 
     private <T extends Containerable> SearchResultList<T> searchContainerTest(

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl;
 
 import static java.util.Collections.singleton;
@@ -178,7 +177,9 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                 .item(T_PARENT, F_REQUESTOR_REF).resolve()
                 .build();
 
-        List<CaseWorkItemType> workItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), options1, opTask, result);
+        List<CaseWorkItemType> workItems = new ArrayList<>( // to assure modifiable result list
+                modelService.searchContainers(CaseWorkItemType.class,
+                        getOpenItemsQuery(), options1, opTask, result));
 
         displayDumpable("changes by state after first clockwork run", workflowManager
                 .getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));

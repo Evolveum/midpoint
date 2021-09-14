@@ -231,7 +231,7 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
 
             PrismContainerWrapper<? extends Containerable> child = getModelObject().getSelectedChild();
             //TODO only for provenance?
-            if (!child.isRuntimeSchema()) {
+            if (child != null && !child.isRuntimeSchema()) {
                 return getString(child.getTypeName().getLocalPart() + ".displayType");
             }
             return "";

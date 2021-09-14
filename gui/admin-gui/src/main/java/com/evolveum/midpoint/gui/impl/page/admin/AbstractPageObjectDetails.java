@@ -79,7 +79,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private ODM objectDetailsModels;
 
-    private ProgressPanel progressPanel;
+    protected ProgressPanel progressPanel;
     protected boolean previewRequested;
 
     public AbstractPageObjectDetails() {
@@ -313,23 +313,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
     }
 
-    private void executeModifyDelta(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto executeChangeOptionsDto, Task task, OperationResult result, AjaxRequestTarget target) {
-        //TODO only in UserDetialsPanel
-        //boolean delegationChangesExist = processDeputyAssignments(previewOnly);
+    protected void executeModifyDelta(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto executeChangeOptionsDto, Task task, OperationResult result, AjaxRequestTarget target) {
         try {
             if (deltas.isEmpty() && !executeChangeOptionsDto.isReconcile()) {
                 progressPanel.clearProgressPanel();            // from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
                 if (!previewOnly) {
-//                    if (!delegationChangesExist) {
-//                        result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
-//                        showResult(result);
-//                    }  //TODO user page
                     redirectBack();
-                } else {
-//                    if (!delegationChangesExist) {
-//                        warn(getString("PageAdminObjectDetails.noChangesPreview"));
-//                        target.add(getFeedbackPanel());
-//                    } //TODO user page
                 }
                 return;
             }
