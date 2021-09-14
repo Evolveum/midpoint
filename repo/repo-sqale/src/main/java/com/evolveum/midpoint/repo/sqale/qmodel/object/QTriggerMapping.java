@@ -51,7 +51,8 @@ public class QTriggerMapping<OR extends MObject>
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
-                new TableRelationResolver<>(QObjectMapping::getObjectMapping,
+                TableRelationResolver.usingJoin(
+                        QObjectMapping::getObjectMapping,
                         (q, p) -> q.ownerOid.eq(p.oid)));
 
         addItemMapping(TriggerType.F_HANDLER_URI, uriMapper(q -> q.handlerUriId));

@@ -64,7 +64,7 @@ public class QAccessCertificationWorkItemMapping
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
-                new TableRelationResolver<>(
+                TableRelationResolver.usingJoin(
                         QAccessCertificationCaseMapping::getAccessCertificationCaseMapping,
                         (q, p) -> q.ownerOid.eq(p.ownerOid)
                                 .and(q.accessCertCaseCid.eq(p.cid))));

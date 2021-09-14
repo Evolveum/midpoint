@@ -55,7 +55,8 @@ public class QOperationExecutionMapping<OR extends MObject>
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
-                new TableRelationResolver<>(QObjectMapping::getObjectMapping,
+                TableRelationResolver.usingJoin(
+                        QObjectMapping::getObjectMapping,
                         (q, p) -> q.ownerOid.eq(p.oid)));
 
         addItemMapping(F_STATUS, enumMapper(q -> q.status));

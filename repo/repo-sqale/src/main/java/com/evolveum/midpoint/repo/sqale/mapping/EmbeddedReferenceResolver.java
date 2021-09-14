@@ -40,7 +40,7 @@ public class EmbeddedReferenceResolver<Q extends FlexibleRelationalPathBase<R>, 
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
         mapping = new SqaleNestedMapping<>(Referencable.class, queryType);
         mapping.addRelationResolver(PrismConstants.T_OBJECT_REFERENCE,
-                new TableRelationResolver<>(
+                TableRelationResolver.usingJoin(
                         targetMappingSupplier, (q, t) -> rootToOidPath.apply(q).eq(t.oid)));
     }
 

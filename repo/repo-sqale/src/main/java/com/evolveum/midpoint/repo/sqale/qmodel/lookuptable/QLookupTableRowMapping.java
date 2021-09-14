@@ -50,7 +50,8 @@ public class QLookupTableRowMapping
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
-                new TableRelationResolver<>(QLookupTableMapping::get,
+                TableRelationResolver.usingJoin(
+                        QLookupTableMapping::get,
                         (q, p) -> q.ownerOid.eq(p.oid)));
 
         addItemMapping(F_KEY, stringMapper(q -> q.key));
