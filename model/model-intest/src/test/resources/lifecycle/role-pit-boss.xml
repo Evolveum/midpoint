@@ -12,7 +12,7 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Pit Boss</name>
     <description>This is non-employee role. It does NOT work as data processing basis.</description>
-    <!-- No roleType -->
+    <!-- No subtype -->
      <inducement id="1">
          <targetRef oid="a7b8de9a-20a1-84f6-b452-01254a1256e3" type="c:RoleType"/>
       </inducement>

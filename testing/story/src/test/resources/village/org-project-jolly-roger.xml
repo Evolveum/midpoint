@@ -17,5 +17,5 @@
         <targetRef oid="ab33ec1e-0c0b-11e4-ba88-001e8c717e5b"/>
     </assignment>
     <displayName>Project Jolly Roger</displayName>
-    <orgType>project</orgType>
+    <subtype>project</subtype>
 </org>

@@ -22,7 +22,7 @@
     <emailAddress>jack.deniels@evolveum.com</emailAddress>
     <telephoneNumber>555-1234</telephoneNumber>
     <employeeNumber>emp666</employeeNumber>
-    <employeeType>DRINKER</employeeType>
+    <subtype>DRINKER</subtype>
     <organizationalUnit>Leaders</organizationalUnit>
     <locality>Black Pearl</locality>
 

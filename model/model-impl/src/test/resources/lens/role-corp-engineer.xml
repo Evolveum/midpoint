@@ -42,5 +42,5 @@ xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
             </objectForm>
         </objectForms>
     </adminGuiConfiguration>
-    <roleType>job</roleType>
+    <subtype>job</subtype>
 </role>

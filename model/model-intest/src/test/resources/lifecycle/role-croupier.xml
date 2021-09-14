@@ -12,7 +12,7 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Croupier</name>
     <description>This is non-employee role. It does NOT work as data processing basis.</description>
-    <!-- No roleType -->
+    <!-- No subtype -->
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/test/authorization#croupier</action>
     </authorization>

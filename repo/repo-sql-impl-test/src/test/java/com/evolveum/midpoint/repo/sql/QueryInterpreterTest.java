@@ -935,20 +935,21 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
+    // TODO: This was UserType.F_EMPLOYEE_TYPE, changed to subtype, but this is probably wrong
     @Test
     public void test066QuerySubstringMultivalued() throws Exception {
         Session session = open();
 
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
-                    .item(UserType.F_EMPLOYEE_TYPE).contains("abc")
+                    .item(UserType.F_SUBTYPE).contains("abc")
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
             assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
-                    "    left join o.employeeType e\n" +
+                    "    left join o.subtype e\n" +
                     "where\n" +
                     "  e like :e escape '!'\n");
         } finally {
@@ -2420,7 +2421,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .endBlock()
                     .or().type(OrgType.class)
                     .block()
-                    .item(OrgType.F_ORG_TYPE).eq("functional")
+                    // TODO: Changed OrgType.F_ORG_TYPE to OrgType.F_SUBTYPE, but the rest of the test needs fixing
+                    .item(OrgType.F_SUBTYPE).eq("functional")
                     .endBlock()
                     .or().type(ReportType.class)
                     .build();
@@ -3371,11 +3373,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
              * Prism should implement something like "searching for proper root" when dereferencing "@".
              * QI should implement the proper root search not only at the query root, but always after a "@".
              *
-             * ### UserType: assignment/targetRef/@/roleType
+             * ### UserType: assignment/targetRef/@/identifier
              */
 
             ObjectQuery query = prismContext.queryFor(UserType.class)
-                    .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, RoleType.F_ROLE_TYPE).eq("type1")
+                    .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, RoleType.F_IDENTIFIER).eq("type1")
                     .build();
             getInterpretedQuery(session, UserType.class, query);
 
@@ -3973,7 +3975,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
-                    .item(UserType.F_EMPLOYEE_TYPE).isNull()
+                    .item(UserType.F_SUBTYPE).isNull()
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
@@ -4280,10 +4282,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
+    // TODO: Changed F_EMPLOYEE_TYPE to F_SUBTYPE, but the expected query still needs fixing
     @Test
     public void test623ApplicableDistinctAndOrderBy() throws Exception {
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_EMPLOYEE_TYPE).startsWith("e")
+                .item(UserType.F_SUBTYPE).startsWith("e")
                 .asc(UserType.F_NAME)
                 .build();
 
@@ -4447,12 +4450,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
+    // TODO: Changed F_EMPLOYEE_TYPE to F_SUBTYPE, but the expected query still needs fixing
     @Test
     public void test628ApplicableDistinctWithCount() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
-                    .item(UserType.F_EMPLOYEE_TYPE).startsWith("a")
+                    .item(UserType.F_SUBTYPE).startsWith("a")
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query, true, distinct());
 

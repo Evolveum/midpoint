@@ -17,7 +17,7 @@
       <name>Org Metarole assignment</name>
       <authoritative>true</authoritative>
       <source>
-         <c:path>orgType</c:path>
+         <c:path>subtype</c:path>
       </source>
       <expression>
          <assignmentTargetSearch>
@@ -36,7 +36,7 @@
       <condition>
          <script>
             <code>
-               orgType == 'functional'
+               subtype == 'functional'
             </code>
          </script>
       </condition>
@@ -51,7 +51,7 @@
          <c:path>extension/orgpath</c:path>
       </source>
       <source>
-         <c:path>orgType</c:path>
+         <c:path>subtype</c:path>
       </source>
       <expression>
          <assignmentTargetSearch>
@@ -82,7 +82,7 @@
       </target>
       <condition>
          <script>
-            <code>orgType == 'functional' &amp;&amp; name != 'TOP'</code>
+            <code>subtype == 'functional' &amp;&amp; name != 'TOP'</code>
          </script>
       </condition>
    </mapping>

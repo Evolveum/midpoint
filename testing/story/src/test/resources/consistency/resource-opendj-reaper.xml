@@ -243,7 +243,7 @@
                 <outbound>
                 <strength>weak</strength>
                     <source>
-                        <path>employeeType</path>
+                        <path>subtype</path>
                     </source>
                 </outbound>
             </attribute>
@@ -554,7 +554,7 @@
                 <outbound>
                     <!--                 <strength>weak</strength> -->
                     <source>
-                        <path>$user/employeeType</path>
+                        <path>$user/subtype</path>
                     </source>
                 </outbound>
             </attribute>

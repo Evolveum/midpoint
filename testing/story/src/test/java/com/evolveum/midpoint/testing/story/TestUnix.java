@@ -1444,7 +1444,7 @@ public class TestUnix extends AbstractStoryTest {
         assertTrue("Unexpected unused values in the sequence (precondition)", sequenceBefore.asObjectable().getUnusedValues().isEmpty());
 
         PrismObject<UserType> user = createUser(USER_CAPSIZE_USERNAME, USER_CAPSIZE_FIST_NAME, USER_CAPSIZE_LAST_NAME, ROLE_UNIX_OID);
-        user.asObjectable().getEmployeeType().add("troublemaker");
+        user.asObjectable().getSubtype().add("troublemaker");
 
         try {
             // WHEN

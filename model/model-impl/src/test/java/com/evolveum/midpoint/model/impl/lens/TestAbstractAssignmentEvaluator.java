@@ -90,7 +90,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         addObject(ORG_BRETHREN_FILE);
         addObject(TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_FILE);
 
-        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, DYNAMIC_ORG_ASSIGNMENT_EMPLOYEE_TYPE, TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_OID, initResult);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, DYNAMIC_ORG_ASSIGNMENT_SUBTYPE, TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_OID, initResult);
     }
 
     @Test
@@ -828,7 +828,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         UserType fred = new UserType(prismContext)
                 .name("fred")
                 .description(futureTime)
-                .employeeType(DYNAMIC_ORG_ASSIGNMENT_EMPLOYEE_TYPE);
+                .subtype(DYNAMIC_ORG_ASSIGNMENT_SUBTYPE);
         addObject(fred.asPrismObject());
         PrismObject<UserType> fredAsCreated = findUserByUsername("fred");
         display("fred as created", fredAsCreated);

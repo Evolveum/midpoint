@@ -12,7 +12,7 @@
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Autocratic</name>
-    <roleType>auto</roleType> <!-- may be used for mapping range -->
+    <subtype>auto</subtype> <!-- may be used for mapping range -->
     <inducement>
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-00000000a404" type="ResourceType"/>

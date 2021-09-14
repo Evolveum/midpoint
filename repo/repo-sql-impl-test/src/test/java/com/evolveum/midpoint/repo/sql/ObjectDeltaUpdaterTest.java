@@ -447,11 +447,11 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test170ModifyEmployeeTypeAndMetadataCreateChannel() throws Exception {
-        OperationResult result = new OperationResult("test170ModifyEmployeeTypeAndMetadataCreateChannel");
+    public void test170ModifySubtypeAndMetadataCreateChannel() throws Exception {
+        OperationResult result = new OperationResult("test170ModifySubtypeAndMetadataCreateChannel");
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_EMPLOYEE_TYPE)
+                .item(UserType.F_SUBTYPE)
                 .add("one", "two")
                 .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .replace("asdf")
@@ -476,7 +476,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         try (Session session = factory.openSession()) {
             RUser u = session.get(RUser.class, userOid);
             AssertJUnit.assertEquals("asdf", u.getCreateChannel());
-            AssertJUnit.assertEquals(u.getEmployeeType(), new HashSet<>(Arrays.asList("one", "two")));
+            AssertJUnit.assertEquals(u.getSubtype(), new HashSet<>(Arrays.asList("one", "two")));
         }
     }
 

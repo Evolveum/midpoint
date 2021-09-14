@@ -11,5 +11,4 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
  */
 public class MRole extends MAbstractRole {
 
-    public String roleType;
 }

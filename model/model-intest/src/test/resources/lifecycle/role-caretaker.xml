@@ -11,5 +11,5 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Caretaker</name>
-    <roleType>dataProcessingBasis</roleType>
+    <subtype>dataProcessingBasis</subtype>
 </role>

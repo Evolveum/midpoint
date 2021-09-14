@@ -164,7 +164,7 @@
                 <ref>ri:employeeType</ref>
                 <outbound>
                     <source>
-                        <path>employeeType</path>
+                        <path>subtype</path>
                     </source>
                 </outbound>
             </attribute>

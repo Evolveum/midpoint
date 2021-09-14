@@ -27,5 +27,5 @@
             </attribute>
         </construction>
     </inducement>
-    <roleType>treasure</roleType>
+    <subtype>treasure</subtype>
 </role>

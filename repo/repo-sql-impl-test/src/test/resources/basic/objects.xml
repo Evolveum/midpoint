@@ -1009,7 +1009,7 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
         <name>Pirate</name>
-        <roleType>business</roleType>
+        <subtype>business</subtype>
         <autoassign>
             <enabled>true</enabled>
         </autoassign>

@@ -11,7 +11,7 @@
         <path>$user/name</path>
     </source>
     <source>
-        <path>$user/employeeType</path>
+        <path>$user/subtype</path>
     </source>
     <expression>
         <script>
@@ -22,7 +22,7 @@
     <condition>
         <script>
             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            <code>employeeType == 'CAPTAIN'</code>
+            <code>subtype == 'CAPTAIN'</code>
         </script>
     </condition>
 </mapping>

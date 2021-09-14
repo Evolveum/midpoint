@@ -14,5 +14,5 @@
     <inducement>
         <targetRef oid="1e422483-997c-4808-bebd-0151d18a391e" type="RoleType" />        <!-- 3y -->
     </inducement>
-    <roleType>test</roleType>
+    <subtype>test</subtype>
 </role>

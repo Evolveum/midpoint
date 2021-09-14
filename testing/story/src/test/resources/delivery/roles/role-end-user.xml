@@ -56,5 +56,5 @@
 
     <requestable>false</requestable>
     <delegable>false</delegable>
-    <roleType>system</roleType>
+    <subtype>system</subtype>
 </role>
