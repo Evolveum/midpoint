@@ -63,7 +63,7 @@ public class QCaseWorkItemMapping
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
-                new TableRelationResolver<>(
+                TableRelationResolver.usingJoin(
                         QCaseMapping::getCaseMapping,
                         (q, p) -> q.ownerOid.eq(p.oid)));
 

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QAccessCertificationWorkItem extends QContainer<MAccessCertificationWorkItem, MAccessCertificationCampaign> {
+public class QAccessCertificationWorkItem extends QContainer<MAccessCertificationWorkItem, MAccessCertificationCase> {
 
     private static final long serialVersionUID = -672265595179912120L;
 
@@ -76,7 +76,8 @@ public class QAccessCertificationWorkItem extends QContainer<MAccessCertificatio
     }
 
     @Override
-    public BooleanExpression isOwnedBy(MAccessCertificationCampaign ownerRow) {
-        return ownerOid.eq(ownerRow.oid);
+    public BooleanExpression isOwnedBy(MAccessCertificationCase caseRow) {
+        return ownerOid.eq(caseRow.ownerOid)
+                .and(accessCertCaseCid.eq(caseRow.cid));
     }
 }
