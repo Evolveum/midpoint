@@ -949,9 +949,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
-                    "    left join o.subtype e\n" +
+                    "    left join o.subtype s\n" +
                     "where\n" +
-                    "  e like :e escape '!'\n");
+                    "  s like :s escape '!'\n");
         } finally {
             close(session);
         }
@@ -2431,7 +2431,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
-                    "    left join o.orgType o2\n" +
+                    "    left join o.subtype s\n" +
                     "where\n" +
                     "  (\n" +
                     "    (\n" +
@@ -2449,7 +2449,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "    ) or\n" +
                     "    (\n" +
                     "      o.objectTypeClass = :objectTypeClass2 and\n" +
-                    "      o2 = :o2\n" +
+                    "      s = :s\n" +
                     "    ) or\n" +
                     "    o.objectTypeClass = :objectTypeClass3\n" +
                     "  )\n");
@@ -3983,9 +3983,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     + "  u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
-                    + "    left join u.employeeType e\n"
+                    + "    left join u.subtype s\n"
                     + "where\n"
-                    + "  e is null");
+                    + "  s is null");
         } finally {
             close(session);
         }
@@ -4306,7 +4306,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                         + "    select distinct\n"
                         + "      u.oid\n"
                         + "    from\n"
-                        + "      RUser u left join u.employeeType e where e like :e escape '!')\n"
+                        + "      RUser u left join u.subtype s where s like :s escape '!')\n"
                         + "order by u.nameCopy.orig asc";
             } else {
                 expected = "select distinct\n"
@@ -4314,7 +4314,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                         + "  u.fullObject,\n"
                         + "  u.nameCopy.orig\n"
                         + "from\n"
-                        + "  RUser u left join u.employeeType e where e like :e escape '!'\n"
+                        + "  RUser u left join u.subtype s where s like :s escape '!'\n"
                         + "order by u.nameCopy.orig asc\n";
             }
             assertThat(real).isEqualToIgnoringWhitespace(expected);
@@ -4463,8 +4463,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             assertThat(real).isEqualToIgnoringWhitespace("select"
                     + " count(distinct u.oid)"
                     + " from RUser u"
-                    + " left join u.employeeType e"
-                    + " where e like :e escape '!'");
+                    + " left join u.subtype s"
+                    + " where s like :s escape '!'");
         } finally {
             close(session);
         }

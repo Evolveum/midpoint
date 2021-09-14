@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <i:user oid="c0c010c0-d34d-b33f-f00d-111111111112"
         xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        >
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+
     <c:name>jack2</c:name>
     <i:fullName>Cpt. Jack Sparrow2</i:fullName>
     <i:givenName>Jack2</i:givenName>
@@ -19,15 +19,7 @@
     <i:emailAddress>jack.sparrow2@evolveum.com</i:emailAddress>
     <i:telephoneNumber>555-1234</i:telephoneNumber>
     <i:employeeNumber>emp1234</i:employeeNumber>
-    <i:employeeType>CAPTAIN</i:employeeType>
+    <i:subtype>CAPTAIN</i:subtype>
     <i:organizationalUnit>Leaders</i:organizationalUnit>
     <i:locality>Black Pearl</i:locality>
-
-<!--     <i:credentials> -->
-<!--         <i:password> -->
-<!--             <i:protectedString> -->
-<!--                 <i:clearValue>deadmentellnotales</i:clearValue> -->
-<!--             </i:protectedString> -->
-<!--         </i:password> -->
-<!--     </i:credentials> -->
 </i:user>

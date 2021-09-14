@@ -85,7 +85,6 @@
                 <xsd:sequence>
                     <xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string" />
                     <xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string" />
-                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string" />
                     <xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string" />
                     <xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary" />
                     <xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string" />

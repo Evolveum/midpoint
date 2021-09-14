@@ -16,7 +16,7 @@
         <t:norm>synchronization embedded test opendj no extensions schema</t:norm>
     </name>
     <description>
-        Definition of a live sychnronization task. It will poll changelog and pull in changes
+        Definition of a live synchronization task. It will poll changelog and pull in changes
     </description>
     <extension>
         <gen268:token xmlns:gen268="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd"
