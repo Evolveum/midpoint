@@ -9,12 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -129,6 +124,10 @@ public class QAccessCertificationCaseMapping
                 q -> q.tenantRefTargetType,
                 q -> q.tenantRefRelationId,
                 QOrgMapping::getOrgMapping);
+
+        addContainerTableMapping(F_WORK_ITEM,
+                QAccessCertificationWorkItemMapping.init(repositoryContext),
+                joinOn((c, wi) -> c.ownerOid.eq(wi.ownerOid)));
     }
 
     @Override
@@ -214,7 +213,7 @@ public class QAccessCertificationCaseMapping
 
         insert(row, jdbcSession);
 
-        storeWorkItems(ownerRow, row, acase, jdbcSession);
+        storeWorkItems(row, acase, jdbcSession);
 
         return row;
     }
@@ -224,7 +223,6 @@ public class QAccessCertificationCaseMapping
             SqaleUpdateContext<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> updateContext)
             throws SchemaException {
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
         PrismContainer<AccessCertificationCaseType> caseContainer =
                 updateContext.findValueOrItem(AccessCertificationCampaignType.F_CASE);
         // row in context already knows its CID
@@ -235,7 +233,6 @@ public class QAccessCertificationCaseMapping
     }
 
     public void storeWorkItems(
-            @NotNull MAccessCertificationCampaign campaignRow,
             @NotNull MAccessCertificationCase caseRow,
             @NotNull AccessCertificationCaseType schemaObject,
             @NotNull JdbcSession jdbcSession) throws SchemaException {
@@ -243,7 +240,7 @@ public class QAccessCertificationCaseMapping
         List<AccessCertificationWorkItemType> wis = schemaObject.getWorkItem();
         if (!wis.isEmpty()) {
             for (AccessCertificationWorkItemType wi : wis) {
-                QAccessCertificationWorkItemMapping.get().insert(wi, campaignRow, caseRow, jdbcSession);
+                QAccessCertificationWorkItemMapping.get().insert(wi, caseRow, jdbcSession);
             }
         }
     }
@@ -262,12 +259,13 @@ public class QAccessCertificationCaseMapping
                 cache.put(ownerOid, owner);
             }
             try {
-                // Container could be null (since it is skipItem in campain)
+                // Container could be null (since it is skipItem in campaign)
                 PrismContainer<AccessCertificationCaseType> container = owner.findOrCreateContainer(AccessCertificationCampaignType.F_CASE);
                 PrismContainerValue<AccessCertificationCaseType> value = container.findValue(cid);
                 if (value == null) {
                     // value is not present, load it from full object
                     AccessCertificationCaseType valueObj = toSchemaObject(tuple, entityPath, options);
+                    //noinspection unchecked
                     value = valueObj.asPrismContainerValue();
                     container.add(value);
                 }
