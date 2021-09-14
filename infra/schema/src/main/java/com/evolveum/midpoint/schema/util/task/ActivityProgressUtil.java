@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.util.task;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -30,6 +31,11 @@ public class ActivityProgressUtil {
         return state != null ? getCurrentProgress(state.getProgress()) : 0;
     }
 
+    public static int getCurrentErrors(TaskType localTask, ActivityPath activityPath) {
+        ActivityStateType state = ActivityStateUtil.getActivityState(localTask.getActivityState(), activityPath);
+        return state != null ? getCurrentErrors(state.getProgress()) : 0;
+    }
+
     public static int getCurrentProgress(ActivityProgressType progress) {
         if (progress != null) {
             return getCurrentProgressFromCollection(List.of(progress));
@@ -38,14 +44,44 @@ public class ActivityProgressUtil {
         }
     }
 
+    public static int getCurrentErrors(ActivityProgressType progress) {
+        if (progress != null) {
+            return getCurrentErrorsFromCollection(List.of(progress));
+        } else {
+            return 0;
+        }
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static ItemsProgressOverviewType getProgressOverview(ActivityProgressType progress) {
+        if (progress == null) {
+            return null;
+        }
+        return new ItemsProgressOverviewType()
+                .expectedTotal(progress.getExpectedTotal())
+                .successfullyProcessed(getProgressForOutcome(progress, ItemProcessingOutcomeType.SUCCESS))
+                .failed(getProgressForOutcome(progress, ItemProcessingOutcomeType.FAILURE))
+                .skipped(getProgressForOutcome(progress, ItemProcessingOutcomeType.SKIP));
+    }
+
     private static int getCurrentProgressFromCollection(List<ActivityProgressType> collection) {
         return getCounts(collection, c -> true, true) +
                 getCounts(collection, c -> true, false);
     }
 
+    private static int getCurrentErrorsFromCollection(List<ActivityProgressType> collection) {
+        return getCounts(collection, OutcomeKeyedCounterTypeUtil::isFailure, true) +
+                getCounts(collection, OutcomeKeyedCounterTypeUtil::isFailure, false);
+    }
+
     public static int getCurrentProgress(@NotNull Collection<ActivityStateType> states) {
         return getCurrentProgressFromCollection(
                 getProgressCollection(states));
+    }
+
+    private static int getProgressForOutcome(ActivityProgressType info, ItemProcessingOutcomeType outcome) {
+        return getProgressForOutcome(info, outcome, true) +
+                getProgressForOutcome(info, outcome, false);
     }
 
     public static int getProgressForOutcome(ActivityProgressType info, ItemProcessingOutcomeType outcome, boolean open) {
@@ -66,9 +102,25 @@ public class ActivityProgressUtil {
                 .sum();
     }
 
-    public static void addTo(ActivityProgressType sum, ActivityProgressType delta) {
+    public static void addTo(@NotNull ActivityProgressType sum, @NotNull ActivityProgressType delta) {
         OutcomeKeyedCounterTypeUtil.addCounters(sum.getCommitted(), delta.getCommitted());
         OutcomeKeyedCounterTypeUtil.addCounters(sum.getUncommitted(), delta.getUncommitted());
+        addExpectedTotal(sum, delta);
+        addExpectedInCurrentBucket(sum, delta);
+    }
+
+    private static void addExpectedTotal(ActivityProgressType sum, ActivityProgressType delta) {
+        if (sum.getExpectedTotal() != null || delta.getExpectedTotal() != null) {
+            sum.setExpectedTotal(
+                    or0(sum.getExpectedTotal()) + or0(delta.getExpectedTotal()));
+        }
+    }
+
+    private static void addExpectedInCurrentBucket(ActivityProgressType sum, ActivityProgressType delta) {
+        if (sum.getExpectedInCurrentBucket() != null || delta.getExpectedInCurrentBucket() != null) {
+            sum.setExpectedInCurrentBucket(
+                    or0(sum.getExpectedInCurrentBucket()) + or0(delta.getExpectedInCurrentBucket()));
+        }
     }
 
     @NotNull

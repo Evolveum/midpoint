@@ -24,7 +24,7 @@
 
     VARIOUS MVN COMMANDS (with rough times on average notebook)
     Note: Javadoc takes long time but it's only part of the "dist" profile (active by default).
-    Hence, " -Dmaven.javadoc.skip" is not necessary with "-P -dist".
+    Hence, "-Dmaven.javadoc.skip" is not necessary with "-P -dist".
 
     Quick developer's run without any tests, skipping distribution (~6m):
     mvn clean install -P -dist -DskipTests
@@ -65,6 +65,18 @@
 
     Running unit+IT tests of a selected module (-pl) with output to stdout:
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
+
+    DB SPECIFIC/TESTING:
+    - Use profile "dbtest" to run additional tests intended for other than H2 databases.
+    These tests are integration tests named in additional suite XML called "testng-db-specific.xml".
+    Tests from main "testng-integration.xml" are run too.
+    - Use profile "sqale" to switch from old-repo tests (disables test execution for repo-sql-impl-test)
+    to new repository tests (enables tests in repo-sqale module).
+    Combine it with "dbtest" profile if additional tests (often taking longer) are desirable.
+    - Tests using old repository support option -Dconfig=db-specific.properties to override default
+    repository test setup (config.xml).
+    This is not supported by new repository, but standard config.xml override mechanism can be used,
+    e.g. -Dmidpoint.repository.jdbcUrl=... and other properties.
     -->
 
     <parent>
@@ -1898,8 +1910,7 @@
                         <systemPropertyVariables>
                             <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                             <midpoint.home>target/midpoint-home</midpoint.home>
-                            <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties
-                            </java.util.logging.config.file>
+                            <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
                         </systemPropertyVariables>
                         <argLine>${surefire.args}</argLine>
                         <suiteXmlFiles>
@@ -2054,6 +2065,15 @@
             <id>perftest</id>
             <properties>
                 <skipTests>true</skipTests>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>sqale</id>
+            <properties>
+                <!-- Switches test config.xml to the one declaring "sqale" repository. -->
+                <surefire.args>-Xms1024m -Xmx4096m -Dtest.config.file=test-config-new-repo.xml</surefire.args>
+                <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
         </profile>
     </profiles>

@@ -15,6 +15,10 @@ import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -22,6 +26,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -417,10 +422,24 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
      * * String value is normalized as configured for norm matching (as demonstrated in this test).
      */
     @Test
-    public void test110SearchUserByNameNormalized() throws Exception {
+    public void test111SearchUserByNameNormalized() throws Exception {
         searchUsersTest("with normalized name matching provided value",
                 f -> f.item(UserType.F_NAME).eq("UseR--2").matchingNorm(),
                 user2Oid);
+    }
+
+    /**
+     * Multi-value EQ filter (multiple values on the right-hand side) works like `IN`,
+     * that is if any of the values matches, the object matches and is returned.
+     */
+    @Test
+    public void test115SearchUserByAnyOfName() throws Exception {
+        searchUsersTest("with name matching any of provided values (multi-value EQ filter)",
+                f -> f.item(UserType.F_NAME).eq(
+                        PolyString.fromOrig("user-1"),
+                        PolyString.fromOrig("user-2"),
+                        PolyString.fromOrig("user-wrong")), // bad value is of no consequence
+                user1Oid, user2Oid);
     }
 
     @Test
@@ -883,23 +902,40 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test323ActivationOrAssignmentActivationBeforeDate() throws SchemaException {
-        // this is close to real-life validity query
+        XMLGregorianCalendar scanDate = createXMLGregorianCalendar("2022-01-01T00:00:00Z");
         searchUsersTest("having activation/valid* or assignment/activation/valid* before",
-                f -> f.item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM)
-                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                f -> f.item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(scanDate)
                         .or()
-                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)
-                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).le(scanDate)
                         .or()
                         .exists(UserType.F_ASSIGNMENT)
                         .block() // block necessary, otherwise the second item goes from User
-                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM)
-                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(scanDate)
                         .or()
-                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)
-                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).le(scanDate)
                         .endBlock(),
                 user1Oid, user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test324ActivationOrAssignmentActivationBetweenDates() throws SchemaException {
+        // taken from FocusValidityScanPartialExecutionSpecifics.createStandardFilter
+        XMLGregorianCalendar lastScanTimestamp = createXMLGregorianCalendar("2021-01-01T00:00:00Z");
+        XMLGregorianCalendar thisScanTimestamp = createXMLGregorianCalendar("2021-06-01T00:00:00Z");
+        searchUsersTest("having activation/valid* or assignment/activation/valid* between dates",
+                f -> f.item(F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
+                        .and().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+                        .or().item(F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
+                        .and().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+                        .or().exists(F_ASSIGNMENT)
+                        .block()
+                        .item(AssignmentType.F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
+                        .and().item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+                        .or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
+                        .and().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+                        .endBlock(),
+                user1Oid, user2Oid);
+        // user3 barely misses it, it has validFrom = lastSCanTimestamp, but the condition > is exclusive
     }
 
     @Test
@@ -1737,9 +1773,10 @@ AND(
     @Test(expectedExceptions = SystemException.class)
     public void test820SearchUsersWithReferencedPath() throws SchemaException {
         searchUsersTest("fullName does not equals fname",
-                f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                        .eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
                 user1Oid, user2Oid, user3Oid, user4Oid);
-        // Should fail because right hand side nesting into multivalue container is not supported
+        // Should fail because right-hand side nesting into multivalue container is not supported
     }
 
     // region special cases
@@ -1969,7 +2006,7 @@ AND(
 
         then("performance monitor is updated");
         assertThatOperationResult(operationResult).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_SEARCH_OBJECTS);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS);
     }
 
     @Test
@@ -2114,24 +2151,6 @@ AND(
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
                 .isNotNull();
         return repositorySearchObjects(type, query, operationResult, selectorOptions);
-    }
-
-    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
-    @SafeVarargs
-    @NotNull
-    private <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
-            @NotNull Class<T> type,
-            ObjectQuery query,
-            OperationResult operationResult,
-            SelectorOptions<GetOperationOptions>... selectorOptions)
-            throws SchemaException {
-        return repositoryService.searchObjects(
-                        type,
-                        query,
-                        selectorOptions != null && selectorOptions.length != 0
-                                ? List.of(selectorOptions) : null,
-                        operationResult)
-                .map(p -> p.asObjectable());
     }
 
     private <T extends Containerable> SearchResultList<T> searchContainerTest(

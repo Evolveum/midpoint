@@ -91,10 +91,32 @@ public class ExtItemCache {
 
             extItem = MExtItem.of(id, extItemKey);
             updateMaps(extItem);
+        } catch (RuntimeException e) {
+            if (SqaleUtils.isUniqueConstraintViolation(e)) {
+                extItem = retrieveFromDb(extItemKey);
+            } else {
+                throw e;
+            }
         }
 
         LOGGER.debug("Ext item cache row inserted: {}", extItem);
         return extItem;
+    }
+
+    private MExtItem retrieveFromDb(@NotNull MExtItem.Key key) {
+        QExtItem ei = QExtItem.DEFAULT;
+        MExtItem row = jdbcSessionSupplier.get().newQuery()
+                .select(ei)
+                .from(ei)
+                .where(ei.itemName.eq(key.itemName))
+                .where(ei.valueType.eq(key.valueType))
+                .where(ei.holderType.eq(key.holderType))
+                .where(ei.cardinality.eq(key.cardinality))
+                .fetchOne();
+        if (row != null) {
+            updateMaps(row);
+        }
+        return row;
     }
 
     public @Nullable MExtItem getExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {

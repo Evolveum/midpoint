@@ -9,8 +9,6 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,7 +46,7 @@ public class IterativeMockActivityHandler
     public @NotNull AbstractActivityExecution<IterativeMockWorkDefinition, IterativeMockActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<IterativeMockWorkDefinition, IterativeMockActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PlainIterativeActivityExecution<>(context, "Iterative Mock Activity", IterativeMockActivityExecutionSpecifics::new);
+        return new IterativeMockActivityExecution(context);
     }
 
     public @NotNull MockRecorder getRecorder() {

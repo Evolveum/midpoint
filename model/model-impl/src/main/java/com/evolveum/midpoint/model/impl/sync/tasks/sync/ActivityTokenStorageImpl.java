@@ -75,7 +75,7 @@ public class ActivityTokenStorageImpl implements LiveSyncTokenStorage {
         } else {
             activityState.setWorkStateItemRealValues(LiveSyncWorkStateType.F_TOKEN);
         }
-        activityState.flushPendingModifications(result);
+        activityState.flushPendingTaskModifications(result);
         // TODO remove token from task if exists
     }
 

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <globalPolicyRule>
+        <name>Assignment delete policy</name>
+        <policyConstraints>
+            <and>
+                <assignment>
+                    <presentation>
+                        <message>
+                            <fallbackMessageExpression>
+                                <script>
+                                    <code><![CDATA[
+                                        return "Delete policy"
+                                        ]]></code>
+                                </script>
+                            </fallbackMessageExpression>
+                        </message>
+                    </presentation>
+                    <operation>delete</operation>
+                </assignment>
+            </and>
+        </policyConstraints>
+        <policyActions>
+            <enforcement />
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+        <targetSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>costCenter</q:path>
+                    <q:value>non-unassignable</q:value>
+                </q:equal>
+            </filter>
+        </targetSelector>
+    </globalPolicyRule>
+</systemConfiguration>

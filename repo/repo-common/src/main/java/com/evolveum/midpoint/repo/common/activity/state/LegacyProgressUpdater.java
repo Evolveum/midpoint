@@ -11,7 +11,6 @@ import com.evolveum.midpoint.repo.common.activity.Activity;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityTree;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 
@@ -44,7 +43,7 @@ public class LegacyProgressUpdater {
 
     private void updateProgress() {
         taskExecution.getRunningTask()
-                .setProgress(
+                .setLegacyProgress(
                         computeProgress());
     }
 

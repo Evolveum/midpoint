@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -356,6 +357,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         if (triggers != null && !triggers.isEmpty()) {
             AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers + "; in "+desc());
         }
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> sendOid(Consumer<String> consumer) {
+        consumer.accept(getOid());
         return this;
     }
 

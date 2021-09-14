@@ -19,5 +19,10 @@
                 <delay>10</delay>
             </noOp>
         </work>
+        <reporting>
+            <stateOverview>
+                <progressUpdateMode>always</progressUpdateMode>
+            </stateOverview>
+        </reporting>
     </activity>
 </task>

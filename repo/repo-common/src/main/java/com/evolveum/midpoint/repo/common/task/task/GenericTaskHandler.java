@@ -9,30 +9,23 @@ package com.evolveum.midpoint.repo.common.task.task;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-
-import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.task.api.*;
-
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Handler for generic tasks, i.e. tasks that are driven by definition of their activities.
@@ -41,8 +34,6 @@ import com.evolveum.midpoint.util.logging.Trace;
  */
 @Component
 public class GenericTaskHandler implements TaskHandler {
-
-    private static final Trace LOGGER = TraceManager.getTrace(GenericTaskHandler.class);
 
     public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/generic/handler-3";
 
@@ -61,7 +52,6 @@ public class GenericTaskHandler implements TaskHandler {
     /** Common beans */
     @Autowired private CommonTaskBeans beans;
     @Autowired private TaskManager taskManager;
-    @Autowired private BucketingManager bucketingManager;
 
     @PostConstruct
     public void initialize() {
@@ -103,6 +93,12 @@ public class GenericTaskHandler implements TaskHandler {
         } finally {
             unregisterExecution(localCoordinatorTask);
         }
+    }
+
+    @Override
+    public @NotNull StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy()
+                .fromStoredValues(); // these are cleared in ActivityTreePurger
     }
 
     /** TODO decide what to do with this method. */
@@ -156,22 +152,19 @@ public class GenericTaskHandler implements TaskHandler {
     }
 
     @Override
-    public void cleanupOnNodeDown(@NotNull TaskType taskBean, @NotNull OperationResult result)
+    public void onNodeDown(@NotNull TaskType taskBean, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        TaskActivityStateType state = taskBean.getActivityState();
-        if (state == null || state.getLocalRootActivityExecutionRole() != ActivityExecutionRoleType.WORKER) {
-            return;
-        }
-
         Task task = taskManager.createTaskInstance(taskBean.asPrismObject(), result);
-        Task parentTask = Objects.requireNonNull(
-                task.getParentTask(result), () -> "No parent for worker task " + task);
-        ActivityPath activityPath =
-                ActivityPath.fromBean(
-                        Objects.requireNonNull(
-                                state.getLocalRoot(), "No local root in " + task));
+        ParentAndRoot parentAndRoot = task.getParentAndRoot(result);
+        new NodeDownCleaner(task, parentAndRoot.parent, parentAndRoot.root, beans)
+                .execute(result);
+    }
 
-        LOGGER.info("Returning all buckets from {} (coordinator {})", task, parentTask);
-        bucketingManager.releaseAllWorkBucketsFromWorker(parentTask.getOid(), task.getOid(), activityPath, null, result);
+    @Override
+    public void onTaskStalled(@NotNull RunningTask task, long stalledSince, @NotNull OperationResult result) throws CommonException {
+        if (task.isPersistent()) {
+            new ActivityTreeStateOverview(task.getRootTask(), beans)
+                    .markTaskStalled(task.getOid(), stalledSince, result);
+        }
     }
 }

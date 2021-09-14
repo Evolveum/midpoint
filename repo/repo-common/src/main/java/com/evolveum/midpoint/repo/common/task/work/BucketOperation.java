@@ -19,6 +19,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketSta
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
+
+import com.evolveum.midpoint.util.PassingHolder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,10 +40,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * Represents a bucket operation (get, complete, release).
@@ -71,6 +71,14 @@ class BucketOperation implements DebugDumpable {
      */
     final BucketOperationStatisticsKeeper statisticsKeeper;
 
+    /**
+     * Used to report current progress back to the client.
+     *
+     * We send the information to this passing holder when preparing deltas for dynamic objects modifications;
+     * and the last version of this information is then passed to the client.
+     */
+    @NotNull final PassingHolder<BucketProgressOverviewType> bucketProgressHolder;
+
     // Useful beans
 
     final CommonTaskBeans beans;
@@ -79,15 +87,17 @@ class BucketOperation implements DebugDumpable {
     final PrismContext prismContext;
 
     BucketOperation(@NotNull String coordinatorTaskOid, @Nullable String workerTaskOid, @NotNull ActivityPath activityPath,
-            ActivityBucketManagementStatistics statistics, @NotNull CommonTaskBeans beans) {
+            ActivityBucketManagementStatistics statistics, @Nullable Consumer<BucketProgressOverviewType> bucketProgressConsumer,
+            @NotNull CommonTaskBeans beans) {
         this.coordinatorTaskOid = coordinatorTaskOid;
         this.workerTaskOid = workerTaskOid;
         this.activityPath = activityPath;
+        this.statisticsKeeper = new BucketOperationStatisticsKeeper(statistics);
+        this.bucketProgressHolder = new PassingHolder<>(bucketProgressConsumer);
         this.beans = beans;
         this.taskManager = beans.taskManager;
         this.plainRepositoryService = beans.plainRepositoryService;
         this.prismContext = beans.prismContext;
-        this.statisticsKeeper = new BucketOperationStatisticsKeeper(statistics);
     }
 
     public boolean isStandalone() {

@@ -92,4 +92,14 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
     ExecutionSupport getExecutionSupport();
 
     void setExecutionSupport(ExecutionSupport executionContext);
+
+    /**
+     * @return True if this task should not be checked for staleness.
+     */
+    boolean isExcludedFromStalenessChecking();
+
+    /**
+     * Sets the "excluded from staleness checking" flag.
+     */
+    void setExcludedFromStalenessChecking(boolean value);
 }

@@ -187,7 +187,6 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
 
     /**
      * Temporary implementation.
-     * See also {@link StatisticsCollectionStrategy#isCollectExecutions()}.
      */
     public boolean isCollectExecutions() {
         return !persistentStatistics;

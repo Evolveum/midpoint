@@ -8,12 +8,15 @@ package com.evolveum.midpoint.repo.common.tasks;
 
 import static com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper.EXECUTION_COUNT_NAME;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTaskExecutionStateType.NOT_EXECUTING;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
@@ -28,6 +31,8 @@ import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
+import com.evolveum.midpoint.test.asserter.ActivityProgressInformationAsserter;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -63,7 +68,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  * 6. running tree of bucketed activities ({@link #test180RunBucketedTree()}),
  * 7. delegation of processing to separate task(s) - for simple activity ({@link #test200Subtask()}) or children
  * of a semi-composite one ({@link #test220MockCompositeWithSubtasks()}),
- * 8. distribution of a processing to worker tasks ({@link #test300WorkersSimple()}.
+ * 8. distribution of a processing to worker tasks ({@link #test300WorkersSimple()}, {@link #test310WorkersScavengerFrozen()}).
  *
  * Specifically, the following is checked as well:
  *
@@ -101,6 +106,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-210-suspending-composite-with-subtasks.xml", "cd36ca66-cd49-44cf-9eb2-36928acbe1fd");
     private static final TestResource<TaskType> TASK_220_MOCK_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-220-mock-composite-with-subtasks.xml", "");
     private static final TestResource<TaskType> TASK_300_WORKERS_SIMPLE = new TestResource<>(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
+    private static final TestResource<TaskType> TASK_310_WORKERS_SCAVENGING = new TestResource<>(TEST_DIR, "task-310-workers-scavenging.xml", "1e956013-5997-47bd-8885-4da2340dddfc");
 
     @Autowired private MockRecorder recorder;
     @Autowired private CommonTaskBeans beans;
@@ -165,6 +171,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
+        // @formatter:off
         assertTask(task1, "after")
                 .display()
                 .assertClosed()
@@ -177,6 +184,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .assertNoSynchronizationStatistics()
                         .assertNoActionsExecutedInformation()
                         .assertPersistenceSingleRealization();
+        // @formatter:on
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
@@ -299,10 +307,10 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
-        assertNoOpTaskAfter(task1);
+        assertNoOpTaskAfter(task1, true);
     }
 
-    private void assertNoOpTaskAfter(Task task1) throws SchemaException, ObjectNotFoundException {
+    private void assertNoOpTaskAfter(Task task1, boolean legacy) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTask(task1, "after")
                 .display()
@@ -319,11 +327,25 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .end()
                 .end();
 
-        assertProgress(task1.getOid(), "after")
-                .display()
-                .assertComplete()
-                .assertBuckets(1, 1)
-                .assertItems(5, 5);
+        Consumer<ActivityProgressInformationAsserter<?>> progressChecker =
+                (asserter) -> asserter
+                        .display()
+                        .assertComplete()
+                        .assertBuckets(1, 1)
+                        .assertItems(5, 5);
+
+        if (legacy) {
+            assertProgress(task1.getOid(), TREE_OVERVIEW_ONLY, "after")
+                    .display()
+                    .assertComplete()
+                    .assertNoBucketInformation() // this is not filled in the overview by default
+                    .assertNoItemsInformation(); // this is not filled in the overview by default
+        } else {
+            progressChecker.accept(assertProgress(task1.getOid(), TREE_OVERVIEW_ONLY, "after"));
+        }
+        progressChecker.accept(assertProgress(task1.getOid(), TREE_OVERVIEW_PREFERRED, "after"));
+        progressChecker.accept(assertProgress(task1.getOid(), FULL_STATE_PREFERRED, "after"));
+        progressChecker.accept(assertProgress(task1.getOid(), FULL_STATE_ONLY, "after"));
 
         assertPerformance(task1.getOid(), "after")
                 .display()
@@ -457,7 +479,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
-        assertNoOpTaskAfter(task1);
+        assertNoOpTaskAfter(task1, false);
     }
 
     /**
@@ -1085,10 +1107,54 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .assertExecutions(1)
                             .end()
                             .assertBucketManagementStatisticsOperations(3)
-                        .end();
+                        .end()
+                    .end()
+                .end()
+                .rootActivityStateOverview()
+                    .display()
+                    .assertComplete()
+                    .assertSuccess()
+                    .assertProgressHidden()
+                    .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                    .assertChildren(4)
+                    .child("first")
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertProgressHidden()
+                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                    .end()
+                    .child("second")
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertProgressHidden()
+                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                    .end()
+                    .child("composition:1")
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertProgressHidden()
+                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                        .assertChildren(2)
+                        .child("third-A")
+                            .assertComplete()
+                            .assertSuccess()
+                            .assertProgressHidden()
+                            .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                        .end()
+                        .child("third-B")
+                            .assertComplete()
+                            .assertSuccess()
+                            .assertProgressHidden()
+                            .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                        .end()
+                    .end()
+                    .child("fourth")
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertProgressHidden()
+                        .assertSingleTask(TASK_180_BUCKETED_TREE.oid, NOT_EXECUTING)
+                    .end();
         // @formatter:on
-
-        // TODO assert the bucketing
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
@@ -1399,7 +1465,6 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 2");
 
-        activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
@@ -1497,7 +1562,6 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 3");
 
-        activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
@@ -1578,7 +1642,6 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 4");
 
-        activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
@@ -1640,7 +1703,6 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 5");
 
-        activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
@@ -1872,10 +1934,13 @@ public class TestActivities extends AbstractRepoCommonTest {
         root.refresh(result);
         displayValue("Task tree", TaskDebugUtil.dumpTaskTree(root, result));
 
-        // @formatter:off
         String oidOfSubtask1 = assertTaskTree(root.getOid(), "after run 1")
+                .subtask(0)
+                .getOid();
+
+        // @formatter:off
+        assertTaskTree(root.getOid(), "after run 1")
                 .display()
-                // state?
                 .assertExecutionStatus(TaskExecutionStateType.RUNNING)
                 .assertSchedulingState(TaskSchedulingStateType.WAITING)
                 .activityState()
@@ -1887,6 +1952,18 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED)
                             .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
                         .end()
+                    .end()
+                .end()
+                .rootActivityStateOverview()
+                    .assertRealizationInProgress()
+                    .assertStatusInProgress()
+                    .assertProgressHidden()
+                    .assertSingleTask(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS.oid, NOT_EXECUTING)
+                    .child("mock-simple:1")
+                        .assertRealizationInProgress()
+                        .assertFatalError()
+                        .assertSingleTask(oidOfSubtask1, NOT_EXECUTING)
+                        .assertItemsProgress(null, 1)
                     .end()
                 .end()
                 .subtask(0)
@@ -1913,29 +1990,35 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .containsExactlyElementsOf(expectedRecords);
 
         // @formatter:off
-        assertProgress( root.getOid(),"after")
-                .display()
-                .assertInProgress()
-                .assertNoBucketInformation()
-                .assertNoItemsInformation()
-                .assertChildren(3)
-                .child("mock-simple:1")
-                    .assertInProgress()
-                    .assertNoBucketInformation()
-                    .assertItems(1, null)
-                    .assertNoChildren()
-                .end()
-                .child("composition:1") // 1 user
-                    .assertNotStarted()
-                    .assertNoBucketInformation()
-                    .assertNoItemsInformation()
-                    .assertNoChildren()
-                .end()
-                .child("mock-simple:2")
-                    .assertNotStarted()
-                    .assertNoBucketInformation()
-                    .assertNoItemsInformation()
-                .end();
+        Consumer<ActivityProgressInformationAsserter<?>> progressChecker =
+                (asserter) -> asserter
+                        .display()
+                        .assertInProgress()
+                        .assertNoBucketInformation()
+                        .assertNoItemsInformation()
+                        .assertChildren(3)
+                        .child("mock-simple:1")
+                            .assertInProgress()
+                            .assertNoBucketInformation()
+                            .assertItems(1, null)
+                            .assertNoChildren()
+                        .end()
+                        .child("composition:1") // 1 user
+                            .assertNotStarted()
+                            .assertNoBucketInformation()
+                            .assertNoItemsInformation()
+                            .assertNoChildren()
+                        .end()
+                        .child("mock-simple:2")
+                            .assertNotStarted()
+                            .assertNoBucketInformation()
+                            .assertNoItemsInformation()
+                        .end();
+
+        progressChecker.accept(assertProgress(root.getOid(), FULL_STATE_ONLY, "after"));
+        progressChecker.accept(assertProgress(root.getOid(), FULL_STATE_PREFERRED, "after"));
+        progressChecker.accept(assertProgress(root.getOid(), TREE_OVERVIEW_PREFERRED, "after"));
+        // Tree overview only would miss data from the root task
 
         assertPerformance( root.getOid(),"after")
                 .display()
@@ -1961,7 +2044,6 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 2");
 
-        activityManager.clearFailedActivityState(root.getOid(), result);
         taskManager.resumeTask(oidOfSubtask1, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
 
@@ -1985,6 +2067,18 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED)
                             .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
                         .end()
+                    .end()
+                .end()
+                .rootActivityStateOverview()
+                    .assertRealizationInProgress()
+                    .assertStatusInProgress()
+                    .assertProgressHidden()
+                    .assertSingleTask(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS.oid, NOT_EXECUTING)
+                    .child("mock-simple:1")
+                        .assertRealizationInProgress()
+                        .assertFatalError()
+                        .assertSingleTask(oidOfSubtask1, NOT_EXECUTING)
+                        .assertItemsProgress(null, 2)
                     .end()
                 .end()
                 .subtask(0)
@@ -2057,7 +2151,6 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 3");
 
-        activityManager.clearFailedActivityState(root.getOid(), result);
         taskManager.resumeTask(oidOfSubtask1, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
 
@@ -2066,10 +2159,22 @@ public class TestActivities extends AbstractRepoCommonTest {
         root.refresh(result);
         displayValue("Task tree", TaskDebugUtil.dumpTaskTree(root, result));
 
+        Holder<String> oidOfSubtask2Holder = new Holder<>();
+        Holder<String> oidOfSubtask21Holder = new Holder<>();
+        Holder<String> oidOfSubtask22Holder = new Holder<>();
+
         // @formatter:off
-        String oidOfSubtask22 = assertTaskTree(root.getOid(), "after run 3")
+        assertTaskTree(root.getOid(), "after run 3")
                 .display()
-                // state?
+                .subtaskForPath(ActivityPath.fromId("composition:1"))
+                    .sendOid(oidOfSubtask2Holder)
+                    .subtaskForPath(ActivityPath.fromId("composition:1", "mock-simple:1"))
+                        .sendOid(oidOfSubtask21Holder)
+                    .end()
+                    .subtaskForPath(ActivityPath.fromId("composition:1", "mock-simple:2"))
+                        .sendOid(oidOfSubtask22Holder)
+                    .end()
+                .end()
                 .assertExecutionStatus(TaskExecutionStateType.RUNNING)
                 .assertSchedulingState(TaskSchedulingStateType.WAITING)
                 .activityState()
@@ -2088,6 +2193,42 @@ public class TestActivities extends AbstractRepoCommonTest {
 //                            .assertHasTaskRef()
                         .end()
                     .end()
+                .end()
+                .rootActivityStateOverview()
+                    .assertRealizationInProgress()
+                    .assertStatusInProgress()
+                    .assertProgressHidden()
+                    .assertSingleTask(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS.oid, NOT_EXECUTING)
+                    .child("mock-simple:1")
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertSingleTask(oidOfSubtask1, NOT_EXECUTING)
+                        .assertItemsProgress(null, 3)
+                    .end()
+                    .child("composition:1")
+                        .assertRealizationInProgress()
+                        .assertStatusInProgress()
+                        .assertSingleTask(oidOfSubtask2Holder.getValue(), NOT_EXECUTING)
+                        .assertProgressVisible()
+                        .assertNoItemsProgress()
+                        .child("mock-simple:1")
+                            .assertComplete()
+                            .assertSuccess()
+                            .assertSingleTask(oidOfSubtask21Holder.getValue(), NOT_EXECUTING)
+                            .assertItemsProgress(null, 1)
+                        .end()
+                        .child("mock-simple:2")
+                            .assertRealizationInProgress()
+                            .assertFatalError()
+                            .assertSingleTask(oidOfSubtask22Holder.getValue(), NOT_EXECUTING)
+                            .assertItemsProgress(null, 1)
+                        .end()
+                        .child("mock-simple:3")
+                            .assertNotStarted()
+                            .assertNoTask()
+                        .end()
+                    .end()
+                    // TODO mock-simple:2
                 .end()
                 .subtaskForPath(ActivityPath.fromId("mock-simple:1"))
                     .display()
@@ -2114,8 +2255,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .display()
                         .assertSuspended()
                         .getOid();
-
         // @formatter:on
+
+        String oidOfSubtask22 = oidOfSubtask22Holder.getValue();
 
         displayDumpable("recorder after run 3", recorder);
         expectedRecords.add("#1"); // success after 2 failures
@@ -2126,11 +2268,58 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         dumpProgressAndPerformanceInfo(root.getOid(), result);
 
+        Consumer<ActivityProgressInformationAsserter<?>> progressChecker3 =
+                (asserter) -> asserter
+                        .display()
+                        .assertInProgress()
+                        .assertNoBucketInformation()
+                        .assertNoItemsInformation()
+                        .assertChildren(3)
+                        .child("mock-simple:1")
+                            .assertComplete()
+                            .assertNoBucketInformation()
+                            .assertItems(3, null)
+                            .assertNoChildren()
+                        .end()
+                        .child("composition:1")
+                            .assertInProgress()
+                            .assertNoBucketInformation()
+                            .assertNoItemsInformation()
+                            .assertChildren(3)
+                            .child("mock-simple:1")
+                                .assertComplete()
+                                .assertNoBucketInformation()
+                                .assertItems(1, null)
+                                .assertNoChildren()
+                            .end()
+                            .child("mock-simple:2")
+                                .assertInProgress()
+                                .assertNoBucketInformation()
+                                .assertItems(1, null)
+                                .assertNoChildren()
+                            .end()
+                            .child("mock-simple:3")
+                                .assertNotStarted()
+                                .assertNoBucketInformation()
+                                .assertNoItemsInformation()
+                                .assertNoChildren()
+                            .end()
+                        .end()
+                        .child("mock-simple:2")
+                            .assertNotStarted()
+                            .assertNoBucketInformation()
+                            .assertNoItemsInformation()
+                            .assertNoChildren()
+                        .end();
+
+        progressChecker3.accept(assertProgress(root.getOid(), FULL_STATE_ONLY, "after run 3 (full only)"));
+        progressChecker3.accept(assertProgress(root.getOid(), FULL_STATE_PREFERRED, "after run 3 (full preferred)"));
+        progressChecker3.accept(assertProgress(root.getOid(), TREE_OVERVIEW_PREFERRED, "after run 3 (tree preferred"));
+
         // ------------------------------------------------------------------------------------ run 4
 
         when("run 4");
 
-        activityManager.clearFailedActivityState(root.getOid(), result);
         taskManager.resumeTask(oidOfSubtask22, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
 
@@ -2150,6 +2339,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         displayDumpable("recorder after run 4", recorder);
         expectedRecords.add("#2.2"); // success after 1 failure
+        expectedRecords.add("#2.3");
         expectedRecords.add("#3"); // 1st failure
         assertThat(recorder.getExecutions()).as("recorder after run 4")
                 .containsExactlyElementsOf(expectedRecords);
@@ -2158,7 +2348,6 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 5");
 
-        activityManager.clearFailedActivityState(root.getOid(), result);
         taskManager.resumeTask(oidOfSubtask3, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
 
@@ -2198,7 +2387,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertComplete()
                     .assertNoBucketInformation()
                     .assertNoItemsInformation()
-                    .assertChildren(2)
+                    .assertChildren(3)
                     .child("mock-simple:1")
                         .assertComplete()
                         .assertNoBucketInformation()
@@ -2208,6 +2397,11 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .assertComplete()
                         .assertNoBucketInformation()
                         .assertItems(2, null)
+                    .end()
+                    .child("mock-simple:3")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
                     .end()
                 .end()
                 .child("mock-simple:2")
@@ -2230,7 +2424,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .end()
                 .child("composition:1")
                     .assertNotApplicable()
-                    .assertChildren(2)
+                    .assertChildren(3)
                     .child("mock-simple:1")
                         .assertItemsProcessed(1)
                         .assertErrors(0)
@@ -2242,6 +2436,13 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .assertItemsProcessed(2)
                         .assertErrors(1)
                         .assertProgress(2)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                    .child("mock-simple:3")
+                        .assertItemsProcessed(1)
+                        .assertErrors(0)
+                        .assertProgress(1)
                         .assertHasWallClockTime()
                         .assertHasThroughput()
                     .end()
@@ -2425,9 +2626,51 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertHasWallClockTime();
     }
 
+    /**
+     * When the scavenger (or any worker) is not finished, the realization state
+     * in the distributed activity must be "in progress".
+     *
+     * Here we start 4 workers, one of which (the scavenger in this case) takes too long to finish.
+     *
+     * We check that the state is "in progress".
+     */
+    @Test
+    public void test310WorkersScavengerFrozen() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task root = taskAdd(TASK_310_WORKERS_SCAVENGING, result);
+
+        when();
+
+        // We wait until all non-scavengers are done.
+        waitForTaskTreeCloseOrCondition(root.getOid(), result, 10000, 200,
+                tasksClosedPredicate(3));
+        stabilize();
+
+        then();
+
+        root.refresh(result);
+
+        assertTaskTree(root.getOid(), "after")
+                .display("root")
+                .activityState()
+                    .assertTreeRealizationInProgress()
+                .end()
+                .rootActivityStateOverview()
+                    .display()
+                    .assertRealizationInProgress()
+                    .assertStatusInProgress()
+                .end();
+    }
+
     private void dumpProgressAndPerformanceInfo(String oid, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        ActivityProgressInformation progressInfo = activityManager.getProgressInformation(oid, result);
+        ActivityProgressInformation progressInfo = activityManager.getProgressInformationFromTaskTree(oid, result);
         displayDumpable("progress information", progressInfo);
 
         dumpPerformanceInfo(oid, result);

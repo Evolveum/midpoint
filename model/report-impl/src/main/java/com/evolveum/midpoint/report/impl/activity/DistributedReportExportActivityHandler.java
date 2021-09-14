@@ -14,11 +14,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -91,16 +89,14 @@ public class DistributedReportExportActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new SearchBasedActivityExecution<>(
-                        context, "Data creation", ReportDataCreationExecutionSpecifics::new),
+                (context, result) -> new ReportDataCreationActivityExecution(context),
                 this::createEmptyAggregatedDataObject,
                 (i) -> "data-creation",
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new SearchBasedActivityExecution<>(
-                        context, "Report data aggregation", ReportDataAggregationExecutionSpecifics::new),
+                (context, result) -> new ReportDataAggregationActivityExecution(context),
                 null,
                 (i) -> "data-aggregation",
                 ActivityStateDefinition.normal(),
@@ -134,7 +130,7 @@ public class DistributedReportExportActivityHandler
         String oid = commonTaskBeans.repositoryService.addObject(reportData.asPrismObject(), null, result);
 
         activityState.setWorkStateItemRealValues(F_REPORT_DATA_REF, createObjectRef(oid, ObjectTypes.REPORT_DATA));
-        activityState.flushPendingModifications(result);
+        activityState.flushPendingTaskModifications(result);
 
         LOGGER.info("Created empty report data object {}", reportData);
     }

@@ -7,21 +7,34 @@
 
 package com.evolveum.midpoint.gui.api.model;
 
+import com.evolveum.midpoint.util.Producer;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 /**
  * Loadable model whose object is always not null.
  * Used to reduce checks of the 'model.getObject() != null' kind.
  *
  * TODO remove redundant checks after annotations are checked at runtime (needs to be done in maven build)
- *
- * @author mederly
  */
 public abstract class NonEmptyLoadableModel<T> extends LoadableModel<T> implements NonEmptyModel<T> {
 
     public NonEmptyLoadableModel(boolean alwaysReload) {
         super(alwaysReload);
+    }
+
+    public static <T> NonEmptyLoadableModel<T> create(Producer<T> producer, boolean alwaysReload) {
+        return new NonEmptyLoadableModel<T>(alwaysReload) {
+            @Override
+            protected @NotNull T load() {
+                return Objects.requireNonNull(
+                        producer.run(),
+                        "model object is null");
+            }
+        };
     }
 
     @NotNull

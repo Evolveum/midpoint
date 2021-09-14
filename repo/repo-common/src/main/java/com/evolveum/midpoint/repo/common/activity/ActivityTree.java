@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.common.activity;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.state.TreeStatePurger;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityTreePurger;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -100,7 +100,7 @@ public class ActivityTree implements DebugDumpable {
     /** Purges the activity state (usually before new realization). */
     public void purgeState(GenericTaskExecution taskExecution, OperationResult result) throws ActivityExecutionException {
         purgeTreeStateOverview(result);
-        purgeDetailedState(taskExecution, result);
+        purgeDetailedStateAndTaskStatistics(taskExecution, result);
     }
 
     private void purgeTreeStateOverview(OperationResult result) throws ActivityExecutionException {
@@ -110,9 +110,9 @@ public class ActivityTree implements DebugDumpable {
     /**
      * Purges detailed state of the activities: including worker and delegator tasks!
      */
-    private void purgeDetailedState(GenericTaskExecution taskExecution, OperationResult result)
+    private void purgeDetailedStateAndTaskStatistics(GenericTaskExecution taskExecution, OperationResult result)
             throws ActivityExecutionException {
-        new TreeStatePurger(taskExecution, beans)
+        new ActivityTreePurger(taskExecution, beans)
                 .purge(result);
     }
 }

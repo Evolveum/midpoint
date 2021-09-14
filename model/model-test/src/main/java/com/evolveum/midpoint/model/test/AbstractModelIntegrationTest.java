@@ -34,6 +34,8 @@ import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.reports.ActivityExecutionReportUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -3340,7 +3342,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 if (heartbeat != null) {
                     displayValue("Heartbeat", heartbeat);
                 }
-                long progress = heartbeat != null ? heartbeat : freshRepoTask.getProgress();
+                long progress = heartbeat != null ? heartbeat : freshRepoTask.getLegacyProgress();
                 boolean extraTestSuccess = extraTest != null && Boolean.TRUE.equals(extraTest.get());
                 return extraTestSuccess ||
                         freshRepoTask.getExecutionState() == TaskExecutionStateType.SUSPENDED ||
@@ -3405,7 +3407,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             long waiting = (System.currentTimeMillis() - start) / 1000;
             String description =
                     freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionState() + ", rs:" +
-                            freshRootTask.getResultStatus() + ", p:" + freshRootTask.getProgress() + ", n:" +
+                            freshRootTask.getResultStatus() + ", p:" + freshRootTask.getLegacyProgress() + ", n:" +
                             freshRootTask.getNode() + "] (waiting for: " + waiting + " seconds)";
             // was the whole task tree refreshed at least once after we were called?
             long lastRunStartTimestamp = or0(freshRootTask.getLastRunStartTimestamp());
@@ -6539,8 +6541,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid, String message)
             throws SchemaException, ObjectNotFoundException {
+        return assertProgress(rootOid, InformationSource.TREE_OVERVIEW_PREFERRED, message);
+    }
+
+    protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid,
+            @NotNull InformationSource source, String message)
+            throws SchemaException, ObjectNotFoundException {
         return assertProgress(
-                activityManager.getProgressInformation(rootOid, getTestOperationResult()),
+                activityManager.getProgressInformation(rootOid, source, getTestOperationResult()),
                 message);
     }
 

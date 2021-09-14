@@ -12,6 +12,7 @@ import static org.testng.AssertJUnit.fail;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.repo.sqale.SqaleRepositoryService.REPOSITORY_IMPL_NAME;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,6 +74,10 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     @SuppressWarnings("unused") // used when heap dumps are uncommented
     private final long identifier = System.currentTimeMillis();
 
+    // Nothing for old repo, short class name for new one. TODO inline when old repo goes away
+    private String opNamePrefix;
+    private boolean isNewRepoUsed;
+
     @BeforeSuite
     public void setup() {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -84,6 +90,13 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
 
         OperationResult initResult = new OperationResult(CLASS_DOT + "setup");
         repositoryCache.postInit(initResult);
+
+        RepositoryDiag repositoryDiag = repositoryCache.getRepositoryDiag();
+        String implName = repositoryDiag != null ? repositoryDiag.getImplementationShortName() : null;
+        isNewRepoUsed = Objects.equals(implName, REPOSITORY_IMPL_NAME);
+        opNamePrefix = isNewRepoUsed
+                ? SqaleRepositoryService.class.getSimpleName() + '.'
+                : "";
     }
 
     @Test
@@ -581,7 +594,11 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
 
         dumpStatistics();
         assertAddOperations(objectCount);
-        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, isCached ? 1 : 3);
+        assertOperations(
+                // new repo clearly identifies "page" call, old just calls public searchObject
+                isNewRepoUsed ? RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE
+                        : RepositoryService.OP_SEARCH_OBJECTS,
+                isCached ? 1 : 3);
         assertOperations(RepositoryService.OP_GET_OBJECT, isCached ? 0 : 3 * objectCount);
 
         assertQueryCached(type, null, isCached);
@@ -657,8 +674,11 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     }
 
     private int getOperationCount(String operation) {
-        PerformanceInformation performanceInformation = repositoryCache.getPerformanceMonitor().getGlobalPerformanceInformation();
-        OperationPerformanceInformation opData = performanceInformation.getAllData().get(operation);
+        PerformanceInformation performanceInformation =
+                repositoryCache.getPerformanceMonitor().getGlobalPerformanceInformation();
+        OperationPerformanceInformation opData =
+//                performanceInformation.getAllData().get(operation);
+                performanceInformation.getAllData().get(opNamePrefix + operation);
         return opData != null ? opData.getInvocationCount() : 0;
     }
 

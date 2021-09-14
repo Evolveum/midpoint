@@ -9,10 +9,14 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.UNCOMMITTED;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,8 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcess
  *
  * 1. During execution - see {@link #execute(OperationResult)}:
  *    a. initializes activity state (if needed),
- *    b. skips execution of the activity if the realization state is `complete`,
- *    c. executes "before execution" and the real code
+ *    b. skips execution of the activity if the activity realization is complete,
+ *    c. executes "before execution" and the real code,
  *    d. handles exceptions thrown by the execution code, converting them into {@link ActivityExecutionResult}
  *       (such conversion is done at various other levels, btw),
  *    e. logs the start/end,
@@ -106,6 +110,12 @@ public abstract class AbstractActivityExecution<
     private ActivityState activityStateForCounters;
 
     private final Object activityStateForCountersLock = new Object();
+
+    /** When did this execution start? */
+    protected Long startTimestamp;
+
+    /** When did this execution end? */
+    protected Long endTimestamp;
 
     protected AbstractActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
         this.taskExecution = context.getTaskExecution();
@@ -160,13 +170,38 @@ public abstract class AbstractActivityExecution<
             return ActivityExecutionResult.finished(activityState.getResultStatus());
         }
 
+        noteStartTimestamp();
         logStart();
+
         ActivityExecutionResult executionResult = executeTreatingExceptions(result);
+
+        noteEndTimestampIfNone();
         logEnd(executionResult);
 
         updateAndCloseActivityState(executionResult, result);
 
         return executionResult;
+    }
+
+    /**
+     * Takes a note when the current execution started.
+     *
+     * BEWARE! Not all executions are written to the activity state. Namely, runs of distributing/delegating
+     * activities other than initial ones (when subtasks are created) are not recorded.
+     */
+    private void noteStartTimestamp() {
+        startTimestamp = System.currentTimeMillis();
+    }
+
+    /**
+     * The children may note end timestamp by themselves, if they need the timestamp earlier.
+     * All of this is done to ensure there is a single "end timestamp". We assume these events
+     * occur almost in one instant.
+     */
+    void noteEndTimestampIfNone() {
+        if (endTimestamp == null) {
+            endTimestamp = System.currentTimeMillis();
+        }
     }
 
     /**
@@ -182,7 +217,7 @@ public abstract class AbstractActivityExecution<
         }
     }
 
-    /* TODO better name */
+    /** TODO better name */
     private void executeBeforeExecutionRunner(OperationResult result) throws ActivityExecutionException, CommonException {
         if (!(activity instanceof EmbeddedActivity)) {
             return;
@@ -218,12 +253,21 @@ public abstract class AbstractActivityExecution<
 
         OperationResultStatus currentResultStatus = executionResult.getOperationResultStatus();
         if (executionResult.isFinished()) {
-            activityState.markCompleteNoCommit(currentResultStatus);
+            // Note the asymmetry: "in progress" (IN_PROGRESS_LOCAL, IN_PROGRESS_DISTRIBUTED, IN_PROGRESS_DELEGATED)
+            // states, along with the timestamp, are written in subclasses. The "complete" state, along with the timestamp,
+            // is written here.
+            activityState.markComplete(currentResultStatus, endTimestamp);
         } else if (currentResultStatus != null && currentResultStatus != activityState.getResultStatus()) {
-            activityState.setResultStatusNoCommit(currentResultStatus);
+            activityState.setResultStatus(currentResultStatus);
         }
 
-        activityState.flushPendingModificationsChecked(result); // if not flushed above
+        try {
+            getRunningTask()
+                    .updateAndStoreStatisticsIntoRepository(true, result); // Contains implicit task flush
+        } catch (CommonException e) {
+            throw new ActivityExecutionException("Couldn't update task when updating and closing activity state",
+                    FATAL_ERROR, PERMANENT_ERROR, e);
+        }
 
         activityState.close();
     }
@@ -255,9 +299,10 @@ public abstract class AbstractActivityExecution<
     }
 
     private void logEnd(ActivityExecutionResult executionResult) {
-        LOGGER.debug("{}: Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
+        LOGGER.debug("{}: Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {} "
+                        + "(took: {} msecs)",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
-                executionResult);
+                executionResult, endTimestamp - startTimestamp);
     }
 
     private void logComplete() {
@@ -325,7 +370,7 @@ public abstract class AbstractActivityExecution<
         return activityStateDefinition.getWorkStateTypeName();
     }
 
-    @NotNull ActivityTreeStateOverview getTreeStateOverview() {
+    protected @NotNull ActivityTreeStateOverview getTreeStateOverview() {
         return activity.getTree().getTreeStateOverview();
     }
 
@@ -439,5 +484,13 @@ public abstract class AbstractActivityExecution<
 
     public boolean isWorker() {
         return activityState.isWorker();
+    }
+
+    public @NotNull WD getWorkDefinition() {
+        return activity.getWorkDefinition();
+    }
+
+    public @NotNull ActivityDefinition<WD> getActivityDefinition() {
+        return activity.getDefinition();
     }
 }

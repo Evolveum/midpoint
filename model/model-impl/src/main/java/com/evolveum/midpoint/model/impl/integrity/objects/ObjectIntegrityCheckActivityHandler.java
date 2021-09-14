@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
-
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -18,10 +16,10 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,10 +34,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectIntegrityCheckWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Task handler for "Object integrity check" task.
@@ -79,8 +74,8 @@ public class ObjectIntegrityCheckActivityHandler
     }
 
     @Override
-    protected @NotNull SearchBasedSpecificsSupplier<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler> getSpecificSupplier() {
-        return MyExecutionSpecifics::new;
+    protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler> getExecutionSupplier() {
+        return MyExecution::new;
     }
 
     @Override
@@ -103,14 +98,15 @@ public class ObjectIntegrityCheckActivityHandler
         return "object-integrity-check";
     }
 
-    static class MyExecutionSpecifics extends
-            BaseSearchBasedExecutionSpecificsImpl<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler> {
+    static class MyExecution extends
+            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler, AbstractActivityWorkStateType> {
 
         final ObjectStatistics objectStatistics = new ObjectStatistics();
 
-        MyExecutionSpecifics(
-                @NotNull SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler, ?> activityExecution) {
-            super(activityExecution);
+        MyExecution(
+                @NotNull ExecutionInstantiationContext<MyWorkDefinition, ObjectIntegrityCheckActivityHandler> context,
+                String shortName) {
+            super(context, shortName);
         }
 
         @Override
@@ -134,7 +130,7 @@ public class ObjectIntegrityCheckActivityHandler
 
         @Override
         public void beforeExecution(OperationResult result) {
-            activityExecution.ensureNoWorkerThreads();
+            ensureNoWorkerThreads();
         }
 
         @Override

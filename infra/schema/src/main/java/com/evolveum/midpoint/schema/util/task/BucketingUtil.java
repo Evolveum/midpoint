@@ -60,12 +60,18 @@ public class BucketingUtil {
     }
 
     static int getCompleteBucketsNumber(ActivityBucketingStateType bucketing) {
-        if (bucketing == null) {
+        if (bucketing != null) {
+            return getCompleteBucketsNumber(bucketing.getBucket());
+        } else {
             return 0;
         }
+    }
+
+    /** Returns the number of buckets that are marked as COMPLETE. They may be implicitly present. */
+    public static int getCompleteBucketsNumber(@NotNull List<WorkBucketType> buckets) {
         Integer max = null;
         int notComplete = 0;
-        for (WorkBucketType bucket : bucketing.getBucket()) {
+        for (WorkBucketType bucket : buckets) {
             if (max == null || bucket.getSequentialNumber() > max) {
                 max = bucket.getSequentialNumber();
             }

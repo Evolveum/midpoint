@@ -107,7 +107,7 @@ class NodeFoundDeadHelper {
             Objects.requireNonNull(
                     taskHandlerRegistry.getHandler(task.asObjectable().getHandlerUri()),
                     "No handler")
-                    .cleanupOnNodeDown(task.asObjectable(), result);
+                    .onNodeDown(task.asObjectable(), result);
         }
     }
 }

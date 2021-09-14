@@ -28,7 +28,7 @@ public class ExportDashboardReportLineProcessingRequest
         implements CorrelatableProcessingRequest {
 
     ExportDashboardReportLineProcessingRequest(@NotNull ExportDashboardReportLine<Containerable> item,
-            @NotNull IterativeActivityExecution<ExportDashboardReportLine<Containerable>, ?, ?, ?, ?, ?> activityExecution) {
+            @NotNull IterativeActivityExecution<ExportDashboardReportLine<Containerable>, ?, ?, ?> activityExecution) {
         super(item.getLineNumber(), item, activityExecution);
     }
 

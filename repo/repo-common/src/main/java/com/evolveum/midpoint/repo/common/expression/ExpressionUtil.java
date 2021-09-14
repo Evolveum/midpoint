@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -144,11 +145,12 @@ public class ExpressionUtil {
     }
 
     /**
-     * normalizeValuesToDelete: Whether to normalize container values that are to be deleted, i.e. convert them
-     * from id-only to full data (MID-4863).
-     * TODO:
-     * 1. consider setting this parameter to true at some other places where it might be relevant
-     * 2. consider normalizing delete deltas earlier in the clockwork, probably at the very beginning of the operation
+     * @param normalizeValuesToDelete Whether to normalize container values that are to be deleted,
+     * i.e. convert them from id-only to full data (MID-4863). Note that normally the delta should
+     * be already normalized, as this is done now in LensFocusContext (due to MID-7057). So at
+     * this point it is just to be sure.
+     *
+     * TODO Anyway, we should analyze existing code and resolve this issue in more general way.
      */
     public static TypedValue<?> resolvePathGetTypedValue(ItemPath path, VariablesMap variables, boolean normalizeValuesToDelete,
             TypedValue<?> defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)
@@ -644,23 +646,34 @@ public class ExpressionUtil {
             ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
 
             try {
-                PrismValue expressionResult = evaluateExpression(variables, prismContext, valueExpression, expressionProfile,
-                        filter, expressionFactory, shortDesc, task, result);
+                ItemDefinition outputDefinition = ((ValueFilter) filter).getDefinition();
+                if (outputDefinition == null) {
+                    outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+                            DOMUtil.XSD_STRING);
+                }
+                Collection<PrismValue> expressionResults = evaluateExpressionNative(null, variables, outputDefinition,
+                        valueExpression, expressionProfile, expressionFactory, shortDesc, task, result);
 
-                if (expressionResult == null || expressionResult.isEmpty()) {
+                List<PrismValue> nonEmptyResults = expressionResults.stream().filter(
+                        expressionResult -> expressionResult != null && !expressionResult.isEmpty()).collect(Collectors.toList());
+
+                if (nonEmptyResults.isEmpty()) {
                     LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
                             valueExpression);
 
                     return createFilterForNoValue(valueFilter, valueExpression, prismContext);
                 }
+
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
-                        shortDesc, expressionResult);
+                        shortDesc, nonEmptyResults);
 
                 ValueFilter evaluatedFilter = valueFilter.clone();
-                evaluatedFilter.setValue(expressionResult);
+                nonEmptyResults.forEach(expressionResult -> expressionResult.setParent(evaluatedFilter));
+                evaluatedFilter.setValue(null); //set fakeValue because of creating empty list
+                evaluatedFilter.getValues().addAll(nonEmptyResults);
                 evaluatedFilter.setExpression(null);
-                // }
+
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Transformed filter to:\n{}", evaluatedFilter.debugDump());
                 }

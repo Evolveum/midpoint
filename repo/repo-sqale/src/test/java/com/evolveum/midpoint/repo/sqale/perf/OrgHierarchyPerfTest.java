@@ -21,7 +21,6 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrg;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -45,10 +44,7 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
 
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
-            jdbcSession.commit();
-        }
+        refreshOrgClosureForce();
         assertThat(count(QOrg.CLASS)).isZero();
         assertThat(count(new QOrgClosure())).isZero();
 

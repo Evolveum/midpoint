@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-
 import static java.util.Comparator.*;
 
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.google.common.base.MoreObjects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -174,5 +173,21 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     public InternalOperationsReportConfigurationType getInternalOperationsReportDefinition() {
         ActivityExecutionReportsConfigurationType reports = bean.getExecutionReports();
         return reports != null ? reports.getInternalOperations() : null;
+    }
+
+    public @Nullable Long getStateOverviewProgressUpdateInterval() {
+        return bean.getStateOverview() != null ?
+                bean.getStateOverview().getProgressUpdateInterval() : null;
+    }
+
+    public @NotNull ActivityStateOverviewProgressUpdateModeType getStateOverviewProgressUpdateMode() {
+        return MoreObjects.firstNonNull(
+                getStateOverviewProgressUpdateModeRaw(),
+                ActivityStateOverviewProgressUpdateModeType.FOR_NON_LOCAL_ACTIVITIES);
+    }
+
+    private @Nullable ActivityStateOverviewProgressUpdateModeType getStateOverviewProgressUpdateModeRaw() {
+        return bean.getStateOverview() != null ?
+                bean.getStateOverview().getProgressUpdateMode() : null;
     }
 }

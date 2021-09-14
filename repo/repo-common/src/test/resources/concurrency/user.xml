@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user version="1"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>concurrentModifyUser002</name>
+    <fullName>
+        <t:orig>will be replaced</t:orig>
+        <t:norm>will be replaced</t:norm>
+    </fullName>
+    <givenName>d</givenName>
+    <familyName>d</familyName>
+    <emailAddress>testuserX00002@example.com</emailAddress>
+    <assignment id="1">
+        <description>d</description>
+        <construction>
+            <description>d</description>
+        </construction>
+    </assignment>
+</user>

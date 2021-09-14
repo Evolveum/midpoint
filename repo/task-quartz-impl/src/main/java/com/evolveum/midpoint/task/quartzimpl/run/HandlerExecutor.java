@@ -29,8 +29,7 @@ public class HandlerExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(HandlerExecutor.class);
 
     @NotNull TaskRunResult executeHandler(RunningTaskQuartzImpl task, TaskHandler handler, OperationResult executionResult) {
-        // TODO?
-        startCollectingStatistics(task, handler);
+        task.startCollectingStatistics(handler.getStatisticsCollectionStrategy());
 
         LOGGER.trace("Executing task handler {}", handler.getClass().getName());
         TaskRunResult runResult;
@@ -49,17 +48,12 @@ public class HandlerExecutor {
         }
         LOGGER.trace("runResult is {} for {}", runResult, task);
 
-        // TODO?
-        updateAndStoreStatisticsIntoRepository(task, executionResult);
+        updateAndStoreTaskStatisticsIntoRepository(task, executionResult);
 
         return runResult;
     }
 
-    private static void startCollectingStatistics(RunningTask task, TaskHandler handler) {
-        task.startCollectingStatistics(handler.getStatisticsCollectionStrategy());
-    }
-
-    private static void updateAndStoreStatisticsIntoRepository(RunningTaskQuartzImpl task, OperationResult result) {
+    private void updateAndStoreTaskStatisticsIntoRepository(RunningTaskQuartzImpl task, OperationResult result) {
         try {
             task.updateAndStoreStatisticsIntoRepository(true, result);
         } catch (Exception e) {

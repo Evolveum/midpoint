@@ -12,6 +12,11 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +99,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
                 jdbcConfig != null ? jdbcConfig.getJdbcPassword() : "");
         boolean logOnInfoLevel = get(task, SchemaConstants.JDBC_PING_LOG_ON_INFO_LEVEL_QNAME, true);
 
-        LOGGER.info("JdbcPingTaskHandler run starting; with progress = {}", task.getProgress());
+        LOGGER.info("JdbcPingTaskHandler run starting; with progress = {}", task.getLegacyProgress());
         LOGGER.info("Tests to be executed: {}", tests > 0 ? tests : "(unlimited)");
         LOGGER.info("Interval between tests: {} seconds", interval);
         LOGGER.info("SQL query to be used: {}", testQuery);
@@ -157,7 +162,11 @@ public class JdbcPingTaskHandler implements TaskHandler {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close DB connection", t);
                 }
             }
-            task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
+            try {
+                task.incrementLegacyProgressAndStoreStatisticsIfTimePassed(opResult);
+            } catch (SchemaException | ObjectNotFoundException e) {
+                throw new SystemException(e);
+            }
             try {
                 //noinspection BusyWait
                 Thread.sleep(1000L * interval);
@@ -170,7 +179,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);     // would be overwritten when problem is encountered
-        LOGGER.info("JdbcPingTaskHandler run finishing; progress = " + task.getProgress() + " in task " + task.getName());
+        LOGGER.info("JdbcPingTaskHandler run finishing; progress = " + task.getLegacyProgress() + " in task " + task.getName());
         LOGGER.info("Connection statistics: {}", connectionStatistics);
         LOGGER.info("Query statistics: {}", queryStatistics);
         return runResult;

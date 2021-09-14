@@ -72,7 +72,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private static final String ID_DETAILS = "details";
     protected static final String ID_DETAILS_VIEW = "detailsView";
 
-
     private ODM objectDetailsModels;
     private boolean isAdd;
 
@@ -305,20 +304,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private void postProcessModifyDelta(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto executeChangeOptionsDto, Task task, OperationResult result, AjaxRequestTarget target) {
         //TODO only in UserDetialsPanel
         //boolean delegationChangesExist = processDeputyAssignments(previewOnly);
+
         try {
             if (deltas.isEmpty() && !executeChangeOptionsDto.isReconcile()) {
 //                progressPanel.clearProgressPanel();            // from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
                 if (!previewOnly) {
-//                    if (!delegationChangesExist) {
-//                        result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
-//                        showResult(result);
-//                    }  //TODO user page
                     redirectBack();
-                } else {
-//                    if (!delegationChangesExist) {
-//                        warn(getString("PageAdminObjectDetails.noChangesPreview"));
-//                        target.add(getFeedbackPanel());
-//                    } //TODO user page
                 }
                 return;
             }

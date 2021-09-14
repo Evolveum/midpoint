@@ -100,6 +100,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     protected static final File ROLE_EXECUTIVE_2_FILE = new File(TEST_DIR, "role-executive-2.xml");
     protected static final String ROLE_EXECUTIVE_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee02";
 
+    // Has "executive" subtype but should not be part of exclusion relations (because it is not a role)
+    private static final TestResource<OrgType> ORG_EXECUTIVE_RANDOM = new TestResource<>(TEST_DIR,
+            "org-executive-random.xml", "723f327b-7c33-4e4f-92cd-80ed12de79b6");
+
     protected static final File ROLE_META_CONTROLLING_FILE = new File(TEST_DIR, "role-meta-controlling.xml");
 
     protected static final File ROLE_CONTROLLING_1_FILE = new File(TEST_DIR, "role-controlling-1.xml");
@@ -160,6 +164,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         repoAddObjectFromFile(ROLE_META_EXECUTIVE_FILE, initResult);
         repoAddObjectFromFile(ROLE_EXECUTIVE_1_FILE, initResult);
         repoAddObjectFromFile(ROLE_EXECUTIVE_2_FILE, initResult);
+        repoAdd(ORG_EXECUTIVE_RANDOM, initResult);
         repoAddObjectFromFile(ROLE_META_CONTROLLING_FILE, initResult);
         repoAddObjectFromFile(ROLE_CONTROLLING_1_FILE, initResult);
         repoAddObjectFromFile(ROLE_CONTROLLING_2_FILE, initResult);
@@ -178,8 +183,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         addObject(USER_PETR, initTask, initResult);
         addObject(USER_MARTIN, initTask, initResult);
-
-//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Test
@@ -1258,6 +1261,36 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_2_OID);
         assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
         assertNotAssignedRole(userAfter, ROLE_CONTROLLING_2_OID);
+    }
+
+    /**
+     * Checks that role-controlling-1 and org-executive-random do not trigger exclusion violation.
+     * (They should not, because exclusion is defined for RoleType and one of these is OrgType.)
+     *
+     * MID-7073
+     */
+    @Test
+    public void test260RoleAndOrgNotExcluding() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test260")
+                .beginAssignment()
+                    .targetRef(ROLE_CONTROLLING_1_OID, RoleType.COMPLEX_TYPE)
+                .end();
+        addObject(user.asPrismObject(), task, result);
+
+        when();
+        assignOrg(user.getOid(), ORG_EXECUTIVE_RANDOM.oid, task, result);
+
+        then();
+        assertUserAfter(user.getOid())
+                .assertAssignments(2)
+                .assignments()
+                    .assertRole(ROLE_CONTROLLING_1_OID)
+                    .assertOrg(ORG_EXECUTIVE_RANDOM.oid);
     }
 
     @Test

@@ -9,16 +9,11 @@ package com.evolveum.midpoint.repo.common.task;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Execution of a plain iterative activity.
@@ -31,67 +26,27 @@ import org.jetbrains.annotations.Nullable;
  * @param <AH> Activity handler type.
  * @param <WS> Work (business) state type.
  */
-public class PlainIterativeActivityExecution<
+public abstract class PlainIterativeActivityExecution<
         I,
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         WS extends AbstractActivityWorkStateType>
-        extends IterativeActivityExecution<
-            I,
-            WD,
-            AH,
-            WS,
-            PlainIterativeActivityExecution<I, WD, AH, ?>,
-            PlainIterativeActivityExecutionSpecifics<I>> {
+        extends IterativeActivityExecution<I, WD, AH, WS>
+        implements PlainIterativeActivityExecutionSpecifics<I> {
 
     public PlainIterativeActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
-            @NotNull String shortNameCapitalized,
-            @NotNull PlainIterativeSpecificsSupplier<I, WD, AH> specificsSupplier) {
-        super(context, shortNameCapitalized, specificsSupplier);
+            @NotNull String shortNameCapitalized) {
+        super(context, shortNameCapitalized);
     }
 
     @Override
-    protected void prepareItemSourceForCurrentBucket(OperationResult result) throws ActivityExecutionException, CommonException {
+    protected void prepareItemSourceForCurrentBucket(OperationResult result) {
         // Nothing to do here. Item source preparation can be done in iterateOverItems method.
     }
 
-    @Override
-    protected @Nullable Integer determineOverallSize(OperationResult result) throws CommonException {
-        return executionSpecifics.determineOverallSize(result);
-    }
-
-    @Override
-    protected @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
-        return executionSpecifics.determineCurrentBucketSize(bucket, result);
-    }
-
-    /** We simply do not support repository-related item-counting options in plain-iterative activity executions.
-     * @param result*/
+    /** We simply do not support repository-related item-counting options in plain-iterative activity executions. */
     @Override
     protected boolean isInRepository(OperationResult result) {
         return false;
-    }
-
-    @Override
-    protected void iterateOverItemsInBucket(OperationResult result) throws CommonException {
-        executionSpecifics.iterateOverItemsInBucket(bucket, result);
-    }
-
-    @Override
-    protected @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
-        return executionSpecifics.getDefaultErrorAction();
-    }
-
-    @Override
-    public boolean processItem(@NotNull ItemProcessingRequest<I> request, @NotNull RunningTask workerTask, OperationResult result)
-            throws ActivityExecutionException, CommonException {
-        return executionSpecifics.processItem(request, workerTask, result);
-    }
-
-    @FunctionalInterface
-    public interface PlainIterativeSpecificsSupplier<I, WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
-            extends IterativeActivityExecution.SpecificsSupplier<
-            PlainIterativeActivityExecution<I, WD, AH, ?>,
-            PlainIterativeActivityExecutionSpecifics<I>> {
     }
 }

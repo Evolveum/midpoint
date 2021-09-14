@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.state;
 
 import java.util.List;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -22,9 +22,8 @@ import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProgressType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Takes care of reporting the activity progress.
@@ -85,10 +84,26 @@ public class ActivityProgress extends Initializable {
         value.getUncommitted().clear();
     }
 
+    public synchronized @Nullable Integer getExpectedTotal() {
+        return value.getExpectedTotal();
+    }
+
+    public synchronized void setExpectedTotal(Integer expectedTotal) {
+        value.setExpectedTotal(expectedTotal);
+    }
+
+    public synchronized @Nullable Integer getExpectedInCurrentBucket() {
+        return value.getExpectedInCurrentBucket();
+    }
+
+    public synchronized void setExpectedInCurrentBucket(Integer expectedInCurrentBucket) {
+        value.setExpectedInCurrentBucket(expectedInCurrentBucket);
+    }
+
     /**
      * Returns a clone of the current value. The cloning is because of thread safety requirements.
      */
-    public synchronized ActivityProgressType getValueCopy() {
+    public synchronized @NotNull ActivityProgressType getValueCopy() {
         return value.cloneWithoutId();
     }
 
@@ -100,11 +115,7 @@ public class ActivityProgress extends Initializable {
         assertInitialized();
         // TODO We should use the dynamic modification approach in order to provide most current values to the task
         //  (in case of update conflicts). But let's wait for the new repo with this.
-        ActivityProgressType value = getValueCopy();
-        activityState.setItemRealValuesCollection(ActivityState.PROGRESS_COMMITTED_PATH,
-                CloneUtil.cloneCollectionMembers(value.getCommitted()));
-        activityState.setItemRealValuesCollection(ActivityState.PROGRESS_UNCOMMITTED_PATH,
-                CloneUtil.cloneCollectionMembers(value.getUncommitted()));
+        activityState.setItemRealValues(ActivityStateType.F_PROGRESS, getValueCopy());
     }
 
     private CommonTaskBeans getBeans() {
@@ -117,6 +128,11 @@ public class ActivityProgress extends Initializable {
 
     synchronized long getLegacyValue() {
         return ActivityProgressUtil.getCurrentProgress(value);
+    }
+
+    public @NotNull ItemsProgressOverviewType getOverview() {
+        return ActivityProgressUtil.getProgressOverview(
+                getValueCopy());
     }
 
     public enum Counters {

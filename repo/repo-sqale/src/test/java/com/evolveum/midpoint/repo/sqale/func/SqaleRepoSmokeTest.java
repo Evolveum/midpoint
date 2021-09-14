@@ -89,10 +89,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("reset closure");
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
-            jdbcSession.commit();
-        }
+        refreshOrgClosureForce();
         long baseCount = count(new QOrgClosure());
 
         and("user belonging to org hierarchy");
@@ -126,10 +123,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("reset closure");
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
-            jdbcSession.commit();
-        }
+        refreshOrgClosureForce();
         long baseCount = count(new QOrgClosure());
 
         given("user belonging to org hierarchy");
@@ -175,7 +169,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(user.getOid()).isEqualTo(userOid);
         assertThat(selectObjectByOid(QUser.class, userOid)).isNotNull();
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_ADD_OBJECT);
     }
 
     @Test
@@ -199,7 +193,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(deleteResult).isNotNull();
         assertThatOperationResult(result).isSuccess();
         assertThat(selectNullableObjectByOid(QUser.class, userOid)).isNull();
-        assertSingleOperationRecorded(RepositoryService.OP_DELETE_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_DELETE_OBJECT);
     }
 
     @Test
@@ -220,7 +214,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         then("object is obtained and performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
         assertThat(object).isNotNull();
-        assertSingleOperationRecorded(RepositoryService.OP_GET_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_GET_OBJECT);
     }
 
     @Test
@@ -240,7 +234,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         then("non-null version string is obtained and performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
         assertThat(version).isNotNull();
-        assertSingleOperationRecorded(RepositoryService.OP_GET_VERSION);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_GET_VERSION);
     }
 
     @Test
@@ -365,7 +359,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         user.subtypes = new String[] { "subtype1", "subtype2" };
         user.ext = new Jsonb("{\"key\" : \"value\",\n\"number\": 47} "); // more whitespaces/lines
         user.photo = new byte[] { 0, 1, 0, 1 };
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = startTransaction()) {
             jdbcSession.newInsert(u).populate(user).execute();
             jdbcSession.commit();
         }
@@ -378,7 +372,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(row.photo).hasSize(4);
 
         // setting NULLs
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = startTransaction()) {
             jdbcSession.newUpdate(u)
                     .setNull(u.policySituations)
                     .set(u.subtypes, (String[]) null) // this should do the same

@@ -12,8 +12,6 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 
-import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +50,7 @@ public class LiveSyncActivityHandler
     public AbstractActivityExecution<LiveSyncWorkDefinition, LiveSyncActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<LiveSyncWorkDefinition, LiveSyncActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PlainIterativeActivityExecution<>(context, "LiveSync", LiveSyncActivityExecutionSpecifics::new);
+        return new LiveSyncActivityExecution(context);
     }
 
     @Override

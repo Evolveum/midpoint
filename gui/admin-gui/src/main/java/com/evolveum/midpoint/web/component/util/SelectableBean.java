@@ -11,6 +11,7 @@ import java.io.Serializable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.page.admin.server.dto.AttachedTaskInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public interface SelectableBean<T extends Serializable> extends Serializable, DebugDumpable {
@@ -28,4 +29,19 @@ public interface SelectableBean<T extends Serializable> extends Serializable, De
     void setSelected(boolean selected);
 
     boolean isSelected();
+
+    /**
+     * Obtains custom data related to T (e.g. information extracted from the value of T) into the bean.
+     * Currently used to store {@link AttachedTaskInformation} for tasks.
+     *
+     * FIXME: TEMPORARY SOLUTION! Replace by subclassing {@link SelectableBeanImpl} for tasks!
+     */
+    Object getCustomData();
+
+    /**
+     * Stores custom data, see {@link #getCustomData()}.
+     *
+     * FIXME: TEMPORARY SOLUTION!
+     */
+    void setCustomData(Object data);
 }

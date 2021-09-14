@@ -267,8 +267,9 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                         continue;
                     }
                     if (target.appliesToFocusWithAnyRelation(getPageBase().getRelationRegistry())) {
-                        AssignmentType assignmentType = target.getAssignment();
+                        AssignmentType assignmentType = target.getAssignment().clone();
                         assignmentType.setDescription(target.getTarget().asObjectable().getDescription());
+                        assignmentType.getTargetRef().setOid(target.getTarget().getOid());
                         assignmentType.getTargetRef().setTargetName(new PolyStringType(target.getTarget().getName()));
                         assignmentType.getTargetRef().setType(target.getTarget().getComplexTypeDefinition().getTypeName());
                         ValueStatus status = evaluatedAssignment.getAssignment(true) == null ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED;

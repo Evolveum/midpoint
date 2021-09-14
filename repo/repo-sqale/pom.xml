@@ -145,9 +145,6 @@
     <profiles>
         <profile>
             <id>sqale</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <properties>
                 <maven.test.skip>false</maven.test.skip>
             </properties>

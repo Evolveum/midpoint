@@ -10,14 +10,12 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
-import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 
+import com.evolveum.midpoint.web.page.admin.server.dto.AttachedTaskInformation;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -32,7 +30,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -65,7 +62,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(
@@ -164,8 +160,8 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
             }
         } catch (Throwable e) {
-            result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(),
-                    e);
+            result.recordFatalError(
+                    createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -208,6 +204,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         columns.add(createTaskExecutionStatusColumn());
 
+        columns.add(createNodesColumn()); // TODO reconsider
         columns.add(createProgressColumn());
         columns.add(createErrorsColumn());
         columns.add(createTaskStatusIconColumn());
@@ -233,31 +230,27 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         };
     }
 
+    private AbstractColumn<SelectableBean<TaskType>, String> createNodesColumn() {
+        return new AbstractColumn<>(createStringResource("Nodes")) { // FIXME i8n
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId,
+                    IModel<SelectableBean<TaskType>> rowModel) {
+                AttachedTaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
+                cellItem.add(
+                        new Label(
+                                componentId,
+                                taskInformation.getNodesDescription()));
+            }
+        };
+    }
+
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createProgressColumn() {
         return new AbstractExportableColumn<>(createStringResource("pageTasks.task.progress")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, final IModel<SelectableBean<TaskType>> rowModel) {
-                if (ActivityStateUtil.isProgressAvailableLocally(rowModel.getObject().getValue())) {
-                    cellItem.add(new Label(componentId,
-                            (IModel<Object>) () -> getProgressDescription(rowModel.getObject())));
-                } else {
-                    cellItem.add(new AjaxLinkPanel(componentId, createStringResource("PageTasks.show.child.progress")) {
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            PageParameters pageParams = new PageParameters();
-                            pageParams.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getValue().getOid());
-                            getPageBase().navigateToNext(PageTask.class, pageParams);
-                        }
-                    });
-                }
-
-            }
-
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return Model.of(getProgressDescription(rowModel.getObject()));
+                AttachedTaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
+                return Model.of(
+                        getComplexProgressDescription(taskInformation));
             }
         };
     }
@@ -266,11 +259,11 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return new AbstractColumn<>(createStringResource("pageTasks.task.errors")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
-                TaskType task = rowModel.getObject().getValue();
+                AttachedTaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
                 cellItem.add(
                         new Label(
                                 componentId,
-                                new Model<>(ActivityStatisticsUtil.getAllFailures(task.getActivityState()))));
+                                taskInformation.getAllErrors()));
             }
         };
     }
@@ -280,42 +273,27 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             protected DisplayType getIconDisplayType(final IModel<SelectableBean<TaskType>> rowModel) {
-                String icon;
-                String title;
+                AttachedTaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
+                OperationResultStatusType status = taskInformation.getResultStatus();
 
-                TaskType task = getTask(rowModel, false);
-
-                if (task != null && task.getResultStatus() != null) {
-                    icon = OperationResultStatusPresentationProperties
-                            .parseOperationalResultStatus(task.getResultStatus()).getIcon()
-                            + " fa-lg";
-                    title = createStringResource(task.getResultStatus()).getString();
-                } else {
-                    icon = OperationResultStatusPresentationProperties.UNKNOWN.getIcon() + " fa-lg";
-                    title = createStringResource(OperationResultStatusType.UNKNOWN).getString();
-                }
+                String icon = OperationResultStatusPresentationProperties
+                        .parseOperationalResultStatus(status).getIcon()
+                        + " fa-lg";
+                String title = createStringResource(status).getString();
 
                 return WebDisplayTypeUtil.createDisplayType(icon, "", title);
             }
         };
     }
 
-    private String getProgressDescription(SelectableBean<TaskType> task) {
-        Long stalledSince = getStalledSince(task.getValue());
-        String realProgress = WebComponentUtil.getTaskProgressInformation(task.getValue(), false, getPageBase());
+    private @NotNull String getComplexProgressDescription(@NotNull AttachedTaskInformation taskInformation) {
+        String progress = taskInformation.getProgressDescriptionShort(); // no need to localize this (for now)
+        XMLGregorianCalendar stalledSince = taskInformation.getCompletelyStalledSince();
         if (stalledSince != null) {
-            return getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), realProgress);
+            return getString("pageTasks.stalledSince", XmlTypeConverter.toDate(stalledSince).toLocaleString(), progress);
         } else {
-            return realProgress;
+            return progress;
         }
-    }
-
-    private Long getStalledSince(TaskType taskType) {
-        return xgc2long(taskType.getStalledSince());
-    }
-
-    private Long xgc2long(XMLGregorianCalendar gc) {
-        return gc != null ? XmlTypeConverter.toMillis(gc) : null;
     }
 
     private List<InlineMenuItem> createTasksInlineMenu() {
@@ -800,4 +778,9 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return null;
     }
 
+    /** Creates {@link AttachedTaskInformation} based on current table row and (in subclasses) the whole activity tree overview. */
+    @NotNull
+    protected AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+        return AttachedTaskInformation.getOrCreate(selectableTaskBean, null);
+    }
 }

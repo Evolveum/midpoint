@@ -79,11 +79,14 @@ public class MockParallelTaskHandler implements TaskHandler {
                     //noinspection BusyWait
                     Thread.sleep(STEP);
                     op.succeeded();
-                    parentTask.incrementProgressTransient();
+                    parentTask.incrementLegacyProgressTransient();
                     parentTask.updateStatisticsInTaskPrism(false);
                     parentTask.storeStatisticsIntoRepositoryIfTimePassed(null, new OperationResult("store stats"));
                 } catch (InterruptedException e) {
                     LOGGER.trace("Handler for task {} interrupted", task);
+                    op.failed(e);
+                    break;
+                } catch (Exception e) {
                     op.failed(e);
                     break;
                 }
@@ -143,7 +146,7 @@ public class MockParallelTaskHandler implements TaskHandler {
         opResult.recordSuccess();
 
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        runResult.setProgress(task.getProgress()+1);
+        runResult.setProgress(task.getLegacyProgress()+1);
 
         hasRun = true;
         lastTaskExecuted = task;
@@ -181,12 +184,6 @@ public class MockParallelTaskHandler implements TaskHandler {
 
     RunningTask getLastTaskExecuted() {
         return lastTaskExecuted;
-    }
-
-    @NotNull
-    @Override
-    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy().fromZero();
     }
 
     @Override

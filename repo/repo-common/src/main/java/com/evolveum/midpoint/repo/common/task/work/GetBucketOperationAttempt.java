@@ -22,6 +22,9 @@ import java.util.stream.Stream;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.util.PassingHolder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketProgressOverviewType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,14 +54,12 @@ class GetBucketOperationAttempt {
     private static final Trace LOGGER = TraceManager.getTrace(GetBucketOperationAttempt.class);
 
     /**
-     * The current value of the coordinator (i.e. buckets-holding) task.
-     */
-    @NotNull private final TaskType task;
-
-    /**
      * OID of the worker task (null iff standalone).
      */
     @Nullable private final String workerOid;
+
+    /** Receives "after" state of the progress. */
+    private final PassingHolder<BucketProgressOverviewType> bucketProgressHolder;
 
     /**
      * Item path for the current bucketed activity state.
@@ -111,10 +112,7 @@ class GetBucketOperationAttempt {
      *
      * The exception is when we want to return already-delegated bucket. Then no sampling is done.
      */
-    private int numberOfBucketsToGet = 1;
-
-    /** Do we do sampling? */
-    private final boolean doingSampling;
+    private int numberOfBucketsToGet;
 
     /**
      * Configured allocator that generates buckets.
@@ -122,15 +120,15 @@ class GetBucketOperationAttempt {
     @NotNull private final BucketFactory bucketFactory;
 
     GetBucketOperationAttempt(@NotNull TaskType task, @Nullable String workerOid, @NotNull ActivityPath activityPath,
-            @NotNull BucketFactory bucketFactory, int numberOfBucketsToGet) {
-        this.task = task;
+            @NotNull BucketFactory bucketFactory, int numberOfBucketsToGet,
+            @NotNull PassingHolder<BucketProgressOverviewType> bucketProgressHolder) {
         this.workerOid = workerOid;
+        this.bucketProgressHolder = bucketProgressHolder;
         this.activityStateItemPath = getStateItemPath(task.getActivityState(), activityPath);
         this.activityState = getActivityStateRequired(task.getActivityState(), activityStateItemPath);
         this.currentBuckets = BucketingUtil.getBuckets(activityState);
         this.bucketFactory = bucketFactory;
         this.numberOfBucketsToGet = numberOfBucketsToGet;
-        this.doingSampling = numberOfBucketsToGet > 1;
     }
 
     /**
@@ -309,6 +307,12 @@ class GetBucketOperationAttempt {
             LOGGER.trace("Going to set # of buckets:\n{}", DebugUtil.debugDumpLazily(numberOfBucketsMods, 1));
             modifications.addAll(numberOfBucketsMods);
         }
+
+        // The number of complete buckets is not changed by this operation, so we can report the progress right now.
+        bucketProgressHolder.accept(
+                new BucketProgressOverviewType()
+                        .totalBuckets(number)
+                        .completeBuckets(BucketingUtil.getCompleteBucketsNumber(currentBuckets)));
     }
 
     private void swallow(Collection<ItemDelta<?, ?>> modifications) {

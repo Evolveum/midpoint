@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
 import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
@@ -225,6 +226,22 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     public ActivityStateAsserter<TaskAsserter<RA>> activityState(ActivityPath activityPath) {
         ActivityStateType state = getActivityStateRequired(activityPath);
         ActivityStateAsserter<TaskAsserter<RA>> asserter = new ActivityStateAsserter<>(state, this, "activity state for " + activityPath.toDebugName() + " in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    @SuppressWarnings("unused")
+    public ActivityStateOverviewAsserter<TaskAsserter<RA>> rootActivityStateOverview() {
+        var overview =
+                Objects.requireNonNull(
+                        Objects.requireNonNull(
+                                Objects.requireNonNull(
+                                                getTaskBean().getActivityState(), "no activities state")
+                                        .getTree(), "no tree")
+                                .getActivity(), "no root activity overview");
+
+        ActivityStateOverviewAsserter<TaskAsserter<RA>> asserter =
+                new ActivityStateOverviewAsserter<>(overview, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
@@ -498,5 +515,10 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     private String getExecutionGroup() {
         TaskType task = getObjectable();
         return task.getExecutionConstraints() != null ? task.getExecutionConstraints().getGroup() : null;
+    }
+
+    public TaskAsserter<RA> sendOid(Consumer<String> consumer) {
+        super.sendOid(consumer);
+        return this;
     }
 }

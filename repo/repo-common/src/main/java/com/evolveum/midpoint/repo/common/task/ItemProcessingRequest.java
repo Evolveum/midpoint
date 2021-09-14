@@ -45,7 +45,7 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
 
     @NotNull protected final I item;
 
-    @NotNull private final IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution;
+    @NotNull private final IterativeActivityExecution<I, ?, ?, ?> activityExecution;
 
     /**
      * Unique identifier of this request. Not to be confused with requestIdentifier used for auditing purposes!
@@ -56,7 +56,7 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     @NotNull protected final String identifier;
 
     public ItemProcessingRequest(int sequentialNumber, @NotNull I item,
-            @NotNull IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution) {
+            @NotNull IterativeActivityExecution<I, ?, ?, ?> activityExecution) {
         this.sequentialNumber = sequentialNumber;
         this.item = item;
         this.activityExecution = activityExecution;
@@ -128,7 +128,7 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
         return identifier;
     }
 
-    public @NotNull IterativeActivityExecution<I, ?, ?, ?, ?, ?> getActivityExecution() {
+    public @NotNull IterativeActivityExecution<I, ?, ?, ?> getActivityExecution() {
         return activityExecution;
     }
 

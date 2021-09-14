@@ -334,7 +334,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete and 2nd get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 1, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 1, null, null, result);
 
         task.refresh(result);
         assertBucketState(task, 1, COMPLETE);
@@ -355,7 +355,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete and 3rd get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 2, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 2, null, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 3rd get");
@@ -371,7 +371,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete and 4th get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 3, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 3, null, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 4th get");
@@ -440,7 +440,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete and 2nd get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 1, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 1, null, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 2nd get");
@@ -456,7 +456,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete and 3rd get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 2, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 2, null, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 3rd get");
@@ -471,7 +471,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete and 4th get");
 
-        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 3, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 3, null, null, result);
         bucket = getWorkBucket(task, result);
 
         then("complete and 4th get");
@@ -570,7 +570,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete");
 
-        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 1, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 1, null, null, result);
         WorkBucketType bucket3 = getWorkBucket(task, result);
 
         then("complete");
@@ -588,7 +588,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete 2");
 
-        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 2, null, result);
+        bucketingManager.completeWorkBucket(task.getOid(), null, ActivityPath.empty(), 2, null, null, result);
         WorkBucketType bucket4 = getWorkBucket(task, result);
 
         then("complete 2");
@@ -715,7 +715,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete bucket #2");
 
-        bucketingManager.completeWorkBucket(oidC, oidW2, ActivityPath.empty(), 2, null, result);
+        bucketingManager.completeWorkBucket(oidC, oidW2, ActivityPath.empty(), 2, null, null, result);
 
         then("complete bucket #2");
 
@@ -733,7 +733,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete bucket #1");
 
-        bucketingManager.completeWorkBucket(oidC, oidW1, ActivityPath.empty(), 1, null, result);
+        bucketingManager.completeWorkBucket(oidC, oidW1, ActivityPath.empty(), 1, null, null, result);
         WorkBucketType bucket = getWorkBucket(coordinator, oidW1, result);
 
         then("complete bucket #1");
@@ -780,7 +780,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete bucket #3");
 
-        bucketingManager.completeWorkBucket(oidC, oidW3, ActivityPath.empty(), 3, null, result);
+        bucketingManager.completeWorkBucket(oidC, oidW3, ActivityPath.empty(), 3, null, null, result);
         bucket = getWorkBucket(coordinator, oidW5, result);
 
         then("complete bucket #3");
@@ -799,7 +799,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete bucket #5");
 
-        bucketingManager.completeWorkBucket(oidC, oidW1, ActivityPath.empty(), 5, null, result);
+        bucketingManager.completeWorkBucket(oidC, oidW1, ActivityPath.empty(), 5, null, null, result);
         taskManager.closeTask(oidW5, result);
 
         then("complete bucket #5");
@@ -835,7 +835,7 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
         when("complete bucket #4");
 
-        bucketingManager.completeWorkBucket(oidC, oidW1, ActivityPath.empty(), 4, null, result);
+        bucketingManager.completeWorkBucket(oidC, oidW1, ActivityPath.empty(), 4, null, null, result);
 
         then("complete bucket #4");
 

@@ -7,21 +7,16 @@
 
 package com.evolveum.midpoint.repo.common.activity.state;
 
-import static com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState.Wrapper.w;
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.repo.common.task.reports.BucketsReport.Kind.ANALYSIS;
 import static com.evolveum.midpoint.repo.common.task.reports.BucketsReport.Kind.EXECUTION;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.COMPLETE;
 
 import java.util.Objects;
-
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
-import com.evolveum.midpoint.repo.common.task.reports.BucketsReport;
-import com.evolveum.midpoint.repo.common.task.reports.ConnIdOperationsReport;
-import com.evolveum.midpoint.repo.common.task.reports.InternalOperationsReport;
-import com.evolveum.midpoint.repo.common.task.reports.ItemsReport;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,8 +27,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.task.reports.BucketsReport;
+import com.evolveum.midpoint.repo.common.task.reports.ConnIdOperationsReport;
+import com.evolveum.midpoint.repo.common.task.reports.InternalOperationsReport;
+import com.evolveum.midpoint.repo.common.task.reports.ItemsReport;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -238,7 +238,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         ActivityStatePersistenceType requiredValue = activityStateDefinition.getPersistence();
         if (requiredValue != storedValue) {
             setItemRealValues(ActivityStateType.F_PERSISTENCE, requiredValue);
-            flushPendingModificationsChecked(result);
+            flushPendingTaskModificationsChecked(result);
         }
     }
 
@@ -251,78 +251,59 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     }
     //endregion
 
-    //region Realization state
-    public void markInProgressLocal(OperationResult result) throws ActivityExecutionException {
-        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_LOCAL), w(IN_PROGRESS), result);
+    //region Realization state and realization/execution timestamps
+    public void recordExecutionStart(Long startTimestamp) throws ActivityExecutionException {
+        setExecutionStartTimestamp(startTimestamp);
+        setExecutionEndTimestamp(null);
     }
 
-    public void markInProgressDelegated(OperationResult result) throws ActivityExecutionException {
-        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_DELEGATED), w(IN_PROGRESS), result);
+    public void recordExecutionEnd(Long endTimestamp) throws ActivityExecutionException {
+        setExecutionEndTimestamp(endTimestamp);
     }
 
-    public void markInProgressDistributed(OperationResult result) throws ActivityExecutionException {
-        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_DISTRIBUTED), w(IN_PROGRESS), result);
+    public void recordRealizationStart(long startTimestamp) throws ActivityExecutionException {
+        setRealizationStartTimestamp(startTimestamp);
+        setRealizationEndTimestamp(null);
     }
 
-    public void markCompleteNoCommit(OperationResultStatus resultStatus) throws ActivityExecutionException {
-        setCombinedNoCommit(w(ActivityRealizationStateType.COMPLETE), w(resultStatus));
+    public void markComplete(OperationResultStatus resultStatus, Long endTimestamp) throws ActivityExecutionException {
+        setRealizationState(COMPLETE);
+        setRealizationEndTimestamp(endTimestamp);
+        setResultStatus(resultStatus);
     }
 
-    private void setRealizationStateWithoutCommit(ActivityRealizationStateType value) throws SchemaException {
-        ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
-                .item(getRealizationStateItemPath()).replace(value)
-                .asItemDelta();
-        getTask().modify(itemDelta);
-        LOGGER.trace("Setting realization state to {} for {}", value, activityExecution);
+    public void setRealizationState(ActivityRealizationStateType value) throws ActivityExecutionException {
+        setItemRealValues(ActivityStateType.F_REALIZATION_STATE, value);
+    }
+
+    private void setRealizationStartTimestamp(Long value) throws ActivityExecutionException {
+        setItemRealValues(ActivityStateType.F_REALIZATION_START_TIMESTAMP, createXMLGregorianCalendar(value));
+    }
+
+    private void setRealizationEndTimestamp(Long value) throws ActivityExecutionException {
+        setItemRealValues(ActivityStateType.F_REALIZATION_END_TIMESTAMP, createXMLGregorianCalendar(value));
+    }
+
+    public void setExecutionStartTimestamp(Long value) throws ActivityExecutionException {
+        setItemRealValues(ActivityStateType.F_EXECUTION_START_TIMESTAMP, createXMLGregorianCalendar(value));
+    }
+
+    public void setExecutionEndTimestamp(Long value) throws ActivityExecutionException {
+        setItemRealValues(ActivityStateType.F_EXECUTION_END_TIMESTAMP, createXMLGregorianCalendar(value));
     }
     //endregion
 
     //region Result status
-    public void setResultStatusNoCommit(@NotNull OperationResultStatus status) throws ActivityExecutionException {
-        convertException(
-                () -> setResultStateNoCommit(status));
+    public void setResultStatus(@NotNull OperationResultStatus status) throws ActivityExecutionException {
+        setItemRealValues(ActivityStateType.F_RESULT_STATUS, createStatusType(status));
     }
 
-    private void setResultStateNoCommit(OperationResultStatus resultStatus) throws SchemaException {
+    private void setResultState(OperationResultStatus resultStatus) throws SchemaException {
         ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
-                .item(getResultStatusItemPath()).replace(OperationResultStatus.createStatusType(resultStatus))
+                .item(getResultStatusItemPath()).replace(createStatusType(resultStatus))
                 .asItemDelta();
         getTask().modify(itemDelta);
         LOGGER.trace("Setting result status to {} for {}", resultStatus, activityExecution);
-    }
-    //endregion
-
-    //region Combined operations
-    private void setCombined(Wrapper<ActivityRealizationStateType> realizationState, Wrapper<OperationResultStatus> resultStatus,
-            OperationResult result) throws ActivityExecutionException {
-        setCombinedNoCommit(realizationState, resultStatus);
-        flushPendingModificationsChecked(result);
-    }
-
-    private void setCombinedNoCommit(Wrapper<ActivityRealizationStateType> realizationState,
-            Wrapper<OperationResultStatus> resultStatus) throws ActivityExecutionException {
-        try {
-            if (realizationState != null) {
-                setRealizationStateWithoutCommit(realizationState.value);
-            }
-            if (resultStatus != null) {
-                setResultStateNoCommit(resultStatus.value);
-            }
-        } catch (SchemaException e) {
-            throw new ActivityExecutionException("Couldn't update activity state", FATAL_ERROR, PERMANENT_ERROR, e);
-        }
-    }
-
-    static class Wrapper<T> {
-        final T value;
-
-        private Wrapper(T value) {
-            this.value = value;
-        }
-
-        static <T> Wrapper<T> w(T value) {
-            return new Wrapper<>(value);
-        }
     }
     //endregion
 
@@ -389,10 +370,18 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     }
 
     public void updateProgressAndStatisticsNoCommit() throws ActivityExecutionException {
+        updateProgressNoCommit();
+        updateStatisticsNoCommit();
+    }
+
+    public void updateProgressNoCommit() throws ActivityExecutionException {
         if (activityExecution.doesSupportProgress()) {
             liveProgress.writeToTaskAsPendingModification();
             LegacyProgressUpdater.update(this);
         }
+    }
+
+    private void updateStatisticsNoCommit() throws ActivityExecutionException {
         if (activityExecution.doesSupportStatistics()) {
             liveStatistics.writeToTaskAsPendingModifications();
         }
