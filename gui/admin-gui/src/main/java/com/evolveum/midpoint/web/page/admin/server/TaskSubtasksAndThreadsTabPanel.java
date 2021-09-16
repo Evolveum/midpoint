@@ -12,7 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.server.dto.AttachedTaskInformation;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -105,8 +106,8 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             }
 
             @Override
-            protected @NotNull AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
-                return AttachedTaskInformation.getOrCreate(selectableTaskBean, rootTaskModel.getObject());
+            protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
             }
         };
 
@@ -133,8 +134,8 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             }
 
             @Override
-            protected @NotNull AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
-                return AttachedTaskInformation.getOrCreate(selectableTaskBean, rootTaskModel.getObject());
+            protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
             }
         };
         add(workerThreadsTable);

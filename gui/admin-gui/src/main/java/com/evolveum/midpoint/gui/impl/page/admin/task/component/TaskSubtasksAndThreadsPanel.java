@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.task.RootTaskLoader;
@@ -20,6 +19,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.page.admin.server.TaskTablePanel;
-import com.evolveum.midpoint.web.page.admin.server.dto.AttachedTaskInformation;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -115,8 +115,8 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             }
 
             @Override
-            protected @NotNull AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
-                return AttachedTaskInformation.getOrCreate(selectableTaskBean, rootTaskModel.getObject());
+            protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
             }
         };
 
@@ -143,8 +143,8 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             }
 
             @Override
-            protected @NotNull AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
-                return AttachedTaskInformation.getOrCreate(selectableTaskBean, rootTaskModel.getObject());
+            protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
             }
         };
         add(workerThreadsTable);
