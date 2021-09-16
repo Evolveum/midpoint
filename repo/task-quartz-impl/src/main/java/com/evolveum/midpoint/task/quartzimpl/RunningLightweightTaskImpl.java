@@ -108,17 +108,20 @@ public class RunningLightweightTaskImpl extends RunningTaskQuartzImpl implements
                 beans.cacheConfigurationManager.setThreadLocalProfiles(getCachingProfiles());
                 OperationResult.setThreadLocalHandlingStrategy(getOperationResultHandlingStrategyName());
                 setExecutionState(TaskExecutionStateType.RUNNING);
+                setNode(taskManager.getNodeId());
                 lightweightTaskHandler.run(this);
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, this);
             }
             beans.cacheConfigurationManager.unsetThreadLocalProfiles();
             setExecutingThread(null);
+            setNode(null); // execution state is changed in .closeTask() below
             lightweightHandlerExecuting = false;
             try {
                 beans.taskStateManager.closeTask(this, taskResult);
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't correctly close task {}", t, this);
+                setExecutionState(TaskExecutionStateType.CLOSED);
             }
             LOGGER.debug("Lightweight task handler shell finishing; task = {}", this);
         };

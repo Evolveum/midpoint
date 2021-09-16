@@ -8,7 +8,9 @@
 package com.evolveum.midpoint.repo.common.activity.execution;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_DISTRIBUTED;
 
 import java.util.List;
 import java.util.Set;
@@ -119,22 +121,30 @@ public class DistributingActivityExecution<
     }
 
     private void distribute(OperationResult result) throws ActivityExecutionException {
-        setProcessingRole(result);
-
-        // Currently there are no activities having workers with persistent state,
-        // so we assume there are no workers left at this point.
-        helper.checkNoRelevantSubtasksDoExist(result);
-
-        List<Task> children = createSuspendedChildren(result);
-        helper.switchExecutionToChildren(children, result);
-
-        activityState.markInProgressDistributed(result);
-        getTreeStateOverview().recordDistributingActivityRealizationStart(this, result);
-    }
-
-    private void setProcessingRole(OperationResult result) throws ActivityExecutionException {
         activityState.setItemRealValues(BUCKETS_PROCESSING_ROLE_PATH, BucketsProcessingRoleType.COORDINATOR);
+
+        activityState.recordExecutionStart(startTimestamp);
+        activityState.recordRealizationStart(startTimestamp);
+        activityState.setResultStatus(IN_PROGRESS);
+
+        // We want to have this written to the task before execution is switched to children
         activityState.flushPendingTaskModificationsChecked(result);
+
+        try {
+            // Currently there are no activities having workers with persistent state,
+            // so we assume there are no workers left at this point.
+            helper.checkNoRelevantSubtasksDoExist(result);
+
+            List<Task> children = createSuspendedChildren(result);
+            helper.switchExecutionToChildren(children, result);
+
+            activityState.setRealizationState(IN_PROGRESS_DISTRIBUTED); // We want to set this only after workers are created
+            getTreeStateOverview().recordDistributingActivityRealizationStart(this, result);
+        } finally {
+            noteEndTimestampIfNone();
+            activityState.recordExecutionEnd(endTimestamp);
+            activityState.flushPendingTaskModificationsChecked(result);
+        }
     }
 
     private List<Task> createSuspendedChildren(OperationResult result) throws ActivityExecutionException {

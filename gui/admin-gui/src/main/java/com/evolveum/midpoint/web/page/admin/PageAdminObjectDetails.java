@@ -292,8 +292,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
             @Override
             protected PrismObjectWrapper<O> load() {
-                PrismObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
-                return wrapper;
+                return loadObjectWrapper(objectToEdit, isReadonly);
             }
         };
 
@@ -711,9 +710,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         OperationResult result = task.getResult();
         PrismObject<O> object = loadPrismObject(objectToEdit, task, result);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Loaded object:\n{}", object.debugDump());
-        }
+        LOGGER.trace("Loaded object:\n{}", object.debugDumpLazily());
 
         validateObjectNotNull(object);
 
@@ -721,9 +718,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
         showResult(result, false);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());
-        }
+        LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDumpLazily());
 
         return wrapper;
     }
@@ -750,7 +745,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
                 String focusOid = getObjectOidParameter();
                 object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, buildGetOptions(), this, task, result);
-                LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
+                LOGGER.trace("Loading object: Existing object (loaded): {} -> {}", focusOid, object);
             }
 
             result.recordSuccess();

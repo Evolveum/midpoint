@@ -33,8 +33,8 @@
                                             <script>
                                                 <code>
                                                     def approverMap = [
-                                                        '6f007608-415b-49e3-b388-0217d535fc7d':'00000001-d34d-b33f-f00d-LD1000000001',
-                                                        '53b49582-de4b-4306-a135-41f46e64cbcc':'00000001-d34d-b33f-f00d-LD1000000002'
+                                                        '6f007608-415b-49e3-b388-0217d535fc7d':'00000001-d34d-b33f-f00d-ad1000000001',
+                                                        '53b49582-de4b-4306-a135-41f46e64cbcc':'00000001-d34d-b33f-f00d-ad1000000002'
                                                     ]
                                                     approverMap[workItem?.originalAssigneeRef?.oid]
                                                 </code>

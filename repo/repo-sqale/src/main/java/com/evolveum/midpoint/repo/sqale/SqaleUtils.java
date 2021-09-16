@@ -119,6 +119,11 @@ public class SqaleUtils {
         }
     }
 
+    public static boolean isUniqueConstraintViolation(Exception exception) {
+        PSQLException psqlException = ExceptionUtil.findCause(exception, PSQLException.class);
+        return PSQLState.UNIQUE_VIOLATION.getState().equals(psqlException.getSQLState());
+    }
+
     public static String toString(Object object) {
         return new ToStringUtil(object).toString();
     }

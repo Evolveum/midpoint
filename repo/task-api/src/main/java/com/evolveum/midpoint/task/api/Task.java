@@ -875,6 +875,15 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
             throws SchemaException, ObjectNotFoundException;
 
     /**
+     * Returns the root of the task tree for this task.
+     *
+     * PRE: task is either persistent or is a {@link RunningTask}.
+     */
+    default @NotNull Task getRoot(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return getParentAndRoot(result).root;
+    }
+
+    /**
      * Returns the path from this task to the task tree root. (Starts with this task, ends with the root.)
      */
     List<Task> getPathToRootTask(OperationResult result) throws SchemaException;

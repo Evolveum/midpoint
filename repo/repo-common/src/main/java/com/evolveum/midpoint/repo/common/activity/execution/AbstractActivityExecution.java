@@ -111,6 +111,12 @@ public abstract class AbstractActivityExecution<
 
     private final Object activityStateForCountersLock = new Object();
 
+    /** When did this execution start? */
+    protected Long startTimestamp;
+
+    /** When did this execution end? */
+    protected Long endTimestamp;
+
     protected AbstractActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
         this.taskExecution = context.getTaskExecution();
         this.activity = context.getActivity();
@@ -164,13 +170,38 @@ public abstract class AbstractActivityExecution<
             return ActivityExecutionResult.finished(activityState.getResultStatus());
         }
 
+        noteStartTimestamp();
         logStart();
+
         ActivityExecutionResult executionResult = executeTreatingExceptions(result);
+
+        noteEndTimestampIfNone();
         logEnd(executionResult);
 
         updateAndCloseActivityState(executionResult, result);
 
         return executionResult;
+    }
+
+    /**
+     * Takes a note when the current execution started.
+     *
+     * BEWARE! Not all executions are written to the activity state. Namely, runs of distributing/delegating
+     * activities other than initial ones (when subtasks are created) are not recorded.
+     */
+    private void noteStartTimestamp() {
+        startTimestamp = System.currentTimeMillis();
+    }
+
+    /**
+     * The children may note end timestamp by themselves, if they need the timestamp earlier.
+     * All of this is done to ensure there is a single "end timestamp". We assume these events
+     * occur almost in one instant.
+     */
+    void noteEndTimestampIfNone() {
+        if (endTimestamp == null) {
+            endTimestamp = System.currentTimeMillis();
+        }
     }
 
     /**
@@ -186,7 +217,7 @@ public abstract class AbstractActivityExecution<
         }
     }
 
-    /* TODO better name */
+    /** TODO better name */
     private void executeBeforeExecutionRunner(OperationResult result) throws ActivityExecutionException, CommonException {
         if (!(activity instanceof EmbeddedActivity)) {
             return;
@@ -222,9 +253,12 @@ public abstract class AbstractActivityExecution<
 
         OperationResultStatus currentResultStatus = executionResult.getOperationResultStatus();
         if (executionResult.isFinished()) {
-            activityState.markCompleteNoCommit(currentResultStatus);
+            // Note the asymmetry: "in progress" (IN_PROGRESS_LOCAL, IN_PROGRESS_DISTRIBUTED, IN_PROGRESS_DELEGATED)
+            // states, along with the timestamp, are written in subclasses. The "complete" state, along with the timestamp,
+            // is written here.
+            activityState.markComplete(currentResultStatus, endTimestamp);
         } else if (currentResultStatus != null && currentResultStatus != activityState.getResultStatus()) {
-            activityState.setResultStatusNoCommit(currentResultStatus);
+            activityState.setResultStatus(currentResultStatus);
         }
 
         try {
@@ -265,9 +299,10 @@ public abstract class AbstractActivityExecution<
     }
 
     private void logEnd(ActivityExecutionResult executionResult) {
-        LOGGER.debug("{}: Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
+        LOGGER.debug("{}: Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {} "
+                        + "(took: {} msecs)",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
-                executionResult);
+                executionResult, endTimestamp - startTimestamp);
     }
 
     private void logComplete() {

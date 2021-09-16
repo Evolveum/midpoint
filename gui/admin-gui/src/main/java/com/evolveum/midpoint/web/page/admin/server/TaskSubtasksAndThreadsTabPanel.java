@@ -12,6 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -30,11 +33,12 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -48,11 +52,15 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
     private static final String ID_SUBTASKS_LABEL = "subtasksLabel";
     private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
 
+    /** The root of the task tree is needed to have activity tree overview. */
+    @NotNull private final IModel<TaskType> rootTaskModel;
 
-    public TaskSubtasksAndThreadsTabPanel(String id,
-                                             LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel) {
+    TaskSubtasksAndThreadsTabPanel(String id,
+            LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
+            @NotNull IModel<TaskType> rootTaskModel) {
         super(id, taskWrapperModel);
         setOutputMarkupId(true);
+        this.rootTaskModel = rootTaskModel;
     }
 
     @Override
@@ -81,7 +89,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
                 List<IColumn<SelectableBean<TaskType>, String>> columns = super.createDefaultColumns();
 
                 // TODO add "task kind" column
-                
+
 //                columns.add(2, new EnumPropertyColumn<>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
 //
 //                    @Override
@@ -95,6 +103,11 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.TABLE_SUBTASKS;
+            }
+
+            @Override
+            protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
             }
         };
 
@@ -118,6 +131,11 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             @Override
             protected boolean isHeaderVisible() {
                 return false;
+            }
+
+            @Override
+            protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
             }
         };
         add(workerThreadsTable);
@@ -147,7 +165,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
     }
 
     private IModel<List<TaskType>> createWorkersModel() {
-        return (IModel<List<TaskType>>) () -> {
+        return () -> {
             PrismObject<TaskType> taskPrism = TaskSubtasksAndThreadsTabPanel.this.getModelObject().getObject();
             PrismReference subtasks = taskPrism.findReference(TaskType.F_SUBTASK_REF);
 
@@ -179,5 +197,4 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
     public Collection<Component> getComponentsToUpdate() {
         return Collections.singleton(this);
     }
-
 }

@@ -31,9 +31,22 @@ public class ActivityProgressUtil {
         return state != null ? getCurrentProgress(state.getProgress()) : 0;
     }
 
+    public static int getCurrentErrors(TaskType localTask, ActivityPath activityPath) {
+        ActivityStateType state = ActivityStateUtil.getActivityState(localTask.getActivityState(), activityPath);
+        return state != null ? getCurrentErrors(state.getProgress()) : 0;
+    }
+
     public static int getCurrentProgress(ActivityProgressType progress) {
         if (progress != null) {
             return getCurrentProgressFromCollection(List.of(progress));
+        } else {
+            return 0;
+        }
+    }
+
+    public static int getCurrentErrors(ActivityProgressType progress) {
+        if (progress != null) {
+            return getCurrentErrorsFromCollection(List.of(progress));
         } else {
             return 0;
         }
@@ -54,6 +67,11 @@ public class ActivityProgressUtil {
     private static int getCurrentProgressFromCollection(List<ActivityProgressType> collection) {
         return getCounts(collection, c -> true, true) +
                 getCounts(collection, c -> true, false);
+    }
+
+    private static int getCurrentErrorsFromCollection(List<ActivityProgressType> collection) {
+        return getCounts(collection, OutcomeKeyedCounterTypeUtil::isFailure, true) +
+                getCounts(collection, OutcomeKeyedCounterTypeUtil::isFailure, false);
     }
 
     public static int getCurrentProgress(@NotNull Collection<ActivityStateType> states) {

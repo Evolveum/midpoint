@@ -20,6 +20,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_AC
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +40,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 public class ActivityTreeStateOverview {
 
@@ -80,6 +85,7 @@ public class ActivityTreeStateOverview {
                     findOrCreateTaskEntry(entry, execution.getRunningTask().getSelfReference())
                             .bucketsProcessingRole(execution.getActivityState().getBucketingRole())
                             .executionState(ActivityTaskExecutionStateType.EXECUTING)
+                            .node(beans.taskManager.getNodeId())
                             .resultStatus(execution.getCurrentResultStatusBean());
             if (progressVisible && execution.doesSupportProgress()) {
                 taskEntry.progress(execution.getActivityState().getLiveProgress().getOverview());
@@ -230,6 +236,7 @@ public class ActivityTreeStateOverview {
 
     /**
      * Updates bucket (and item) progress information in the activity tree.
+     * Also clears the "stalled since" flag.
      *
      * Note that there can be a race condition when updating buckets. If an update that was generated earlier
      * (containing smaller # of completed buckets) is applied after an update generated later (larger #
@@ -256,6 +263,7 @@ public class ActivityTreeStateOverview {
             findOrCreateTaskEntry(entry, execution.getRunningTask().getSelfReference())
                     .progress(execution.doesSupportProgress() ?
                             execution.getActivityState().getLiveProgress().getOverview() : null)
+                    .stalledSince((XMLGregorianCalendar) null)
                     .resultStatus(execution.getCurrentResultStatusBean());
             return createOverviewReplaceDeltas(overview);
         }, result);
@@ -271,6 +279,7 @@ public class ActivityTreeStateOverview {
                 bucket1.getCompleteBuckets() < bucket2.getCompleteBuckets();
     }
 
+    /** Assumes that the activity execution is still in progress. (I.e. also clear the "stalled since" flag.) */
     public void updateItemProgressIfTimePassed(@NotNull LocalActivityExecution<?, ?, ?> execution, long interval,
             OperationResult result) throws SchemaException, ObjectNotFoundException {
 
@@ -288,6 +297,7 @@ public class ActivityTreeStateOverview {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
             ActivityStateOverviewType entry = findOrCreateEntry(overview, execution.getActivityPath());
             findOrCreateTaskEntry(entry, execution.getRunningTask().getSelfReference())
+                    .stalledSince((XMLGregorianCalendar) null)
                     .progress(execution.getActivityState().getLiveProgress().getOverview())
                     .resultStatus(execution.getCurrentResultStatusBean());
             return createOverviewReplaceDeltas(overview);
@@ -295,6 +305,30 @@ public class ActivityTreeStateOverview {
 
         LOGGER.trace("Item progress updated in {}", execution);
         itemProgressUpdatedTimestamp = System.currentTimeMillis();
+    }
+
+    /** Finds all occurrences of the task in "running" activities and marks them as stalled. */
+    public void markTaskStalled(@NotNull String taskOid, long stalledSince, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        modifyRootTaskUnchecked(taskBean -> {
+            ActivityStateOverviewType overview = getStateOverview(taskBean);
+            if (overview == null) {
+                return List.of();
+            }
+            Holder<Boolean> changed = new Holder<>(false);
+            ActivityStateOverviewUtil.acceptStateOverviewVisitor(overview, state -> {
+                if (state.getRealizationState() == ActivitySimplifiedRealizationStateType.IN_PROGRESS) {
+                    for (ActivityTaskStateOverviewType taskInfo : state.getTask()) {
+                        if (taskInfo.getExecutionState() == ActivityTaskExecutionStateType.EXECUTING &&
+                                taskOid.equals(getOid(taskInfo.getTaskRef()))) {
+                            taskInfo.setStalledSince(XmlTypeConverter.createXMLGregorianCalendar(stalledSince));
+                            changed.setValue(true);
+                        }
+                    }
+                }
+            });
+            return createOverviewReplaceDeltas(overview, changed.getValue());
+        }, result);
     }
 
     public ActivityTreeRealizationStateType getRealizationState() {

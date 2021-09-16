@@ -27,11 +27,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Component hiding details of how QNames are stored in {@link QUri}.
  * Following prefixes are used for its methods:
  *
- * * `get` returns URI or ID for ID or URI, may return null, no DB access; TODO: later possible access when not found
+ * * `get` returns URI or ID for ID or URI, may return null, accesses DB if not found (multi-node safety);
  * * `search` like `get` but returns {@link #UNKNOWN_ID} instead of null, used for query predicates,
- * no DB access by the URI cache itself; TODO: later possible access when not found
+ * accesses DB if not found (multi-node safety);
  * * `resolve` returns URI/ID for ID/URI or throws exception if not found, this is for situations
- * where the entry for URI is expected to exist already, still no DB access required; TODO: later possible access when not found
+ * where the entry for URI is expected to exist already, accesses DB if not found in cache (multi-node safety);
  * * finally, {@link #processCacheableUri(Object)} accesses the database if the URI is not found
  * in the cache in order to write it there.
  *
@@ -46,10 +46,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * transaction is rolled back, the cache still thinks the URI row is already there.
  * This could be avoided if the runtime maps were updated *only* after the row was successfully
  * read from the DB in other operations - which beats the purposes of those fast operations.
- * Instead we risk adding row that is never used as it is no harm; it will likely be used later.
- * While there is a potential "attack" on the URI cache, it is good enough for now.
- * Later perhaps only part of the `m_uri` table will be cached in the runtime and then it may be
- * possible.
+ * Instead, we risk adding the row that is not used, it is no harm; it will likely be used later.
  */
 public class UriCache {
 
@@ -64,10 +61,10 @@ public class UriCache {
      */
     public static final int UNKNOWN_ID = -1;
 
-    // TODO is this necessary? At this moment it's used only in tests, perhaps can be removed.
     private final Map<Integer, String> idToUri = new ConcurrentHashMap<>();
     private final Map<String, Integer> uriToId = new ConcurrentHashMap<>();
 
+    // WARNING: Each .get() creates new connection, always use in try-with-resource block!
     private Supplier<JdbcSession> jdbcSessionSupplier;
 
     /**
@@ -118,7 +115,7 @@ public class UriCache {
 
     /** Returns ID for string, possibly {@code null} - does not work with underlying database. */
     public @Nullable Integer getId(@NotNull String uri) {
-        Integer id = uriToId.get(uri);
+        Integer id = retrieveId(uri);
         LOGGER.trace("URI cache 'get' returned ID={} for URI={}", id, uri);
         return id;
     }
@@ -134,7 +131,10 @@ public class UriCache {
 
     /** Returns ID for string or {@link #UNKNOWN_ID} - does not work with underlying database. */
     public @NotNull Integer searchId(@NotNull String uri) {
-        Integer id = uriToId.getOrDefault(uri, UNKNOWN_ID);
+        Integer id = retrieveId(uri);
+        if (id == null) {
+            id = UNKNOWN_ID;
+        }
         LOGGER.trace("URI cache 'search' returned ID={} for URI={}", id, uri);
         return id;
     }
@@ -148,16 +148,32 @@ public class UriCache {
 
     /** Returns URI string for ID or {@code null} - does not work with underlying database. */
     public String getUri(Integer id) {
-        String uri = idToUri.get(id);
+        String uri = retrieveUri(id);
         LOGGER.trace("URI cache 'get' returned URI={} for ID={}", uri, id);
         return uri;
     }
 
     /** Returns URI string for ID or throws exception - does not work with underlying database. */
     public @NotNull String resolveToUri(Integer id) {
-        String uri = idToUri.get(id);
+        String uri = retrieveUri(id);
         LOGGER.trace("URI cache 'resolve' returned URI={} for ID={}", uri, id);
         return Objects.requireNonNull(uri, () -> "No URI cached under ID " + id);
+    }
+
+    private String retrieveUri(Integer id) {
+        String uri = idToUri.get(id);
+        if (uri == null) {
+            uri = retrieveUriFromDb(id);
+        }
+        return uri;
+    }
+
+    private Integer retrieveId(String uri) {
+        Integer id = uriToId.get(uri);
+        if (id == null) {
+            id = retrieveIdFromDb(uri);
+        }
+        return id;
     }
 
     /**
@@ -189,10 +205,51 @@ public class UriCache {
             jdbcSession.commit();
 
             updateMaps(MUri.of(id, uriString));
-        }
-        // TODO query when constraint violation
+        } catch (RuntimeException e) {
 
+            if (SqaleUtils.isUniqueConstraintViolation(e)) {
+                // Insert failed, record exists, so lets try to retrieve it
+                Integer retId = retrieveIdFromDb(uriString);
+                if (retId == null) {
+                    throw new IllegalStateException("Couldn't insert uri to cache and uri was not present in cache.", e);
+                }
+                return retId;
+            }
+            throw e;
+        }
         LOGGER.debug("URI cache inserted URI={} under ID={}", uri, id);
         return id;
+    }
+
+    private Integer retrieveIdFromDb(String uriString) {
+        MUri row;
+        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startReadOnlyTransaction()) {
+            row = jdbcSession.newQuery()
+                    .select(QUri.DEFAULT)
+                    .from(QUri.DEFAULT)
+                    .where(QUri.DEFAULT.uri.eq(uriString))
+                    .fetchOne();
+        }
+        if (row == null) {
+            return null;
+        }
+        updateMaps(row);
+        return row.id;
+    }
+
+    private String retrieveUriFromDb(Integer id) {
+        MUri row;
+        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startReadOnlyTransaction()) {
+            row = jdbcSession.newQuery()
+                    .select(QUri.DEFAULT)
+                    .from(QUri.DEFAULT)
+                    .where(QUri.DEFAULT.id.eq(id))
+                    .fetchOne();
+        }
+        if (row == null) {
+            return null;
+        }
+        updateMaps(row);
+        return row.uri;
     }
 }

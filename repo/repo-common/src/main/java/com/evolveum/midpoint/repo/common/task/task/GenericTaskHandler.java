@@ -12,6 +12,9 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,12 +152,19 @@ public class GenericTaskHandler implements TaskHandler {
     }
 
     @Override
-    public void cleanupOnNodeDown(@NotNull TaskType taskBean, @NotNull OperationResult result)
+    public void onNodeDown(@NotNull TaskType taskBean, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-
         Task task = taskManager.createTaskInstance(taskBean.asPrismObject(), result);
         ParentAndRoot parentAndRoot = task.getParentAndRoot(result);
         new NodeDownCleaner(task, parentAndRoot.parent, parentAndRoot.root, beans)
                 .execute(result);
+    }
+
+    @Override
+    public void onTaskStalled(@NotNull RunningTask task, long stalledSince, @NotNull OperationResult result) throws CommonException {
+        if (task.isPersistent()) {
+            new ActivityTreeStateOverview(task.getRootTask(), beans)
+                    .markTaskStalled(task.getOid(), stalledSince, result);
+        }
     }
 }

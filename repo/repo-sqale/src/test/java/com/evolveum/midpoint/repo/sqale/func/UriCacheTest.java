@@ -57,7 +57,7 @@ public class UriCacheTest extends SqaleRepoBaseTest {
         assertThat(uriCache1.searchId(uriValue + "nonexistent")).isEqualTo(UNKNOWN_ID);
     }
 
-    @Test(enabled = false) // TODO fix
+    @Test
     public void test200WriteInOneUriCacheIsVisibleInOtherUriCache() {
         when("URI is stored in cache 1");
         String uriValue = "test-uri-" + getTestNameShort();
@@ -71,9 +71,12 @@ public class UriCacheTest extends SqaleRepoBaseTest {
         assertThat(uriCache2.searchId(uriValue)).isEqualTo(uriId);
     }
 
-    /*
-     * TODO: current UriCache implementation is single-node only, it needs to refresh from DB when
-     *  URI for search is not found in the cache.
-     *  Also it needs to handle conflict in processCacheableUri, perhaps function call would be better.
-     */
+    @Test
+    public void test300ConflictInCache() {
+        when("URI is stored in cache 1");
+        String uriValue = "test-uri-" + getTestNameShort();
+        Integer uriId = uriCache1.processCacheableUri(uriValue);
+        then("it when stored to cache, id from cache 1 will be obtained");
+        assertThat(uriCache2.processCacheableUri(uriValue)).isEqualTo(uriId);
+    }
 }
