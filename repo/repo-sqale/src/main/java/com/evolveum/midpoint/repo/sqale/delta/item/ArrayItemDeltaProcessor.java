@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * Delta processor for multi-value property represented by single array column.
  *
  * @param <V> type of value in schema
- * @param <E> type of element in DB (can be the same like `V`)
+ * @param <E> type of element in DB (can be the same as `V`)
  */
 public class ArrayItemDeltaProcessor<V, E> extends FinalValueDeltaProcessor<E> {
 
