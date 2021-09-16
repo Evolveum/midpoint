@@ -61,6 +61,9 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private PagingType paging;
     private PolyString name;
 
+    private UserInterfaceElementVisibilityType visibility;
+    private OperationTypeType applicableForOperation;
+
     private String objectCollectionDescription;
 
     // Only used to construct "default" view definition. May be not needed later on.
@@ -260,6 +263,22 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         return paging;
     }
 
+    public void setVisibility(UserInterfaceElementVisibilityType visibility) {
+        this.visibility = visibility;
+    }
+
+    public UserInterfaceElementVisibilityType getVisibility() {
+        return visibility;
+    }
+
+    public void setApplicableForOperation(OperationTypeType applicableForOperation) {
+        this.applicableForOperation = applicableForOperation;
+    }
+
+    public OperationTypeType getApplicableForOperation() {
+        return applicableForOperation;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
@@ -277,6 +296,8 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         DebugUtil.debugDumpWithLabel(sb, "domainFilter", domainFilter, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "displayOrder", displayOrder, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "refreshInterval", refreshInterval, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "visibility", visibility, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "applicableForOperation", applicableForOperation, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "objectCollectionDescription", objectCollectionDescription, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "paging", paging, indent + 1);
         return sb.toString();
@@ -301,7 +322,17 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         viewType.setDisplayOrder(getDisplayOrder());
         viewType.setRefreshInterval(getRefreshInterval());
         viewType.setPaging(getPaging());
+        viewType.setVisibility(getVisibility());
+        viewType.setApplicableForOperation(getApplicableForOperation());
         return viewType;
+    }
+
+    public boolean isApplicableForOperation(OperationTypeType operationTypeType) {
+        if (applicableForOperation == null) { //applicable for both add and modify operation
+            return true;
+        }
+
+        return operationTypeType == applicableForOperation;
     }
 
 }

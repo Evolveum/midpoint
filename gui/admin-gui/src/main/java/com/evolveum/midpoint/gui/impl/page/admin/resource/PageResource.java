@@ -65,7 +65,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Assi
     }
 
     @Override
-    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ResourceType>> wrapperModel) {
+    protected ResourceOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ResourceType>> wrapperModel) {
         return new ResourceOperationalButtonsPanel(id, wrapperModel) {
 
             @Override

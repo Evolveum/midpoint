@@ -17,6 +17,8 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -120,7 +122,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {
-        return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
+        return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()), OperationTypeType.ADD);
     }
 
     public void clearCache() {

@@ -12,11 +12,12 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 @PanelType(name = "resourceEntitlements")
-@PanelInstance(identifier = "resourceEntitlements", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class,
+@PanelInstance(identifier = "resourceEntitlements", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
         display = @PanelDisplay(label = "PageResource.tab.content.entitlement", order = 40))
 public class ResourceEntitlementsPanel extends ResourceContentTabPanel {
 

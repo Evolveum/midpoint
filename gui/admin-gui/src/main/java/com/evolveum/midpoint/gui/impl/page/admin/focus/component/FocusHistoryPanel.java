@@ -56,7 +56,7 @@ import java.util.List;
  * Created by honchar.
  */
 @PanelType(name = "history")
-@PanelInstance(identifier = "history", applicableFor = FocusType.class, status = ItemStatus.NOT_CHANGED,
+@PanelInstance(identifier = "history", applicableForType = FocusType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageAdminFocus.objectHistory", icon = "fa fa-history", order = 40))
 public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
 

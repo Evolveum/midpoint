@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -24,7 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
 @PanelType(name = "activity", defaultContainerPath = "activity")
-@PanelInstance(identifier = "activity", applicableFor = TaskType.class, defaultPanel = true,
+@PanelInstance(identifier = "activity", applicableForType = TaskType.class, defaultPanel = true,
         display = @PanelDisplay(label = "TaskType.activity", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 15))
 public class TaskActivityPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 

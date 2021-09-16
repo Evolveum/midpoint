@@ -1055,6 +1055,29 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="applicableForOperation" type="tns:OperationTypeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Used to distinguish for which operations is the configuration applicable (and so visible)
+                            If nothing specified, configuration will be applicable for both add and modify operations.
+                            When there is a need to restrict configuration applicability (and thus visibility) only
+                            for e.g. modify object operation, applicableForOperation should be set to 'modify'.
+                        </p>
+                        <p>
+                            Applicable for panel (ContainerPanelConfigurationType) configuration and objectCollectionView
+                            configuration.
+                        </p>
+                        <p>
+                            EXPERIMENTAl. Might change in future releases.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:experimental/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -3755,19 +3778,39 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="visibleForAdd" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    TRANSIENT. Temporary used for distinguish if the panel is visible while creating new object.
-                                    Some panels should be shown only for existing objects, e.g Cases panel, Triggers panel, etc.
-                                </p>
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:simpleType name="OperationTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines when the activity will be executed.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="add">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity will be executed before the "main" operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="modify">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity will be executed after the "main" operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODIFY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>

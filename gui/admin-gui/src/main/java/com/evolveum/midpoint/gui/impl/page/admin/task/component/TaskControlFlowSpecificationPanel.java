@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -21,7 +19,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "controlFlow", defaultContainerPath = "activity/controlFlow", defaultType = ActivityControlFlowSpecificationType.class)
-@PanelInstance(identifier = "controlFlow", applicableFor = TaskType.class, childOf = TaskActivityPanel.class,
+@PanelInstance(identifier = "controlFlow", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
         display = @PanelDisplay(label = "ActivityDefinitionType.controlFlow", order = 20))
 public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 

@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -41,7 +40,7 @@ import java.util.Collections;
 import java.util.Locale;
 
 @PanelType(name = "internalPerformance")
-@PanelInstance(identifier = "internalPerformance", applicableFor = TaskType.class, childOf = TaskPerformancePanel.class,
+@PanelInstance(identifier = "internalPerformance", applicableForType = TaskType.class, childOf = TaskPerformancePanel.class,
         display = @PanelDisplay(label = "pageTask.internalPerformance.title", order = 50))
 public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
