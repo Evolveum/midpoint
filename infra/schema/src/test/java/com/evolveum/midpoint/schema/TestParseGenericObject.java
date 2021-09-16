@@ -122,9 +122,6 @@ public class TestParseGenericObject extends AbstractSchemaTest {
 
         assertPropertyValue(generic, "name", PrismTestUtil.createPolyString("My Sample Config Object"));
         assertPropertyDefinition(generic, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
-        assertPropertyValue(generic, "objectType", QNameUtil.qNameToUri(
-                new QName(SchemaTestConstants.NS_EXTENSION, "SampleConfigType")));
-        assertPropertyDefinition(generic, "objectType", DOMUtil.XSD_ANYURI, 1, 1);
 
         PrismContainer<?> extensionContainer = generic.findContainer(GenericObjectType.F_EXTENSION);
         assertContainerDefinition(extensionContainer, "extension", ExtensionType.COMPLEX_TYPE, 0, 1);

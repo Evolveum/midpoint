@@ -10,5 +10,5 @@
     <inducement id="1">
         <targetRef type="RoleType" oid="00000000-0000-0000-0000-000000000004" />
     </inducement>
-    <roleType>immutable-inducements</roleType>
+    <subtype>immutable-inducements</subtype>
 </role>

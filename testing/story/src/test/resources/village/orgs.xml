@@ -18,7 +18,7 @@
         </assignment>
         <displayName>Top</displayName>
         <identifier>0000</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-100000000002">
@@ -30,7 +30,7 @@
         </assignment>
         <displayName>Government</displayName>
         <identifier>G</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-100000000003">
@@ -41,7 +41,7 @@
         </assignment>
         <displayName>Executive</displayName>
         <identifier>E</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-100000000004">
@@ -52,7 +52,7 @@
         </assignment>
         <displayName>Infrastructure</displayName>
         <identifier>I</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-200000000000">

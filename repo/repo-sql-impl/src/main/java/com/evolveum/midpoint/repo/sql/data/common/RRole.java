@@ -33,12 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 public class RRole extends RAbstractRole {
 
     private RPolyString nameCopy;
-    @Deprecated //todo remove in 3.9
-    private String roleType;
-
-    public String getRoleType() {
-        return roleType;
-    }
 
     @JaxbName(localPart = "name")
     @AttributeOverrides({
@@ -55,16 +49,11 @@ public class RRole extends RAbstractRole {
         this.nameCopy = nameCopy;
     }
 
-    public void setRoleType(String roleType) {
-        this.roleType = roleType;
-    }
-
     // dynamically called
     public static void copyFromJAXB(RoleType jaxb, RRole repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setRoleType(jaxb.getRoleType());
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }
 }

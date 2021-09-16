@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -48,6 +48,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        // files are named with lowercase, resource ID is upper-case, OID is derived from upper-case too
         initDummy("a", initTask, initResult);
         initDummy("b", initTask, initResult); // depends on A
         initDummy("c", initTask, initResult); // depends on B
@@ -61,30 +62,36 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         initDummy("z", initTask, initResult); // depends on X (circular)
     }
 
-    private void initDummy(String name, Task initTask, OperationResult initResult) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
+    private void initDummy(String name, Task initTask, OperationResult initResult)
+            throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ConnectException, SchemaViolationException,
+            ConflictException, ExpressionEvaluationException, InterruptedException {
         String resourceOid = getDummyOid(name);
         DummyResourceContoller resourceCtl = DummyResourceContoller.create(name.toUpperCase());
         resourceCtl.extendSchemaPirate();
         // Expected warnings: dependencies
         PrismObject<ResourceType> resource = importAndGetObjectFromFileIgnoreWarnings(ResourceType.class,
-                getDummFile(name), resourceOid, initTask, initResult);
+                getDummyFile(name), resourceOid, initTask, initResult);
         resourceCtl.setResource(resource);
     }
 
-    private File getDummFile(String name) {
+    private File getDummyFile(String name) {
         return new File(TEST_DIR, "resource-dummy-" + name + ".xml");
     }
 
+    // name is expected to be a single character
     private String getDummyOid(String name) {
-        return "14440000-0000-0000-000" + name + "-000000000000";
+        return "14440000-0000-0000-00" + Integer.toHexString(name.toUpperCase().charAt(0)) + "-000000000000";
     }
 
-    private String getDummuAccountOid(String dummyName, String accountName) {
-        return "14440000-0000-0000-000" + dummyName + "-10000000000" + accountName;
+    // resourceName is expected to be a single character
+    private String getDummyAccountOid(String resourceName, String accountName) {
+        return "14440000-0000-0000-00" + Integer.toHexString(resourceName.toUpperCase().charAt(0))
+                + "-10000000000" + accountName;
     }
 
     @Test
-    public void test100SortToWavesIdependent() throws Exception {
+    public void test100SortToWavesIndependent() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -255,7 +262,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
-    public void test200SortToWavesIdependentDeprovision() throws Exception {
+    public void test200SortToWavesIndependentDeprovision() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -376,9 +383,11 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
     }
 
     private LensProjectionContext fillContextWithDummyElaineAccount(
-            LensContext<UserType> context, String dummyName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
+            LensContext<UserType> context, String dummyName, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
         String resourceOid = getDummyOid(dummyName);
-        String accountOid = getDummuAccountOid(dummyName, "e");
+        String accountOid = getDummyAccountOid(dummyName, "e");
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_ELAINE_TEMPLATE_FILE);
         ShadowType accountType = account.asObjectable();
         accountType.setOid(accountOid);

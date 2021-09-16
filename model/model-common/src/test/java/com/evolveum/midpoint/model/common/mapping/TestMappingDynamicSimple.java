@@ -66,7 +66,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-value-single-deep.xml",
                 getTestNameShort(),
                 "costCenter",                // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN");                    // changed values
 
         // THEN
@@ -83,7 +83,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-value-single-shallow.xml",
                 getTestNameShort(),
                 "costCenter",                // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN");                    // changed values
 
         // THEN
@@ -99,8 +99,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-value-multi-deep.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN");                    // changed values
 
         // THEN
@@ -116,8 +116,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-value-multi-shallow.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN");                    // changed values
 
         // THEN
@@ -134,7 +134,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-value-single-enum.xml",
                 getTestNameShort(),
                 PATH_ACTIVATION_ADMINISTRATIVE_STATUS,                // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN");                    // changed values
 
         // THEN
@@ -150,8 +150,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-asis.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -167,8 +167,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicDelete(
                 "mapping-asis.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "PIRATE");                    // changed values
 
         // THEN
@@ -251,8 +251,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-path-system-variables.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -279,8 +279,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-path-system-variables-namespace.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -297,7 +297,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-path-system-variables-polystring-short.xml",
                 getTestNameShort(),
                 "fullName",                    // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -313,8 +313,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-path-system-variables-polystring-short.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -330,8 +330,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-path-system-variables-polystring-long.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -347,8 +347,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-path-system-variables-polystring-long.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -364,8 +364,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-script-simple-groovy.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -381,8 +381,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-script-variables-groovy.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -399,7 +399,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-script-system-variables-polystring-groovy.xml",
                 getTestNameShort(),
                 "fullName",                    // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -416,7 +416,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-script-system-variables-polystring-groovy-op.xml",
                 getTestNameShort(),
                 "fullName",                    // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -433,7 +433,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-script-system-variables-polystring-groovy-orig.xml",
                 getTestNameShort(),
                 "description",                    // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -450,7 +450,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-script-system-variables-polystring-groovy-norm.xml",
                 getTestNameShort(),
                 "description",                    // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -500,7 +500,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-asis-system-variables-polystring-norm.xml",
                 getTestNameShort(),
                 "description",                    // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -517,7 +517,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-asis-system-variables-polystring-orig.xml",
                 getTestNameShort(),
                 "description",                    // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN", "SWASHBUCKLER");    // changed values
 
         // THEN
@@ -531,7 +531,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
     public void testScriptExtraVariablesRef() throws Exception {
         // GIVEN
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
-                "testScriptExtraVariablesRef", "employeeType", null);
+                "testScriptExtraVariablesRef", "subtype", null);
 
         VariablesMap vars = new VariablesMap();
         ObjectReferenceType ref = MiscSchemaUtil.createObjectReference(
@@ -560,7 +560,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         // GIVEN
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
                 evaluator.createMappingBuilder(
-                        "mapping-script-extra-variables.xml", getTestNameShort(), "employeeType", null);
+                        "mapping-script-extra-variables.xml", getTestNameShort(), "subtype", null);
 
         VariablesMap vars = new VariablesMap();
         UserType userType = (UserType) PrismTestUtil.parseObject(
@@ -749,7 +749,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-script-custom-enum.xml",
                 getTestNameShort(),
                 ItemPath.create(UserType.F_EXTENSION, new QName("tShirtSize")),                // target
-                "employeeType",                // changed property
+                "subtype",                // changed property
                 "CAPTAIN");                    // changed values
 
         // THEN
@@ -808,8 +808,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-value-condition-true.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "DRUNKARD");                // changed values
 
         // THEN
@@ -825,8 +825,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicAdd(
                 "mapping-value-condition-false.xml",
                 getTestNameShort(),
-                "employeeType",                // target
-                "employeeType",                // changed property
+                "subtype",                // target
+                "subtype",                // changed property
                 "DRUNKARD");                // changed values
 
         // THEN
@@ -837,8 +837,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
     public void testConditionNonEmptyCaptain() throws Exception {
         // GIVEN
         PrismObject<UserType> user = evaluator.getUserOld();
-        user.asObjectable().getEmployeeType().clear();
-        user.asObjectable().getEmployeeType().add("CAPTAIN");
+        user.asObjectable().getSubtype().clear();
+        user.asObjectable().getSubtype().add("CAPTAIN");
         ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
         String shortTestName = getTestNameShort();
@@ -863,8 +863,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
     public void testConditionNonEmptyEmpty() throws Exception {
         // GIVEN
         PrismObject<UserType> user = evaluator.getUserOld();
-        user.asObjectable().getEmployeeType().clear();
-        user.asObjectable().getEmployeeType().add("");
+        user.asObjectable().getSubtype().clear();
+        user.asObjectable().getSubtype().add("");
         ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
         String shortTestName = getTestNameShort();
@@ -886,7 +886,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
     public void testConditionNonEmptyNoValue() throws Exception {
         // GIVEN
         PrismObject<UserType> user = evaluator.getUserOld();
-        user.asObjectable().getEmployeeType().clear();
+        user.asObjectable().getSubtype().clear();
         ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
         String shortTestName = getTestNameShort();
@@ -910,7 +910,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createEmptyModifyDelta(UserType.class, MappingTestEvaluator.USER_OLD_OID
                 );
-        PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
+        PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("subtype"));
         propDelta.addRealValuesToAdd("CAPTAIN");
         propDelta.addRealValuesToDelete("LANDLUBER");
         delta.addModification(propDelta);
@@ -920,7 +920,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "mapping-script-transform.xml", shortTestName, "organizationalUnit", delta);
 
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
-        user.asObjectable().getEmployeeType().add("LANDLUBER");
+        user.asObjectable().getSubtype().add("LANDLUBER");
         mapping.getSourceContext().recompute();
         displayValue("user before", user);
         displayValue("delta", delta);
@@ -946,7 +946,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createEmptyModifyDelta(UserType.class, MappingTestEvaluator.USER_OLD_OID);
-        PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
+        PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("subtype"));
         propDelta.setRealValuesToReplace("CAPTAIN");
         delta.addModification(propDelta);
 

@@ -8,12 +8,12 @@
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <source>
-        <path>$user/employeeType</path>
+        <path>$user/subtype</path>
     </source>
     <expression>
         <script>
             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            <code>'The '+ basic.lc(employeeType) + ' deck'</code>
+            <code>'The '+ basic.lc(subtype) + ' deck'</code>
         </script>
     </expression>
 </mapping>

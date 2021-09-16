@@ -24,5 +24,5 @@
         </c:extension>
         <!-- This is generic object, it must have an "application level" type.
              However, this is not used in the current business logic. Can be anything. -->
-        <c:objectType>http://myself.me/schemas/objects#SampleConfigType</c:objectType>
+        <c:subtype>http://myself.me/schemas/objects#SampleConfigType</c:subtype>
     </c:genericObject>

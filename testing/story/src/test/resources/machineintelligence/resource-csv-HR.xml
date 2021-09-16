@@ -295,7 +295,7 @@ object.
                             </script>
                         </expression>
                   <target>
-                     <c:path>employeeType</c:path>
+                     <c:path>subtype</c:path>
                   </target>
                   <condition>
                        <script>

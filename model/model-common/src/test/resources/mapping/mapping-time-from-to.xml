@@ -20,7 +20,7 @@
         <offset>P10D</offset>
     </timeTo>
     <source>
-        <path>employeeType</path>
+        <path>subtype</path>
     </source>
     <expression>
         <asIs/>

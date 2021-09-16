@@ -132,7 +132,7 @@
     </item>
 
     <item>
-        <ref>employeeType</ref>
+        <ref>subtype</ref>
         <deprecated>false</deprecated>
     </item>
 

@@ -84,7 +84,7 @@
                 <ref>ri:type</ref>
                 <inbound>
                     <target>
-                        <path>employeeType</path>
+                        <path>subtype</path>
                         <set>
                             <predefined>all</predefined>
                         </set>

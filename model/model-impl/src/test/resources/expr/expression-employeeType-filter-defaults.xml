@@ -8,7 +8,7 @@
 
 <filter xmlns="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <equal>
-        <path>employeeType</path>
+        <path>subtype</path>
         <c:expression>
             <c:path>$input</c:path>
         </c:expression>

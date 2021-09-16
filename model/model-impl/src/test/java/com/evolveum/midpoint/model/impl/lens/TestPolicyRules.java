@@ -585,7 +585,7 @@ public class TestPolicyRules extends AbstractLensTest {
         ObjectDelta<? extends ObjectType> delta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(ObjectTypeUtil.createAssignmentTo(ROLE_JUDGE_OID, ObjectTypes.ROLE, prismContext))
-                .item(UserType.F_EMPLOYEE_TYPE).replace("T")
+                .item(UserType.F_EMPLOYEE_NUMBER).replace("T")
                 .asObjectDelta(USER_DRAKE_OID);
 
         RecordingProgressListener recordingListener = new RecordingProgressListener();

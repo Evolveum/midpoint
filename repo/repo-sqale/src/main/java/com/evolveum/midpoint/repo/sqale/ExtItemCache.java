@@ -22,13 +22,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Cache for {@link MExtItem} catalog.
- * TODO: fix for multi-node
  */
 public class ExtItemCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExtItemCache.class);
 
-    // TODO: id->ext item will be used for index-only extension attributes (when reading them we know only ID)
     private final Map<Integer, MExtItem> idToExtItem = new ConcurrentHashMap<>();
     private final Map<MExtItem.Key, MExtItem> keyToExtItem = new ConcurrentHashMap<>();
     private final Map<MExtItem.ItemNameKey, MExtItem> itemNameToExtItem = new ConcurrentHashMap<>();

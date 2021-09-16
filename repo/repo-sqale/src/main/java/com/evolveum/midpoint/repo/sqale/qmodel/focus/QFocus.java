@@ -34,9 +34,6 @@ public class QFocus<R extends MFocus> extends QAssignmentHolder<R> {
 
     public static final String TABLE_NAME = "m_focus";
 
-    public static final ColumnMetadata ROLE_TYPE =
-            ColumnMetadata.named("roleType").ofType(Types.VARCHAR);
-
     public static final ColumnMetadata COST_CENTER =
             ColumnMetadata.named("costCenter").ofType(Types.VARCHAR);
     public static final ColumnMetadata EMAIL_ADDRESS =

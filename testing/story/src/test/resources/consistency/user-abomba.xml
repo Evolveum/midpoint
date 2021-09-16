@@ -23,7 +23,7 @@
     <i:emailAddress>abomba@evolveum.com</i:emailAddress>
     <i:telephoneNumber>555-1234</i:telephoneNumber>
     <i:employeeNumber>emp654321</i:employeeNumber>
-    <i:employeeType>CAPTAIN</i:employeeType>
+    <i:subtype>CAPTAIN</i:subtype>
     <i:organizationalUnit>Leaders</i:organizationalUnit>
     <i:locality>Black Pearl</i:locality>
 

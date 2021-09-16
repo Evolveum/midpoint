@@ -46,7 +46,7 @@
             <type>UserType</type>
         </focusSelector>
         <targetSelector>
-            <type>RoleType</type>        <!-- no need to filter on roleType, as each role has to have SoD defined -->
+            <type>RoleType</type>        <!-- no need to filter on subtype, as each role has to have SoD defined -->
         </targetSelector>
     </globalPolicyRule>
 
@@ -82,7 +82,7 @@
             <type>RoleType</type>
             <filter>
                 <q:equal>
-                    <q:path>roleType</q:path>
+                    <q:path>subtype</q:path>
                     <q:value>test</q:value>
                 </q:equal>
             </filter>
@@ -124,7 +124,7 @@
             <type>RoleType</type>
             <filter>
                 <q:equal>
-                    <q:path>roleType</q:path>
+                    <q:path>subtype</q:path>
                     <q:value>test</q:value>
                 </q:equal>
             </filter>

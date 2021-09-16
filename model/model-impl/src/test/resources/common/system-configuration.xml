@@ -75,7 +75,7 @@
         <name>global-focus-modification</name>
         <policyConstraints>
             <modification>
-                <item>employeeType</item>
+                <item>employeeNumber</item>
             </modification>
         </policyConstraints>
         <policyActions>
@@ -86,12 +86,12 @@
         </focusSelector>
         <condition>
             <source>
-                <path>employeeType</path>
+                <path>employeeNumber</path>
             </source>
             <expression>
                 <script>
                     <code>
-                        employeeType != "T"
+                        employeeNumber != "T"
                     </code>
                 </script>
             </expression>

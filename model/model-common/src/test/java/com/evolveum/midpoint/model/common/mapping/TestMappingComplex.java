@@ -73,8 +73,8 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
 
         PrismObject<UserType> userOld = evaluator.getUserOld();
-        userOld.asObjectable().getEmployeeType().clear();
-        userOld.asObjectable().getEmployeeType().add("WHATEVER");
+        userOld.asObjectable().getSubtype().clear();
+        userOld.asObjectable().getSubtype().add("WHATEVER");
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 MAPPING_COMPLEX_FILENAME,
                 getTestNameShort(), "title", delta, userOld);
@@ -120,8 +120,8 @@ public class TestMappingComplex extends AbstractModelCommonTest {
                         evaluator.toPath("costCenter"), "X606");
 
         PrismObject<UserType> userOld = evaluator.getUserOld();
-        userOld.asObjectable().getEmployeeType().clear();
-        userOld.asObjectable().getEmployeeType().add("WHATEVER");
+        userOld.asObjectable().getSubtype().clear();
+        userOld.asObjectable().getSubtype().add("WHATEVER");
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 MAPPING_COMPLEX_FILENAME,
                 getTestNameShort(), "title", delta, userOld);
@@ -138,8 +138,8 @@ public class TestMappingComplex extends AbstractModelCommonTest {
     public void testAddObjectUnrelatedFalse() throws Exception {
         // GIVEN
         PrismObject<UserType> user = evaluator.getUserOld();
-        user.asObjectable().getEmployeeType().clear();
-        user.asObjectable().getEmployeeType().add("WHATEVER");
+        user.asObjectable().getSubtype().clear();
+        user.asObjectable().getSubtype().add("WHATEVER");
         ObjectDelta<UserType> delta = user.createAddDelta();
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -158,7 +158,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
     public void testAddObjectUnrelatedEmptyFalse() throws Exception {
         // GIVEN
         PrismObject<UserType> user = evaluator.getUserOld();
-        user.asObjectable().getEmployeeType().clear();
+        user.asObjectable().getSubtype().clear();
         ObjectDelta<UserType> delta = user.createAddDelta();
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(

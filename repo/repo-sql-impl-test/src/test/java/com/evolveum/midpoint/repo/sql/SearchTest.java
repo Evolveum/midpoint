@@ -399,7 +399,7 @@ public class SearchTest extends BaseSQLRepoTest {
     @Test
     public void test400NotBusinessRoleTypeSearch() throws Exception {
         ObjectQuery query = prismContext.queryFor(RoleType.class)
-                .not().item(RoleType.F_ROLE_TYPE).eq("business")
+                .not().item(RoleType.F_SUBTYPE).eq("business")
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
@@ -415,7 +415,7 @@ public class SearchTest extends BaseSQLRepoTest {
     @Test
     public void test410BusinessRoleTypeSearch() throws Exception {
         ObjectQuery query = prismContext.queryFor(RoleType.class)
-                .item(RoleType.F_ROLE_TYPE).eq("business")
+                .item(RoleType.F_SUBTYPE).eq("business")
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
@@ -429,7 +429,7 @@ public class SearchTest extends BaseSQLRepoTest {
     @Test
     public void test420EmptyRoleTypeSearch() throws Exception {
         ObjectQuery query = prismContext.queryFor(RoleType.class)
-                .item(RoleType.F_ROLE_TYPE).isNull()
+                .item(RoleType.F_SUBTYPE).isNull()
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
@@ -445,7 +445,7 @@ public class SearchTest extends BaseSQLRepoTest {
     @Test
     public void test430NonEmptyRoleTypeSearch() throws Exception {
         ObjectQuery query = prismContext.queryFor(RoleType.class)
-                .not().item(RoleType.F_ROLE_TYPE).isNull()
+                .not().item(RoleType.F_SUBTYPE).isNull()
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);

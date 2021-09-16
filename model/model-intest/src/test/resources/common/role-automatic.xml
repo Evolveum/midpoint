@@ -9,5 +9,5 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Automatic</name>
-    <roleType>auto</roleType> <!-- may be used for mapping range -->
+    <subtype>auto</subtype> <!-- may be used for mapping range -->
 </role>

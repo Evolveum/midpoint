@@ -21,5 +21,5 @@
             </c:value>
         </c:password>
     </c:credentials>
-    <c:employeeType>manager</c:employeeType>
+    <c:subtype>manager</c:subtype>
 </c:user>

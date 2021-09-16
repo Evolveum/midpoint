@@ -9,5 +9,5 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Citizen: Slovakia</name>
-    <roleType>citizen</roleType>
+    <subtype>citizen</subtype>
 </role>

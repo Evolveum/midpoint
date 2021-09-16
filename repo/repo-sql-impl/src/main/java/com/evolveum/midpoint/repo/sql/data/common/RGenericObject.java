@@ -33,11 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 public class RGenericObject extends RFocus {
 
     private RPolyString nameCopy;
-    private String objectType;
-
-    public String getObjectType() {
-        return objectType;
-    }
 
     @JaxbName(localPart = "name")
     @AttributeOverrides({
@@ -54,10 +49,6 @@ public class RGenericObject extends RFocus {
         this.nameCopy = nameCopy;
     }
 
-    public void setObjectType(String objectType) {
-        this.objectType = objectType;
-    }
-
     // dynamically called
     public static void copyFromJAXB(
             GenericObjectType jaxb, RGenericObject repo, RepositoryContext repositoryContext,
@@ -65,6 +56,5 @@ public class RGenericObject extends RFocus {
         copyFocusInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setObjectType(jaxb.getObjectType());
     }
 }

@@ -482,8 +482,7 @@ CREATE INDEX m_ref_projectionTargetOidRelationId_idx
 CREATE TABLE m_generic_object (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED
-        CHECK (objectType = 'GENERIC_OBJECT'),
-    genericObjectTypeId INTEGER NOT NULL REFERENCES m_uri(id) -- GenericObjectType#objectType
+        CHECK (objectType = 'GENERIC_OBJECT')
 )
     INHERITS (m_focus);
 
@@ -580,8 +579,7 @@ CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
 CREATE TABLE m_role (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE') STORED
-        CHECK (objectType = 'ROLE'),
-    roleType TEXT
+        CHECK (objectType = 'ROLE')
 )
     INHERITS (m_abstract_role);
 
