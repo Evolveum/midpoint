@@ -9,8 +9,6 @@ package com.evolveum.midpoint.web.security.saml;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
@@ -19,13 +17,11 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.saml2.provider.service.web.*;
-import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,22 +30,14 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
 
     private static final String FILTER_PROCESSING_URL = "/saml2/authenticate/{registrationId}";
 
-    private String loginPage;
     private String loginProcessingUrl = "/login/saml2/sso/{registrationId}";
     private RelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
-    private AuthenticationConverter authenticationConverter;
     private AuthenticationManager authenticationManager;
     private Saml2WebSsoAuthenticationFilter saml2WebSsoAuthenticationFilter;
-    private ModelAuditRecorder auditProvider;
+    private final ModelAuditRecorder auditProvider;
 
     public MidpointSaml2LoginConfigurer(ModelAuditRecorder auditProvider) {
         this.auditProvider = auditProvider;
-    }
-
-    public MidpointSaml2LoginConfigurer<B> authenticationConverter(AuthenticationConverter authenticationConverter) {
-        Assert.notNull(authenticationConverter, "authenticationConverter cannot be null");
-        this.authenticationConverter = authenticationConverter;
-        return this;
     }
 
     public MidpointSaml2LoginConfigurer<B> authenticationManager(AuthenticationManager authenticationManager) {
@@ -60,12 +48,6 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
 
     public MidpointSaml2LoginConfigurer relyingPartyRegistrationRepository(RelyingPartyRegistrationRepository repo) {
         this.relyingPartyRegistrationRepository = repo;
-        return this;
-    }
-
-    public MidpointSaml2LoginConfigurer<B> loginPage(String loginPage) {
-        Assert.hasText(loginPage, "loginPage cannot be empty");
-        this.loginPage = loginPage;
         return this;
     }
 
@@ -81,14 +63,12 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
     }
 
     public void init(B http) throws Exception {
-        this.saml2WebSsoAuthenticationFilter = new MidpointSaml2WebSsoAuthenticationFilter(this.getAuthenticationConverter(http), this.loginProcessingUrl, auditProvider);
+        Saml2AuthenticationTokenConverter authenticationConverter = new Saml2AuthenticationTokenConverter(
+                (RelyingPartyRegistrationResolver) new DefaultRelyingPartyRegistrationResolver(this.relyingPartyRegistrationRepository));
+        this.saml2WebSsoAuthenticationFilter = new MidpointSaml2WebSsoAuthenticationFilter(authenticationConverter, this.loginProcessingUrl, auditProvider);
         this.setAuthenticationFilter(this.saml2WebSsoAuthenticationFilter);
         super.loginProcessingUrl(this.loginProcessingUrl);
-        if (StringUtils.hasText(this.loginPage)) {
-            super.loginPage(this.loginPage);
-            super.init(http);
-        } else {
-            Map<String, String> providerUrlMap = this.getIdentityProviderUrlMap(FILTER_PROCESSING_URL, this.relyingPartyRegistrationRepository);
+            Map<String, String> providerUrlMap = this.getIdentityProviderUrlMap(this.relyingPartyRegistrationRepository);
             boolean singleProvider = providerUrlMap.size() == 1;
             if (singleProvider) {
                 this.updateAuthenticationDefaults();
@@ -99,7 +79,6 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
             } else {
                 super.init(http);
             }
-        }
         this.initDefaultLoginFilter(http);
     }
 
@@ -113,47 +92,24 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
         }
     }
 
-    private AuthenticationConverter getAuthenticationConverter(B http) {
-        return (AuthenticationConverter)(this.authenticationConverter == null ? new Saml2AuthenticationTokenConverter((RelyingPartyRegistrationResolver) new DefaultRelyingPartyRegistrationResolver(this.relyingPartyRegistrationRepository)) : this.authenticationConverter);
-    }
-
     private void initDefaultLoginFilter(B http) {
-        DefaultLoginPageGeneratingFilter loginPageGeneratingFilter = (DefaultLoginPageGeneratingFilter)http.getSharedObject(DefaultLoginPageGeneratingFilter.class);
+        DefaultLoginPageGeneratingFilter loginPageGeneratingFilter = http.getSharedObject(DefaultLoginPageGeneratingFilter.class);
         if (loginPageGeneratingFilter != null && !this.isCustomLoginPage()) {
             loginPageGeneratingFilter.setSaml2LoginEnabled(true);
-            loginPageGeneratingFilter.setSaml2AuthenticationUrlToProviderName(this.getIdentityProviderUrlMap(FILTER_PROCESSING_URL, this.relyingPartyRegistrationRepository));
+            loginPageGeneratingFilter.setSaml2AuthenticationUrlToProviderName(this.getIdentityProviderUrlMap(this.relyingPartyRegistrationRepository));
             loginPageGeneratingFilter.setLoginPageUrl(this.getLoginPage());
             loginPageGeneratingFilter.setFailureUrl(this.getFailureUrl());
         }
     }
 
-    private Map<String, String> getIdentityProviderUrlMap(String authRequestPrefixUrl, RelyingPartyRegistrationRepository idpRepo) {
-        Map<String, String> idps = new LinkedHashMap();
+    private Map<String, String> getIdentityProviderUrlMap(RelyingPartyRegistrationRepository idpRepo) {
+        Map<String, String> idps = new LinkedHashMap<>();
         if (idpRepo instanceof Iterable) {
-            Iterable<RelyingPartyRegistration> repo = (Iterable)idpRepo;
-            repo.forEach((p) -> {
-                idps.put(authRequestPrefixUrl.replace("{registrationId}", p.getRegistrationId()), p.getRegistrationId());
-            });
+            Iterable<RelyingPartyRegistration> repo = (Iterable<RelyingPartyRegistration>)idpRepo;
+            repo.forEach((p) -> idps.put(MidpointSaml2LoginConfigurer.FILTER_PROCESSING_URL.replace(
+                    "{registrationId}", p.getRegistrationId()), p.getRegistrationId()));
         }
 
         return idps;
-    }
-
-    private <C> C getSharedOrBean(B http, Class<C> clazz) {
-        C shared = http.getSharedObject(clazz);
-        return shared != null ? shared : this.getBeanOrNull(http, clazz);
-    }
-
-    private <C> C getBeanOrNull(B http, Class<C> clazz) {
-        ApplicationContext context = (ApplicationContext)http.getSharedObject(ApplicationContext.class);
-        if (context == null) {
-            return null;
-        } else {
-            try {
-                return context.getBean(clazz);
-            } catch (NoSuchBeanDefinitionException var5) {
-                return null;
-            }
-        }
     }
 }

@@ -48,10 +48,9 @@ import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecu
 
 import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutRequestResolver;
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver;
-import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestSuccessHandler;
+import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2RelyingPartyInitiatedLogoutSuccessHandler;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -150,7 +149,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         return getConfiguration().getRelyingPartyRegistrationRepository();
     }
 
-    private class SamlAuthenticationDetailsSource implements AuthenticationDetailsSource<HttpServletRequest, Object> {
+    private static class SamlAuthenticationDetailsSource implements AuthenticationDetailsSource<HttpServletRequest, Object> {
 
         private final WebAuthenticationDetailsSource detailsSource = new WebAuthenticationDetailsSource();
 
@@ -170,7 +169,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
     private LogoutSuccessHandler logoutRequestSuccessHandler(RelyingPartyRegistrationResolver registrationResolver) {
         Saml2LogoutRequestResolver logoutRequestResolver = new MidpointSaml2LogoutRequestResolver(
                 new OpenSaml4LogoutRequestResolver(registrationResolver));
-        Saml2LogoutRequestSuccessHandler handler = new Saml2LogoutRequestSuccessHandler(logoutRequestResolver);
+        Saml2RelyingPartyInitiatedLogoutSuccessHandler handler = new Saml2RelyingPartyInitiatedLogoutSuccessHandler(logoutRequestResolver);
         return getObjectPostProcessor().postProcess(new MidpointSaml2LogoutRequestSuccessHandler(
                 handler));
     }

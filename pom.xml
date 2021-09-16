@@ -1554,9 +1554,9 @@
             <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
         </repository>
         <repository>
-            <id>spring-milestone</id>
-            <name>Spring Milestone Repository</name>
-            <url>https://repo.spring.io/milestone</url>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots Repository</name>
+            <url>https://repo.spring.io/snapshot</url>
         </repository>
 
         <!--

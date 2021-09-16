@@ -149,8 +149,11 @@ public class MidpointAssertingPartyMetadataConverter {
             return result;
         }
         EntityDescriptor descriptor = (EntityDescriptor) idpssoDescriptor.getParent();
-        extensions = descriptor.getExtensions();
-        return signingMethods(extensions);
+        if (descriptor != null) {
+            extensions = descriptor.getExtensions();
+            return signingMethods(extensions);
+        }
+        return result;
     }
 
     private EntityDescriptor entityDescriptor(InputStream inputStream) {

@@ -13,7 +13,6 @@ import java.util.function.Function;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;

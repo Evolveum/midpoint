@@ -18,9 +18,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.saml2.core.Saml2Error;
-import org.springframework.security.saml2.core.Saml2ErrorCodes;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 
@@ -34,7 +31,7 @@ import java.io.IOException;
 
 public class MidpointSaml2WebSsoAuthenticationFilter extends Saml2WebSsoAuthenticationFilter {
 
-    private ModelAuditRecorder auditProvider;
+    private final ModelAuditRecorder auditProvider;
 
     public MidpointSaml2WebSsoAuthenticationFilter(AuthenticationConverter authenticationConverter, String filterProcessingUrl,
             ModelAuditRecorder auditProvider) {
@@ -46,10 +43,9 @@ public class MidpointSaml2WebSsoAuthenticationFilter extends Saml2WebSsoAuthenti
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean sendedRequest = false;
-        Saml2ModuleAuthentication moduleAuthentication = null;
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            moduleAuthentication = (Saml2ModuleAuthentication) mpAuthentication.getProcessingModuleAuthentication();
+            Saml2ModuleAuthentication moduleAuthentication = (Saml2ModuleAuthentication) mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && RequestState.SENDED.equals(moduleAuthentication.getRequestState())) {
                 sendedRequest = true;
             }
@@ -58,7 +54,6 @@ public class MidpointSaml2WebSsoAuthenticationFilter extends Saml2WebSsoAuthenti
             if (!requiresAuthentication && sendedRequest) {
                 AuthenticationServiceException exception = new AuthenticationServiceException("web.security.flexAuth.saml.not.response");
                 unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, exception);
-                return;
             } else {
                 if (moduleAuthentication != null && requiresAuthentication && sendedRequest) {
                     moduleAuthentication.setRequestState(RequestState.RECEIVED);

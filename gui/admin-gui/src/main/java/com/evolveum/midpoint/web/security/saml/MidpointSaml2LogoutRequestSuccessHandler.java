@@ -14,13 +14,13 @@ import javax.servlet.http.HttpServletResponse;
 import com.evolveum.midpoint.web.security.AuditedLogoutHandler;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestSuccessHandler;
+import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2RelyingPartyInitiatedLogoutSuccessHandler;
 
 public class MidpointSaml2LogoutRequestSuccessHandler extends AuditedLogoutHandler {
 
-    private final Saml2LogoutRequestSuccessHandler samlHandler;
+    private final Saml2RelyingPartyInitiatedLogoutSuccessHandler samlHandler;
 
-    public MidpointSaml2LogoutRequestSuccessHandler(Saml2LogoutRequestSuccessHandler samlHandler) {
+    public MidpointSaml2LogoutRequestSuccessHandler(Saml2RelyingPartyInitiatedLogoutSuccessHandler samlHandler) {
         this.samlHandler = samlHandler;
     }
 
