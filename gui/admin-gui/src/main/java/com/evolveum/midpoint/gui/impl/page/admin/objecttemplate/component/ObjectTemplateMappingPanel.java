@@ -26,10 +26,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 public class ObjectTemplateMappingPanel extends AbstractObjectMainPanel<ObjectTemplateType, ObjectDetailsModels<ObjectTemplateType>> {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateMappingsPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateMappingPanel.class);
     private static final String ID_PANEL = "panel";
 
-    private static final String DOT_CLASS = ObjectTemplateMappingsPanel.class.getName() + ".";
+    private static final String DOT_CLASS = ObjectTemplateMappingPanel.class.getName() + ".";
 
     public ObjectTemplateMappingPanel(String id, AssignmentHolderDetailsModel<ObjectTemplateType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
