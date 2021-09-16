@@ -1004,6 +1004,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the task that created the object (if it was a persistent one).
+                        If the task was a subtask, then the reference to the task tree is stored here.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MetadataType.createTaskRef</a:displayName>
@@ -1111,6 +1112,8 @@
                     <xsd:documentation>
                         Reference to the task that last modified the object (if it was a persistent one).
                         If the last modification was carried out by synchronous task, this reference will be empty.
+
+                        If the task was a subtask, then the reference to the task tree is stored here.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MetadataType.modifyTaskRef</a:displayName>

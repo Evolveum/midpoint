@@ -558,4 +558,23 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
                 && java.util.Objects.equals(realTaskOid, taskOid)
                 && record.getStatus() == status;
     }
+
+    public MetadataAsserter<PrismObjectAsserter<O, RA>> passwordMetadata() {
+        MetadataType metadata = getPasswordMetadata();
+        MetadataAsserter<PrismObjectAsserter<O, RA>> asserter =
+                new MetadataAsserter<>(metadata, this, "password metadata in " + desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private MetadataType getPasswordMetadata() {
+        Item<?, ?> item = object.findItem(
+                ItemPath.create(
+                        FocusType.F_CREDENTIALS, // the same for ShadowType
+                        CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA));
+        assertThat(item).as("password metadata").isNotNull();
+        //noinspection unchecked
+        return ((PrismContainer<MetadataType>) item).getRealValue();
+    }
 }
