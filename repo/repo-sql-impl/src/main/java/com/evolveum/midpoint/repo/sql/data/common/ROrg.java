@@ -37,8 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 public class ROrg extends RAbstractRole {
 
     private RPolyString nameCopy;
-    @Deprecated //todo remove collection in 3.9
-    private Set<String> orgType;
     private Boolean tenant;
     private Integer displayOrder;
 
@@ -57,16 +55,6 @@ public class ROrg extends RAbstractRole {
         this.nameCopy = nameCopy;
     }
 
-    @ElementCollection
-    @CollectionTable(name = "m_org_org_type", joinColumns = {
-            @JoinColumn(name = "org_oid", referencedColumnName = "oid",
-                    foreignKey = @javax.persistence.ForeignKey(name = "fk_org_org_type"))
-    })
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-    public Set<String> getOrgType() {
-        return orgType;
-    }
-
     @Index(name = "iDisplayOrder")
     public Integer getDisplayOrder() {
         return displayOrder;
@@ -74,10 +62,6 @@ public class ROrg extends RAbstractRole {
 
     public void setDisplayOrder(Integer displayOrder) {
         this.displayOrder = displayOrder;
-    }
-
-    public void setOrgType(Set<String> orgType) {
-        this.orgType = orgType;
     }
 
     public Boolean getTenant() {
@@ -94,7 +78,6 @@ public class ROrg extends RAbstractRole {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setOrgType(RUtil.listToSet(jaxb.getOrgType()));
         repo.setTenant(jaxb.isTenant());
     }
 }

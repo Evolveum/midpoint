@@ -383,7 +383,7 @@ public class TestLdapDependency extends AbstractLdapTest {
         PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
         OrgType orgType = org.asObjectable();
         orgType.setName(new PolyStringType(name));
-        orgType.getOrgType().add(ORG_TYPE_FUNCTIONAL);
+        orgType.getSubtype().add(ORG_TYPE_FUNCTIONAL);
         if (parentOrgOid != null) {
             AssignmentType parentAssignment = new AssignmentType();
             ObjectReferenceType parentAssignmentTargetRef = new ObjectReferenceType();

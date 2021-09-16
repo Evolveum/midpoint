@@ -478,7 +478,7 @@ public class TestQueryConverter extends AbstractUnitTest {
     @Test
     public void test210EqualMultiple() throws Exception {
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
-                .item(UserType.F_EMPLOYEE_TYPE).eq("STD", "TEMP")
+                .item(UserType.F_SUBTYPE).eq("STD", "TEMP")
                 .build();
         checkQueryRoundtripFile(UserType.class, q);
     }
@@ -531,9 +531,9 @@ public class TestQueryConverter extends AbstractUnitTest {
     @Test
     public void test350Substring() throws Exception {
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
-                .item(UserType.F_EMPLOYEE_TYPE).contains("A")
-                .or().item(UserType.F_EMPLOYEE_TYPE).startsWith("B")
-                .or().item(UserType.F_EMPLOYEE_TYPE).endsWith("C")
+                .item(UserType.F_SUBTYPE).contains("A")
+                .or().item(UserType.F_SUBTYPE).startsWith("B")
+                .or().item(UserType.F_SUBTYPE).endsWith("C")
                 .or().item(UserType.F_NAME).startsWithPoly("john", "john").matchingOrig()
                 .build();
         checkQueryRoundtripFile(UserType.class, q);

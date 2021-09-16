@@ -11,7 +11,7 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Headmaster</name>
-    <roleType>dataProcessingBasis</roleType>
+    <subtype>dataProcessingBasis</subtype>
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/test/authorization#apparate</action>
     </authorization>

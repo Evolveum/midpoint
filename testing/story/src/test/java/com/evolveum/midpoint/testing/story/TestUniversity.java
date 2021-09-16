@@ -294,7 +294,7 @@ public class TestUniversity extends AbstractStoryTest {
 
     private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
         PrismObject<OrgType> org = getOrg(orgName);
-        PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, "functional");
+        PrismAsserts.assertPropertyValue(org, OrgType.F_SUBTYPE, "functional");
         assertAssignedRole(org, ROLE_META_ORG_OID);
 
         String ouOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.GENERIC, "org-ou");

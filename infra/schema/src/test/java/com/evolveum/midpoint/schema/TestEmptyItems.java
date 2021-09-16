@@ -33,7 +33,6 @@ public class TestEmptyItems extends AbstractSchemaTest {
         // WHEN
         user.getAssignment();
         user.getLinkRef();
-        user.getEmployeeType();
 
         // THEN
         System.out.println("User after:\n" + user.asPrismObject().debugDump());
@@ -82,20 +81,17 @@ public class TestEmptyItems extends AbstractSchemaTest {
                 .<AssignmentType>end()
                 .targetRef("83138913-4329-4323-3432-432432143612", RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER)
                 .<UserType>end()
-                .employeeType("pirate")
-                .employeeType("captain")
                 .organization("O123456");
         System.out.println("User:\n" + jack.asPrismObject().debugDump());
 
-        assertEquals("Wrong # of user sub-items before 'get' operations", 8, jack.asPrismContainerValue().size());
+        assertEquals("Wrong # of user sub-items before 'get' operations", 7, jack.asPrismContainerValue().size());
 
         // WHEN
         jack.getAssignment();
         jack.getLinkRef();
-        jack.getEmployeeType();
 
         // THEN
         System.out.println("User after:\n" + jack.asPrismObject().debugDump());
-        assertEquals("Wrong # of user sub-items after 'get' operations", 8, jack.asPrismContainerValue().size());
+        assertEquals("Wrong # of user sub-items after 'get' operations", 7, jack.asPrismContainerValue().size());
     }
 }

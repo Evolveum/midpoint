@@ -147,7 +147,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 
     protected static final File TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_FILE = new File(TEST_DIR, "template-dynamic-org-assignment.xml");
     protected static final String TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_OID = "ee079df8-1146-4e53-872f-b9733f24ebfe";
-    protected static final String DYNAMIC_ORG_ASSIGNMENT_EMPLOYEE_TYPE = "dynamicOrgAssignment";
+    protected static final String DYNAMIC_ORG_ASSIGNMENT_SUBTYPE = "dynamicOrgAssignment";
 
     @Autowired protected Projector projector;
     @Autowired protected Clockwork clockwork;

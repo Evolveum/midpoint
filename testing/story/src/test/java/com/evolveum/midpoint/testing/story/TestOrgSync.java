@@ -1106,7 +1106,7 @@ public class TestOrgSync extends AbstractStoryTest {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
         PrismObject<OrgType> org = getOrg(orgName);
-        PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, "replicated");
+        PrismAsserts.assertPropertyValue(org, OrgType.F_SUBTYPE, "replicated");
         assertAssignedRole(org, ROLE_META_REPLICATED_ORG_OID);
         PrismReferenceValue linkRef = getSingleLinkRef(org);
         // We are bold enough to get the whole shadow

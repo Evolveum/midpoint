@@ -35,8 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 public class RService extends RAbstractRole {
 
     private RPolyString nameCopy;
-    @Deprecated //todo remove collection in 3.9
-    private Set<String> serviceType;
     private Integer displayOrder;
 
     @JaxbName(localPart = "name")
@@ -62,27 +60,12 @@ public class RService extends RAbstractRole {
         this.displayOrder = displayOrder;
     }
 
-    @ElementCollection
-    @ForeignKey(name = "fk_service_type")
-    @CollectionTable(name = "m_service_type", joinColumns = {
-            @JoinColumn(name = "service_oid", referencedColumnName = "oid")
-    })
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-    public Set<String> getServiceType() {
-        return serviceType;
-    }
-
-    public void setServiceType(Set<String> serviceType) {
-        this.serviceType = serviceType;
-    }
-
     // dynamically called
     public static void copyFromJAXB(ServiceType jaxb, RService repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setDisplayOrder(jaxb.getDisplayOrder());
-        repo.setServiceType(RUtil.listToSet(jaxb.getServiceType()));
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }
 }

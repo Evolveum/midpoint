@@ -154,7 +154,7 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <source>
-                        <path>employeeType</path>
+                        <path>subtype</path>
                     </source>
                 </outbound>
             </attribute>

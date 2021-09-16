@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -319,7 +319,6 @@
                         <xsd:sequence>
                             <xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string"/>
                             <xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string"/>
-                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string"/>
                             <xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string"/>
                             <xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary"/>
                             <xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string"/>
@@ -675,12 +674,12 @@
             <p:multivalued>Levice</p:multivalued>
             <p:multivalued>Kalna</p:multivalued>
         </extension>
-        <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
+        <subtype>http://myself.me/schemas/objects#SampleConfigType</subtype>
     </genericObject>
 
     <task oid="555">
         <name>Synchronization: Embedded Test OpenDJ</name>
-        <description>Definition of a live sychnronization task. It will poll changelog and pull in changes</description>
+        <description>Definition of a live synchronization task. It will poll changelog and pull in changes</description>
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <archetypeRef oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad"/>
@@ -1009,7 +1008,7 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
         <name>Pirate</name>
-        <roleType>business</roleType>
+        <subtype>business</subtype>
         <autoassign>
             <enabled>true</enabled>
         </autoassign>
@@ -1020,7 +1019,7 @@
         <description>The office of the most respectful Governor.</description>
         <displayName>Governor Office</displayName>
         <identifier>0001</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <costCenter>CC0</costCenter>
         <locality>The Governor's Mansion</locality>
         <tenant>true</tenant>
@@ -1636,7 +1635,7 @@
 
     <service version="1">
         <name>lazyman vm</name>
-        <serviceType>some service type</serviceType>
+        <subtype>some service type</subtype>
         <locality>bratislava</locality>
         <displayOrder>123</displayOrder>
 
