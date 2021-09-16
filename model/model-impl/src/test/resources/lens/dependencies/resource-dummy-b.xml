@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2013 Evolveum and contributors
+  ~ Copyright (C) 2013-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -8,15 +8,12 @@
 
 <!-- Depends on A -->
 
-<resource oid="14440000-0000-0000-000b-000000000000"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<resource oid="14440000-0000-0000-0042-000000000000"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Dummy Resource B</name>
     <connectorRef type="c:ConnectorType">
@@ -34,7 +31,7 @@
         </filter>
     </connectorRef>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
             <icfi:instanceId>B</icfi:instanceId>
@@ -67,7 +64,8 @@
             </attribute>
 
             <dependency>
-                <resourceRef oid="14440000-0000-0000-000a-000000000000"/>
+                <!-- Dummy Resource A -->
+                <resourceRef oid="14440000-0000-0000-0041-000000000000"/>
                 <strictness>strict</strictness>
             </dependency>
 
