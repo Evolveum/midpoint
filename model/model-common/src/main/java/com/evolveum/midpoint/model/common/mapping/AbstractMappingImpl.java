@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
+import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
+
+import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
+
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -348,6 +352,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      */
     private MappingEvaluationTraceType trace;
 
+    /** The level of tracing requested for mapping evaluation. */
+    private TracingLevelType tracingLevel;
+
     /**
      * Mapping state properties that are exposed to the expressions. They can be used by the expressions to "communicate".
      * E.g. one expression setting the property and other expression checking the property.
@@ -554,11 +561,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     public XMLGregorianCalendar getNextRecomputeTime() {
-        return timeConstraintsEvaluation.getNextRecomputeTime();
+        return isEnabled() ?
+                timeConstraintsEvaluation.getNextRecomputeTime() : null;
     }
 
     public boolean isTimeConstraintValid() {
-        return timeConstraintsEvaluation.isTimeConstraintValid();
+        return isEnabled() && timeConstraintsEvaluation.isTimeConstraintValid();
     }
 
     public boolean isProfiling() {
@@ -610,6 +618,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             assertUninitializedOrPrepared();
             prepare(result);
             evaluatePrepared(result);
+            recordReturns(result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -650,7 +659,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 .addArbitraryObjectAsContext("task", task)
                 .setMinor()
                 .build();
-        if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
+        tracingLevel = result.getTracingLevel(MappingEvaluationTraceType.class);
+        if (isAtLeastMinimal(tracingLevel)) {
             trace = new MappingEvaluationTraceType(beans.prismContext)
                     .mapping(mappingBean.clone())
                     .mappingKind(mappingKind)
@@ -662,6 +672,21 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             trace = null;
         }
         return result;
+    }
+
+    private void recordReturns(OperationResult result) {
+        result.addReturn("condition", conditionResultOld + " -> " + conditionResultNew);
+        result.addReturn("outputTriple", getOutputTripleDiagRepresentation());
+    }
+
+    private String getOutputTripleDiagRepresentation() {
+        if (outputTriple != null) {
+            return "plus: " + outputTriple.getPlusSet().size() +
+                    ", minus: " + outputTriple.getMinusSet().size() +
+                    ", zero: " + outputTriple.getZeroSet().size();
+        } else {
+            return "null";
+        }
     }
 
     private void assertUninitializedOrPrepared() {
@@ -745,19 +770,14 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 checkExistingTargetValues(result); // we check the range even for not-applicable mappings (MID-5953)
                 transitionState(MappingEvaluationState.EVALUATED);
 
-                if (isConditionSatisfied()) {
-                    result.recordSuccess();
-                    traceSuccess();
-                } else {
-                    result.recordNotApplicableIfUnknown();
-                    traceNotApplicable("condition is false");
-                }
-                recordOutput();
+                result.recordSuccess();
+                traceSuccess();
             } else {
                 outputTriple = null;
                 result.recordNotApplicableIfUnknown();
                 traceDeferred();
             }
+            recordOutput();
         } catch (Throwable e) {
             result.recordFatalError(e);
             traceFailure(e);
@@ -775,7 +795,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private void recordSources() throws SchemaException {
-        if (trace != null) {
+        if (trace != null && isAtLeastNormal(tracingLevel)) {
             for (Source<?, ?> source : sources) {
                 trace.beginSource()
                         .name(source.getName())
@@ -786,12 +806,28 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     private void recordOutput() {
         if (trace != null) {
-            if (outputTriple != null) {
-                trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, beans.prismContext));
-            }
+            trace.setConditionResultOld(conditionResultOld);
+            trace.setConditionResultNew(conditionResultNew);
             trace.setPushChangesRequested(pushChangesRequested);
             trace.setPushChanges(pushChanges);
+            if (isAtLeastNormal(tracingLevel)) {
+                if (outputTriple != null) {
+                    trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, beans.prismContext));
+                }
+                trace.setStateProperties(createStatePropertiesTrace());
+            }
         }
+    }
+
+    private @NotNull MappingStatePropertiesType createStatePropertiesTrace() {
+        MappingStatePropertiesType properties = new MappingStatePropertiesType(PrismContext.get());
+        if (stateProperties != null) {
+            stateProperties.forEach((name, value) ->
+                    properties.beginProperty()
+                            .name(name)
+                            .value(value != null ? value.toString() : null));
+        }
+        return properties;
     }
 
     private void adjustForAuthoritative() {
@@ -1023,7 +1059,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private void traceSuccess() {
-        if (!isTrace()) {
+        if (!shouldCreateTextTrace()) {
             return;
         }
         StringBuilder sb = new StringBuilder();
@@ -1050,7 +1086,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private void traceDeferred() {
-        if (!isTrace()) {
+        if (!shouldCreateTextTrace()) {
             return;
         }
         StringBuilder sb = new StringBuilder();
@@ -1077,27 +1113,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         trace(sb.toString());
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private void traceNotApplicable(String reason) {
-        if (!isTrace()) {
-            return;
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Mapping trace:\n");
-        appendTraceHeader(sb);
-        sb.append("\nEvaluation is NOT APPLICABLE because ").append(reason);
-        if (profiling) {
-            sb.append("\nEtime: ");
-            sb.append(getEtime());
-            sb.append(" ms");
-        }
-        appendTraceFooter(sb);
-        trace(sb.toString());
-    }
-
     private void traceFailure(Throwable e) {
         LOGGER.error("Error evaluating {}: {}-{}", getMappingContextDescription(), e.getMessage(), e);
-        if (!isTrace()) {
+        if (!shouldCreateTextTrace()) {
             return;
         }
         StringBuilder sb = new StringBuilder();
@@ -1114,8 +1132,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean isTrace() {
-        return trace != null || LOGGER.isTraceEnabled() || mappingBean.isTrace() == Boolean.TRUE;
+    private boolean shouldCreateTextTrace() {
+        return trace != null && isAtLeastNormal(tracingLevel) ||
+                LOGGER.isTraceEnabled() ||
+                mappingBean.isTrace() == Boolean.TRUE;
     }
 
     private void trace(String msg) {
@@ -1124,7 +1144,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         } else {
             LOGGER.trace(msg);
         }
-        if (trace != null) {
+        if (trace != null && isAtLeastNormal(tracingLevel)) {
             trace.setTextTrace(msg);
         }
     }
@@ -1244,11 +1264,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         boolean conditionOutputNew = computeConditionResult(conditionOutputTriple == null ? null : conditionOutputTriple.getNonNegativeValues());
         conditionResultNew = conditionOutputNew && conditionMaskNew;
-
-        if (trace != null) {
-            trace.setConditionResultOld(conditionResultOld);
-            trace.setConditionResultNew(conditionResultNew);
-        }
     }
 
     private void computeConditionTriple(OperationResult result)
@@ -1451,7 +1466,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append(toString());
+        sb.append(this);
         return sb.toString();
     }
 

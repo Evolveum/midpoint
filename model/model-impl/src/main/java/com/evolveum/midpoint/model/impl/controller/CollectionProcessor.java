@@ -448,21 +448,24 @@ public class CollectionProcessor {
     }
 
     private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
-        if (objectListViewType != null) {
-            compileObjectType(existingView, objectListViewType);
-            compileActions(existingView, objectListViewType);
-            compileAdditionalPanels(existingView, objectListViewType, replaceIfExist);
-            compileColumns(existingView, objectListViewType);
-            compileDisplay(existingView, objectListViewType, replaceIfExist);
-            compileDistinct(existingView, objectListViewType, replaceIfExist);
-            compileSorting(existingView, objectListViewType, replaceIfExist);
-            compileCounting(existingView, objectListViewType, replaceIfExist);
-            compileDisplayOrder(existingView, objectListViewType, replaceIfExist);
-            compileSearchBox(existingView, objectListViewType, replaceIfExist);
-            compileRefreshInterval(existingView, objectListViewType, replaceIfExist);
-            compilePaging(existingView, objectListViewType, replaceIfExist);
-            compileViewIdentifier(existingView, objectListViewType, replaceIfExist);
+        if (objectListViewType == null) {
+            return;
         }
+        compileObjectType(existingView, objectListViewType);
+        compileActions(existingView, objectListViewType);
+        compileAdditionalPanels(existingView, objectListViewType, replaceIfExist);
+        compileColumns(existingView, objectListViewType);
+        compileDisplay(existingView, objectListViewType, replaceIfExist);
+        compileDistinct(existingView, objectListViewType, replaceIfExist);
+        compileSorting(existingView, objectListViewType, replaceIfExist);
+        compileCounting(existingView, objectListViewType, replaceIfExist);
+        compileDisplayOrder(existingView, objectListViewType, replaceIfExist);
+        compileSearchBox(existingView, objectListViewType, replaceIfExist);
+        compileRefreshInterval(existingView, objectListViewType, replaceIfExist);
+        compilePaging(existingView, objectListViewType, replaceIfExist);
+        compileViewIdentifier(existingView, objectListViewType, replaceIfExist);
+        compileVisibility(existingView, objectListViewType);
+        compileApplicableForOperation(existingView, objectListViewType);
     }
 
     @Nullable
@@ -626,6 +629,18 @@ public class CollectionProcessor {
             existingView.setPaging(newPaging);
         } else if (replaceIfExist) {
             MiscSchemaUtil.mergePaging(existingView.getPaging(), newPaging);
+        }
+    }
+
+    private void compileVisibility(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        if (objectListViewType.getVisibility() != null) {
+            existingView.setVisibility(objectListViewType.getVisibility());
+        }
+    }
+
+    private void compileApplicableForOperation(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        if (objectListViewType.getApplicableForOperation() != null) {
+            existingView.setApplicableForOperation(objectListViewType.getApplicableForOperation());
         }
     }
 

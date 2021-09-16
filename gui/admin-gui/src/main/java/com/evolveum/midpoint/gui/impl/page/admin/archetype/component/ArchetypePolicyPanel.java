@@ -20,8 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "archetypePolicy")
 @PanelInstance(identifier = "archetypePolicy",
-        applicableFor = ArchetypeType.class,
-        status = ItemStatus.NOT_CHANGED,
+        applicableForType = ArchetypeType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "PageArchetype.archetypePolicy", order = 140))
 public class ArchetypePolicyPanel extends AbstractObjectMainPanel<ArchetypeType, FocusDetailsModels<ArchetypeType>> {
     private static final long serialVersionUID = 1L;

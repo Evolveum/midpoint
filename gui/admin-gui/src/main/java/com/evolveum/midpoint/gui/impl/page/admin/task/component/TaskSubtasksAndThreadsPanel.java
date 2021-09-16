@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.page.admin.server.TaskTablePanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.Component;
@@ -50,7 +51,7 @@ import java.util.List;
  * @author semancik
  */
 @PanelType(name = "subtasks")
-@PanelInstance(identifier = "subtasks", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED,
+@PanelInstance(identifier = "subtasks", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageTask.subtasks.title", order = 50))
 public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;

@@ -36,7 +36,7 @@ import com.querydsl.core.types.Expression;
  * as {@link QueryException}, other runtime exceptions are not intercepted.
  *
  * @param <T> type of filter value
- * @param <V> type of value after conversion (can by the same like T)
+ * @param <V> type of value after conversion (can be the same as T)
  */
 public abstract class ValueFilterValues<T, V> {
 

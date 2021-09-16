@@ -136,7 +136,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     public PageAdminObjectDetails() {
         if (getObjectOidParameter() == null) {
             ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getCompileTimeClass());
-            Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
+            Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName(), OperationTypeType.ADD);
             if (!applicableArchetypes.isEmpty()) {
                 PageParameters params = new PageParameters();
                 params.add("type", objectType.getRestType());

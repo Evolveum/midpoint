@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -41,7 +40,7 @@ import java.util.Collections;
 
 //TODO implement correctly
 @PanelType(name = "operation")
-@PanelInstance(identifier = "operation", applicableFor = TaskType.class,
+@PanelInstance(identifier = "operation", applicableForType = TaskType.class,
         display = @PanelDisplay(label = "pageTaskEdit.operation", order = 60))
 public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;

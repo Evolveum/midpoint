@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.TraceUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.lang.StringUtils;
@@ -951,8 +952,8 @@ public class OperationResult
         return isTracing(traceClass, TracingLevelType.DETAILED);
     }
 
-    public boolean isTracing(Class<? extends TraceType> traceClass, TracingLevelType level) {
-        return getTracingLevel(traceClass).ordinal() >= level.ordinal();
+    public boolean isTracing(Class<? extends TraceType> traceClass, TracingLevelType threshold) {
+        return TraceUtil.isAtLeast(getTracingLevel(traceClass), threshold);
     }
 
     @NotNull

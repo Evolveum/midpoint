@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -33,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * @author semancik
  */
 @PanelType(name = "resourceConnector")
-@PanelInstance(identifier = "resourceConnector", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class,
+@PanelInstance(identifier = "resourceConnector", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
         display = @PanelDisplay(label = "PageResource.tab.connector", order = 70))
 public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> {
     private static final long serialVersionUID = 1L;

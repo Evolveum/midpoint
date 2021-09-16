@@ -443,7 +443,7 @@ public abstract class ResourceContentPanel extends Panel {
             return "";
         }
         List<CompiledObjectCollectionView> taskCollectionViews =
-                getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(TaskType.COMPLEX_TYPE);
+                getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(TaskType.class);
         for (CompiledObjectCollectionView view : taskCollectionViews) {
             if (archetypeOid.equals(view.getCollection().getCollectionRef().getOid())) {
                 return view.getViewIdentifier();

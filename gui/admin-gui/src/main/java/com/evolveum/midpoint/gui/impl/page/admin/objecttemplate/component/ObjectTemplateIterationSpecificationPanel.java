@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "iterationSpecification")
 @PanelInstance(identifier = "iterationSpecification",
-        applicableFor = ObjectTemplateType.class,
+        applicableForType = ObjectTemplateType.class,
         display = @PanelDisplay(label = "pageObjectTemplate.iterationSpecification.title", order = 20))
 public class ObjectTemplateIterationSpecificationPanel extends AbstractObjectMainPanel<ObjectTemplateType, ObjectDetailsModels<ObjectTemplateType>> {
     private static final long serialVersionUID = 1L;

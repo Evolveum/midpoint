@@ -166,10 +166,16 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
      * archetypes that are applicable for that type.
      */
     @NotNull
-    public List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull QName objectType) {
+    public List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull QName objectType, OperationTypeType operationTypeType) {
         List<CompiledObjectCollectionView> applicableViews = findAllApplicableObjectCollectionViews(objectType);
         List<CompiledObjectCollectionView> archetypeViews = new ArrayList<>();
         for (CompiledObjectCollectionView objectCollectionView : applicableViews) {
+            if (UserInterfaceElementVisibilityType.HIDDEN == objectCollectionView.getVisibility()) {
+                continue;
+            }
+            if (!objectCollectionView.isApplicableForOperation(operationTypeType)) {
+                continue;
+            }
             ObjectReferenceType collectionRef = objectCollectionView.getCollection() != null ? objectCollectionView.getCollection().getCollectionRef() : null;
             QName collectionRefType = collectionRef != null ? collectionRef.getType() : null;
             if (collectionRefType != null && ArchetypeType.COMPLEX_TYPE.equals(collectionRefType)){
@@ -177,6 +183,16 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
             }
         }
         return archetypeViews;
+    }
+
+    @NotNull
+    public <O extends ObjectType>List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull Class<O> objectType) {
+        return findAllApplicableArchetypeViews(ObjectTypes.getObjectType(objectType).getTypeQName(), null);
+    }
+
+    @NotNull
+    public <O extends ObjectType>List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull Class<O> objectType, OperationTypeType operationType) {
+        return findAllApplicableArchetypeViews(ObjectTypes.getObjectType(objectType).getTypeQName(), operationType);
     }
 
     /**
