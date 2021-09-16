@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
@@ -32,4 +33,12 @@ public interface Mapping<V extends PrismValue, D extends ItemDefinition> extends
     PrismValueDeltaSetTriple<V> getOutputTriple();
 
     ItemPath getOutputPath() throws SchemaException;
+
+    /**
+     * Returns true if the condition is at least partially satisfied, i.e. it is not "false -> false".
+     *
+     * Precondition: the condition is evaluated. Otherwise a {@link NullPointerException} is thrown.
+     */
+    @Experimental
+    boolean isConditionSatisfied();
 }

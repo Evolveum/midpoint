@@ -122,4 +122,45 @@
             </script>
         </condition>
     </mapping>
+    <mapping>
+        <name>sourced-conditioned-no-state-properties</name>
+        <description>
+            Mapping with a source that is being enabled and disabled by condition in a pre-4.2 way.
+            So "false -> false" is interpreted as "no mapping there", including skipping of the range evaluation.
+
+            EXPERIMENTAL
+        </description>
+        <strength>strong</strength>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <value>sourced-conditioned-no-state-properties</value>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            satisfied = midpoint.mapping.conditionSatisfied
+                            log.info('condition satisfied: {}', satisfied)
+                            if (satisfied) {
+                                true // condition is satisfied (not false->false), let us apply the range
+                            } else {
+                                false // condition is not satisfied (false->false), range is not applied
+                            }
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code>
+                    basic.stringify(name) == 'matching'
+                </code>
+            </script>
+        </condition>
+    </mapping>
 </objectTemplate>

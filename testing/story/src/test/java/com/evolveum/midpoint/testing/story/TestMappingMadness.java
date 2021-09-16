@@ -455,8 +455,8 @@ public class TestMappingMadness extends AbstractStoryTest {
 
         then();
         assertUserAfter(USER_NOT_MATCHING.oid)
-                .display()
-                .assertOrganizations("org1", "org2", "org3");
+                .assertOrganizations("org1", "org2", "org3")
+                .assertOrganizationalUnits("ou1", "ou2", "ou3");
     }
 
     @Test
@@ -470,8 +470,8 @@ public class TestMappingMadness extends AbstractStoryTest {
 
         then();
         assertUserAfter(USER_MATCHING.oid)
-                .display()
-                .assertOrganizations("sourced-conditioned");
+                .assertOrganizations("sourced-conditioned")
+                .assertOrganizationalUnits("sourced-conditioned-no-state-properties");
     }
 
     @Test
@@ -490,8 +490,8 @@ public class TestMappingMadness extends AbstractStoryTest {
 
         then();
         assertUserAfter(USER_MATCHING.oid)
-                .display()
-                .assertOrganizations(); // value was removed because the range applied (for condition going from true to false)
+                .assertOrganizations() // value was removed because the range applied (for condition going from true to false)
+                .assertOrganizationalUnits(); // the same here
     }
 
     @Test
@@ -510,8 +510,8 @@ public class TestMappingMadness extends AbstractStoryTest {
 
         then();
         assertUserAfter(USER_MATCHING.oid)
-                .display()
-                .assertOrganizations("sourced-conditioned");
+                .assertOrganizations("sourced-conditioned")
+                .assertOrganizationalUnits("sourced-conditioned-no-state-properties");
     }
 
     private void setAccountQuotes() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {

@@ -14,4 +14,7 @@
     <organization>org1</organization>
     <organization>org2</organization>
     <organization>org3</organization>
+    <organizationalUnit>ou1</organizationalUnit>
+    <organizationalUnit>ou2</organizationalUnit>
+    <organizationalUnit>ou3</organizationalUnit>
 </user>
