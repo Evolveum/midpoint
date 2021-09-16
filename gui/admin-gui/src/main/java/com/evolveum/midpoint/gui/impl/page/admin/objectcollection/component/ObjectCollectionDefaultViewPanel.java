@@ -24,8 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
-import org.apache.wicket.model.IModel;
-
 @PanelType(name = "defaultView")
 @PanelInstance(identifier = "defaultView",
         applicableFor = ObjectCollectionType.class,
