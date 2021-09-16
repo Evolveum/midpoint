@@ -1,10 +1,35 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
+
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.Bag;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.bag.TreeBag;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
@@ -21,7 +46,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
@@ -37,50 +65,28 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.collections4.Bag;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.bag.TreeBag;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
 
 /**
  * Comprehensive test of assignment evaluator and processor.
  *
- *            MMR1 -----------I------------------------------*
- *             ^                                             |
- *             |                                             I
- *             |                                             V
- *            MR1 -----------I-------------*-----> MR3      MR4
- *             ^        MR2 --I---*        |        |        |
- *             |         ^        I        I        I        I
- *             |         |        V        V        V        V
- *             R1 --I--> R2       O3       R4       R5       R6
- *             ^
- *             |
- *             |
- *            jack
+ * MMR1 -----------I------------------------------*
+ * ^                                             |
+ * |                                             I
+ * |                                             V
+ * MR1 -----------I-------------*-----> MR3      MR4
+ * ^        MR2 --I---*        |        |        |
+ * |         ^        I        I        I        I
+ * |         |        V        V        V        V
+ * R1 --I--> R2       O3       R4       R5       R6
+ * ^
+ * |
+ * |
+ * jack
  *
  * Straight line means assignment.
  * Line marked with "I" means inducement.
@@ -142,7 +148,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     private RoleType metaroleCrewMember, metarolePerson;
 
     // fourth part
-    private OrgType org1, org11, org2, org21, org4, org41;        // org3 is used in first part
+    private OrgType org1, org11, org2, org21, org4, org41; // org3 is used in first part
     private RoleType roleAdmin;
 
     // fifth part
@@ -355,22 +361,21 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
-     *                MMR1 -----------I------------------------------*
-     *                 ^                                             |
-     *                 |                                             I
-     *                 |                                             V
-     *                MR1 -----------I-------------*-----> MR3      MR4
-     *                 ^        MR2 --I---*        |        |        |
-     *                 |         ^        I        I        I        I
-     *                 |         |        V        V        V        V
-     *                 R1 --I--> R2       O3       R4       R5       R6
-     *                 ^
-     *                 |
-     *                 |
-     *  jack --D--> barbossa
+     * MMR1 -----------I------------------------------*
+     * ^                                             |
+     * |                                             I
+     * |                                             V
+     * MR1 -----------I-------------*-----> MR3      MR4
+     * ^        MR2 --I---*        |        |        |
+     * |         ^        I        I        I        I
+     * |         |        V        V        V        V
+     * R1 --I--> R2       O3       R4       R5       R6
+     * ^
+     * |
+     * |
+     * jack --D--> barbossa
      *
-     *  (D = deputy assignment)
-     *
+     * (D = deputy assignment)
      */
     @Test(enabled = FIRST_PART)
     public void test050JackDeputyOfBarbossa() throws Exception {
@@ -436,22 +441,21 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
-     *                               MMR1 -----------I------------------------------*
-     *                                ^                                             |
-     *                                |                                             I
-     *                                |                                             V
-     *                               MR1 -----------I-------------*-----> MR3      MR4
-     *                                ^        MR2 --I---*        |        |        |
-     *                                |         ^        I        I        I        I
-     *                                |         |        V        V        V        V
-     *                                R1 --I--> R2       O3       R4       R5       R6
-     *                                ^
-     *                                |
-     *                                |
+     * MMR1 -----------I------------------------------*
+     * ^                                             |
+     * |                                             I
+     * |                                             V
+     * MR1 -----------I-------------*-----> MR3      MR4
+     * ^        MR2 --I---*        |        |        |
+     * |         ^        I        I        I        I
+     * |         |        V        V        V        V
+     * R1 --I--> R2       O3       R4       R5       R6
+     * ^
+     * |
+     * |
      * jack --D--> guybrush --D--> barbossa
      *
      * (D = deputy assignment)
-     *
      */
     @Test(enabled = FIRST_PART)
     public void test060JackDeputyOfGuybrushDeputyOfBarbossa() throws Exception {
@@ -552,9 +556,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .build();
 
         //noinspection unchecked,rawtypes
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi =
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
                 new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(jackGuybrushAssignment),
-                            jackGuybrushAssignment.asPrismContainerValue().getDefinition());
+                        jackGuybrushAssignment.asPrismContainerValue().getDefinition());
 
         // WHEN
         when();
@@ -593,22 +597,21 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
-     *                MMR1 -----------I------------------------------*
-     *                 ^                                             |
-     *                 |                                             I
-     *                 |                                             V
-     *                MR1 -----------I-------------*-----> MR3      MR4
-     *                 ^        MR2 --I---*        |        |        |
-     *                 |         ^        I        I        I        I
-     *                 |         |        V        V        V        V
-     *                 R1 --I--> R2       O3       R4       R5       R6
-     *                 ^
-     *                 A
-     *                 |
-     *  jack --D--> barbossa
+     * MMR1 -----------I------------------------------*
+     * ^                                             |
+     * |                                             I
+     * |                                             V
+     * MR1 -----------I-------------*-----> MR3      MR4
+     * ^        MR2 --I---*        |        |        |
+     * |         ^        I        I        I        I
+     * |         |        V        V        V        V
+     * R1 --I--> R2       O3       R4       R5       R6
+     * ^
+     * A
+     * |
+     * jack --D--> barbossa
      *
-     *  (D = deputy assignment) (A = approver)
-     *
+     * (D = deputy assignment) (A = approver)
      */
     @Test(enabled = FIRST_PART)
     public void test070JackDeputyOfBarbossaApproverOfR1() throws Exception {
@@ -670,23 +673,22 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertSerializable(context);
     }
 
-
     /**
      * Now disable some roles. Their administrative status is simply set to DISABLED.
      *
-     *            MMR1(D)---------I------------------------------*
-     *             ^                                             |
-     *             |                                             I
-     *             |                                             V
-     *            MR1 -----------I-------------*-----> MR3(D)   MR4
-     *             ^        MR2 --I---*        |        |        |
-     *             |         ^        I        I        I        I
-     *             |         |        V        V        V        V
-     *             R1 --I--> R2(D)    O3       R4(D)    R5       R6
-     *             ^
-     *             |
-     *             |
-     *            jack
+     * MMR1(D)---------I------------------------------*
+     * ^                                             |
+     * |                                             I
+     * |                                             V
+     * MR1 -----------I-------------*-----> MR3(D)   MR4
+     * ^        MR2 --I---*        |        |        |
+     * |         ^        I        I        I        I
+     * |         |        V        V        V        V
+     * R1 --I--> R2(D)    O3       R4(D)    R5       R6
+     * ^
+     * |
+     * |
+     * jack
      */
 
     @Test(enabled = FIRST_PART)
@@ -701,7 +703,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         // THEN
         // TODO check e.g. membershipRef for roles
     }
-
 
     @Test(enabled = FIRST_PART)
     public void test110AssignR1ToJack() throws Exception {
@@ -747,19 +748,19 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     /**
      * In a similar way, let's disable some assignments. Their administrative status is simply set to DISABLED.
      *
-     *            MMR1 -----------I------------------------------*
-     *             ^                                             |
-     *             |                                             I
-     *             |                                             V
-     *            MR1 -----------I-------------*-(D)-> MR3      MR4
-     *             ^        MR2 --I---*        |        |        |
-     *             |         ^        I        I        I        I(D)
-     *             |         |        V        V        V        V
-     *             R1-I(D)-> R2       O3       R4       R5       R6
-     *             ^
-     *             |
-     *             |
-     *            jack
+     * MMR1 -----------I------------------------------*
+     * ^                                             |
+     * |                                             I
+     * |                                             V
+     * MR1 -----------I-------------*-(D)-> MR3      MR4
+     * ^        MR2 --I---*        |        |        |
+     * |         ^        I        I        I        I(D)
+     * |         |        V        V        V        V
+     * R1-I(D)-> R2       O3       R4       R5       R6
+     * ^
+     * |
+     * |
+     * jack
      */
 
     @Test(enabled = FIRST_PART)
@@ -818,19 +819,19 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
      * Let's attach some conditions to assignments and roles. "+" condition means that it will be satisfied only in jack's new state.
      * "-" condition will be satisfied only in jack's old state. "0" condition will be never satisfied.
      *
-     *            MMR1------------I------------------------------*
-     *             ^                                             |
-     *            (+)                                            I
-     *             |                                             V
-     *         (+)MR1 -----------I-------------*-----> MR3(0)   MR4(-)
-     *             ^        MR2 --I---*        |        |        |
-     *            (+)        ^   (+)  I        I        I        I
-     *             |         |        V        V        V        V
-     *             R1 --I--> R2       O3       R4(D)    R5       R6
-     *             ^     (-)
-     *             |
-     *             |
-     *            jack
+     * MMR1------------I------------------------------*
+     * ^                                             |
+     * (+)                                            I
+     * |                                             V
+     * (+)MR1 -----------I-------------*-----> MR3(0)   MR4(-)
+     * ^        MR2 --I---*        |        |        |
+     * (+)        ^   (+)  I        I        I        I
+     * |         |        V        V        V        V
+     * R1 --I--> R2       O3       R4(D)    R5       R6
+     * ^     (-)
+     * |
+     * |
+     * jack
      */
 
     @Test(enabled = FIRST_PART)
@@ -849,7 +850,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         // THEN
         // TODO check e.g. membershipRef for roles
     }
-
 
     @Test(enabled = FIRST_PART)
     public void test210AssignR1ToJack() throws Exception {
@@ -900,21 +900,20 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     /**
      * Testing targets with multiple incoming paths.
      *
-     *            MMR7 -------I--------*
-     *             ^^                  |
-     *             ||                  |
-     *             |+--------+         |
-     *             |         |         V
-     *            MR7       MR8       MR9
-     *             ^         ^         |
-     *             |         |         |
-     *             |         |         V
-     *             R7 --I--> R8        R9
-     *             ^
-     *             |
-     *             |
-     *            jack
-     *
+     * MMR7 -------I--------*
+     * ^^                  |
+     * ||                  |
+     * |+--------+         |
+     * |         |         V
+     * MR7       MR8       MR9
+     * ^         ^         |
+     * |         |         |
+     * |         |         V
+     * R7 --I--> R8        R9
+     * ^
+     * |
+     * |
+     * jack
      */
 
     @Test(enabled = SECOND_PART)
@@ -1041,22 +1040,22 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     /**
      * Testing assignment path variables
      *
-     *           MetaroleCrewMember (C3) -----I-----> MetarolePerson (C4) --I--+
-     *             ^            ^                       ^     ^                |
-     *             |            |                       |     |                |
-     *             |            |                       |     |                V
-     *     (C1) Pirate --I--> Sailor (C2)              Man  Woman           Human (C5)
-     *             ^                                    |
-     *             | +----------------------------------+
-     *             | |             (added later)
-     *            jack
+     * MetaroleCrewMember (C3) -----I-----> MetarolePerson (C4) --I--+
+     * ^            ^                       ^     ^                |
+     * |            |                       |     |                |
+     * |            |                       |     |                V
+     * (C1) Pirate --I--> Sailor (C2)              Man  Woman           Human (C5)
+     * ^                                    |
+     * | +----------------------------------+
+     * | |             (added later)
+     * jack
      *
      * Assume these constructions:
-     *  - C1 giving each Pirate some account (attached via inducement)
-     *  - C2 giving each Sailor some account (attached via inducement)
-     *  - C3 giving each crew member some account (attached via inducement of order 2)
-     *  - C4 giving each person some account (attached via inducement of order 2)
-     *  - C5 giving each Human some account (attached via inducement)
+     * - C1 giving each Pirate some account (attached via inducement)
+     * - C2 giving each Sailor some account (attached via inducement)
+     * - C3 giving each crew member some account (attached via inducement of order 2)
+     * - C4 giving each person some account (attached via inducement of order 2)
+     * - C5 giving each Human some account (attached via inducement)
      */
 
     @Test(enabled = THIRD_PART)
@@ -1073,8 +1072,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
             createCustomConstruction(metarolePerson, "C4", 2);
             createCustomConstruction(roleHuman, "C5", 1);
 
-            addConditionToRoles("Pirate! Sailor! MetaroleCrewMember! MetarolePerson! Man! Human!");
-            addConditionToAssignments("Pirate-Sailor! Pirate-MetaroleCrewMember! Sailor-MetaroleCrewMember! MetaroleCrewMember-MetarolePerson! Man-MetarolePerson! MetarolePerson-Human!");
+            addConditionToRoles("Pirate! Sailor! MtrlCrewMember! MetarolePerson! Man! Human!");
+            addConditionToAssignments("Pirate-Sailor! Pirate-MtrlCrewMember! Sailor-MtrlCrewMember! MtrlCrewMember-MetarolePerson! Man-MetarolePerson! MetarolePerson-Human!");
         });
 
         LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_PIRATE_OID, null, null, result);
@@ -1096,36 +1095,36 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
         assertTargets(evaluatedAssignment, true, "Pirate Sailor Human Human", null, null, null, null, null);
-        assertTargets(evaluatedAssignment, false, "MetaroleCrewMember MetaroleCrewMember MetarolePerson MetarolePerson", null, null, null, null, null);
+        assertTargets(evaluatedAssignment, false, "MtrlCrewMember MtrlCrewMember MetarolePerson MetarolePerson", null, null, null, null, null);
         assertMembershipRef(evaluatedAssignment, "Pirate Sailor Human");
         assertOrgRef(evaluatedAssignment, "");
         assertDelegation(evaluatedAssignment, "");
 
-        String expectedItems = "Pirate-1 Sailor-1 MetaroleCrewMember-2 MetaroleCrewMember-2 MetarolePerson-2 MetarolePerson-2 Human-1 Human-1";
+        String expectedItems = "Pirate-1 Sailor-1 MtrlCrewMember-2 MtrlCrewMember-2 MetarolePerson-2 MetarolePerson-2 Human-1 Human-1";
         assertConstructions(evaluatedAssignment, expectedItems + " C1 C2 C3 C3 C4 C4 C5 C5", null, null, null, null, null);
         assertFocusMappings(evaluatedAssignment, expectedItems);
         assertFocusPolicyRules(evaluatedAssignment, expectedItems);
 
         assertTargetPolicyRules(evaluatedAssignment,
-                "Pirate-0 MetaroleCrewMember-1 MetarolePerson-1",
-                "Sailor-0 MetaroleCrewMember-1 MetarolePerson-1 Human-0 Human-0");
+                "Pirate-0 MtrlCrewMember-1 MetarolePerson-1",
+                "Sailor-0 MtrlCrewMember-1 MetarolePerson-1 Human-0 Human-0");
         assertAuthorizations(evaluatedAssignment, "Pirate Sailor Human");
         assertGuiConfig(evaluatedAssignment, "Pirate Sailor Human");
 
         dump("Pirate!", 0);
         dump("Sailor!", 0);
-        dump("MetaroleCrewMember!", 2); // condition is evaluated twice
-        dump("MetaroleCrewMember!", 0);
+        dump("MtrlCrewMember!", 2); // condition is evaluated twice
+        dump("MtrlCrewMember!", 0);
         dump("MetarolePerson!", 2); // condition is evaluated twice
         dump("MetarolePerson!", 0);
         dump("Human!", 1);
         dump("Human!", 0);
 
         dump("Pirate-Sailor!", 0);
-        dump("Pirate-MetaroleCrewMember!", 0);
-        dump("Sailor-MetaroleCrewMember!", 0);
-        dump("MetaroleCrewMember-MetarolePerson!", 2); // condition is evaluated twice
-        dump("MetaroleCrewMember-MetarolePerson!", 0);
+        dump("Pirate-MtrlCrewMember!", 0);
+        dump("Sailor-MtrlCrewMember!", 0);
+        dump("MtrlCrewMember-MetarolePerson!", 2); // condition is evaluated twice
+        dump("MtrlCrewMember-MetarolePerson!", 0);
         dump("MetarolePerson-Human!", 2); // condition is evaluated twice
         dump("MetarolePerson-Human!", 0);
 
@@ -1155,15 +1154,15 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertAssignmentPath(2);
 
         // swap indices if internals of evaluator change and "Pirate" branch is executed first
-        getRunInfo("MetaroleCrewMember!", 0)
-                .assertThisAssignment("->MetaroleCrewMember")
+        getRunInfo("MtrlCrewMember!", 0)
+                .assertThisAssignment("->MtrlCrewMember")
                 .assertImmediateAssignment("->Pirate")
                 .assertSource("Pirate")
                 .assertImmediateRole(null)
                 .assertAssignmentPath(2);
 
-        getRunInfo("MetaroleCrewMember!", 2) // Each condition is evaluated twice
-                .assertThisAssignment("->MetaroleCrewMember")
+        getRunInfo("MtrlCrewMember!", 2) // Each condition is evaluated twice
+                .assertThisAssignment("->MtrlCrewMember")
                 .assertImmediateAssignment("->Sailor")
                 .assertSource("Sailor")
                 .assertImmediateRole("Pirate")
@@ -1171,15 +1170,15 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
         getRunInfo("MetarolePerson!", 0)
                 .assertThisAssignment("->MetarolePerson")
-                .assertImmediateAssignment("->MetaroleCrewMember")
-                .assertSource("MetaroleCrewMember")
+                .assertImmediateAssignment("->MtrlCrewMember")
+                .assertSource("MtrlCrewMember")
                 .assertImmediateRole("Pirate")
                 .assertAssignmentPath(3);
 
         getRunInfo("MetarolePerson!", 2)
                 .assertThisAssignment("->MetarolePerson")
-                .assertImmediateAssignment("->MetaroleCrewMember")
-                .assertSource("MetaroleCrewMember")
+                .assertImmediateAssignment("->MtrlCrewMember")
+                .assertSource("MtrlCrewMember")
                 .assertImmediateRole("Sailor")
                 .assertAssignmentPath(4);
 
@@ -1187,14 +1186,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertThisAssignment("->Human")
                 .assertImmediateAssignment("->MetarolePerson")
                 .assertSource("MetarolePerson")
-                .assertImmediateRole("MetaroleCrewMember")
+                .assertImmediateRole("MtrlCrewMember")
                 .assertAssignmentPath(4);
 
         getRunInfo("Human!", 2)
                 .assertThisAssignment("->Human")
                 .assertImmediateAssignment("->MetarolePerson")
                 .assertSource("MetarolePerson")
-                .assertImmediateRole("MetaroleCrewMember")
+                .assertImmediateRole("MtrlCrewMember")
                 .assertAssignmentPath(5);
 
         // assignments
@@ -1206,31 +1205,31 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertImmediateRole(null)
                 .assertAssignmentPath(2);
 
-        getRunInfo("Pirate-MetaroleCrewMember!", 0)
-                .assertThisAssignment("->MetaroleCrewMember")
+        getRunInfo("Pirate-MtrlCrewMember!", 0)
+                .assertThisAssignment("->MtrlCrewMember")
                 .assertImmediateAssignment("->Pirate")
                 .assertSource("Pirate")
                 .assertImmediateRole(null)
                 .assertAssignmentPath(2);
 
-        getRunInfo("Sailor-MetaroleCrewMember!", 0)
-                .assertThisAssignment("->MetaroleCrewMember")
+        getRunInfo("Sailor-MtrlCrewMember!", 0)
+                .assertThisAssignment("->MtrlCrewMember")
                 .assertImmediateAssignment("->Sailor")
                 .assertSource("Sailor")
                 .assertImmediateRole("Pirate")
                 .assertAssignmentPath(3);
 
-        getRunInfo("MetaroleCrewMember-MetarolePerson!", 0)
+        getRunInfo("MtrlCrewMember-MetarolePerson!", 0)
                 .assertThisAssignment("->MetarolePerson")
-                .assertImmediateAssignment("->MetaroleCrewMember")
-                .assertSource("MetaroleCrewMember")
+                .assertImmediateAssignment("->MtrlCrewMember")
+                .assertSource("MtrlCrewMember")
                 .assertImmediateRole("Pirate")
                 .assertAssignmentPath(3);
 
-        getRunInfo("MetaroleCrewMember-MetarolePerson!", 2)
+        getRunInfo("MtrlCrewMember-MetarolePerson!", 2)
                 .assertThisAssignment("->MetarolePerson")
-                .assertImmediateAssignment("->MetaroleCrewMember")
-                .assertSource("MetaroleCrewMember")
+                .assertImmediateAssignment("->MtrlCrewMember")
+                .assertSource("MtrlCrewMember")
                 .assertImmediateRole("Sailor")
                 .assertAssignmentPath(4);
 
@@ -1238,14 +1237,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertThisAssignment("->Human")
                 .assertImmediateAssignment("->MetarolePerson")
                 .assertSource("MetarolePerson")
-                .assertImmediateRole("MetaroleCrewMember")
+                .assertImmediateRole("MtrlCrewMember")
                 .assertAssignmentPath(4);
 
         getRunInfo("MetarolePerson-Human!", 2)
                 .assertThisAssignment("->Human")
                 .assertImmediateAssignment("->MetarolePerson")
                 .assertSource("MetarolePerson")
-                .assertImmediateRole("MetaroleCrewMember")
+                .assertImmediateRole("MtrlCrewMember")
                 .assertAssignmentPath(5);
 
         getRunInfo("C1", 0)
@@ -1263,15 +1262,15 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertAssignmentPath(3);
 
         getRunInfo("C3", 0)
-                .assertImmediateAssignment("->MetaroleCrewMember")
-                .assertSource("MetaroleCrewMember")
+                .assertImmediateAssignment("->MtrlCrewMember")
+                .assertSource("MtrlCrewMember")
                 .assertThisObject("Pirate")
                 .assertImmediateRole("Pirate")
                 .assertAssignmentPath(3);
 
         getRunInfo("C3", 1)
-                .assertImmediateAssignment("->MetaroleCrewMember")
-                .assertSource("MetaroleCrewMember")
+                .assertImmediateAssignment("->MtrlCrewMember")
+                .assertSource("MtrlCrewMember")
                 .assertThisObject("Sailor")
                 .assertImmediateRole("Sailor")
                 .assertAssignmentPath(4);
@@ -1279,15 +1278,15 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         getRunInfo("C4", 0)
                 .assertImmediateAssignment("->MetarolePerson")
                 .assertSource("MetarolePerson")
-                .assertThisObject("MetaroleCrewMember")            // TODO
-                .assertImmediateRole("MetaroleCrewMember")
+                .assertThisObject("MtrlCrewMember")            // TODO
+                .assertImmediateRole("MtrlCrewMember")
                 .assertAssignmentPath(4);
 
         getRunInfo("C4", 1)
                 .assertImmediateAssignment("->MetarolePerson")
                 .assertSource("MetarolePerson")
-                .assertThisObject("MetaroleCrewMember")            // TODO
-                .assertImmediateRole("MetaroleCrewMember")
+                .assertThisObject("MtrlCrewMember")            // TODO
+                .assertImmediateRole("MtrlCrewMember")
                 .assertAssignmentPath(5);
 
         getRunInfo("C5", 0)
@@ -1313,8 +1312,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
     private RunInfo getRunInfo(String runName, int index) {
         return getRunInfos(runName).stream().filter(r -> r.index == index)
-                    .findFirst()
-                    .orElseThrow(() -> new AssertionError("No run " + runName + " with index " + index));
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No run " + runName + " with index " + index));
     }
 
     private Collection<RunInfo> getRunInfos(String name) {
@@ -1335,7 +1334,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertEquals("Wrong # of constructions: " + name, expectedConstructions, constructions.size());
         for (int i = 0; i < constructions.size(); i++) {
             ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction = constructions.get(i);
-            System.out.println("Evaluating " + name + " #" + (i+1));
+            System.out.println("Evaluating " + name + " #" + (i + 1));
             construction.evaluate(task, result);
             System.out.println("Done");
         }
@@ -1358,8 +1357,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         private FocusType thisObject;
         private FocusType focus;
         private AssignmentPathImpl assignmentPath;
+
         private String dump() {
-            String p = name + "#" + (index+1);
+            String p = name + "#" + (index + 1);
             //noinspection StringBufferReplaceableByString
             StringBuilder sb = new StringBuilder();
             sb.append("------------------------------------------------------------------------------------\n");
@@ -1451,10 +1451,11 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
     private static boolean recording = false;
 
-    private static final MultiValuedMap<String,RunInfo> runs = new ArrayListValuedHashMap<>();
+    private static final MultiValuedMap<String, RunInfo> runs = new ArrayListValuedHashMap<>();
 
     private static RunInfo currentRun;
 
+    @SuppressWarnings("unused") // used from scripts!
     public static void startCallback(String desc) {
         if (recording()) {
             System.out.println("Starting execution: " + desc);
@@ -1484,9 +1485,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                     currentRun.assignment = (AssignmentType) value;
                 } else if (ExpressionConstants.VAR_FOCUS_ASSIGNMENT.equals(name)) {
                     currentRun.focusAssignment = (AssignmentType) value;
-                } else if (ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT.equals(name))
+                } else if (ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT.equals(name)) {
                     currentRun.immediateAssignment = (AssignmentType) value;
-                else if (ExpressionConstants.VAR_THIS_ASSIGNMENT.equals(name)) {
+                } else if (ExpressionConstants.VAR_THIS_ASSIGNMENT.equals(name)) {
                     currentRun.thisAssignment = (AssignmentType) value;
                 } else if (ExpressionConstants.VAR_FOCUS.equals(name)) {
                     currentRun.focus = (FocusType) value;
@@ -1514,17 +1515,15 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     /**
      * Testing non-scalar constraints (MID-3815)
      *
-     *           Org1 -----I----+                                              Org2 -----I----+
-     *             ^            | (orderConstraints 1..N)                        ^            | (orderConstraints: manager: 1)
-     *             |            | (reset summary to 1)                           |            | (reset default to 0)
-     *             |            V                                                |            V
-     *           Org11        Admin                                            Org21        Admin
-     *             ^                                                             ^
-     *             |                                                         (manager)
-     *             |                                                             |
-     *            jack                                                          jack
-     *
-     *
+     * Org1 -----I----+                                              Org2 -----I----+
+     * ^            | (orderConstraints 1..N)                        ^            | (orderConstraints: manager: 1)
+     * |            | (reset summary to 1)                           |            | (reset default to 0)
+     * |            V                                                |            V
+     * Org11        Admin                                            Org21        Admin
+     * ^                                                             ^
+     * |                                                         (manager)
+     * |                                                             |
+     * jack                                                          jack
      */
 
     @Test(enabled = FOURTH_PART)
@@ -1572,20 +1571,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
-     *
-     *           Org1 -----I----+
-     *             ^            | (orderConstraints 1..N)
-     *             |            | (reset summary to 1)
-     *             |            V
-     *           Org11        Admin
-     *             ^
-     *             |
-     *         (manager)
-     *             |
-     *           jack
-     *
+     * Org1 -----I----+
+     * ^            | (orderConstraints 1..N)
+     * |            | (reset summary to 1)
+     * |            V
+     * Org11        Admin
+     * ^
+     * |
+     * (manager)
+     * |
+     * jack
      */
-
 
     @Test(enabled = FOURTH_PART)
     public void test505AssignJackOrg11AsManager() throws Exception {
@@ -1630,18 +1626,16 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
-     *
-     *           Org1 -----I----+
-     *             ^            | (orderConstraints 1..N)
-     *             |            | (reset summary to 1)
-     *             |            V
-     *           Org11        Admin
-     *             ^
-     *             |
-     *         (approver)
-     *             |
-     *           jack
-     *
+     * Org1 -----I----+
+     * ^            | (orderConstraints 1..N)
+     * |            | (reset summary to 1)
+     * |            V
+     * Org11        Admin
+     * ^
+     * |
+     * (approver)
+     * |
+     * jack
      */
 
     @Test(enabled = FOURTH_PART)
@@ -1686,18 +1680,18 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
-     *        Org2 -----I----+
-     *          ^            | (orderConstraints: manager: 1)
-     *          |            | (reset default to 0)
-     *          |            V
-     *        Org21        Admin
-     *          ^
-     *          |
-     *          |
-     *         jack
+     * Org2 -----I----+
+     * ^            | (orderConstraints: manager: 1)
+     * |            | (reset default to 0)
+     * |            V
+     * Org21        Admin
+     * ^
+     * |
+     * |
+     * jack
      *
-     *   Target policy rules from Admin are not taken into account. (That's probably OK,
-     *   because Admin is not matched for the focus neither.)
+     * Target policy rules from Admin are not taken into account. (That's probably OK,
+     * because Admin is not matched for the focus neither.)
      */
 
     @Test(enabled = FOURTH_PART)
@@ -1744,15 +1738,15 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
-     *        Org2 -----I----+
-     *          ^            | (orderConstraints: manager: 1)
-     *          |            | (reset default to 0)
-     *          |            V
-     *        Org21        Admin
-     *          ^
-     *      (manager)
-     *          |
-     *         jack
+     * Org2 -----I----+
+     * ^            | (orderConstraints: manager: 1)
+     * |            | (reset default to 0)
+     * |            V
+     * Org21        Admin
+     * ^
+     * (manager)
+     * |
+     * jack
      */
 
     @Test(enabled = FOURTH_PART)
@@ -1799,29 +1793,30 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
-     *        Org4 -----I----+
-     *          ^            | (orderConstraints: any)
-     *          |            | (focusType = UserType)
-     *          |            | (reset approver to 0)
-     *          |            | (reset default to 1)
-     *          |            V
-     *        Org41        Admin
-     *          ^
-     *      (approver)
-     *          |
-     *         jack
+     * Org4 -----I----+
+     * ^            | (orderConstraints: any)
+     * |            | (focusType = UserType)
+     * |            | (reset approver to 0)
+     * |            | (reset default to 1)
+     * |            V
+     * Org41        Admin
+     * ^
+     * (approver)
+     * |
+     * jack
      *
-     *  As for target evaluation order, it is:
-     *    @ org41:  (zero)
-     *    @ org4:   (default:1)
-     *    @ admin:  changed from @org4 by the same vector as the normal evaluation order
+     * As for target evaluation order, it is:
      *
-     *   Because normal evaluation order was changed from: approver:1, default:1 to approver: 0, default: 1 (i.e. "- 1 approver"),
-     *   the target evaluation order would be: default:1, approver:-1, which is nonsense.
+     * @ org41:  (zero)
+     * @ org4:   (default:1)
+     * @ admin:  changed from @org4 by the same vector as the normal evaluation order
      *
-     *   For such invalid cases we define target evaluation order as undefined.
+     * Because normal evaluation order was changed from: approver:1, default:1 to approver: 0, default: 1 (i.e. "- 1 approver"),
+     * the target evaluation order would be: default:1, approver:-1, which is nonsense.
      *
-     *   Therefore, Admin-0 is not among target policy rules.
+     * For such invalid cases we define target evaluation order as undefined.
+     *
+     * Therefore, Admin-0 is not among target policy rules.
      */
 
     @Test(enabled = FOURTH_PART)
@@ -1871,23 +1866,23 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
      * "Go back N" inducements in the presence of various relations.
      * Each target has a note about expected evaluation order ("a", "ab", "abc", ...).
      *
-     *                  abde/A6 ----[I]----+
-     *                        |            |
-     *                       (e)           |
-     *                        |            V
-     *   abc/A3 ----[I]----+ A5/abd ...... A7/abd----[I]----+
-     *        |            | |                              |
-     *       (c)           |(d)                             |
-     *        |            V |                              |
-     *       A2/ab ....... A4/ab                            |
-     *        |                                             |
-     *       (b)                                            |
-     *        |                                             |
-     *       A1/a <.........same evaluation order......... A8/a
-     *        ^
-     *       (a)
-     *        |
-     *      jack
+     * abde/A6 ----[I]----+
+     * |            |
+     * (e)           |
+     * |            V
+     * abc/A3 ----[I]----+ A5/abd ...... A7/abd----[I]----+
+     * |            | |                              |
+     * (c)           |(d)                             |
+     * |            V |                              |
+     * A2/ab ....... A4/ab                            |
+     * |                                             |
+     * (b)                                            |
+     * |                                             |
+     * A1/a <.........same evaluation order......... A8/a
+     * ^
+     * (a)
+     * |
+     * jack
      */
 
     @Test(enabled = FIFTH_PART)
@@ -2001,7 +1996,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         rolePirate = createRole("Pirate");
         rolePirate.setDelegable(true);
         roleSailor = createRole("Sailor");
-        metaroleCrewMember = createRole("MetaroleCrewMember");
+        metaroleCrewMember = createRole("MtrlCrewMember");
         metarolePerson = createRole("MetarolePerson");
         roleMan = createRole("Man");
         roleWoman = createRole("Woman");
@@ -2035,26 +2030,26 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         // org1->roleAdmin
         AssignmentType inducement = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject(), prismContext)
                 .beginOrderConstraint()
-                    .orderMin("1")
-                    .orderMax("unbounded")
-                    .resetOrder(1)
+                .orderMin("1")
+                .orderMax("unbounded")
+                .resetOrder(1)
                 .end();
         org1.getInducement().add(inducement);
 
         // org2->roleAdmin
         AssignmentType inducement2 = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject(), prismContext)
                 .beginOrderConstraint()
-                    .order(1)
-                    .relation(SchemaConstants.ORG_MANAGER)
+                .order(1)
+                .relation(SchemaConstants.ORG_MANAGER)
                 .<AssignmentType>end()
                 .beginOrderConstraint()
-                    .resetOrder(0)
-                    .relation(SchemaConstants.ORG_DEFAULT)
+                .resetOrder(0)
+                .relation(SchemaConstants.ORG_DEFAULT)
                 .end();
         org2.getInducement().add(inducement2);
 
         /*
-            *        Org4 -----I----+
+         *        Org4 -----I----+
          *          ^            | (orderConstraints: everything goes)
          *          |            | (focusType = UserType)
          *          |            | (reset approver to 0)
@@ -2065,16 +2060,16 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assign(org41, org4);
         AssignmentType inducement4 = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject(), prismContext)
                 .beginOrderConstraint()
-                    .orderMin("0")
-                    .orderMax("unbounded")
-                    .resetOrder(0)
-                    .relation(SchemaConstants.ORG_APPROVER)
+                .orderMin("0")
+                .orderMax("unbounded")
+                .resetOrder(0)
+                .relation(SchemaConstants.ORG_APPROVER)
                 .<AssignmentType>end()
                 .beginOrderConstraint()
-                    .orderMin("0")
-                    .orderMax("unbounded")
-                    .resetOrder(1)
-                    .relation(SchemaConstants.ORG_DEFAULT)
+                .orderMin("0")
+                .orderMax("unbounded")
+                .resetOrder(1)
+                .relation(SchemaConstants.ORG_DEFAULT)
                 .<AssignmentType>end()
                 .focusType(UserType.COMPLEX_TYPE);
         org4.getInducement().add(inducement4);
@@ -2122,11 +2117,11 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         ExpressionType expression = new ExpressionType();
         ScriptExpressionEvaluatorType script = new ScriptExpressionEvaluatorType();
         script.setCode(
-                  "import com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2\n\n"
-                + "TestAssignmentProcessor2.startCallback('" + name + "')\n"
-                + "this.binding.variables.each {k,v -> TestAssignmentProcessor2.variableCallback(k, v, '" + name + "')}\n"
-                + "TestAssignmentProcessor2.finishCallback('" + name + "')\n"
-                + "return null");
+                "import com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2\n\n"
+                        + "TestAssignmentProcessor2.startCallback('" + name + "')\n"
+                        + "this.binding.variables.each {k,v -> TestAssignmentProcessor2.variableCallback(k, v, '" + name + "')}\n"
+                        + "TestAssignmentProcessor2.finishCallback('" + name + "')\n"
+                        + "return null");
         expression.getExpressionEvaluator().add(new ObjectFactory().createScript(script));
         outbound.setExpression(expression);
         nameDef.setOutbound(outbound);
@@ -2187,7 +2182,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
     private void addConditionToAssignments(String text) {
         for (String item : getList(text)) {
-            String assignmentText = StringUtils.substring(item, 0,-1);
+            String assignmentText = StringUtils.substring(item, 0, -1);
             char conditionType = item.charAt(item.length() - 1);
             AssignmentType assignment = findAssignmentOrInducement(assignmentText);
             assignment.setCondition(createCondition(item, conditionType));
@@ -2197,11 +2192,20 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     private MappingType createCondition(String conditionName, char conditionType) {
         ScriptExpressionEvaluatorType script = new ScriptExpressionEvaluatorType();
         switch (conditionType) {
-            case '+': script.setCode("basic.stringify(name) == 'jack1'"); break;
-            case '-': script.setCode("basic.stringify(name) == 'jack'"); break;
-            case '0': script.setCode("basic.stringify(name) == 'never there'"); break;
-            case '!': script.setCode(createDumpConditionCode(conditionName)); break;
-            default: throw new AssertionError(conditionType);
+            case '+':
+                script.setCode("basic.stringify(name) == 'jack1'");
+                break;
+            case '-':
+                script.setCode("basic.stringify(name) == 'jack'");
+                break;
+            case '0':
+                script.setCode("basic.stringify(name) == 'never there'");
+                break;
+            case '!':
+                script.setCode(createDumpConditionCode(conditionName));
+                break;
+            default:
+                throw new AssertionError(conditionType);
         }
         ExpressionType expression = new ExpressionType();
         expression.getExpressionEvaluator().add(new ObjectFactory().createScript(script));
@@ -2215,7 +2219,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private String createDumpConditionCode(String text) {
-        return    "import com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2\n\n"
+        return "import com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2\n\n"
                 + "TestAssignmentProcessor2.startCallback('" + text + "')\n"
                 + "this.binding.variables.each {k,v -> TestAssignmentProcessor2.variableCallback(k, v, '" + text + "')}\n"
                 + "TestAssignmentProcessor2.finishCallback('" + text + "')\n"
@@ -2250,7 +2254,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private String createName(String prefix, int level, int number) {
-        return StringUtils.repeat('M', level-1) + prefix + number;
+        return StringUtils.repeat('M', level - 1) + prefix + number;
     }
 
     private OrgType createOrg(int number) {
@@ -2326,8 +2330,10 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private static String getRoleOid(String name) {
-        name = name.substring(0, Math.min(12, name.length()));
-        return "99999999-0000-0000-0000-" + StringUtils.repeat('0', 12-name.length()) + name;
+        String roleHexName = StringUtils.leftPad(
+                MiscUtil.binaryToHex(name.getBytes(StandardCharsets.UTF_8)), 24, "0");
+        return "99999999-" + roleHexName.substring(0, 4) + '-' + roleHexName.substring(4, 8)
+                + '-' + roleHexName.substring(8, 12) + '-' + roleHexName.substring(12, 24);
     }
 
     //endregion
@@ -2490,17 +2496,22 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     @SuppressWarnings("unchecked")
-    private <F extends FocusType> Collection<EvaluatedAssignmentImpl<F>> assertAssignmentTripleSetSize(LensContext<F> context, int zero, int plus, int minus) {
-        assertEquals("Wrong size of assignment triple zero set", zero, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getZeroSet()));
-        assertEquals("Wrong size of assignment triple plus set", plus, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getPlusSet()));
-        assertEquals("Wrong size of assignment triple minus set", minus, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getMinusSet()));
+    private <F extends FocusType> Collection<EvaluatedAssignmentImpl<F>>
+    assertAssignmentTripleSetSize(LensContext<F> context, int zero, int plus, int minus) {
+        assertEquals("Wrong size of assignment triple zero set", zero,
+                CollectionUtils.size(context.getEvaluatedAssignmentTriple().getZeroSet()));
+        assertEquals("Wrong size of assignment triple plus set", plus,
+                CollectionUtils.size(context.getEvaluatedAssignmentTriple().getPlusSet()));
+        assertEquals("Wrong size of assignment triple minus set", minus,
+                CollectionUtils.size(context.getEvaluatedAssignmentTriple().getMinusSet()));
         return (Collection) context.getEvaluatedAssignmentTriple().getAllValues();
     }
 
     //endregion
     //region ============================================================= helper methods (misc)
 
-    private <F extends FocusType> List<ResourceObjectConstruction<F, EvaluatedAssignedResourceObjectConstructionImpl<F>>> getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
+    private <F extends FocusType> List<ResourceObjectConstruction<F, EvaluatedAssignedResourceObjectConstructionImpl<F>>>
+    getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
         return evaluatedAssignment.getConstructionTriple().getAllValues().stream()
                 .filter(c -> name.equals(getDescription(c)))
                 .collect(Collectors.toList());

@@ -67,6 +67,7 @@ public class UriCache {
     private final Map<Integer, String> idToUri = new ConcurrentHashMap<>();
     private final Map<String, Integer> uriToId = new ConcurrentHashMap<>();
 
+    // WARNING: Each .get() creates new connection, always use in try-with-resource block!
     private Supplier<JdbcSession> jdbcSessionSupplier;
 
     /**
@@ -224,11 +225,14 @@ public class UriCache {
     }
 
     private Integer retrieveIdFromDb(String uriString) {
-        MUri row = jdbcSessionSupplier.get().newQuery()
-            .select(QUri.DEFAULT)
-            .from(QUri.DEFAULT)
-            .where(QUri.DEFAULT.uri.eq(uriString))
-            .fetchOne();
+        MUri row;
+        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startReadOnlyTransaction()) {
+            row = jdbcSession.newQuery()
+                    .select(QUri.DEFAULT)
+                    .from(QUri.DEFAULT)
+                    .where(QUri.DEFAULT.uri.eq(uriString))
+                    .fetchOne();
+        }
         if (row == null) {
             return null;
         }
@@ -237,11 +241,14 @@ public class UriCache {
     }
 
     private String retrieveUriFromDb(Integer id) {
-        MUri row = jdbcSessionSupplier.get().newQuery()
-                .select(QUri.DEFAULT)
-                .from(QUri.DEFAULT)
-                .where(QUri.DEFAULT.id.eq(id))
-                .fetchOne();
+        MUri row;
+        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startReadOnlyTransaction()) {
+            row = jdbcSession.newQuery()
+                    .select(QUri.DEFAULT)
+                    .from(QUri.DEFAULT)
+                    .where(QUri.DEFAULT.id.eq(id))
+                    .fetchOne();
+        }
         if (row == null) {
             return null;
         }
