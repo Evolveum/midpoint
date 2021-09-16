@@ -70,7 +70,7 @@
         <item>givenName</item>
         <item>familyName</item>
         <item>fullName</item>
-        <item>employeeType</item>
+        <item>subtype</item>
         <item>employeeNumber</item>
     </authorization>
     <authorization>
@@ -87,7 +87,7 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>roleType</item>
+        <item>subtype</item>
     </authorization>
     <authorization>
         <name>orgs-read</name>
@@ -103,7 +103,7 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>orgType</item>
+        <item>subtype</item>
     </authorization>
     <authorization>
         <name>services-read</name>
@@ -119,7 +119,7 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>serviceType</item>
+        <item>subtype</item>
     </authorization>
-    <roleType>system</roleType>
+    <subtype>system</subtype>
 </role>

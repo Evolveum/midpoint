@@ -17,7 +17,7 @@
         <description>The office of the most respectful Governor.</description>
         <displayName>Governor Office</displayName>
         <identifier>0001</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <costCenter>CC0</costCenter>
         <locality>The Governor's Mansion</locality>
     </org>
@@ -32,7 +32,7 @@
         <delegable>true</delegable>
         <displayName>Ministry of Defense</displayName>
         <identifier>0002</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <locality>The towers, bastions and bars</locality>
     </org>
 
@@ -46,7 +46,7 @@
         <delegable>true</delegable>
         <displayName>Ministry of Offense</displayName>
         <identifier>0003</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <costCenter>CC666</costCenter>
     </org>
 
@@ -60,7 +60,7 @@
         <delegable>true</delegable>
         <displayName>Ministry of Rum</displayName>
         <identifier>0004</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <costCenter>CCRUM</costCenter>
     </org>
 
@@ -74,7 +74,7 @@
         <delegable>true</delegable>
         <displayName>Swashbuckler Section</displayName>
         <identifier>0005</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-100000000006">
@@ -110,7 +110,7 @@
         <delegable>true</delegable>
         <displayName>Scumm Bar</displayName>
         <identifier>0006</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <locality>Mêlée Island</locality>
     </org>
 
@@ -120,7 +120,7 @@
         <name>PRoot</name>
         <description>Project organizational structure root</description>
         <displayName>Projects</displayName>
-        <orgType>project</orgType>
+        <subtype>project</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-200000000001">
@@ -132,7 +132,7 @@
         <delegable>true</delegable>
         <displayName>Save Elaine</displayName>
         <identifier>0001</identifier>
-        <orgType>project</orgType>
+        <subtype>project</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-200000000002">
@@ -144,7 +144,7 @@
         <delegable>true</delegable>
         <displayName>Kidnap and marry Elaine</displayName>
         <identifier>0002</identifier>
-        <orgType>project</orgType>
+        <subtype>project</subtype>
     </org>
 
 </objects>
