@@ -11,10 +11,7 @@ import java.util.*;
 import com.evolveum.midpoint.web.security.module.configuration.SamlMidpointAdditionalConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
-import org.opensaml.saml.saml2.core.Assertion;
-import org.opensaml.saml.saml2.core.Attribute;
-import org.opensaml.saml.saml2.core.AttributeStatement;
-import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.converter.Converter;
@@ -74,8 +71,19 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
                     }
                 }
             }
-            return new Saml2Authentication(new DefaultSaml2AuthenticatedPrincipal(principal.getName(), attributes),
-                    authentication.getSaml2Response(), authentication.getAuthorities());
+            MidpointSaml2AuthenticatedPrincipal newPrincipal = new MidpointSaml2AuthenticatedPrincipal(
+                    principal.getName(),
+                    attributes,
+                    assertion.getSubject().getNameID()
+            );
+            newPrincipal.setRelyingPartyRegistrationId(responseToken.getToken().getRelyingPartyRegistration().getRegistrationId());
+            Saml2Authentication saml2Authentication = new Saml2Authentication(
+                    newPrincipal,
+                    authentication.getSaml2Response(),
+                    authentication.getAuthorities()
+            );
+            saml2Authentication.setDetails(assertion.getSubject().getNameID());
+            return saml2Authentication;
         });
     }
 
@@ -85,7 +93,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
     }
 
     @Override
-    protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
+    protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
             ModuleAuthentication moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
         if (principal != null && principal instanceof GuiProfiledPrincipal) {
@@ -109,6 +117,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
             Saml2ModuleAuthentication samlModule = (Saml2ModuleAuthentication) SecurityUtils.getProcessingModule(true);
             try {
                 DefaultSaml2AuthenticatedPrincipal principal = (DefaultSaml2AuthenticatedPrincipal) samlAuthentication.getPrincipal();
+                samlAuthenticationToken.setDetails(principal);
                 Map<String, List<Object>> attributes = principal.getAttributes();
                 String enteredUsername = "";
                 SamlMidpointAdditionalConfiguration config = samlModule.getAdditionalConfiguration().get(samlAuthenticationToken.getRelyingPartyRegistration().getAssertingPartyDetails().getEntityId());
@@ -134,7 +143,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
                 }
                 token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, authContext);
             } catch (AuthenticationException e) {
-                samlModule.setAuthentication(samlAuthentication);
+                samlModule.setAuthentication(samlAuthenticationToken);
                 LOGGER.info("Authentication with saml module failed: {}", e.getMessage());
                 throw e;
             }
@@ -162,5 +171,25 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
     @Override
     public boolean supports(Class authentication) {
         return openSamlProvider.supports(authentication);
+    }
+
+    public class MidpointSaml2AuthenticatedPrincipal extends DefaultSaml2AuthenticatedPrincipal{
+
+        private final String spNameQualifier;
+        private final String nameIdFormat;
+
+        public MidpointSaml2AuthenticatedPrincipal(String name, Map<String, List<Object>> attributes, NameID nameID) {
+            super(name, attributes);
+            spNameQualifier = nameID.getSPNameQualifier();
+            nameIdFormat = nameID.getFormat();
+        }
+
+        public String getNameIdFormat() {
+            return nameIdFormat;
+        }
+
+        public String getSpNameQualifier() {
+            return spNameQualifier;
+        }
     }
 }

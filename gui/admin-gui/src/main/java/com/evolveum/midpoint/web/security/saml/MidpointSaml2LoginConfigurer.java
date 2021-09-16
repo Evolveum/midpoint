@@ -18,10 +18,7 @@ import org.springframework.security.saml2.provider.service.authentication.*;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
-import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
-import org.springframework.security.saml2.provider.service.web.DefaultSaml2AuthenticationRequestContextResolver;
-import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationRequestContextResolver;
-import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter;
+import org.springframework.security.saml2.provider.service.web.*;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
@@ -108,7 +105,7 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
 
     public void configure(B http) throws Exception {
         Saml2AuthenticationRequestFactory authenticationRequestResolver = new OpenSaml4AuthenticationRequestFactory();
-        Saml2AuthenticationRequestContextResolver contextResolver = new DefaultSaml2AuthenticationRequestContextResolver(new DefaultRelyingPartyRegistrationResolver(MidpointSaml2LoginConfigurer.this.relyingPartyRegistrationRepository));
+        Saml2AuthenticationRequestContextResolver contextResolver = new DefaultSaml2AuthenticationRequestContextResolver((RelyingPartyRegistrationResolver) new DefaultRelyingPartyRegistrationResolver(MidpointSaml2LoginConfigurer.this.relyingPartyRegistrationRepository));
         http.addFilter(new MidpointSaml2WebSsoAuthenticationRequestFilter(contextResolver, authenticationRequestResolver));
         super.configure(http);
         if (this.authenticationManager != null) {
@@ -117,7 +114,7 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
     }
 
     private AuthenticationConverter getAuthenticationConverter(B http) {
-        return (AuthenticationConverter)(this.authenticationConverter == null ? new Saml2AuthenticationTokenConverter(new DefaultRelyingPartyRegistrationResolver(this.relyingPartyRegistrationRepository)) : this.authenticationConverter);
+        return (AuthenticationConverter)(this.authenticationConverter == null ? new Saml2AuthenticationTokenConverter((RelyingPartyRegistrationResolver) new DefaultRelyingPartyRegistrationResolver(this.relyingPartyRegistrationRepository)) : this.authenticationConverter);
     }
 
     private void initDefaultLoginFilter(B http) {

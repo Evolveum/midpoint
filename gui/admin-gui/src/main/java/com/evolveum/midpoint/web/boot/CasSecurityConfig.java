@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.web.boot;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jasig.cas.client.validation.TicketValidator;
+//import org.jasig.cas.client.validation.TicketValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

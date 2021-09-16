@@ -15,6 +15,8 @@ import com.evolveum.midpoint.web.security.saml.MidpointMetadataRelyingPartyRegis
 
 import com.evolveum.midpoint.web.security.saml.MidpointSaml2LoginConfigurer;
 
+import com.evolveum.midpoint.web.security.saml.MidpointSaml2LogoutRequestResolver;
+import com.evolveum.midpoint.web.security.saml.MidpointSaml2LogoutRequestSuccessHandler;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
@@ -33,6 +35,8 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
+import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
 import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
@@ -42,8 +46,13 @@ import com.evolveum.midpoint.web.security.*;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
 
+import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutRequestResolver;
+import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver;
+import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestSuccessHandler;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.ServletRequest;
@@ -97,6 +106,15 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         }
         getOrApply(http, configurer);
 
+        RelyingPartyRegistrationResolver registrationResolver = new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrations());
+        LogoutSuccessHandler logoutRequestSuccessHandler = logoutRequestSuccessHandler(registrationResolver);
+
+        http.logout().clearAuthentication(true)
+                .logoutRequestMatcher(new AntPathRequestMatcher(getPrefix() + "/logout"))
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .logoutSuccessHandler(logoutRequestSuccessHandler);
+
         Saml2MetadataFilter filter = new Saml2MetadataFilter(new MidpointMetadataRelyingPartyRegistrationResolver(relyingPartyRegistrations()),
                 new OpenSamlMetadataResolver());
         filter.setRequestMatcher(new AntPathRequestMatcher( getConfiguration().getPrefix() + "/metadata"));
@@ -147,5 +165,13 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
             }
             return detailsSource.buildDetails(context);
         }
+    }
+
+    private LogoutSuccessHandler logoutRequestSuccessHandler(RelyingPartyRegistrationResolver registrationResolver) {
+        Saml2LogoutRequestResolver logoutRequestResolver = new MidpointSaml2LogoutRequestResolver(
+                new OpenSaml4LogoutRequestResolver(registrationResolver));
+        Saml2LogoutRequestSuccessHandler handler = new Saml2LogoutRequestSuccessHandler(logoutRequestResolver);
+        return getObjectPostProcessor().postProcess(new MidpointSaml2LogoutRequestSuccessHandler(
+                handler));
     }
 }

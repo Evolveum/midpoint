@@ -13,8 +13,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.security.module.configuration.SamlMidpointAdditionalConfiguration;
-
 import net.shibboleth.utilities.java.support.xml.ParserPool;
 import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.XMLObject;
@@ -49,7 +47,7 @@ public class MidpointAssertingPartyMetadataConverter {
         this.parserPool = this.registry.getParserPool();
     }
 
-    public RelyingPartyRegistration.Builder convert(InputStream inputStream, SamlMidpointAdditionalConfiguration.Builder additionalConfigurationBuilder) {
+    public RelyingPartyRegistration.Builder convert(InputStream inputStream) {
         EntityDescriptor descriptor = entityDescriptor(inputStream);
         IDPSSODescriptor idpssoDescriptor = descriptor.getIDPSSODescriptor(SAMLConstants.SAML20P_NS);
         if (idpssoDescriptor == null) {
@@ -113,24 +111,26 @@ public class MidpointAssertingPartyMetadataConverter {
             throw new Saml2Exception(
                     "Metadata response is missing a SingleSignOnService, necessary for sending AuthnRequests");
         }
-//        for (SingleLogoutService singleLogoutService : idpssoDescriptor.getSingleLogoutServices()) {
-//            Saml2MessageBinding binding;
-//            if (singleLogoutService.getBinding().equals(Saml2MessageBinding.POST.getUrn())) {
-//                binding = Saml2MessageBinding.POST;
-//            }
-//            else if (singleLogoutService.getBinding().equals(Saml2MessageBinding.REDIRECT.getUrn())) {
-//                binding = Saml2MessageBinding.REDIRECT;
-//            }
-//            else {
-//                continue;
-//            }
-//
-//            additionalConfigurationBuilder.logoutBinding(binding).logoutDestination(singleLogoutService.getLocation());
-//            return builder;
-//        }
-//        throw new Saml2Exception(
-//                "Metadata response is missing a SingleLogoutService, necessary for sending LogoutRequests");
-        return builder;
+
+        for (SingleLogoutService singleLogoutService : idpssoDescriptor.getSingleLogoutServices()) {
+            Saml2MessageBinding binding;
+            if (singleLogoutService.getBinding().equals(Saml2MessageBinding.POST.getUrn())) {
+                binding = Saml2MessageBinding.POST;
+            }
+            else if (singleLogoutService.getBinding().equals(Saml2MessageBinding.REDIRECT.getUrn())) {
+                binding = Saml2MessageBinding.REDIRECT;
+            }
+            else {
+                continue;
+            }
+
+            builder.assertingPartyDetails(
+                    (party) -> party.singleLogoutServiceLocation(singleLogoutService.getLocation())
+                            .singleLogoutServiceBinding(binding));
+            return builder;
+        }
+        throw new Saml2Exception(
+                "Metadata response is missing a SingleLogoutService, necessary for sending LogoutRequests");
     }
 
     private List<X509Certificate> certificates(KeyDescriptor keyDescriptor) {

@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
+import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -25,7 +26,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 /**
  * @author skublik
  */
-public class MidpointMetadataRelyingPartyRegistrationResolver implements Converter<HttpServletRequest, RelyingPartyRegistration> {
+public class MidpointMetadataRelyingPartyRegistrationResolver implements RelyingPartyRegistrationResolver {
 
     private static final char PATH_DELIMITER = '/';
 
@@ -35,25 +36,6 @@ public class MidpointMetadataRelyingPartyRegistrationResolver implements Convert
             InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         Assert.notNull(relyingPartyRegistrationRepository, "relyingPartyRegistrationRepository cannot be null");
         this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
-    }
-
-    @Override
-    public RelyingPartyRegistration convert(HttpServletRequest request) {
-        if (!this.relyingPartyRegistrationRepository.iterator().hasNext()) {
-            return null;
-        }
-        RelyingPartyRegistration relyingPartyRegistration = this.relyingPartyRegistrationRepository.iterator().next();
-        if (relyingPartyRegistration == null) {
-            return null;
-        }
-        String applicationUri = getApplicationUri(request);
-        Function<String, String> templateResolver = templateResolver(applicationUri, relyingPartyRegistration);
-        String relyingPartyEntityId = templateResolver.apply(relyingPartyRegistration.getEntityId());
-        String assertionConsumerServiceLocation = templateResolver
-                .apply(relyingPartyRegistration.getAssertionConsumerServiceLocation());
-        return RelyingPartyRegistration.withRelyingPartyRegistration(relyingPartyRegistration)
-                .entityId(relyingPartyEntityId).assertionConsumerServiceLocation(assertionConsumerServiceLocation)
-                .build();
     }
 
     protected Function<String, String> templateResolver(String applicationUri, RelyingPartyRegistration relyingParty) {
@@ -88,5 +70,30 @@ public class MidpointMetadataRelyingPartyRegistrationResolver implements Convert
         UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
                 .replacePath(request.getContextPath()).replaceQuery(null).fragment(null).build();
         return uriComponents.toUriString();
+    }
+
+    @Override
+    public RelyingPartyRegistration resolve(HttpServletRequest request, String relyingPartyRegistrationId) {
+        if (!this.relyingPartyRegistrationRepository.iterator().hasNext()) {
+            return null;
+        }
+        RelyingPartyRegistration relyingPartyRegistration = this.relyingPartyRegistrationRepository.iterator().next();
+        if (relyingPartyRegistration == null) {
+            return null;
+        }
+        String applicationUri = getApplicationUri(request);
+        Function<String, String> templateResolver = templateResolver(applicationUri, relyingPartyRegistration);
+        String relyingPartyEntityId = templateResolver.apply(relyingPartyRegistration.getEntityId());
+        String assertionConsumerServiceLocation = templateResolver
+                .apply(relyingPartyRegistration.getAssertionConsumerServiceLocation());
+        String singleLogoutServiceLocation = templateResolver
+                .apply(relyingPartyRegistration.getSingleLogoutServiceLocation());
+        return RelyingPartyRegistration
+                .withRelyingPartyRegistration(relyingPartyRegistration)
+                .entityId(relyingPartyEntityId)
+                .assertionConsumerServiceLocation(assertionConsumerServiceLocation)
+                .singleLogoutServiceLocation(singleLogoutServiceLocation)
+                .singleLogoutServiceResponseLocation("")
+                .build();
     }
 }

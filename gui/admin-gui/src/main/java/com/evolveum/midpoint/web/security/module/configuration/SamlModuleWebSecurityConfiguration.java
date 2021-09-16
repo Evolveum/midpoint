@@ -104,7 +104,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                     StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
             builder.pathSegment(SecurityUtils.stripSlashes(configuration.getPrefix()) + RESPONSE_PROCESSING_URL_SUFFIX);
-            RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata(), additionalConfigBuilder)
+            RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata())
                     .registrationId(registrationId)
                     .entityId(serviceProviderType.getEntityId())
                     .assertionConsumerServiceLocation(builder.build().toUriString())
@@ -218,8 +218,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         return configuration;
     }
 
-    private static RelyingPartyRegistration.Builder getRelyingPartyFromMetadata(
-            Saml2ProviderMetadataAuthenticationModuleType metadata, SamlMidpointAdditionalConfiguration.Builder additionalConfigurationBuilder) {
+    private static RelyingPartyRegistration.Builder getRelyingPartyFromMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata) {
         RelyingPartyRegistration.Builder builder = RelyingPartyRegistration.withRegistrationId("builder");
         if (metadata != null) {
             if (metadata.getXml() != null || metadata.getPathToFile() != null) {
@@ -229,11 +228,11 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 } catch (IOException e) {
                     LOGGER.error("Couldn't obtain metadata as string from " + metadata);
                 }
-                builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(new ByteArrayInputStream(metadataAsString.getBytes()), additionalConfigurationBuilder);
+                builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(new ByteArrayInputStream(metadataAsString.getBytes()));
             }
             if (metadata.getMetadataUrl() != null) {
                 try (InputStream source = RESOURCE_LOADER.getResource(metadata.getMetadataUrl()).getInputStream()) {
-                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(source, additionalConfigurationBuilder);
+                    builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(source);
                 }
                 catch (IOException ex) {
                     if (ex.getCause() instanceof Saml2Exception) {

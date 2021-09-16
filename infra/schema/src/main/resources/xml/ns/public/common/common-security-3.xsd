@@ -487,7 +487,13 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractAuthenticationModuleType">
                 <xsd:sequence>
-                    <xsd:element name="network" type="tns:Saml2NetworkAuthenticationModuleType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="network" type="tns:Saml2NetworkAuthenticationModuleType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="serviceProvider" type="tns:Saml2ServiceProviderAuthenticationModuleType" minOccurs="1" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
