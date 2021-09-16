@@ -9,7 +9,7 @@
     <name>Role10b</name>
     <description>Induced by Role1b</description>
     <assignment> <!-- metarole 1 'default' -->
-        <targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
+        <targetRef oid="00000001-d34d-b33f-f00d-b00000000001" type="RoleType"/>
     </assignment>
     <delegable>true</delegable>
 </role>

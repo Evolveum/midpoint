@@ -52,9 +52,17 @@ public class ContainerTableRelationResolver<
                     "Item path provided for container table relation resolver must have two"
                             + " segments with PCV ID as the second");
         }
-        if (context.findValueOrItem(itemPath) == null) {
-            throw new RepositoryException("Container for path '" + itemPath + "' does not exist!");
-        }
+        // TODO: this works for top level containers, but not for nested, e.g. this tries to resolve
+        //  workItem/3 on root object for modification on case/2/workItem/3 (during the resolution).
+        //  Normally context.findValueOrItem is used with modification.getPath(), but here it's more
+        //  relative, which obviously can't work.
+        //  Perhaps findValueOrItemRelative() is needed, ContainerTableUpdateContext should capture
+        //  the container value it resolves and find in that one, not delegate to the root context.
+        //  TestCertificationBasic will fail if this is not fixed, but it's OK to leave it out - it
+        //  only makes errors down the line more confusing.
+//        if (context.findValueOrItem(itemPath) == null) {
+//            throw new RepositoryException("Container for path '" + itemPath + "' does not exist!");
+//        }
 
         QContainerMapping<TS, TQ, TR, R> containerMapping =
                 (QContainerMapping<TS, TQ, TR, R>) targetMappingSupplier.get();

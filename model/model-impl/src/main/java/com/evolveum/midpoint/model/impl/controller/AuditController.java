@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -111,7 +112,10 @@ public class AuditController implements ModelAuditService {
         //noinspection unchecked
         PrismObject<O> currentObject = (PrismObject<O>) currentObjectType.asPrismObject();
 
-        List<AuditEventRecordType> changeTrail = getChangeTrail(oid, eventIdentifier, result);
+        List<AuditEventRecordType> changeTrail =
+                new ArrayList<>( // we later modify this list, so we need to make it mutable here
+                        getChangeTrail(oid, eventIdentifier, result));
+
         LOGGER.trace("Found change trail for {} containing {} events", oid, changeTrail.size());
 
         LOGGER.debug("TRAIL:\n{}", DebugUtil.debugDumpLazily(changeTrail, 1));
@@ -166,6 +170,13 @@ public class AuditController implements ModelAuditService {
         return listRecords.get(0);
     }
 
+    /**
+     * Side effect: removes the last event.
+     *
+     * The reason is that we don't want to use it when rolling back the time later in
+     * {@link #rollBackTime(PrismObject, List)}. It is the reference event that we want to
+     * know the object state on.
+     */
     private <O extends ObjectType> PrismObject<O> getObjectFromLastEvent(
             PrismObject<O> object, List<AuditEventRecordType> changeTrail, String eventIdentifier) {
         if (changeTrail.isEmpty()) {

@@ -14,18 +14,13 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -35,8 +30,10 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -52,9 +49,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCleanupWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author skublik
@@ -86,8 +81,8 @@ public class ShadowCleanupActivityHandler
     }
 
     @Override
-    protected @NotNull SearchBasedSpecificsSupplier<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler> getSpecificSupplier() {
-        return MyExecutionSpecifics::new;
+    protected @NotNull ExecutionSupplier<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler> getExecutionSupplier() {
+        return MyExecution::new;
     }
 
     @Override
@@ -110,13 +105,15 @@ public class ShadowCleanupActivityHandler
         return "shadow-cleanup";
     }
 
-    public static class MyExecutionSpecifics extends
-            BaseSearchBasedExecutionSpecificsImpl<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler> {
+    public static class MyExecution extends
+            SearchBasedActivityExecution<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler, AbstractActivityWorkStateType> {
 
         private ResourceObjectClassSpecification resourceObjectClassSpecification;
 
-        MyExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler, ?> activityExecution) {
-            super(activityExecution);
+        MyExecution(
+                @NotNull ExecutionInstantiationContext<MyWorkDefinition, ShadowCleanupActivityHandler> context,
+                String shortName) {
+            super(context, shortName);
         }
 
         @Override

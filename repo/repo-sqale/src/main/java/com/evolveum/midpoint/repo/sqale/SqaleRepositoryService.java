@@ -97,6 +97,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private static final Collection<SelectorOptions<GetOperationOptions>> GET_FOR_UPDATE_OPTIONS =
             SchemaService.get().getOperationOptionsBuilder().retrieve().build();
 
+    public static final String REPOSITORY_IMPL_NAME = "SQaLe";
+
     private final SqlQueryExecutor sqlQueryExecutor;
 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
@@ -591,9 +593,30 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
         PrismObject<T> originalObject = prismObject.clone(); // for result later
 
-        modifications = updateContext.execute(modifications);
-        updateContext.jdbcSession().commit();
+        boolean reindex = options.isForceReindex();
 
+        if (reindex) {
+            // UpdateTables is false, we want only to process modifications on fullObject
+            // do not modify nested items.
+            modifications = updateContext.execute(modifications, false);
+            // We delete original object and cascade of referenced tables, this will also
+            // remove additional rows, which may not be present in full object
+            // after desync
+            updateContext.jdbcSession().newDelete(updateContext.entityPath())
+                    .where(updateContext.entityPath().oid.eq(updateContext.objectOid()))
+                    .execute();
+            try {
+                // We add object again, this will ensure recreation of all indices and correct
+                // table rows again
+                new AddObjectContext<>(sqlRepoContext, updateContext.getPrismObject())
+                        .executeReindexed(updateContext.jdbcSession());
+            } catch (SchemaException | ObjectAlreadyExistsException e) {
+                throw new RepositoryException("Update with reindex failed", e);
+            }
+        } else {
+            modifications = updateContext.execute(modifications);
+            updateContext.jdbcSession().commit();
+        }
         logger.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
 
         if (!modifications.isEmpty()) {
@@ -772,7 +795,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 return 0;
             }
 
-            return executeCountObject(type, query, options);
+            return executeCountObjects(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -783,7 +806,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    private <T extends ObjectType> int executeCountObject(
+    private <T extends ObjectType> int executeCountObjects(
             @NotNull Class<T> type,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
@@ -823,7 +846,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 return new SearchResultList<>();
             }
 
-            return executeSearchObject(type, query, options, OP_SEARCH_OBJECTS);
+            return executeSearchObjects(type, query, options, OP_SEARCH_OBJECTS);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -834,7 +857,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
     }
 
-    private <T extends ObjectType> SearchResultList<PrismObject<T>> executeSearchObject(
+    private <T extends ObjectType> SearchResultList<PrismObject<T>> executeSearchObjects(
             @NotNull Class<T> type,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
@@ -979,7 +1002,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
                 // we don't call public searchObject to avoid subresults and query simplification
                 logSearchInputParameters(type, pagedQuery, "Search object iterative page");
-                List<PrismObject<T>> objects = executeSearchObject(
+                List<PrismObject<T>> objects = executeSearchObjects(
                         type, pagedQuery, options, OP_SEARCH_OBJECTS_ITERATIVE_PAGE);
 
                 // process page results
@@ -1280,7 +1303,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     .item(FocusType.F_LINK_REF).ref(shadowOid)
                     .build();
             SearchResultList<PrismObject<FocusType>> result =
-                    executeSearchObject(FocusType.class, query, options, OP_SEARCH_SHADOW_OWNER);
+                    executeSearchObjects(FocusType.class, query, options, OP_SEARCH_SHADOW_OWNER);
 
             if (result == null || result.isEmpty()) {
                 // account shadow owner was not found
@@ -1461,7 +1484,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         logger.debug("Getting repository diagnostics.");
 
         RepositoryDiag diag = new RepositoryDiag();
-        diag.setImplementationShortName("SQaLe");
+        diag.setImplementationShortName(REPOSITORY_IMPL_NAME);
         diag.setImplementationDescription(
                 "Implementation that stores data in PostgreSQL database using JDBC with Querydsl.");
 
@@ -1877,10 +1900,5 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } else {
             return true;
         }
-    }
-
-    @Override
-    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
-        return performanceMonitor;
     }
 }

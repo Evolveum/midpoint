@@ -64,7 +64,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
     @Override
     public void initSystem() throws Exception {
-        System.out.println(">>>> Repository diag: " + repositoryService.getRepositoryDiag());
+        System.out.println(">>>> Repository diag: " + plainRepositoryService.getRepositoryDiag());
     }
 
     @Test
@@ -95,7 +95,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                         true)
         };
         Checker checker = (iteration, oid) -> {
-            PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
+            PrismObject<UserType> userRetrieved = plainRepositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
             String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
             String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
             logger.info("[" + iteration + "] givenName = " + givenName + ", assignment description = " + assignmentDescription);
@@ -119,7 +119,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                         true),
         };
         Checker checker = (iteration, oid) -> {
-            PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
+            PrismObject<UserType> userRetrieved = plainRepositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
             String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
             String familyName = userRetrieved.asObjectable().getFamilyName().getOrig();
             String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
@@ -150,7 +150,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         user.asObjectable().setName(new PolyStringType(name));
 
         OperationResult result = new OperationResult("Concurrency Test");
-        String oid = repositoryService.addObject(user, null, result);
+        String oid = plainRepositoryService.addObject(user, null, result);
 
         logger.info("*** Object added: {} ***", oid);
         logger.info("*** Starting modifier threads ***");
@@ -336,7 +336,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
             }
 
             try {
-                repositoryService.modifyObject(UserType.class, oid, deltas, result);
+                plainRepositoryService.modifyObject(UserType.class, oid, deltas, result);
                 result.computeStatus();
                 if (result.isError()) {
                     logger.error("Error found in operation result:\n{}", result.debugDump());
@@ -357,7 +357,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
                 PrismObject<UserType> user;
                 try {
-                    user = repositoryService.getObject(UserType.class, oid, null, result);
+                    user = plainRepositoryService.getObject(UserType.class, oid, null, result);
                 } catch (Exception e) {
                     String msg = "getObject failed while getting attribute(s) " + attributeNames();
                     throw new RuntimeException(msg, e);
@@ -423,7 +423,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         }
 
         void runOnce(OperationResult result) throws Exception {
-            repositoryService.addObject(getObjectToAdd(), null, result);
+            plainRepositoryService.addObject(getObjectToAdd(), null, result);
         }
 
         protected abstract PrismObject<T> getObjectToAdd();
@@ -449,7 +449,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         void runOnce(OperationResult result) throws Exception {
             String oidToDelete = getOidToDelete();
             if (oidToDelete != null) {
-                repositoryService.deleteObject(objectClass, oidToDelete, result);
+                plainRepositoryService.deleteObject(objectClass, oidToDelete, result);
             } else {
                 stop = true;
             }
@@ -477,7 +477,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         abstract Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception;
 
         void runOnce(OperationResult result) throws Exception {
-            repositoryService.modifyObject(objectClass, oid, getItemDeltas(), result);
+            plainRepositoryService.modifyObject(objectClass, oid, getItemDeltas(), result);
         }
     }
 
@@ -492,9 +492,9 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         user.asObjectable().setName(new PolyStringType(name));
 
         final OperationResult result = new OperationResult("Concurrency Test10");
-        String oid = repositoryService.addObject(user, null, result);
+        String oid = plainRepositoryService.addObject(user, null, result);
 
-        repositoryService.searchObjectsIterative(UserType.class,
+        plainRepositoryService.searchObjectsIterative(UserType.class,
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_NAME).eqPoly(name).matchingOrig().build(),
                 (object, parentResult) -> {
@@ -504,7 +504,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                                     UserType.F_FULL_NAME, new PolyString(newFullName));
                     try {
                         //noinspection unchecked
-                        repositoryService.modifyObject(UserType.class,
+                        plainRepositoryService.modifyObject(UserType.class,
                                 object.getOid(),
                                 delta.getModifications(),
                                 parentResult);
@@ -515,7 +515,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 },
                 null, true, result);
 
-        PrismObject<UserType> reloaded = repositoryService.getObject(UserType.class, oid, null, result);
+        PrismObject<UserType> reloaded = plainRepositoryService.getObject(UserType.class, oid, null, result);
         assertEquals("Full name was not changed", newFullName, reloaded.asObjectable().getFullName().getOrig());
     }
 
@@ -529,7 +529,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         UserType user = new UserType(prismContext).name("jack");
 
         OperationResult result = new OperationResult("test100AddOperationExecution");
-        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+        String oid = plainRepositoryService.addObject(user.asPrismObject(), null, result);
 
         displayValue("object added", oid);
 
@@ -583,7 +583,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         UserType user = new UserType(prismContext).name("alice");
 
         OperationResult result = new OperationResult("test110AddAssignments");
-        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+        String oid = plainRepositoryService.addObject(user.asPrismObject(), null, result);
 
         displayValue("object added", oid);
 
@@ -610,7 +610,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         }
 
         waitForThreads(threads, DURATION);
-        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, oid, null, result);
+        PrismObject<UserType> userAfter = plainRepositoryService.getObject(UserType.class, oid, null, result);
         displayValue("user after", userAfter);
         assertThat(userAfter.asObjectable().getAssignment().size())
                 .as("# of assignments")
@@ -627,7 +627,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         RoleType role = new RoleType(prismContext).name("judge");
 
         OperationResult result = new OperationResult("test120AddApproverRef");
-        String oid = repositoryService.addObject(role.asPrismObject(), null, result);
+        String oid = plainRepositoryService.addObject(role.asPrismObject(), null, result);
 
         displayValue("object added", oid);
 
@@ -651,7 +651,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         }
 
         waitForThreads(threads, DURATION);
-        PrismObject<RoleType> roleAfter = repositoryService.getObject(RoleType.class, oid, null, result);
+        PrismObject<RoleType> roleAfter = plainRepositoryService.getObject(RoleType.class, oid, null, result);
         displayValue("role after", roleAfter);
 
         int totalExecutions = threads.stream().mapToInt(t -> t.counter.get()).sum();
@@ -690,17 +690,17 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
         OperationResult result = new OperationResult("test130DeleteObjects");
 
-        SearchResultList<PrismObject<UserType>> users = repositoryService
+        SearchResultList<PrismObject<UserType>> users = plainRepositoryService
                 .searchObjects(UserType.class, null, null, result);
         for (PrismObject<UserType> user : users) {
-            repositoryService.deleteObject(UserType.class, user.getOid(), result);
+            plainRepositoryService.deleteObject(UserType.class, user.getOid(), result);
         }
         assertEquals("Wrong # of users at the beginning", 0,
-                repositoryService.countObjects(UserType.class, null, null, result));
+                plainRepositoryService.countObjects(UserType.class, null, null, result));
 
         logger.info("Starting ADD worker threads");
 
-        repositoryService.getPerformanceMonitor().clearGlobalPerformanceInformation();
+        plainRepositoryService.getPerformanceMonitor().clearGlobalPerformanceInformation();
         List<AddObjectsThread<UserType>> addThreads = new ArrayList<>();
         for (int i = 0; i < ADD_THREADS; i++) {
             int threadIndex = i;
@@ -714,15 +714,15 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
             addThreads.add(thread);
         }
         waitForThreadsFinish(addThreads, TIMEOUT);
-        System.out.println("Add performance information:\n" + repositoryService.getPerformanceMonitor().getGlobalPerformanceInformation().debugDump());
+        System.out.println("Add performance information:\n" + plainRepositoryService.getPerformanceMonitor().getGlobalPerformanceInformation().debugDump());
 
-        SearchResultList<PrismObject<UserType>> objectsCreated = repositoryService
+        SearchResultList<PrismObject<UserType>> objectsCreated = plainRepositoryService
                 .searchObjects(UserType.class, null, null, result);
         assertEquals("Wrong # of users after creation", ADD_THREADS * OBJECTS_PER_THREAD, objectsCreated.size());
 
         logger.info("Starting DELETE worker threads");
 
-        repositoryService.getPerformanceMonitor().clearGlobalPerformanceInformation();
+        plainRepositoryService.getPerformanceMonitor().clearGlobalPerformanceInformation();
         AtomicInteger objectsPointer = new AtomicInteger(0);
         List<DeleteObjectsThread<UserType>> deleteThreads = new ArrayList<>();
         for (int i = 0; i < DELETE_THREADS; i++) {
@@ -741,10 +741,10 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
             deleteThreads.add(thread);
         }
         waitForThreadsFinish(deleteThreads, TIMEOUT);
-        System.out.println("Delete performance information:\n" + repositoryService.getPerformanceMonitor().getGlobalPerformanceInformation().debugDump());
+        System.out.println("Delete performance information:\n" + plainRepositoryService.getPerformanceMonitor().getGlobalPerformanceInformation().debugDump());
 
         assertEquals("Wrong # of users after deletion", 0,
-                repositoryService.countObjects(UserType.class, null, null, result));
+                plainRepositoryService.countObjects(UserType.class, null, null, result));
     }
 
     /**
@@ -769,7 +769,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 .end();
 
         OperationResult result = new OperationResult("test140WorkBucketsAdd");
-        String oid = repositoryService.addObject(task.asPrismObject(), null, result);
+        String oid = plainRepositoryService.addObject(task.asPrismObject(), null, result);
 
         displayValue("object added", oid);
 
@@ -787,7 +787,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                                     .item(TaskType.F_ACTIVITY_STATE, F_ACTIVITY, F_BUCKETING, F_BUCKET)
                                     .add(getNextBucket(task))
                                     .asItemDeltas();
-                    repositoryService.modifyObjectDynamically(TaskType.class, oid, null, modificationSupplier, null, result);
+                    plainRepositoryService.modifyObjectDynamically(TaskType.class, oid, null, modificationSupplier, null, result);
                 }
 
                 private WorkBucketType getNextBucket(TaskType task) {
@@ -815,7 +815,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         }
 
         waitForThreads(threads, DURATION);
-        PrismObject<TaskType> taskAfter = repositoryService.getObject(TaskType.class, oid, null, result);
+        PrismObject<TaskType> taskAfter = plainRepositoryService.getObject(TaskType.class, oid, null, result);
         displayValue("task after", taskAfter);
 
         assertCorrectBucketSequence(taskAfter.asObjectable().getActivityState().getActivity().getBucketing().getBucket());
@@ -856,7 +856,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 .end();
 
         OperationResult result = new OperationResult("test150WorkBucketsReplace");
-        String oid = repositoryService.addObject(task.asPrismObject(), null, result);
+        String oid = plainRepositoryService.addObject(task.asPrismObject(), null, result);
 
         displayValue("object added", oid);
 
@@ -874,7 +874,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                                     .item(TaskType.F_ACTIVITY_STATE, F_ACTIVITY, F_BUCKETING, F_BUCKET)
                                     .replaceRealValues(getBucketsToReplace(task))
                                     .asItemDeltas();
-                    repositoryService.modifyObjectDynamically(TaskType.class, oid, null, modificationSupplier, null, result);
+                    plainRepositoryService.modifyObjectDynamically(TaskType.class, oid, null, modificationSupplier, null, result);
                 }
 
                 private List<WorkBucketType> getBucketsToReplace(TaskType task) {
@@ -911,7 +911,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         }
 
         waitForThreads(threads, DURATION);
-        PrismObject<TaskType> taskAfter = repositoryService.getObject(TaskType.class, oid, null, result);
+        PrismObject<TaskType> taskAfter = plainRepositoryService.getObject(TaskType.class, oid, null, result);
         displayValue("task after", taskAfter);
 
         assertCorrectBucketSequence(taskAfter.asObjectable().getActivityState().getActivity().getBucketing().getBucket());

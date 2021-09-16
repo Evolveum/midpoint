@@ -9,7 +9,7 @@
       oid="00000001-d34d-b33f-f00d-00000000001b">
     <name>Role1b</name>
     <assignment> <!-- metarole 1 'default' -->
-        <targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
+        <targetRef oid="00000001-d34d-b33f-f00d-b00000000001" type="RoleType"/>
     </assignment>
     <activation>
         <administrativeStatus>disabled</administrativeStatus>

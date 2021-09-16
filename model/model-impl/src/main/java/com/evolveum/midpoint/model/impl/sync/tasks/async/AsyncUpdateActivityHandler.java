@@ -54,7 +54,7 @@ public class AsyncUpdateActivityHandler
     public @NotNull AbstractActivityExecution<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler, AbstractActivityWorkStateType> createExecution(
             @NotNull ExecutionInstantiationContext<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PlainIterativeActivityExecution<>(context, "AsyncUpdate", AsyncUpdateActivityExecutionSpecifics::new);
+        return new AsyncUpdateActivityExecution(context);
     }
 
     @Override

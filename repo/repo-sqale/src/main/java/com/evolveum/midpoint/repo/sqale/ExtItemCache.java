@@ -22,17 +22,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Cache for {@link MExtItem} catalog.
- * TODO: fix for multi-node
  */
 public class ExtItemCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExtItemCache.class);
 
-    // TODO: id->ext item will be used for index-only extension attributes (when reading them we know only ID)
     private final Map<Integer, MExtItem> idToExtItem = new ConcurrentHashMap<>();
     private final Map<MExtItem.Key, MExtItem> keyToExtItem = new ConcurrentHashMap<>();
     private final Map<MExtItem.ItemNameKey, MExtItem> itemNameToExtItem = new ConcurrentHashMap<>();
 
+    // WARNING: Each .get() creates new connection, always use in try-with-resource block!
     private Supplier<JdbcSession> jdbcSessionSupplier;
 
     /**
@@ -91,10 +90,35 @@ public class ExtItemCache {
 
             extItem = MExtItem.of(id, extItemKey);
             updateMaps(extItem);
+        } catch (RuntimeException e) {
+            if (SqaleUtils.isUniqueConstraintViolation(e)) {
+                extItem = retrieveFromDb(extItemKey);
+            } else {
+                throw e;
+            }
         }
 
         LOGGER.debug("Ext item cache row inserted: {}", extItem);
         return extItem;
+    }
+
+    private MExtItem retrieveFromDb(@NotNull MExtItem.Key key) {
+        QExtItem ei = QExtItem.DEFAULT;
+        MExtItem row;
+        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startReadOnlyTransaction()) {
+            row = jdbcSession.newQuery()
+                    .select(ei)
+                    .from(ei)
+                    .where(ei.itemName.eq(key.itemName))
+                    .where(ei.valueType.eq(key.valueType))
+                    .where(ei.holderType.eq(key.holderType))
+                    .where(ei.cardinality.eq(key.cardinality))
+                    .fetchOne();
+        }
+        if (row != null) {
+            updateMaps(row);
+        }
+        return row;
     }
 
     public @Nullable MExtItem getExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {
@@ -107,14 +131,15 @@ public class ExtItemCache {
             return extItem;
         }
 
-        extItem = jdbcSessionSupplier.get()
-                .newQuery()
-                .from(QExtItem.DEFAULT)
-                .select(QExtItem.DEFAULT)
-                .where(QExtItem.DEFAULT.itemName.eq(extItemKey.itemName)
-                        .and(QExtItem.DEFAULT.holderType.eq(extItemKey.holderType)))
-                // TODO let's consider fetchOne that throws if count > 1, right now we're not confident enough to do so.
-                .fetchFirst();
+        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startReadOnlyTransaction()) {
+            extItem = jdbcSession.newQuery()
+                    .from(QExtItem.DEFAULT)
+                    .select(QExtItem.DEFAULT)
+                    .where(QExtItem.DEFAULT.itemName.eq(extItemKey.itemName)
+                            .and(QExtItem.DEFAULT.holderType.eq(extItemKey.holderType)))
+                    // TODO let's consider fetchOne that throws if count > 1, right now we're not confident enough to do so.
+                    .fetchFirst();
+        }
 
         if (extItem != null) {
             updateMaps(extItem);
@@ -126,17 +151,18 @@ public class ExtItemCache {
         if (jdbcSessionSupplier == null) {
             throw new IllegalStateException("Ext item cache was not initialized yet!");
         }
-        MExtItem extItem =  idToExtItem.get(id);
+        MExtItem extItem = idToExtItem.get(id);
         if (extItem != null) {
             return extItem;
         }
 
-        extItem = jdbcSessionSupplier.get()
-                .newQuery()
-                .from(QExtItem.DEFAULT)
-                .select(QExtItem.DEFAULT)
-                .where(QExtItem.DEFAULT.id.eq(id))
-                .fetchOne();
+        try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startReadOnlyTransaction()) {
+            extItem = jdbcSession.newQuery()
+                    .from(QExtItem.DEFAULT)
+                    .select(QExtItem.DEFAULT)
+                    .where(QExtItem.DEFAULT.id.eq(id))
+                    .fetchOne();
+        }
 
         if (extItem != null) {
             updateMaps(extItem);

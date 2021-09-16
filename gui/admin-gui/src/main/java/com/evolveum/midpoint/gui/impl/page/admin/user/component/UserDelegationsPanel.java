@@ -71,7 +71,7 @@ public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, User
             @Override
             public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), false,
-                        getObjectDetailsModels().getPrivilegesListModel(), getPageBase());
+                        getObjectDetailsModels().getPrivilegesListModel());
                 item.add(editor);
             }
 

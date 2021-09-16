@@ -56,13 +56,21 @@ public interface TaskHandler {
     @Nullable String getArchetypeOid(@Nullable String handlerUri);
 
     /**
-     * Call to update the state of the task (or related tasks) when the node on which this task executed
+     * Should update the state of the task (or related tasks) when the node on which this task executed
      * was found down.
      *
      * Currently this means releasing buckets allocated to this task.
      *
      * In the future we plan to execute this method within a dynamic repo transaction.
      */
-    default void cleanupOnNodeDown(@NotNull TaskType task, @NotNull OperationResult result) throws CommonException {
+    default void onNodeDown(@NotNull TaskType task, @NotNull OperationResult result) throws CommonException {
+    }
+
+    /**
+     * Should update the state of the task when the task manager finds that the task is stalled,
+     * i.e. did not update its progress for a given (long) time.
+     */
+    default void onTaskStalled(@NotNull RunningTask task, long stalledSince, @NotNull OperationResult result)
+            throws CommonException {
     }
 }

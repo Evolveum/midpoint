@@ -23,9 +23,12 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
 
+import com.google.common.base.MoreObjects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 @Component
 public class CommonTaskBeans {
@@ -48,4 +51,12 @@ public class CommonTaskBeans {
 
     @Autowired public BucketContentFactoryGenerator contentFactoryCreator;
     @Autowired public ExpressionFactory expressionFactory;
+
+    @Autowired(required = false) private AdvancedActivityExecutionSupport advancedActivityExecutionSupport;
+
+    public AdvancedActivityExecutionSupport getAdvancedActivityExecutionSupport() {
+        return MoreObjects.firstNonNull(
+                advancedActivityExecutionSupport,
+                NoOpAdvancedActivityExecutionSupport.INSTANCE);
+    }
 }

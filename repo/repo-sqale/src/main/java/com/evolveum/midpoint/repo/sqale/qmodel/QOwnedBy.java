@@ -16,6 +16,10 @@ import com.querydsl.core.types.dsl.BooleanExpression;
  */
 public interface QOwnedBy<OR> {
 
-    /** Returns predicate for where clause that matches only rows owned by the provided owner. */
+    /**
+     * Returns predicate for where clause that matches only rows owned by the provided owner.
+     * Owner row is immediate owner, so if the containers are nested, it is the owning container,
+     * not the top-level owning object.
+     */
     BooleanExpression isOwnedBy(OR ownerRow);
 }

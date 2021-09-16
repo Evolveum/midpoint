@@ -129,7 +129,7 @@ public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDe
 
     public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
         com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
-                getObjectDetailsModels().getPrivilegesListModel(), getPageBase());
+                getObjectDetailsModels().getPrivilegesListModel());
         item.add(editor);
     }
 

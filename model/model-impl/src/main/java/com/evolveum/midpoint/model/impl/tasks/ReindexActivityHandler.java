@@ -21,11 +21,10 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
@@ -67,8 +66,8 @@ public class ReindexActivityHandler
     }
 
     @Override
-    protected @NotNull SearchBasedSpecificsSupplier<ObjectType, MyWorkDefinition, ReindexActivityHandler> getSpecificSupplier() {
-        return MyExecutionSpecifics::new;
+    protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, ReindexActivityHandler> getExecutionSupplier() {
+        return MyExecution::new;
     }
 
     @Override
@@ -91,11 +90,11 @@ public class ReindexActivityHandler
         return "reindexing";
     }
 
-    static class MyExecutionSpecifics extends
-            BaseSearchBasedExecutionSpecificsImpl<ObjectType, MyWorkDefinition, ReindexActivityHandler> {
+    static class MyExecution extends
+            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ReindexActivityHandler, AbstractActivityWorkStateType> {
 
-        MyExecutionSpecifics(@NotNull SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ReindexActivityHandler, ?> activityExecution) {
-            super(activityExecution);
+        MyExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ReindexActivityHandler> context, String shortName) {
+            super(context, shortName);
         }
 
         @Override

@@ -10,7 +10,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -23,10 +23,9 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,10 +38,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeScriptingWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 
@@ -72,7 +68,7 @@ public class IterativeScriptingActivityHandler
     }
 
     @Override
-    protected @NotNull SearchBasedSpecificsSupplier<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler> getSpecificSupplier() {
+    protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler> getExecutionSupplier() {
         return MyExecutionSpecifics::new;
     }
 
@@ -97,11 +93,11 @@ public class IterativeScriptingActivityHandler
     }
 
     static class MyExecutionSpecifics extends
-            BaseSearchBasedExecutionSpecificsImpl<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler> {
+            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
 
         MyExecutionSpecifics(
-                @NotNull SearchBasedActivityExecution<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler, ?> activityExecution) {
-            super(activityExecution);
+                @NotNull ExecutionInstantiationContext<MyWorkDefinition, IterativeScriptingActivityHandler> context, String shortName) {
+            super(context, shortName);
         }
 
         @Override

@@ -208,7 +208,7 @@ public class ArchetypeManager implements Cache {
     }
 
     public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException {
-        if (archetype == null) {
+        if (archetype == null || archetype.getOid() == null) {
             return null;
         }
         ArchetypePolicyType cachedArchetypePolicy = archetypePolicyCache.get(archetype.getOid());

@@ -365,7 +365,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_ADD_OBJECT);
     }
 
     @Test
@@ -384,7 +384,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT_OVERWRITE);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_ADD_OBJECT_OVERWRITE);
     }
 
     @Test
@@ -2428,7 +2428,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(RepositoryService.OP_DELETE_OBJECT);
+        assertSingleOperationRecorded(REPO_OP_PREFIX + RepositoryService.OP_DELETE_OBJECT);
     }
 
     @Test

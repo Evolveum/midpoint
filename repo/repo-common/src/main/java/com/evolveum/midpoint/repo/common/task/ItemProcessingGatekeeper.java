@@ -76,7 +76,7 @@ class ItemProcessingGatekeeper<I> {
     @NotNull private final ItemProcessingRequest<I> request;
 
     /** Task part execution that requested processing of this item. */
-    @NotNull private final IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution;
+    @NotNull private final IterativeActivityExecution<I, ?, ?, ?> activityExecution;
 
     /** Local coordinator task that drives fetching items for processing. */
     @NotNull private final RunningTask coordinatorTask;
@@ -129,7 +129,7 @@ class ItemProcessingGatekeeper<I> {
     @Nullable private ConnIdOperationsListener connIdOperationsListener;
 
     ItemProcessingGatekeeper(@NotNull ItemProcessingRequest<I> request,
-            @NotNull IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution,
+            @NotNull IterativeActivityExecution<I, ?, ?, ?> activityExecution,
             @NotNull RunningTask workerTask) {
         this.request = request;
         this.activityExecution = activityExecution;
@@ -565,7 +565,7 @@ class ItemProcessingGatekeeper<I> {
         return activityExecution.getBeans();
     }
 
-    public @NotNull IterativeActivityExecution<I, ?, ?, ?, ?, ?> getActivityExecution() {
+    public @NotNull IterativeActivityExecution<I, ?, ?, ?> getActivityExecution() {
         return activityExecution;
     }
 

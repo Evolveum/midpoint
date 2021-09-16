@@ -14,8 +14,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
-import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecutionSpecifics;
+import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExec
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
@@ -66,7 +64,7 @@ public class ShadowRefreshActivityHandler
     public AbstractActivityExecution<MyWorkDefinition, ShadowRefreshActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<MyWorkDefinition, ShadowRefreshActivityHandler> context,
             @NotNull OperationResult result) {
-        return new ModelSearchBasedActivityExecution<>(context, "Shadow refresh", MyActivityExecutionSpecifics::new);
+        return new MyActivityExecution(context);
     }
 
     @Override
@@ -87,12 +85,11 @@ public class ShadowRefreshActivityHandler
         return ARCHETYPE_OID;
     }
 
-    public static class MyActivityExecutionSpecifics
-            extends ScanActivityExecutionSpecifics<ShadowType, MyWorkDefinition, ShadowRefreshActivityHandler> {
+    public static class MyActivityExecution
+            extends ScanActivityExecution<ShadowType, MyWorkDefinition, ShadowRefreshActivityHandler> {
 
-        MyActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType, MyWorkDefinition,
-                ShadowRefreshActivityHandler, ?> activityExecution) {
-            super(activityExecution);
+        MyActivityExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ShadowRefreshActivityHandler> context) {
+            super(context, "Shadow refresh");
         }
 
         @Override

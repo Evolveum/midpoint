@@ -23,8 +23,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Contains execution logic (and sometimes also execution state) related to given specific iterative-style activity
- * - either plain iterative or search-based.
+ * This interface summarizes what should an implementor of {@link IterativeActivityExecution}
+ * (either plain or search-based) provide.
  *
  * Main responsibilities (at this level of abstraction):
  *
@@ -36,9 +36,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  * The real "meat" (e.g. query formulation, item processing, etc) is in subtypes, though.
  *
- * This "specifics" functionality is separated from generic {@link IterativeActivityExecution} and its subclasses
- * in order to provide relatively simple and clean interface for activity implementors. (Originally the implementors
- * had to subclass these generic classes, leading to confusion about what exact functionality has to be provided.)
+ * This "specifics" functionality is pulled out from {@link IterativeActivityExecution} to precisely
+ * describe the interface between the generic activity framework and specific activity implementation.
  */
 @SuppressWarnings("RedundantThrows")
 public interface IterativeActivityExecutionSpecifics extends ImplicitSegmentationResolver {

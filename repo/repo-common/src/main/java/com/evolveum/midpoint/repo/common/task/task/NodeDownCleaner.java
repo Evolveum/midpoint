@@ -27,6 +27,9 @@ import java.util.Objects;
 
 /**
  * Cleans-up everything for a task when the task's node is found to be down.
+ *
+ * Currently this means updating the activity tree state overview,
+ * and releasing buckets delegated to the worker (if applicable).
  */
 class NodeDownCleaner {
 

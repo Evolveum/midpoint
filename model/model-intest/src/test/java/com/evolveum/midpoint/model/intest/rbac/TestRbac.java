@@ -8,11 +8,16 @@ package com.evolveum.midpoint.model.intest.rbac;
 
 import static org.testng.AssertJUnit.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.test.TestResource;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -27,10 +32,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedResourceObjectConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -59,6 +60,9 @@ public class TestRbac extends AbstractRbacTest {
 
     private static final String LOCALITY_TORTUGA = "Tortuga";
 
+    private static final TestResource<RoleType> ROLE_NON_UNASSIGNABLE = new TestResource<>(TEST_DIR, "role-non-unassignable.xml", "26081889-83e2-461f-a8cc-4c9ef415a4ff");
+    private static final File GLOBAL_POLICY_RULES_ASSIGNMENT_DELETION = new File(TEST_DIR, "global-policy-rules-assignment-deletion.xml");
+
     private String userSharptoothOid;
     private String userRedskullOid;
     private String userBignoseOid;
@@ -72,7 +76,7 @@ public class TestRbac extends AbstractRbacTest {
             throws Exception {
         super.initSystem(initTask, initResult);
 
-//        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        repoAdd(ROLE_NON_UNASSIGNABLE, initResult);
     }
 
     @Test
@@ -4516,7 +4520,40 @@ public class TestRbac extends AbstractRbacTest {
                         .assertOriginDescription("added by role");
     }
 
-    protected boolean testMultiplicityConstraintsForNonDefaultRelations() {
+    /**
+     * MID-7093
+     */
+    @Test
+    public void test930NonUnassignableRole() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(PrismContext.get())
+                .name("test930")
+                .beginAssignment()
+                    .targetRef(ROLE_NON_UNASSIGNABLE.oid, RoleType.COMPLEX_TYPE)
+                .end();
+        repoAddObject(user.asPrismObject(), result);
+
+        transplantGlobalPolicyRulesAdd(GLOBAL_POLICY_RULES_ASSIGNMENT_DELETION, task, result);
+
+        when();
+
+        try {
+            unassignRole(user.getOid(), ROLE_NON_UNASSIGNABLE.oid, task, result);
+            fail("unexpected success");
+        } catch (PolicyViolationException e) {
+            then();
+            displayExpectedException(e);
+        } catch (Exception e) {
+            then();
+            throw new AssertionError("Unexpected exception: " + e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean testMultiplicityConstraintsForNonDefaultRelations() {
         return true;
     }
 }

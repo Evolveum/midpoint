@@ -9,8 +9,6 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.search;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,7 +46,7 @@ public class SearchIterativeMockActivityHandler
     public @NotNull AbstractActivityExecution<SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler> context,
             @NotNull OperationResult result) {
-        return new SearchBasedActivityExecution<>(context, "Search-iterative mock activity", SearchBasedMockActivityExecutionSpecifics::new);
+        return new SearchBasedMockActivityExecution(context);
     }
 
     public @NotNull MockRecorder getRecorder() {

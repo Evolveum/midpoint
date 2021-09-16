@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateOverviewProgressInformationVisibilityType.HIDDEN;
 
 import java.io.Serializable;
@@ -32,12 +31,18 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
     private final int progress;
 
     /**
+     * Number of items whose processing resulted in an error.
+     */
+    private final int errors;
+
+    /**
      * Expected total number of items, if known.
      */
     private final Integer expectedProgress;
 
-    private ItemsProgressInformation(int progress, Integer expectedProgress) {
+    private ItemsProgressInformation(int progress, int errors, Integer expectedProgress) {
         this.progress = progress;
+        this.errors = errors;
         this.expectedProgress = expectedProgress;
     }
 
@@ -68,6 +73,7 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
         ActivityProgressType progress = state.getProgress();
         return new ItemsProgressInformation(
                 ActivityProgressUtil.getCurrentProgress(progress),
+                ActivityProgressUtil.getCurrentErrors(progress),
                 progress.getExpectedTotal());
     }
 
@@ -81,11 +87,25 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
                 ActivityTreeUtil.getSubtasksForPath(task, activityPath, resolver).stream()
                         .mapToInt(subtask -> ActivityProgressUtil.getCurrentProgress(subtask, activityPath))
                         .sum(),
+                ActivityTreeUtil.getSubtasksForPath(task, activityPath, resolver).stream()
+                        .mapToInt(subtask -> ActivityProgressUtil.getCurrentErrors(subtask, activityPath))
+                        .sum(),
                 null); // TODO use expectedProgress when available for bucketed coordinators
+    }
+
+    static ItemsProgressInformation fromLegacyTask(@NotNull TaskType task) {
+        return new ItemsProgressInformation(
+                (int) or0(task.getProgress()),
+                0,
+                toInteger(task.getExpectedTotal()));
     }
 
     public int getProgress() {
         return progress;
+    }
+
+    public int getErrors() {
+        return errors;
     }
 
     public Integer getExpectedProgress() {
@@ -130,18 +150,33 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
             return false;
         }
         ItemsProgressInformation that = (ItemsProgressInformation) o;
-        return progress == that.progress && Objects.equals(expectedProgress, that.expectedProgress);
+        return progress == that.progress &&
+                errors == that.errors &&
+                Objects.equals(expectedProgress, that.expectedProgress);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(progress, expectedProgress);
+        return Objects.hash(progress, errors, expectedProgress);
+    }
+
+    public @NotNull String toHumanReadableString(boolean longForm) {
+        float percentage = getPercentage();
+        if (Float.isNaN(percentage)) {
+            return String.valueOf(progress);
+        }
+        if (longForm) {
+            return String.format("%.1f%% (%d of %d)", percentage * 100, progress, expectedProgress);
+        } else {
+            return String.format("%.1f%%", percentage * 100);
+        }
     }
 
     private static class Accumulator {
 
         boolean someProgressPresent;
         int progress;
+        int errors;
         Integer expected;
 
         public void add(@Nullable ItemsProgressOverviewType overview) {
@@ -150,6 +185,7 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
                 progress += or0(overview.getSuccessfullyProcessed()) +
                         or0(overview.getFailed()) +
                         or0(overview.getSkipped());
+                errors += or0(overview.getFailed());
                 if (overview.getExpectedTotal() != null) {
                     expected = or0(expected) + overview.getExpectedTotal();
                 }
@@ -158,7 +194,7 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
 
         public ItemsProgressInformation toProgressInformation() {
             return someProgressPresent ?
-                    new ItemsProgressInformation(progress, expected) : null;
+                    new ItemsProgressInformation(progress, errors, expected) : null;
         }
     }
 }

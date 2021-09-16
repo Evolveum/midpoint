@@ -4,10 +4,22 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.common.tasks;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
@@ -27,17 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
+/**
+ * Super class for common repository tests.
+ * Test can decide whether to use {@link #repositoryService} with the cache or the pure
+ * implementation using {@link #plainRepositoryService}.
+ */
 @ContextConfiguration(locations = { "classpath:ctx-repo-common-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AbstractRepoCommonTest extends AbstractIntegrationTest {
@@ -51,6 +57,9 @@ public class AbstractRepoCommonTest extends AbstractIntegrationTest {
     @Autowired protected BucketingManager bucketingManager;
     @Autowired protected MockRecorder mockRecorder;
     @Autowired protected LocalScheduler localScheduler;
+
+    @Autowired @Qualifier("repositoryService") // implementation, no cache
+    protected RepositoryService plainRepositoryService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

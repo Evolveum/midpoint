@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-public class ActivityPath {
+public class ActivityPath implements Serializable {
 
     /** Unmodifiable list of activity identifiers. */
     @NotNull private final List<String> identifiers;

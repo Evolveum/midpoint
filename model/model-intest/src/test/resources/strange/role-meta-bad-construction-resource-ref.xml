@@ -10,7 +10,8 @@
     <name>Bad resourceRef in construction metarole</name>
     <inducement>
         <construction>
-            <resourceRef oid="8dbaca35-6b64-4d1b-a476-6572726f7221"/>
+            <!-- TestUtil.NON_EXISTENT_OID -->
+            <resourceRef oid="4e4f4e5f-4558-4953-5445-4e545f4f4944"/>
             <kind>generic</kind>
             <intent>whatever</intent>
         </construction>

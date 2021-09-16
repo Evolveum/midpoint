@@ -260,4 +260,14 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
         return new SearchResultMetadata();
     }
+
+    public <T extends AuditService> T getImplementation(Class<T> implementationType) {
+        for (AuditService service : services) {
+            if (implementationType.isInstance(service)) {
+                return implementationType.cast(service);
+            }
+        }
+
+        return null;
+    }
 }

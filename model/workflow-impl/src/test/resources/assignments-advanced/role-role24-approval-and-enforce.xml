@@ -10,7 +10,7 @@
       oid="00000001-d34d-b33f-f00d-000000000024">
     <name>Role24</name>
     <assignment> <!-- metarole-default -->
-        <targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
+        <targetRef oid="00000001-d34d-b33f-f00d-b00000000001" type="RoleType"/>
     </assignment>
     <assignment>
         <policyRule>

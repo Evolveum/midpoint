@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -44,7 +43,7 @@ public class ImportActivityHandler
     public AbstractActivityExecution<ImportWorkDefinition, ImportActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<ImportWorkDefinition, ImportActivityHandler> context,
             @NotNull OperationResult result) {
-        return new ModelSearchBasedActivityExecution<>(context, "Import", ImportActivityExecutionSpecifics::new);
+        return new ImportActivityExecution(context);
     }
 
     @Override

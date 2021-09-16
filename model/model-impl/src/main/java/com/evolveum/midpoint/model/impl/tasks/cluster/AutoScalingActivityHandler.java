@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.tasks.cluster;
 
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
@@ -49,7 +48,7 @@ public class AutoScalingActivityHandler
     public AbstractActivityExecution<AutoScalingWorkDefinition, AutoScalingActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<AutoScalingWorkDefinition, AutoScalingActivityHandler> context,
             @NotNull OperationResult result) {
-        return new ModelSearchBasedActivityExecution<>(context, "Auto-scaling", AutoScalingExecutionSpecifics::new);
+        return new AutoScalingActivityExecution(context);
     }
 
     @Override

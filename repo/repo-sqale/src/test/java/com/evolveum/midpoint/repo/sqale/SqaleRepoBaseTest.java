@@ -25,7 +25,9 @@ import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
+import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
@@ -37,17 +39,25 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SqaleRepoBaseTest extends AbstractSpringTest
         implements InfraTestMixin {
+
+    public static final String REPO_OP_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
+    public static final String AUDIT_OP_PREFIX = SqaleAuditService.class.getSimpleName() + '.';
 
     @Autowired protected SqaleRepositoryService repositoryService;
     @Autowired protected SqaleRepoContext sqlRepoContext;
@@ -268,10 +278,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected void assertOperationRecordedCount(String opKind, int count) {
-        // TODO see comment in SqaleServiceBase.registerOperationStart
-        opKind = "SqaleRepositoryService." + opKind;
         Map<String, OperationPerformanceInformation> pmAllData =
-                repositoryService.getPerformanceMonitor()
+                getPerformanceMonitor()
                         .getGlobalPerformanceInformation().getAllData();
         OperationPerformanceInformation operationInfo = pmAllData.get(opKind);
         if (count != 0) {
@@ -349,10 +357,40 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
+    /** Returns performance monitor from repository service, override to get the one from audit. */
+    protected SqlPerformanceMonitorImpl getPerformanceMonitor() {
+        return repositoryService.getPerformanceMonitor();
+    }
+
     protected void clearPerformanceMonitor() {
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
         assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+    }
+
+    protected void refreshOrgClosureForce() {
+        try (JdbcSession jdbcSession = startTransaction()) {
+            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
+            jdbcSession.commit();
+        }
+    }
+
+    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
+    @SafeVarargs
+    @NotNull
+    protected final <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        return repositoryService.searchObjects(
+                        type,
+                        query,
+                        selectorOptions != null && selectorOptions.length != 0
+                                ? List.of(selectorOptions) : null,
+                        operationResult)
+                .map(p -> p.asObjectable());
     }
 
     /**

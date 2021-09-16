@@ -75,6 +75,9 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      */
     private ExecutionSupport executionSupport;
 
+    /** True if this task should not be checked for staleness. */
+    private boolean excludedFromStalenessChecking;
+
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
             @NotNull Task rootTask, @Nullable Task parentTask) {
         super(taskManager, taskPrism);
@@ -352,6 +355,15 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public void setExecutionSupport(ExecutionSupport executionSupport) {
         this.executionSupport = executionSupport;
+    }
+
+    @Override
+    public boolean isExcludedFromStalenessChecking() {
+        return excludedFromStalenessChecking;
+    }
+
+    public void setExcludedFromStalenessChecking(boolean excludedFromStalenessChecking) {
+        this.excludedFromStalenessChecking = excludedFromStalenessChecking;
     }
     //endregion
 }

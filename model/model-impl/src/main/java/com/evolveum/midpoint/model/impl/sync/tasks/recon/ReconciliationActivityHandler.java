@@ -6,21 +6,12 @@
  */
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType.F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP;
+
 import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -28,12 +19,22 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType.F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 @Component
 public class ReconciliationActivityHandler
@@ -76,40 +77,40 @@ public class ReconciliationActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
-                        "Reconciliation (operation completion)", OperationCompletionActivityExecutionSpecifics::new),
+                (context, result) -> new OperationCompletionActivityExecution(context,
+                        "Reconciliation (operation completion)"),
                 null,
                 (i) -> ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 createSimulationDefinition(parentActivity.getDefinition()),
-                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
-                        "Reconciliation (on resource)" + modeSuffix(context), ResourceObjectsReconciliationActivityExecutionSpecifics::new),
+                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context,
+                        "Reconciliation (on resource)" + modeSuffix(context)),
                 this::beforeResourceObjectsReconciliation, // this is needed even for simulation
                 (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_SIMULATION_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 createSimulationDefinition(parentActivity.getDefinition()),
-                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
-                        "Reconciliation (remaining shadows)" + modeSuffix(context), RemainingShadowsActivityExecutionSpecifics::new),
+                (context, result) -> new RemainingShadowsActivityExecution(context,
+                        "Reconciliation (remaining shadows)" + modeSuffix(context)),
                 null,
                 (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_SIMULATION_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
-                        "Reconciliation (on resource)" + modeSuffix(context), ResourceObjectsReconciliationActivityExecutionSpecifics::new),
+                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context,
+                        "Reconciliation (on resource)" + modeSuffix(context)),
                 this::beforeResourceObjectsReconciliation,
                 (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
-                        "Reconciliation (remaining shadows)" + modeSuffix(context), RemainingShadowsActivityExecutionSpecifics::new),
+                (context, result) -> new RemainingShadowsActivityExecution(context,
+                        "Reconciliation (remaining shadows)" + modeSuffix(context)),
                 null,
                 (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID,
                 ActivityStateDefinition.normal(),

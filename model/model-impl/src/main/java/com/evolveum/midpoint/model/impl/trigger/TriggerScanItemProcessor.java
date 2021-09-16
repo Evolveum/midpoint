@@ -50,12 +50,12 @@ public class TriggerScanItemProcessor {
 
     /**
      * Triggers that were processed by this handler (during execution of this trigger task).
-     * This field could reside also in {@link TriggerScanActivityExecutionSpecifics} but here it is closer to the usage site.
+     * This field could reside also in {@link TriggerScanActivityExecution} but here it is closer to the usage site.
      */
     @NotNull private final ProcessedTriggers processedTriggers = new ProcessedTriggers();
-    @NotNull private final TriggerScanActivityExecutionSpecifics activityExecution;
+    @NotNull private final TriggerScanActivityExecution activityExecution;
 
-    TriggerScanItemProcessor(@NotNull TriggerScanActivityExecutionSpecifics activityExecution) {
+    TriggerScanItemProcessor(@NotNull TriggerScanActivityExecution activityExecution) {
         this.activityExecution = activityExecution;
     }
 
