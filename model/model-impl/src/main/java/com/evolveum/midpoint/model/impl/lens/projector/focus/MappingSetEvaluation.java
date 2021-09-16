@@ -129,6 +129,9 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
         }
 
         beans.mappingEvaluator.evaluateMapping(mapping, context, env.task, result);
+        if (!mapping.isEnabled()) { // We could check this right after mapping is created. But this seems a bit cleaner.
+            return;
+        }
 
         // We need to update nextRecompute even for mappings with "time valid" state.
         nextRecompute = NextRecompute.update(mapping, nextRecompute);

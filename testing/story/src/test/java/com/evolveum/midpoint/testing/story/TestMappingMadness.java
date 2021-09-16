@@ -10,6 +10,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,6 +40,8 @@ public class TestMappingMadness extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "mapping-madness");
 
+    private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
     protected static final File RESOURCE_DUMMY_TOLERANT_FILE = new File(TEST_DIR, "resource-dummy-tolerant.xml");
     protected static final String RESOURCE_DUMMY_TOLERANT_OID = "3ec5bb34-a715-11e9-b4ce-2f312ebfee0a";
     protected static final String RESOURCE_DUMMY_TOLERANT_NAME = "tolerant";
@@ -49,6 +57,11 @@ public class TestMappingMadness extends AbstractStoryTest {
     protected static final File RESOURCE_DUMMY_NONTOLERANT_FILE = new File(TEST_DIR, "resource-dummy-nontolerant.xml");
     protected static final String RESOURCE_DUMMY_NONTOLERANT_OID = "a09869c0-a7c3-11e9-85ac-6f2cafd8f0c2";
     protected static final String RESOURCE_DUMMY_NONTOLERANT_NAME = "nontolerant";
+
+    private static final TestResource<ObjectTemplateType> TEMPLATE_OVERMAPPED = new TestResource<>(TEST_DIR, "template-overmapped.xml", "beed4a22-f341-4d56-9621-3a3843c1c58f");
+    private static final TestResource<ArchetypeType> ARCHETYPE_OVERMAPPED = new TestResource<>(TEST_DIR, "archetype-overmapped.xml", "da861c56-ec58-409a-adb1-3a95be9d2835");
+    private static final TestResource<UserType> USER_MATCHING = new TestResource<>(TEST_DIR, "user-matching.xml", "99f95042-54e3-4fcf-b907-413ee6137408");
+    private static final TestResource<UserType> USER_NOT_MATCHING = new TestResource<>(TEST_DIR, "user-not-matching.xml", "f8791726-4bda-4e9b-a0b3-2ae943757c36");
 
     private static final String JACK_TITLE_WHATEVER_UPPER = "WHATEVER";
     private static final String JACK_TITLE_WHATEVER_LOWER = "whatever";
@@ -74,7 +87,17 @@ public class TestMappingMadness extends AbstractStoryTest {
         initDummyResourcePirate(RESOURCE_DUMMY_SMART_RANGE_NAME, RESOURCE_DUMMY_SMART_RANGE_FILE, RESOURCE_DUMMY_SMART_RANGE_OID, initTask, initResult);
         initDummyResourcePirate(RESOURCE_DUMMY_NONTOLERANT_NAME, RESOURCE_DUMMY_NONTOLERANT_FILE, RESOURCE_DUMMY_NONTOLERANT_OID, initTask, initResult);
 
+        repoAdd(TEMPLATE_OVERMAPPED, initResult);
+        repoAdd(ARCHETYPE_OVERMAPPED, initResult);
+        repoAdd(USER_MATCHING, initResult);
+        repoAdd(USER_NOT_MATCHING, initResult);
+
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, initTask, initResult, createPolyString(JACK_TITLE_PIRATE));
+    }
+
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
     }
 
     /**
@@ -419,6 +442,76 @@ public class TestMappingMadness extends AbstractStoryTest {
         assertNoDummyAccount(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, USER_JACK_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME);
+    }
+
+    @Test
+    public void test200RecomputeNotMatching() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        recomputeUser(USER_NOT_MATCHING.oid, task, result);
+
+        then();
+        assertUserAfter(USER_NOT_MATCHING.oid)
+                .display()
+                .assertOrganizations("org1", "org2", "org3");
+    }
+
+    @Test
+    public void test210RecomputeMatching() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        recomputeUser(USER_MATCHING.oid, task, result);
+
+        then();
+        assertUserAfter(USER_MATCHING.oid)
+                .display()
+                .assertOrganizations("sourced-conditioned");
+    }
+
+    @Test
+    public void test220MatchingToNonMatching() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_NAME)
+                            .replace(PolyString.fromOrig("matching-but-not-now"))
+                        .asObjectDelta(USER_MATCHING.oid),
+                null, task, result);
+
+        then();
+        assertUserAfter(USER_MATCHING.oid)
+                .display()
+                .assertOrganizations(); // value was removed because the range applied (for condition going from true to false)
+    }
+
+    @Test
+    public void test230NonMatchingToMatching() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_NAME)
+                            .replace(PolyString.fromOrig("matching"))
+                        .asObjectDelta(USER_MATCHING.oid),
+                null, task, result);
+
+        then();
+        assertUserAfter(USER_MATCHING.oid)
+                .display()
+                .assertOrganizations("sourced-conditioned");
     }
 
     private void setAccountQuotes() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
