@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 @PanelType(name = "objectTemplateMappings")
 @PanelInstance(identifier = "objectTemplateMappings",
-        applicableFor = ObjectTemplateType.class,
+        applicableForType = ObjectTemplateType.class,
         display = @PanelDisplay(label = "pageObjectTemplate.mapping.title", order = 40))
 public class ObjectTemplateMappingsPanel extends AbstractObjectMainPanel<ObjectTemplateType, ObjectDetailsModels<ObjectTemplateType>> {
     private static final long serialVersionUID = 1L;
