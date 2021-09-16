@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.component.progress;
+package com.evolveum.midpoint.gui.impl.page.admin.component;
 
-import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,10 +27,12 @@ import java.util.Collection;
  */
 public interface ProgressReportingAwarePage {
 
-    void startProcessing(AjaxRequestTarget target, OperationResult result);
+    ProgressPanel startAndGetProgressPanel(AjaxRequestTarget target, OperationResult result);
 
-    void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result);
+    void finishProcessing(AjaxRequestTarget target, boolean returningFromAsync, OperationResult result);
 
     void continueEditing(AjaxRequestTarget target);
 
+    TaskManager getTaskManager();
+    PrismContext getPrismContext();
 }

@@ -73,7 +73,7 @@ import java.util.concurrent.Future;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
 import static com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto.ResourceOperationResult;
 
-public class ProgressPanel extends BasePanel implements ObjectChangeExecutor {
+public class ProgressPanel extends BasePanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProgressPanel.class);
 
@@ -129,6 +129,7 @@ public class ProgressPanel extends BasePanel implements ObjectChangeExecutor {
         reporterModel = new AsyncWebProcessModel<>(reporter);
 
         initLayout();
+        addRefreshingProgressPanel();
     }
 
     private void initLayout() {
@@ -262,6 +263,12 @@ public class ProgressPanel extends BasePanel implements ObjectChangeExecutor {
         btn.setOutputMarkupPlaceholderTag(true);
     }
 
+    public void setTask(Task task) {
+        if (statisticsPanel != null && statisticsPanel.getModel() instanceof StatisticsDtoModel) {
+            ((StatisticsDtoModel) statisticsPanel.getModel()).setTask(task);
+        }
+    }
+
     public void manageButtons(AjaxRequestTarget target, boolean returningFromAsync, boolean canContinueEditing) {
         if (returningFromAsync) {
             showButton(target, ID_BACK);
@@ -331,216 +338,6 @@ public class ProgressPanel extends BasePanel implements ObjectChangeExecutor {
         page.redirectBack();
     }
 
-    // Note: do not setVisible(false) on the progress panel itself - it will disable AJAX refresh functionality attached to it.
-    // Use the following two methods instead.
-
-//    public void show() {
-//        contentsPanel.setVisible(true);
-//    }
-
-//    public void hide() {
-//        contentsPanel.setVisible(false);
-//    }
-
-
-    // operation executor:
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, Task task, OperationResult result, AjaxRequestTarget target) {
-        ModelExecuteOptions options = createOptions(executeOptions, previewOnly);
-        LOGGER.debug("Using execute options {}.", options);
-        if (executeOptions.isSaveInBackground() && !previewOnly) {
-            executeChangesInBackground(deltas, options, task, result, target);
-            return reporterModel.getProcessData().getObjectDeltaOperation();
-        }
-
-        return executeChanges(deltas, previewOnly, options, task, result, target);
-    }
-
-    private ModelExecuteOptions createOptions(ExecuteChangeOptionsDto executeChangeOptionsDto, boolean previewOnly) {
-        ModelExecuteOptions options = executeChangeOptionsDto.createOptions(PrismContext.get());
-        if (previewOnly) {
-            options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
-        }
-        return options;
-    }
-
-    /**
-     * Executes changes on behalf of the parent page. By default, changes are executed asynchronously (in
-     * a separate thread). However, when set in the midpoint configuration, changes are executed synchronously.
-     *
-     * @param deltas  Deltas to be executed.
-     * @param options Model execution options.
-     * @param task    Task in context of which the changes have to be executed.
-     * @param result  Operation result.
-     */
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly,
-            ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
-
-        progressAwarePage.startProcessing(target, result);
-
-        ProgressReporter reporter = reporterModel.getProcessData();
-        if (reporter.isAsynchronousExecution()) {
-            reporter.setAsyncOperationResult(null);
-
-            clearProgressPanel();
-            startRefreshingProgressPanel();
-            setTask(task);
-
-            executeChangesAsync(reporter, deltas, previewOnly, options, task, result);
-        } else {
-            executeChangesSync(reporter, deltas, previewOnly, options, task, result);
-        }
-
-        if (!reporter.isAsynchronousExecution()) {
-            progressAwarePage.finishProcessing(target, reporter.getObjectDeltaOperation(), reporter.isAsynchronousExecution(), result);
-        }
-
-        return reporter.getObjectDeltaOperation();
-    }
-
-    public void clearProgressPanel() {
-        ProgressReporter reporter = reporterModel.getProcessData();
-        reporter.getProgress().clear();
-    }
-
-    private void executeChangesAsync(ProgressReporter reporter, Collection<ObjectDelta<? extends ObjectType>> deltas,
-            boolean previewOnly, ModelExecuteOptions options, Task task, OperationResult result) {
-
-        MidPointApplication application = MidPointApplication.get();
-
-        final ModelInteractionService modelInteraction = application.getModelInteractionService();
-        final ModelService model = application.getModel();
-
-        final SecurityContextManager secManager = application.getSecurityContextManager();
-
-        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        final HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
-
-        Callable<Void> execution = new SecurityContextAwareCallable<>(secManager, auth, connInfo) {
-
-            @Override
-            public Void callWithContextPrepared() {
-                try {
-                    LOGGER.debug("Execution start");
-
-                    reporter.recordExecutionStart();
-
-                    if (previewOnly) {
-                        ModelContext previewResult = modelInteraction
-                                .previewChanges(deltas, options, task, Collections.singleton(reporter), result);
-                        reporter.setPreviewResult(previewResult);
-                    } else if (deltas != null && deltas.size() > 0) {
-                        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = model.executeChanges(deltas, options, task, Collections.singleton(reporter), result);
-                        reporter.setObjectDeltaOperation(executedDeltas);
-                    }
-                } catch (CommonException | RuntimeException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);
-                    if (!result.isFatalError()) {       // just to be sure the exception is recorded into the result
-                        result.recordFatalError(e.getMessage(), e);
-                    }
-                } finally {
-                    LOGGER.debug("Execution finish {}", result);
-                }
-                reporter.recordExecutionStop();
-                reporter.setAsyncOperationResult(result);          // signals that the operation has finished
-
-                return null;
-            }
-        };
-
-        result.setInProgress(); // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
-
-        AsyncWebProcessManager manager = application.getAsyncWebProcessManager();
-        manager.submit(reporterModel.getId(), execution);
-    }
-
-    private void executeChangesSync(ProgressReporter reporter, Collection<ObjectDelta<? extends ObjectType>> deltas,
-            boolean previewOnly, ModelExecuteOptions options, Task task, OperationResult result) {
-
-        try {
-            MidPointApplication application = MidPointApplication.get();
-
-            if (previewOnly) {
-                ModelInteractionService service = application.getModelInteractionService();
-                ModelContext previewResult = service.previewChanges(deltas, options, task, result);
-                reporter.setPreviewResult(previewResult);
-            } else {
-                ModelService service = application.getModel();
-                Collection<ObjectDeltaOperation<? extends ObjectType>>executedDeltas = service.executeChanges(deltas, options, task, result);
-                reporter.setObjectDeltaOperation(executedDeltas);
-            }
-            result.computeStatusIfUnknown();
-        } catch (CommonException | RuntimeException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);
-            if (!result.isFatalError()) {       // just to be sure the exception is recorded into the result
-                result.recordFatalError(e.getMessage(), e);
-            }
-        }
-    }
-
-
-    public void executeChangesInBackground(Collection<ObjectDelta<? extends ObjectType>> deltas,
-            ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
-
-        ProgressReporter reporter = reporterModel.getProcessData();
-        try {
-
-            configureTask(deltas, options, progressAwarePage.getPrismContext().getSchemaRegistry(), task);
-
-            TaskManager taskManager = progressAwarePage.getTaskManager();
-            taskManager.switchToBackground(task, result);
-            result.setBackgroundTaskOid(task.getOid());
-        } catch (Exception e) {
-            result.recordFatalError(e);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-
-        progressAwarePage.finishProcessing(target, reporter.getObjectDeltaOperation(), reporter.isAsynchronousExecution(), result);
-    }
-
-    private void configureTask(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, SchemaRegistry schemaRegistry, Task task) throws SchemaException {
-        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-        if (user == null) {
-            throw new RestartResponseException(PageLogin.class);
-        } else {
-            task.setOwner(user.getFocus().asPrismObject());
-        }
-
-        List<ObjectDeltaType> deltasBeans = new ArrayList<>();
-        for (ObjectDelta<?> delta : deltas) {
-            deltasBeans.add(DeltaConvertor.toObjectDeltaType((ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType>) delta));
-        }
-        PrismPropertyDefinition<ObjectDeltaType> deltasDefinition = schemaRegistry
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
-        PrismProperty<ObjectDeltaType> deltasProperty = deltasDefinition.instantiate();
-        deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
-        task.addExtensionProperty(deltasProperty);
-        if (options != null) {
-            PrismContainerDefinition<ModelExecuteOptionsType> optionsDefinition = schemaRegistry
-                    .findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-            PrismContainer<ModelExecuteOptionsType> optionsContainer = optionsDefinition.instantiate();
-            optionsContainer.setRealValue(options.toModelExecutionOptionsType());
-            task.setExtensionContainer(optionsContainer);
-        }
-        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
-        task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
-        task.setName("Execute changes");
-        task.setInitiallyRunnable();
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
-    }
-
-    public void setTask(Task task) {
-        if (statisticsPanel != null && statisticsPanel.getModel() instanceof StatisticsDtoModel) {
-            ((StatisticsDtoModel) statisticsPanel.getModel()).setTask(task);
-        }
-    }
-
-    public void invalidateCache() {
-        if (statisticsPanel != null && statisticsPanel.getModel() instanceof StatisticsDtoModel) {
-            ((StatisticsDtoModel) (statisticsPanel.getModel())).invalidateCache();
-        }
-    }
-
     /**
      * Should be called when "save" button is submitted.
      * In future it could encapsulate auxiliary functionality that has to be invoked before starting the operation.
@@ -583,15 +380,12 @@ public class ProgressPanel extends BasePanel implements ObjectChangeExecutor {
     }
     // mess
 
-    private void startRefreshingProgressPanel() {
+    public void addRefreshingProgressPanel() {
         if (refreshingBehavior != null) {
             return;
         }
 
         ProgressReporter reporter = reporterModel.getProcessData();
-        if (!reporter.isAsynchronousExecution()) {
-            return;
-        }
         int refreshInterval = reporter.getRefreshInterval();
 
         refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(java.time.Duration.ofMillis(refreshInterval)) {
@@ -606,8 +400,6 @@ public class ProgressPanel extends BasePanel implements ObjectChangeExecutor {
                 if (asyncOperationResult != null) {         // by checking this we know that async operation has been finished
                     asyncOperationResult.recomputeStatus(); // because we set it to in-progress
 
-                    stopRefreshingProgressPanel(target);
-
                     PageBase page = getPageBase();
                     if (reporter.isAbortRequested()) {
                         page.showResult(asyncOperationResult);
@@ -615,8 +407,9 @@ public class ProgressPanel extends BasePanel implements ObjectChangeExecutor {
                         return;
                     }
 
-                    progressAwarePage.finishProcessing(target, reporter.getObjectDeltaOperation(), true, asyncOperationResult);
+                    progressAwarePage.finishProcessing(target, true, asyncOperationResult);
 
+                    stopRefreshingProgressPanel(target);
                     reporter.setAsyncOperationResult(null);
                 }
             }
@@ -636,6 +429,12 @@ public class ProgressPanel extends BasePanel implements ObjectChangeExecutor {
             // We cannot remove the behavior, as it would cause NPE because of component == null (since wicket 7.5)
             //progressPanel.remove(refreshingBehavior);
             refreshingBehavior = null;              // causes re-adding this behavior when re-saving changes
+        }
+    }
+
+    public void invalidateCache() {
+        if (statisticsPanel != null && statisticsPanel.getModel() instanceof StatisticsDtoModel) {
+            ((StatisticsDtoModel) (statisticsPanel.getModel())).invalidateCache();
         }
     }
 

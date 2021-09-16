@@ -234,6 +234,10 @@ public class UserDetailsModel extends FocusDetailsModels<UserType> {
         return delegationsModel;
     }
 
+    public List<AssignmentEditorDto> getDelegationsModelObject() {
+        return delegationsModel.getObject();
+    }
+
     public LoadableModel<List<AssignmentInfoDto>> getPrivilegesListModel() {
         return privilegesListModel;
     }

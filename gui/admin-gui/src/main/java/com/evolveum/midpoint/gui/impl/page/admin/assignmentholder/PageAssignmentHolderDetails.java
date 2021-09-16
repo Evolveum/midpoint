@@ -6,12 +6,23 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.*;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.CreateTemplatePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -24,18 +35,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderType, AHDM extends AssignmentHolderDetailsModel<AH>> extends AbstractPageObjectDetails<AH, AHDM> {
 
@@ -66,10 +69,6 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         }
     }
 
-    private Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
-        return getCompiledGuiProfile().findAllApplicableArchetypeViews(getType(), OperationTypeType.ADD);
-    }
-
     class TemplateFragment extends Fragment {
 
         public TemplateFragment(String id, String markupId, MarkupContainer markupProvider) {
@@ -93,7 +92,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
-                return findAllApplicableArchetypeViews();
+                return PageAssignmentHolderDetails.this.findAllApplicableArchetypeViews();
             }
 
             @Override
@@ -126,8 +125,13 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         };
     }
 
+    private Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
+        return getCompiledGuiProfile().findAllApplicableArchetypeViews(getType(), OperationTypeType.ADD);
+    }
+
+
     @Override
-    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<AH>> wrapperModel) {
+    protected AssignmentHolderOperationalButtonsPanel<AH> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<AH>> wrapperModel) {
         return new AssignmentHolderOperationalButtonsPanel<>(id, wrapperModel) {
 
             @Override
@@ -187,7 +191,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             return null;
         }
 
-        List<AssignmentType> oldAssignments = assignmentContainer.getRealValues().stream().filter(a -> WebComponentUtil.isArchetypeAssignment(a)).collect(Collectors.toList());
+        List<AssignmentType> oldAssignments = assignmentContainer.getRealValues().stream().filter(WebComponentUtil::isArchetypeAssignment).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(oldAssignments)) {
             result.recordWarning(getString("PageAdminObjectDetails.archetype.change.not.supported"));
             return null;

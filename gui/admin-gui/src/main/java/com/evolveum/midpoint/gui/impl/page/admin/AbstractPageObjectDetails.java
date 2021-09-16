@@ -73,7 +73,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected static final String ID_DETAILS_VIEW = "detailsView";
 
     private ODM objectDetailsModels;
-    private boolean isAdd;
+    private final boolean isAdd;
 
     public AbstractPageObjectDetails() {
         this(null, null);
@@ -102,7 +102,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         objectDetailsModels = createObjectDetailsModels(prismObject);
     }
 
-    public ObjectDetailsModels<O> getObjectDetailsModels() {
+    public ODM getObjectDetailsModels() {
         return objectDetailsModels;
     }
 
@@ -132,7 +132,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected DetailsFragment createDetailsFragment() {
-        DetailsFragment detailsFragment = new DetailsFragment(ID_DETAILS_VIEW, ID_DETAILS, AbstractPageObjectDetails.this) {
+        return new DetailsFragment(ID_DETAILS_VIEW, ID_DETAILS, AbstractPageObjectDetails.this) {
 
             @Override
             protected void initFragmentLayout() {
@@ -148,7 +148,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 add(initNavigation());
             }
         };
-        return detailsFragment;
     }
 
     private Panel initSummaryPanel() {
@@ -182,8 +181,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     //TODO make abstract
-    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<O>> wrapperModel) {
-        return new OperationalButtonsPanel(id, wrapperModel) {
+    protected OperationalButtonsPanel<O> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<O>> wrapperModel) {
+        return new OperationalButtonsPanel<>(id, wrapperModel) {
 
             @Override
             protected void addStateButtons(RepeatingView stateButtonsView) {
@@ -227,9 +226,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
         }
 
+        ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
         Collection<ObjectDelta<? extends ObjectType>> deltas;
         try {
             deltas = objectDetailsModels.collectDeltas(result);
+            checkValidationErrors(target, objectDetailsModels.getValidationErrors());
         } catch (Throwable ex) {
             result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
@@ -238,29 +239,29 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             return null;
         }
 
-        ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
-        saveOrPreviewPostProcess(target, task, options);
-
-            switch (objectWrapper.getStatus()) {
-                case ADDED:
-                    postProcessAddDelta(deltas, previewOnly, task, result, target);
-                    break;
-
-                case NOT_CHANGED:
-                    postProcessModifyDelta(deltas, previewOnly, options, task, result, target);
-                    break;
-                // support for add/delete containers (e.g. delete credentials)
-                default:
-                    error(getString("pageAdminFocus.message.unsupportedState", objectWrapper.getStatus()));
-            }
-
         LOGGER.trace("returning from saveOrPreviewPerformed");
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
+//        result.computeStatusIfUnknown();
+//        showResult(result);
+        return executedDeltas;
+    }
+
+    protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
+        if (deltas.isEmpty()) {
+            //nothing to do;
+            return null;
+        }
+        //TODO force
+        ////            if (!executeForceDelete(objectWrapper, task, options, result)) {
+////                result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
+////                LoggingUtils.logUnexpectedException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
+////            } else {
+////                result.recomputeStatus();
+////            }
+
         return getChangeExecutor().executeChanges(deltas, previewOnly, task, result, target);
     }
 
-    protected void saveOrPreviewPostProcess(AjaxRequestTarget target, Task task, ExecuteChangeOptionsDto options) {
-
-    }
 
     protected ExecuteChangeOptionsDto getExecuteChangesOptionsDto() {
         return getOperationalButtonsPanel().getExecuteChangeOptions();
@@ -271,65 +272,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 //        WebComponentUtil.revive(parentOrgModel, getPrismContext());
     }
 
-
-
-    private void postProcessAddDelta(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, Task task, OperationResult result, AjaxRequestTarget target) {
-        if (deltas.isEmpty()) {
-            return; //nothing to do
-        }
-
-        checkValidationErrors(target, objectDetailsModels.getValidationErrors());
-        result.recordSuccess();
-
-//        try {
-//            if (!deltas.isEmpty()) {
-//                if (checkValidationErrors(target, objectDetailsModels.getValidationErrors())) {
-//                    return;
-//                }
-////                getChangeExecutor().executeChanges(deltas, previewOnly, task, result, target);
-//            } else {
-//                result.recordSuccess();
-//            }
-//        } catch (Exception ex) {
-//            result.recordFatalError(getString("pageFocus.message.cantCreateFocus"), ex);
-//            LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
-//            showResult(result);
-//        }
-    }
-
     protected ObjectChangeExecutor getChangeExecutor() {
         return new ObjectChangesExecutorImpl();
     }
 
-    private void postProcessModifyDelta(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto executeChangeOptionsDto, Task task, OperationResult result, AjaxRequestTarget target) {
-        //TODO only in UserDetialsPanel
-        //boolean delegationChangesExist = processDeputyAssignments(previewOnly);
 
-        try {
-            if (deltas.isEmpty() && !executeChangeOptionsDto.isReconcile()) {
-//                progressPanel.clearProgressPanel();            // from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
-                if (!previewOnly) {
-                    redirectBack();
-                }
-                return;
-            }
-            if (deltas.isEmpty() && executeChangeOptionsDto.isReconcile()) {
-                ObjectDelta emptyDelta = getPrismContext().deltaFor(getType()).asObjectDelta(getModelPrismObject().getOid());
-                deltas.add(emptyDelta);
-            }
-            checkValidationErrors(target, objectDetailsModels.getValidationErrors());
-
-        } catch (Exception ex) {
-            //TODO force
-//            if (!executeForceDelete(objectWrapper, task, options, result)) {
-//                result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
-//                LoggingUtils.logUnexpectedException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
-//            } else {
-//                result.recomputeStatus();
-//            }
-            showResult(result);
-        }
-    }
 
     private void checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {
         if (validationErrors != null && !validationErrors.isEmpty()) {
@@ -406,12 +353,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private DetailsNavigationPanel initNavigation() {
-        return createNavigationPanel(ID_NAVIGATION, getPanelConfigurations());
+        return createNavigationPanel(getPanelConfigurations());
     }
 
-    private DetailsNavigationPanel createNavigationPanel(String id, IModel<List<ContainerPanelConfigurationType>> panels) {
+    private DetailsNavigationPanel<O> createNavigationPanel(IModel<List<ContainerPanelConfigurationType>> panels) {
 
-        DetailsNavigationPanel panel = new DetailsNavigationPanel(id, objectDetailsModels, panels) {
+        return new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 MidpointForm form = getMainForm();
@@ -419,7 +366,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 target.add(form);
             }
         };
-        return panel;
     }
 
 
@@ -494,10 +440,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
 
     private MidpointForm getMainForm() {
-        return (MidpointForm) get(createComponentPath(ID_DETAILS, ID_MAIN_FORM));
+        return (MidpointForm) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM));
     }
     protected Component getSummaryPanel() {
-        return get(createComponentPath(ID_DETAILS, ID_SUMMARY));
+        return get(createComponentPath(ID_DETAILS_VIEW, ID_SUMMARY));
     }
     protected OperationalButtonsPanel getOperationalButtonsPanel() {
         return (OperationalButtonsPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_BUTTONS));

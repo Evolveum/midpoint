@@ -6,28 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import com.evolveum.midpoint.gui.impl.page.admin.ProgressAwareChangesExecutorImpl;
+
+import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressReportingAwarePage;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -38,10 +24,29 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.time.Duration;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDetailsModels<F>> extends PageAssignmentHolderDetails<F, FDM> implements ProgressReportingAwarePage {
 
@@ -85,8 +90,8 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     }
 
     @Override
-    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> wrapperModel) {
-        return new FocusOperationalButtonsPanel(id, wrapperModel) {
+    protected FocusOperationalButtonsPanel<F> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> wrapperModel) {
+        return new FocusOperationalButtonsPanel<>(id, wrapperModel) {
 
             @Override
             protected void savePerformed(AjaxRequestTarget target) {
@@ -115,7 +120,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     class ProgressFragment extends Fragment {
 
-        private ExecuteChangeOptionsDto options;
+        private final ExecuteChangeOptionsDto options;
 
         public ProgressFragment(String id, String markupId, MarkupContainer markupProvider, ExecuteChangeOptionsDto options) {
             super(id, markupId, markupProvider);
@@ -125,26 +130,55 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         @Override
         protected void onInitialize() {
             super.onInitialize();
-            com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel progressPanel = new com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel(ID_PROGRESS_PANEL, options, PageFocusDetails.this);
+            ProgressPanel progressPanel = new ProgressPanel(ID_PROGRESS_PANEL, options, PageFocusDetails.this);
             add(progressPanel);
         }
 
+        public ProgressPanel getFragmentProgressPanel() {
+            return (ProgressPanel) get(ID_PROGRESS_PANEL);
+        }
     }
 
     @Override
-    protected final void saveOrPreviewPostProcess(AjaxRequestTarget target, Task task, ExecuteChangeOptionsDto options) {
-        Fragment progressPanelFragment = new ProgressFragment(ID_DETAILS_VIEW, ID_PROGRESS_PANEL_FRAGMENT, PageFocusDetails.this, options);
-        replace(progressPanelFragment);
-        target.add(progressPanelFragment);
+    protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
+        try {
+            if (options.isReconcile() && deltas.isEmpty()) {
+                ObjectDelta emptyDelta = getPrismContext().deltaFor(getType()).asObjectDelta(getModelPrismObject().getOid());
+                deltas.add(emptyDelta);
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot crate empty delta, {}", e.getMessage(), e);
+            target.add(getFeedbackPanel());
+            return null;
+        }
+
+        return super.executeChanges(deltas, previewOnly, options, task, result, target);
     }
 
-    protected com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel getProgressPanel() {
-        return (com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_PROGRESS_PANEL));
+//    @Override
+//    protected final void saveOrPreviewPostProcess(AjaxRequestTarget target, Task task, ExecuteChangeOptionsDto options) {
+//        Fragment progressPanelFragment = new ProgressFragment(ID_DETAILS_VIEW, ID_PROGRESS_PANEL_FRAGMENT, PageFocusDetails.this, options);
+//        replace(progressPanelFragment);
+//        target.add(progressPanelFragment);
+//    }
+
+//    @Override
+//    protected void postProcessDeltas(AjaxRequestTarget target, Collection<ObjectDelta<? extends ObjectType>> deltas, ItemStatus status, ExecuteChangeOptionsDto executeChangeOptionsDto) throws SchemaException {
+//        super.postProcessDeltas(target, deltas, status, executeChangeOptionsDto);
+//
+//        if (executeChangeOptionsDto.isReconcile() && deltas.isEmpty()) {
+//            ObjectDelta emptyDelta = getPrismContext().deltaFor(getType()).asObjectDelta(getModelPrismObject().getOid());
+//            deltas.add(emptyDelta);
+//        }
+//    }
+
+    protected ProgressPanel getProgressPanel() {
+        return (ProgressPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_PROGRESS_PANEL));
     }
 
     @Override
     protected ObjectChangeExecutor getChangeExecutor() {
-        return getProgressPanel();
+        return new ProgressAwareChangesExecutorImpl(getExecuteChangesOptionsDto(), this);
     }
 
     @Override
@@ -152,13 +186,18 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         return (FDM) new FocusDetailsModels<>(createPrismObejctModel(object), this);
     }
 
+
     @Override
-    public void startProcessing(AjaxRequestTarget target, OperationResult result) {
+    public ProgressPanel startAndGetProgressPanel(AjaxRequestTarget target, OperationResult result) {
         LOGGER.trace("startProcessing called, making main panel invisible");
+        ProgressFragment progressPanelFragment = new ProgressFragment(ID_DETAILS_VIEW, ID_PROGRESS_PANEL_FRAGMENT, PageFocusDetails.this, getExecuteChangesOptionsDto());
+        replace(progressPanelFragment);
+        target.add(progressPanelFragment);
+        return progressPanelFragment.getFragmentProgressPanel();
     }
 
     @Override
-    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
+    public void finishProcessing(AjaxRequestTarget target, boolean returningFromAsync, OperationResult result) {
         if (previewRequested) {
             finishPreviewProcessing(target, result);
             return;
@@ -209,14 +248,16 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         target.add(getFeedbackPanel());
 
         Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap = new LinkedHashMap<>();
-        modelContextMap.put(getModelPrismObject(), getProgressPanel().getPreviewResult());
-        //TODO
-//        processAdditionalFocalObjectsForPreview(modelContextMap);
+        collectObjectsForPreview(modelContextMap);
 
         DetailsFragment detailsFragment = createDetailsFragment();
         replace(detailsFragment);
         target.add(detailsFragment);
         navigateToNext(new PageFocusPreviewChanges(modelContextMap));
+    }
+
+    protected void collectObjectsForPreview(Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap) {
+        modelContextMap.put(getModelPrismObject(), getProgressPanel().getPreviewResult());
     }
 
 

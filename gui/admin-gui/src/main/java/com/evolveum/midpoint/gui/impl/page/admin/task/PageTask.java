@@ -87,7 +87,7 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, AssignmentHo
     }
 
     @Override
-    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> wrapperModel) {
+    protected TaskOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> wrapperModel) {
         return new TaskOperationalButtonsPanel(id, wrapperModel) {
 
             @Override

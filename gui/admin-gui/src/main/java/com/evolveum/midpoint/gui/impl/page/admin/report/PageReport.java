@@ -83,7 +83,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     }
 
     @Override
-    protected OperationalButtonsPanel<ReportType> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ReportType>> wrapperModel) {
+    protected ReportOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ReportType>> wrapperModel) {
         return new ReportOperationalButtonsPanel(id, wrapperModel) {
             @Override
             protected Boolean isEditObject() {
