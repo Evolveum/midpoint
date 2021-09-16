@@ -8,16 +8,16 @@
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <source>
-        <path>$user/employeeType</path>
+        <path>$user/subtype</path>
     </source>
     <expression>
         <script>
-            <code>'The '+ employeeType</code>
+            <code>'The '+ subtype</code>
         </script>
     </expression>
     <condition>
         <script>
-            <code>!basic.isEmpty(employeeType)</code>
+            <code>!basic.isEmpty(subtype)</code>
         </script>
     </condition>
 </mapping>

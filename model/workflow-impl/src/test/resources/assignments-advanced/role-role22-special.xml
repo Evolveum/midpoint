@@ -10,6 +10,6 @@
     <name>Role22</name>
     <description>Special approval (org:special-approver)</description>
     <assignment> <!-- metarole-default -->
-        <targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
+        <targetRef oid="00000001-d34d-b33f-f00d-b00000000001" type="RoleType"/>
     </assignment>
 </role>

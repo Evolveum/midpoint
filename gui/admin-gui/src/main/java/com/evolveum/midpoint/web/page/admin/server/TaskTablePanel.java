@@ -11,11 +11,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 
-import com.evolveum.midpoint.web.page.admin.server.dto.AttachedTaskInformation;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -235,7 +236,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId,
                     IModel<SelectableBean<TaskType>> rowModel) {
-                AttachedTaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
+                TaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
                 cellItem.add(
                         new Label(
                                 componentId,
@@ -248,7 +249,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return new AbstractExportableColumn<>(createStringResource("pageTasks.task.progress")) {
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                AttachedTaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
+                TaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
                 return Model.of(
                         getComplexProgressDescription(taskInformation));
             }
@@ -259,7 +260,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return new AbstractColumn<>(createStringResource("pageTasks.task.errors")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
-                AttachedTaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
+                TaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
                 cellItem.add(
                         new Label(
                                 componentId,
@@ -273,7 +274,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             protected DisplayType getIconDisplayType(final IModel<SelectableBean<TaskType>> rowModel) {
-                AttachedTaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
+                TaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
                 OperationResultStatusType status = taskInformation.getResultStatus();
 
                 String icon = OperationResultStatusPresentationProperties
@@ -286,7 +287,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         };
     }
 
-    private @NotNull String getComplexProgressDescription(@NotNull AttachedTaskInformation taskInformation) {
+    private @NotNull String getComplexProgressDescription(@NotNull TaskInformation taskInformation) {
         String progress = taskInformation.getProgressDescriptionShort(); // no need to localize this (for now)
         XMLGregorianCalendar stalledSince = taskInformation.getCompletelyStalledSince();
         if (stalledSince != null) {
@@ -778,9 +779,10 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return null;
     }
 
-    /** Creates {@link AttachedTaskInformation} based on current table row and (in subclasses) the whole activity tree overview. */
+    /** Creates {@link TaskInformationUtil} based on current table row and (in subclasses) the whole activity tree overview.
+     * @return*/
     @NotNull
-    protected AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
-        return AttachedTaskInformation.getOrCreate(selectableTaskBean, null);
+    protected TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+        return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, null);
     }
 }

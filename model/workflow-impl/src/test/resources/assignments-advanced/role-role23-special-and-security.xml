@@ -10,7 +10,7 @@
     <name>Role23</name>
     <description>Special + security approval (org:special-approver, org:security-approver)</description>
     <assignment> <!-- metarole-default -->
-        <targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
+        <targetRef oid="00000001-d34d-b33f-f00d-b00000000001" type="RoleType"/>
     </assignment>
     <assignment> <!-- metarole-security -->
         <targetRef oid="00000001-d34d-b33f-f00d-M00000000002" type="RoleType"/>

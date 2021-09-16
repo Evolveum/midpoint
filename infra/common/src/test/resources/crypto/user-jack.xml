@@ -23,7 +23,7 @@
     <honorificPrefix>Cpt.</honorificPrefix>
     <honorificSuffix>PhD.</honorificSuffix>
     <employeeNumber>emp1234</employeeNumber>
-    <employeeType>CAPTAIN</employeeType>
+    <subtype>CAPTAIN</subtype>
     <credentials>
         <password>
             <value>

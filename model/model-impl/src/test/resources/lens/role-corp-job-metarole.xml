@@ -31,16 +31,16 @@
         <order>2</order>
         <condition>     <!-- this is quite artificial but used to test a fix for MID-2190 -->
             <!-- in these tests we enable and disable this metarole for holders of Manager role
-                 by setting their costCenter to the value of "management" (roleType for Manager role) -->
+                 by setting their costCenter to the value of "management" (subtype for Manager role) -->
             <source>
-                <path>$immediateRole/roleType</path>
+                <path>$immediateRole/subtype</path>
             </source>
             <source>
                 <path>$focus/costCenter</path>
             </source>
             <expression>
                 <script>
-                    <code>roleType == 'job' || roleType == costCenter</code>
+                    <code>subtype == 'job' || subtype == costCenter</code>
                 </script>
             </expression>
         </condition>

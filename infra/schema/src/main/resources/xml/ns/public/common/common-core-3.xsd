@@ -742,28 +742,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FocusType">
                 <xsd:sequence>
-                    <xsd:element name="objectType" type="xsd:anyURI">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                Type of the stored object.
-                                This attribute contains URI defining the type (class) of
-                                stored object. The URI that maps to a QName of an object
-                                XML element should be used if possible (see QName
-                                mapping above). However this is not mandatory and the
-                                implementation must be able to work with any URI.
-                                </p>
-
-                                <p>
-                                This property is DEPRECATED. It has been made obsolete by archetypes.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1006,6 +984,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the task that created the object (if it was a persistent one).
+                        If the task was a subtask, then the reference to the task tree is stored here.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MetadataType.createTaskRef</a:displayName>
@@ -1113,6 +1092,8 @@
                     <xsd:documentation>
                         Reference to the task that last modified the object (if it was a persistent one).
                         If the last modification was carried out by synchronous task, this reference will be empty.
+
+                        If the task was a subtask, then the reference to the task tree is stored here.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MetadataType.modifyTaskRef</a:displayName>
@@ -1586,6 +1567,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:object/>
+                <a:schemaMigration>
+                    <a:element>tns:objectType</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1865,6 +1851,11 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:employeeType</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
                 <a:diagram>
                     <a:name>user-shadow-resource</a:name>
                     <a:form>collapsed</a:form>
@@ -2125,35 +2116,6 @@
                             <xsd:appinfo>
                                 <a:displayName>UserType.employeeNumber</a:displayName>
                                 <a:displayOrder>400</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="employeeType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Employee type specification such as internal employee,
-                                    external or partner. The specific values are
-                                    deployment-specific. However it is generally assumed that this
-                                    will be enumeration of several type names or codes that define
-                                    "classes" of users.
-                                </p>
-                                <p>
-                                    Even though this property is named "employeeType" due to the historical
-                                    reasons it is used in a more generic way to mean general type of user.
-                                    Therefore it can be used to distinguish employees from customers, etc.
-                                </p>
-                                <p>
-                                    DEPRECATED: Use ObjectType.subtype
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.employeeType</a:displayName>
-                                <a:displayOrder>410</a:displayOrder>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>3.8</a:deprecatedSince>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -12110,51 +12072,17 @@
                     the role was defined).
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:roleType</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractRoleType">
                 <xsd:sequence>
-                    <xsd:element name="roleType" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Type of a role, usually denotes a "layer" or "purpose" of the role.
-                                    Such as "business", "IT", "asset", etc.
-                                    This field has no special meaning in the IDM computation logic. Its purpose
-                                    is to organize roles for presentation (GUI) and management. Therefor it is
-                                    assumed that the values of the roleType will be an enumeration.
-                                </p>
-                                <p>
-                                    In a complex RBAC structures the role type is usually defined by an
-                                    assignment of a meta-role. However, selecting the roles by (sometimes transitive)
-                                    meta-role assignment is not very efficient. Therefore the recommended
-                                    use is for a meta-role to set the value of (focal) role roleType property to
-                                    a simple string value (focusMapping in a meta-role is ideal for this purpose).
-                                    The roleType property should also be associated with a LookupTable (or similar mechanism)
-                                    to allow GUI to efficiently display and select role types.
-                                </p>
-                                <p>
-                                Examples:
-                                    <ul>
-                                        <li>application</li>
-                                        <li>business</li>
-                                        <li>it</li>
-                                        <li>technical</li>
-                                        <li>asset</li>
-                                    </ul>
-                                </p>
-                                <p>
-                                    DEPRECATED: use ObjectType.subtype
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleType.roleType</a:displayName>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>3.8</a:deprecatedSince>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -12636,48 +12564,16 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:orgType</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AbstractRoleType">
                 <xsd:sequence>
-
-                    <xsd:element name="orgType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Type of the organizational tree. It is used to distinguish what a specific
-                                    Org represents. Whether it is a functional organizational unit, project, team,
-                                    etc.
-                                </p>
-                                <p>
-                                    It is generally assumed that all Org objects in the same tree will have
-                                    the same value of this property. Although this is not a strict requirement
-                                    the operation in the scripting libraries and some pre-defined structures
-                                    work with this assumption.
-                                </p>
-                                <p>
-                                Examples:
-                                    <ul>
-                                        <li>functional</li>
-                                        <li>project</li>
-                                        <li>team</li>
-                                        <li>realm</li>
-                                    </ul>
-                                </p>
-                                <p>
-                                    DEPRECATED: Use ObjectType.subtype
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>OrgType.type</a:displayName>
-                                <a:displayOrder>120</a:displayOrder>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>3.8</a:deprecatedSince>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
 
                     <xsd:element name="tenant" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                         <xsd:annotation>
@@ -12758,40 +12654,17 @@
                     very abstract concept.
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:serviceType</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AbstractRoleType">
                 <xsd:sequence>
-
-                    <xsd:element name="serviceType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Type of the service. It is used to distinguish what a specific
-                                    Service object represents. Whether it is a server, virtual machine, network node, etc.
-                                </p>
-                                <p>
-                                Examples:
-                                    <ul>
-                                        <li>server</li>
-                                        <li>vm</li>
-                                        <li>printer</li>
-                                        <li>device</li>
-                                    </ul>
-                                </p>
-                                <p>
-                                    DEPRECATED: Use ObjectType.subtype
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>ServiceType.type</a:displayName>
-                                <a:displayOrder>120</a:displayOrder>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>3.8</a:deprecatedSince>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
 
                     <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
                         <xsd:annotation>

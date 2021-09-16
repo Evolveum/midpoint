@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -17,19 +20,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
  */
 public class MetadataAsserter<RA> extends AbstractAsserter<RA> {
 
-    private MetadataType metadataType;
+    private MetadataType metadata;
 
-    public MetadataAsserter(MetadataType metadataType, RA returnAsserter, String details) {
+    public MetadataAsserter(MetadataType metadata, RA returnAsserter, String details) {
         super(returnAsserter, details);
-        this.metadataType = metadataType;
+        this.metadata = metadata;
     }
 
     MetadataType getMetadata() {
-        return metadataType;
+        return metadata;
     }
 
     public MetadataAsserter<RA> assertNone() {
-        assertNull("Unexpected "+desc(), metadataType);
+        assertNull("Unexpected "+desc(), metadata);
         return this;
     }
 
@@ -43,4 +46,9 @@ public class MetadataAsserter<RA> extends AbstractAsserter<RA> {
         return descWithDetails("metadata of "+getDetails());
     }
 
+    public MetadataAsserter<RA> assertModifyTaskOid(String expectedOid) {
+        String realOid = getOid(metadata.getModifyTaskRef());
+        assertThat(realOid).as("modify task ref OID").isEqualTo(expectedOid);
+        return this;
+    }
 }

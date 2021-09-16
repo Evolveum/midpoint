@@ -330,7 +330,7 @@
                             <script>
                                <code>
 tmpSuffix = 'OU=vix,DC=win,DC=evolveum,DC=com'
-switch (basic.stringify(user.getEmployeeType())) {
+switch (basic.stringify(user.getSubtype())) {
     case 'T':
         tmpSuffix = 'OU=Prefix1,' + tmpSuffix
         break

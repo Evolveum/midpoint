@@ -153,7 +153,7 @@ public class TestRetirement extends AbstractStoryTest {
 
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_RETIRED_OID);
         display("org", org);
-        PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, ORG_TYPE_FUNCTIONAL);
+        PrismAsserts.assertPropertyValue(org, OrgType.F_SUBTYPE, ORG_TYPE_FUNCTIONAL);
 
         String ouShadowOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.GENERIC, LDAP_OU_INTENT);
         PrismObject<ShadowType> ouShadow = getShadowModel(ouShadowOid);
@@ -422,7 +422,7 @@ public class TestRetirement extends AbstractStoryTest {
         PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
         OrgType orgType = org.asObjectable();
         orgType.setName(new PolyStringType(name));
-        orgType.getOrgType().add(ORG_TYPE_FUNCTIONAL);
+        orgType.getSubtype().add(ORG_TYPE_FUNCTIONAL);
         AssignmentType metaRoleAssignment = new AssignmentType();
         ObjectReferenceType metaRoleAssignmentTargetRef = new ObjectReferenceType();
         metaRoleAssignmentTargetRef.setOid(ROLE_META_ORG_OID);
@@ -479,7 +479,7 @@ public class TestRetirement extends AbstractStoryTest {
     private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
         PrismObject<OrgType> org = getOrg(orgName);
         display("org", org);
-        PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, ORG_TYPE_FUNCTIONAL);
+        PrismAsserts.assertPropertyValue(org, OrgType.F_SUBTYPE, ORG_TYPE_FUNCTIONAL);
         assertAssignedRole(org, ROLE_META_ORG_OID);
 
         String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, LDAP_GROUP_INTENT);

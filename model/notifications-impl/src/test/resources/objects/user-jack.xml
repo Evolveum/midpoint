@@ -32,7 +32,7 @@
     <emailAddress>jack.sparrow@evolveum.com</emailAddress>
     <telephoneNumber>555-1234</telephoneNumber>
     <employeeNumber>emp1234</employeeNumber>
-    <employeeType>CAPTAIN</employeeType>
+    <subtype>CAPTAIN</subtype>
     <locality>Caribbean</locality>
 
     <credentials>

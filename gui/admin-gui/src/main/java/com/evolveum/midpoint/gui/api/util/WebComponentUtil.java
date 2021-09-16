@@ -256,7 +256,7 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ArchetypeType.class, com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageAccount.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, PageObjectTemplate.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate.class);
     }
 
     static {

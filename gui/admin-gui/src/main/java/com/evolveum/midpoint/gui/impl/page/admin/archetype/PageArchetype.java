@@ -52,8 +52,8 @@ public class PageArchetype extends PageFocusDetails<ArchetypeType, FocusDetailsM
         super(parameters);
     }
 
-    public PageArchetype(final PrismObject<ArchetypeType> role) {
-        super(role);
+    public PageArchetype(final PrismObject<ArchetypeType> obj) {
+        super(obj);
     }
 
     @Override
@@ -65,15 +65,5 @@ public class PageArchetype extends PageFocusDetails<ArchetypeType, FocusDetailsM
     protected Panel createSummaryPanel(String id, LoadableModel<ArchetypeType> summaryModel) {
         return new ArchetypeSummaryPanel(id, summaryModel, this);
     }
-
-//    @Override
-//    protected AssignmentHolderDetailsModel<ArchetypeType> createObjectDetailsModels(PrismObject<ArchetypeType> object) {
-//        return new CaseDetailsModels(createPrismObejctModel(object), this);
-//    }
-
-//    @Override
-//    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ArchetypeType>> wrapperModel) {
-//        return new CaseOperationalButtonsPanel(id, wrapperModel);
-//    }
 
 }

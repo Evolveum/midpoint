@@ -31,7 +31,7 @@
         <t:norm>cpt</t:norm>
     </honorificPrefix>
     <emailAddress></emailAddress>
-    <employeeType>PIRATE</employeeType>
+    <subtype>PIRATE</subtype>
     <organizationalUnit>
         <t:orig>Brethren of the Coast</t:orig>
         <t:norm>brethren of the coast</t:norm>

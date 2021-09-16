@@ -45,7 +45,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnectorHost;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.MGenericObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
@@ -1485,7 +1485,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L))
                         .lockoutStatus(LockoutStatusType.NORMAL))
                 // this is the only additionally persisted field for GenericObject
-                .objectType("some-custom-object-type-uri");
+                .subtype("some-custom-object-type-uri");
 
         when("adding it to the repository");
         repositoryService.addObject(genericObject.asPrismObject(), null, result);
@@ -1493,7 +1493,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored and relevant attributes are in columns");
         assertThatOperationResult(result).isSuccess();
 
-        MGenericObject row = selectObjectByOid(
+        MFocus row = selectObjectByOid(
                 QGenericObject.class, UUID.fromString(genericObject.getOid()));
         assertThat(row.costCenter).isEqualTo("cost-center");
         assertThat(row.emailAddress).isEqualTo("email-address");
@@ -1520,8 +1520,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.archiveTimestamp).isEqualTo(Instant.ofEpochMilli(8));
         assertThat(row.lockoutStatus).isEqualTo(LockoutStatusType.NORMAL);
 
-        // field specific to GenericObjectType
-        assertCachedUri(row.genericObjectTypeId, "some-custom-object-type-uri");
+        assertThat(row.subtypes).containsExactlyInAnyOrder("some-custom-object-type-uri");
     }
 
     // This covers mapping of attributes in AbstractRole + Archetype + inducement mapping.

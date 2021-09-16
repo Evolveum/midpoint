@@ -1731,8 +1731,8 @@ public class TaskQuartzImpl implements Task {
     }
 
     public TaskHandler getHandler() {
-        String handlerUri = getHandlerUri();
-        return handlerUri != null ? beans.handlerRegistry.getHandler(handlerUri) : null;
+        return beans.handlerRegistry.getHandler(
+                getHandlerUri());
     }
 
     @Override

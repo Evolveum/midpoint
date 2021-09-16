@@ -82,7 +82,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
             writeHeader(writer);
 
             OrgType root = createOrgType("University", "University org. structure", "UROOT", "Bratislava", null);
-            root.getOrgType().add("functional");
+            root.getSubtype().add("functional");
             final String OID_ORG_ROOT = root.getOid();
 
             writeObject(root, writer);

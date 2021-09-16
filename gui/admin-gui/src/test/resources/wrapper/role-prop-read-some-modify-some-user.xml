@@ -17,7 +17,7 @@
             <type>UserType</type>
             <filter>
                 <q:equal>
-                   <q:path>employeeType</q:path>
+                   <q:path>subtype</q:path>
                    <q:value>CAPTAIN</q:value>
                 </q:equal>
             </filter>
@@ -34,7 +34,7 @@
             <type>UserType</type>
             <filter>
                 <q:equal>
-                   <q:path>employeeType</q:path>
+                   <q:path>subtype</q:path>
                    <q:value>CAPTAIN</q:value>
                 </q:equal>
             </filter>

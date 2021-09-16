@@ -11,7 +11,7 @@
      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
      xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Projects</name>
-    <orgType>project</orgType>
+    <subtype>project</subtype>
     <inducement>
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000003"/>

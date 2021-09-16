@@ -14,7 +14,7 @@
     <name>One</name> <!-- OK -->
     <description>First role</description> <!-- OK -->
 
-    <roleType>lab</roleType> <!-- deprecated, but not plannedRemoval -->
+    <subtype>lab</subtype> <!-- deprecated, but not plannedRemoval -->
 
     <approverExpression> <!-- removed in .0 -->
         <script>

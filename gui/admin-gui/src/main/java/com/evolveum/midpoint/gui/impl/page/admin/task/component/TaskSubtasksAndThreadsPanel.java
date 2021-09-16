@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -27,7 +28,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.page.admin.server.TaskTablePanel;
-import com.evolveum.midpoint.web.page.admin.server.dto.AttachedTaskInformation;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
@@ -115,8 +116,8 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             }
 
             @Override
-            protected @NotNull AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
-                return AttachedTaskInformation.getOrCreate(selectableTaskBean, rootTaskModel.getObject());
+            protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
             }
         };
 
@@ -143,8 +144,8 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
             }
 
             @Override
-            protected @NotNull AttachedTaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
-                return AttachedTaskInformation.getOrCreate(selectableTaskBean, rootTaskModel.getObject());
+            protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
             }
         };
         add(workerThreadsTable);

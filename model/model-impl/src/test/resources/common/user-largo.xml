@@ -16,7 +16,7 @@
     <!-- No full name -->
     <givenName>Largo</givenName>
     <familyName>LaGrande</familyName>
-    <employeeType>PIRATE</employeeType>
+    <subtype>PIRATE</subtype>
      <credentials>
         <password>
             <value>

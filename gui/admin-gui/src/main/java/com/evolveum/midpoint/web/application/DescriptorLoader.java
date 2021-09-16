@@ -67,6 +67,7 @@ public final class DescriptorLoader implements DebugDumpable {
             "com.evolveum.midpoint.gui.impl.page.admin.user",
             "com.evolveum.midpoint.gui.impl.page.admin.focus",
             "com.evolveum.midpoint.gui.impl.page.admin.objectcollection",
+            "com.evolveum.midpoint.gui.impl.page.admin.objecttemplate",
             "com.evolveum.midpoint.gui.impl.page.admin.archetype",
             "com.evolveum.midpoint.gui.impl.page.admin.report"
     };

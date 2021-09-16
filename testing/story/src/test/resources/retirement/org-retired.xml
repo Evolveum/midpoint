@@ -13,7 +13,7 @@
     <name>RETIRED</name>
     <displayName>Retired</displayName>
     <identifier>RRRR</identifier>
-    <orgType>functional</orgType>
+    <subtype>functional</subtype>
 
     <assignment>
         <description>RET-OU</description>

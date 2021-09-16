@@ -63,6 +63,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.gui.impl.page.admin.cases.component",
             "com.evolveum.midpoint.gui.impl.page.admin.user.component",
             "com.evolveum.midpoint.gui.impl.page.admin.objectcollection.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.component",
             "com.evolveum.midpoint.gui.impl.page.admin.archetype.component",
             "com.evolveum.midpoint.gui.impl.page.admin.report.component"
     };

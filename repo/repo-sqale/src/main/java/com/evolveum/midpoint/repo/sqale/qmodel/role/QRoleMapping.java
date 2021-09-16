@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType.F_ROLE_TYPE;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -29,8 +27,6 @@ public class QRoleMapping
     private QRoleMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 RoleType.class, QRole.class, repositoryContext);
-
-        addItemMapping(F_ROLE_TYPE, stringMapper(q -> q.roleType));
     }
 
     @Override
@@ -47,8 +43,6 @@ public class QRoleMapping
     public @NotNull MRole toRowObjectWithoutFullObject(
             RoleType schemaObject, JdbcSession jdbcSession) {
         MRole row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
-
-        row.roleType = schemaObject.getRoleType();
 
         return row;
     }

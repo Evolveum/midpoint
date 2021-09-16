@@ -84,7 +84,7 @@
         <t:norm>captain</t:norm>
     </title>
     <employeeNumber>001</employeeNumber>
-    <employeeType>PIRATE</employeeType>
+    <subtype>PIRATE</subtype>
     <locality>
         <t:orig>Caribbean</t:orig>
         <t:norm>caribbean</t:norm>

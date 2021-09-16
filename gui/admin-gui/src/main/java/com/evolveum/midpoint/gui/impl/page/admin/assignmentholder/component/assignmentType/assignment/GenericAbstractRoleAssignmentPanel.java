@@ -76,9 +76,6 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
                 .block()
                 .item(OrgType.F_SUBTYPE)
                 .contains("access")
-                .or()
-                .item(OrgType.F_ORG_TYPE)
-                .contains("access")
                 .endBlock()
                 .buildFilter();
     }

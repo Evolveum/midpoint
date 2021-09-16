@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -64,34 +64,51 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     // Roles 1-3 are approved using implicit or global policy rule -- they have no metarole causing approval
     // The approval is triggered because Lead 1-3 are set as approvers for these roles.
     // There is no approver for role 4 so it does not undertake aby approval.
-    static final TestResource ROLE1 = new TestResource(TEST_RESOURCE_DIR, "role-role1.xml", "00000001-d34d-b33f-f00d-000000000001");
-    static final TestResource ROLE2 = new TestResource(TEST_RESOURCE_DIR, "role-role2.xml", "00000001-d34d-b33f-f00d-000000000002");
-    static final TestResource ROLE3 = new TestResource(TEST_RESOURCE_DIR, "role-role3.xml", "00000001-d34d-b33f-f00d-000000000003");
-    static final TestResource ROLE4 = new TestResource(TEST_RESOURCE_DIR, "role-role4.xml", "00000001-d34d-b33f-f00d-000000000004");
+    static final TestResource<ObjectType> ROLE1 = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role1.xml", "00000001-d34d-b33f-f00d-000000000001");
+    static final TestResource<ObjectType> ROLE2 = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role2.xml", "00000001-d34d-b33f-f00d-000000000002");
+    static final TestResource<ObjectType> ROLE3 = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role3.xml", "00000001-d34d-b33f-f00d-000000000003");
+    static final TestResource<ObjectType> ROLE4 = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role4.xml", "00000001-d34d-b33f-f00d-000000000004");
 
     // Roles 1b-3b are approved using metarole holding a policy rule that engages users with "special-approver" relation.
     // The approval is triggered because Lead 1-3 are set as "special approvers" for these roles.
     // There is no approver for role 4 so it does not undertake aby approval.
-    static final TestResource ROLE1B = new TestResource(TEST_RESOURCE_DIR, "role-role1b.xml", "00000001-d34d-b33f-f00d-00000000001b");
-    static final TestResource ROLE2B = new TestResource(TEST_RESOURCE_DIR, "role-role2b.xml", "00000001-d34d-b33f-f00d-00000000002b");
-    static final TestResource ROLE3B = new TestResource(TEST_RESOURCE_DIR, "role-role3b.xml", "00000001-d34d-b33f-f00d-00000000003b");
-    static final TestResource ROLE4B = new TestResource(TEST_RESOURCE_DIR, "role-role4b.xml", "00000001-d34d-b33f-f00d-00000000004b");
+    static final TestResource<ObjectType> ROLE1B = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role1b.xml", "00000001-d34d-b33f-f00d-00000000001b");
+    static final TestResource<ObjectType> ROLE2B = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role2b.xml", "00000001-d34d-b33f-f00d-00000000002b");
+    static final TestResource<ObjectType> ROLE3B = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role3b.xml", "00000001-d34d-b33f-f00d-00000000003b");
+    static final TestResource<ObjectType> ROLE4B = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role4b.xml", "00000001-d34d-b33f-f00d-00000000004b");
 
     // Note: Role10/10b is induced so it is _not_ being approved. Only direct assignments are covered by approvals.
-    static final TestResource ROLE10 = new TestResource(TEST_RESOURCE_DIR, "role-role10.xml", "00000001-d34d-b33f-f00d-000000000010");
-    static final TestResource ROLE10B = new TestResource(TEST_RESOURCE_DIR, "role-role10b.xml", "00000001-d34d-b33f-f00d-00000000010b");
+    static final TestResource<ObjectType> ROLE10 = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role10.xml", "00000001-d34d-b33f-f00d-000000000010");
+    static final TestResource<ObjectType> ROLE10B = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-role10b.xml", "00000001-d34d-b33f-f00d-00000000010b");
 
     // delegation for jack-deputy is created only when needed
-    private static final TestResource USER_JACK_DEPUTY = new TestResource(TEST_RESOURCE_DIR, "user-jack-deputy.xml", "e44769f2-030b-4e9c-9ddf-76bb3a348f9c");
-    private static final TestResource USER_LEAD1 = new TestResource(TEST_RESOURCE_DIR, "user-lead1.xml", "00000001-d34d-b33f-f00d-L00000000001");
-    private static final TestResource USER_LEAD1_DEPUTY_1 = new TestResource(TEST_RESOURCE_DIR, "user-lead1-deputy1.xml", "00000001-d34d-b33f-f00d-LD1000000001");
-    private static final TestResource USER_LEAD1_DEPUTY_2 = new TestResource(TEST_RESOURCE_DIR, "user-lead1-deputy2.xml", "00000001-d34d-b33f-f00d-LD1000000002");
-    private static final TestResource USER_LEAD2 = new TestResource(TEST_RESOURCE_DIR, "user-lead2.xml", "00000001-d34d-b33f-f00d-L00000000002");
-    private static final TestResource USER_LEAD3 = new TestResource(TEST_RESOURCE_DIR, "user-lead3.xml", "00000001-d34d-b33f-f00d-L00000000003");
-    private static final TestResource USER_LEAD10 = new TestResource(TEST_RESOURCE_DIR, "user-lead10.xml", "00000001-d34d-b33f-f00d-L00000000010");
+    private static final TestResource<ObjectType> USER_JACK_DEPUTY = new TestResource<>(
+            TEST_RESOURCE_DIR, "user-jack-deputy.xml", "e44769f2-030b-4e9c-9ddf-76bb3a348f9c");
+    private static final TestResource<ObjectType> USER_LEAD1 = new TestResource<>(
+            TEST_RESOURCE_DIR, "user-lead1.xml", "00000001-d34d-b33f-f00d-a00000000001");
+    private static final TestResource<ObjectType> USER_LEAD1_DEPUTY_1 = new TestResource<>(
+            TEST_RESOURCE_DIR, "user-lead1-deputy1.xml", "00000001-d34d-b33f-f00d-ad1000000001");
+    private static final TestResource<ObjectType> USER_LEAD1_DEPUTY_2 = new TestResource<>(
+            TEST_RESOURCE_DIR, "user-lead1-deputy2.xml", "00000001-d34d-b33f-f00d-ad1000000002");
+    private static final TestResource<ObjectType> USER_LEAD2 = new TestResource<>(
+            TEST_RESOURCE_DIR, "user-lead2.xml", "00000001-d34d-b33f-f00d-a00000000002");
+    private static final TestResource<ObjectType> USER_LEAD3 = new TestResource<>(
+            TEST_RESOURCE_DIR, "user-lead3.xml", "00000001-d34d-b33f-f00d-a00000000003");
+    private static final TestResource<ObjectType> USER_LEAD10 = new TestResource<>(
+            TEST_RESOURCE_DIR, "user-lead10.xml", "00000001-d34d-b33f-f00d-a00000000010");
 
     // Draft user. His assignments should undertake approvals just like other users' assignments (MID-6113).
-    private static final TestResource USER_DRAFT = new TestResource(TEST_RESOURCE_DIR, "user-draft.xml", "e3c00bba-8ce0-4727-a294-91842264c2de");
+    private static final TestResource<ObjectType> USER_DRAFT = new TestResource<>(TEST_RESOURCE_DIR, "user-draft.xml", "e3c00bba-8ce0-4727-a294-91842264c2de");
 
     protected abstract String getRoleOid(int number);
     protected abstract String getRoleName(int number);
@@ -284,12 +301,12 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         task.setOwner(userAdministrator);
         OperationResult result = getTestOperationResult();
 
-        // WHEN
+        when();
         assignDeputy(USER_JACK_DEPUTY.oid, userJackOid, a -> {
             //a.beginLimitTargetContent().allowTransitive(true);
         }, task, result);
 
-        // THEN
+        then();
         PrismObject<UserType> deputy = getUser(USER_JACK_DEPUTY.oid);
         display("deputy after", deputy);
 

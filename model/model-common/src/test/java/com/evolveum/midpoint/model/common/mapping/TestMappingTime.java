@@ -62,7 +62,7 @@ public class TestMappingTime extends AbstractUnitTest
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
-                        UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
+                        UserType.F_SUBTYPE, "CAPTAIN");
 
         MappingBuilder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
                 evaluator.createMappingBuilder(
@@ -91,7 +91,7 @@ public class TestMappingTime extends AbstractUnitTest
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
-                        UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
+                        UserType.F_SUBTYPE, "CAPTAIN");
 
         MappingBuilder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
                 evaluator.createMappingBuilder(
@@ -119,7 +119,7 @@ public class TestMappingTime extends AbstractUnitTest
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
-                        UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
+                        UserType.F_SUBTYPE, "CAPTAIN");
 
         MappingBuilder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
                 evaluator.createMappingBuilder(
