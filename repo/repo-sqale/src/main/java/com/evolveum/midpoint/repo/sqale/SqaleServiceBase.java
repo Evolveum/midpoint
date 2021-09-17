@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale;
 import javax.annotation.PreDestroy;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -17,7 +16,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -27,7 +25,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class SqaleServiceBase {
 
-    protected final Trace logger = TraceManager.getTrace(SqaleRepositoryService.class);
+    protected final Trace logger = TraceManager.getTrace(getClass());
 
     /**
      * Class name prefix for operation names, including the dot separator.
@@ -57,6 +55,10 @@ public class SqaleServiceBase {
         sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
+    public SqaleRepoContext sqlRepoContext() {
+        return sqlRepoContext;
+    }
+
     protected JdbcRepositoryConfiguration repositoryConfiguration() {
         return sqlRepoContext.getJdbcRepositoryConfiguration();
     }
@@ -81,61 +83,13 @@ public class SqaleServiceBase {
         logger.error("General checked exception occurred.", ex);
 
         // non-fatal errors will NOT be put into OperationResult, not to confuse the user
-        if (operationResult != null && isFatalException(ex)) {
+        if (operationResult != null) {
             operationResult.recordFatalError(ex);
         }
 
         return ex instanceof SystemException
                 ? (SystemException) ex
                 : new SystemException(ex.getMessage(), ex);
-    }
-
-    protected void handleGeneralRuntimeException(
-            @NotNull RuntimeException ex,
-            @NotNull JdbcSession jdbcSession,
-            @Nullable OperationResult result) {
-        logger.debug("General runtime exception occurred (session {})", jdbcSession.sessionId(), ex);
-
-        if (isFatalException(ex)) {
-            if (result != null) {
-                result.recordFatalError(ex);
-            }
-            jdbcSession.rollback();
-
-            if (ex instanceof SystemException) {
-                throw ex;
-            } else {
-                throw new SystemException(ex.getMessage(), ex);
-            }
-        } else {
-            jdbcSession.rollback();
-            // this exception will be caught and processed in logOperationAttempt,
-            // so it's safe to pass any RuntimeException here
-            throw ex;
-        }
-    }
-
-    /**
-     * Rolls back the transaction and throws exception.
-     *
-     * @throws SystemException wrapping the exception used as parameter
-     */
-    protected void handleGeneralCheckedException(
-            @NotNull Throwable ex,
-            @NotNull JdbcSession jdbcSession,
-            @Nullable OperationResult result) {
-        logger.error("General checked exception occurred (session {})", jdbcSession.sessionId(), ex);
-
-        if (result != null && isFatalException(ex)) {
-            result.recordFatalError(ex);
-        }
-        jdbcSession.rollback();
-        throw new SystemException(ex.getMessage(), ex);
-    }
-    // true means fatal error operation result
-
-    protected boolean isFatalException(Throwable ex) {
-        return true; // TODO
     }
     // endregion
 

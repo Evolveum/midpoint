@@ -112,11 +112,19 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
                 throw new SystemException("Modification failed: " + modification, e);
             }
         }
+        updateFullTextInfo(modifications, prismObject);
 
         repositoryContext().normalizeAllRelations(prismObject.getValue());
         finishExecution();
 
         return modifications;
+    }
+
+    private void updateFullTextInfo(
+            Collection<? extends ItemDelta<?, ?>> modifications, PrismObject<S> prismObject) {
+        if (repositoryContext().requiresFullTextReindex(modifications, prismObject)) {
+            update.set(rootPath.fullTextInfo, repositoryContext().fullTextIndex(object));
+        }
     }
 
     private void processModification(ItemDelta<?, ?> modification, boolean updateTables)
@@ -166,7 +174,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         update.set(rootPath.version, newVersion);
 
         // Can be null if called without execute() only to update full object.
-        // Currently this is NOT useful for manual object changes that touch multi-value containers,
+        // Currently, this is NOT useful for manual object changes that touch multi-value containers,
         // but if ever used for such cases, just add the line initializing generator from execute()
         // (only if null, of course).
         if (cidGenerator != null) {
