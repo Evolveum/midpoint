@@ -1,0 +1,166 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="beed4a22-f341-4d56-9621-3a3843c1c58f">
+    <name>overmapped</name>
+    <mapping>
+        <name>sourceless-disabled</name>
+        <description>Source-less mapping that is permanently disabled by setting enabled=false</description>
+        <strength>strong</strength>
+        <expression>
+            <value>sourceless-disabled</value>
+        </expression>
+        <target>
+            <path>organization</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
+        </target>
+        <enabled>false</enabled>
+    </mapping>
+    <mapping>
+        <name>sourced-disabled</name>
+        <description>Mapping that has a source, and that is permanently disabled by setting enabled=false</description>
+        <strength>strong</strength>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <value>sourced-disabled</value>
+        </expression>
+        <target>
+            <path>organization</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
+        </target>
+        <enabled>false</enabled>
+    </mapping>
+    <mapping>
+        <name>sourceless-conditioned</name>
+        <description>
+            Source-less mapping that is disabled by a condition evaluating to false.
+            The range is dynamically enabled and disabled, based on the condition value (which is false here).
+        </description>
+        <strength>strong</strength>
+        <expression>
+            <value>sourceless-conditioned</value>
+        </expression>
+        <target>
+            <path>organization</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            if (midpoint.mapping.getStateProperty('condition')) {
+                                true // condition is true, we treat the mapping as fully enabled
+                            } else {
+                                false // condition evaluated to false, we keep the existing state
+                            }
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code>
+                    midpoint.mapping.setStateProperty('condition', false)
+                    false
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <name>sourced-conditioned</name>
+        <description>
+            Mapping with a source that is being enabled and disabled by condition in a pre-4.2 way.
+            So "false -> false" is interpreted as "no mapping there", including skipping of the range evaluation.
+        </description>
+        <strength>strong</strength>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <value>sourced-conditioned</value>
+        </expression>
+        <target>
+            <path>organization</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            condOld = midpoint.mapping.getStateProperty('condition-old')
+                            condNew = midpoint.mapping.getStateProperty('condition-new')
+                            log.info('condition: {} -> {}', condOld, condNew)
+                            if (condNew == false &amp;&amp; (condOld == null || condOld == false)) {
+                                false // condition is false (constant) or false->false, range is not applied
+                            } else {
+                                true // condition is not false->false, let us apply the range
+                            }
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code>
+                    matching = basic.stringify(name) == 'matching'
+                    if (midpoint.isEvaluateNew()) {
+                        midpoint.mapping.setStateProperty('condition-new', matching)
+                    } else {
+                        midpoint.mapping.setStateProperty('condition-old', matching)
+                    }
+                    matching
+                </code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <name>sourced-conditioned-no-state-properties</name>
+        <description>
+            Mapping with a source that is being enabled and disabled by condition in a pre-4.2 way.
+            So "false -> false" is interpreted as "no mapping there", including skipping of the range evaluation.
+
+            EXPERIMENTAL
+        </description>
+        <strength>strong</strength>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <value>sourced-conditioned-no-state-properties</value>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            satisfied = midpoint.mapping.conditionSatisfied
+                            log.info('condition satisfied: {}', satisfied)
+                            if (satisfied) {
+                                true // condition is satisfied (not false->false), let us apply the range
+                            } else {
+                                false // condition is not satisfied (false->false), range is not applied
+                            }
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code>
+                    basic.stringify(name) == 'matching'
+                </code>
+            </script>
+        </condition>
+    </mapping>
+</objectTemplate>
