@@ -75,9 +75,17 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         this.useCache = useCache;
 
         if (useDefaultSortingField) {
-            setSort("name", SortOrder.ASCENDING);
+            setSort(getDefaultSortParam(), getDefaultSortOrder());
         }
         setExportLimitValue();
+    }
+
+    protected String getDefaultSortParam() {
+        return "name";
+    }
+
+    protected SortOrder getDefaultSortOrder() {
+        return SortOrder.ASCENDING;
     }
 
     protected ModelService getModel() {

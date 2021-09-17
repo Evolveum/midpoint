@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -68,6 +69,16 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
     protected void initLayout() {
 
         SelectableBeanObjectDataProvider<? extends ObjectType> provider = new SelectableBeanObjectDataProvider<>(this, null) {
+
+            @Override
+            protected String getDefaultSortParam() {
+                return TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP;
+            }
+
+            @Override
+            protected SortOrder getDefaultSortOrder() {
+                return SortOrder.DESCENDING;
+            }
 
             @Override
             public SelectableBean<ObjectType> createDataObjectWrapper(ObjectType obj) {
