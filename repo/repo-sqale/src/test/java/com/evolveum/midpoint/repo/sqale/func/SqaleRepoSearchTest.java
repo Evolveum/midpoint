@@ -891,12 +891,23 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test322QueryWithNotExistsFilter() throws SchemaException {
-        // this one is the actual inverse of test320
+        // This one is the actual inverse of test320, demonstrates MID-7203.
         searchUsersTest("matching the not exists assignment with specific lifecycle",
                 f -> f.not()
                         .exists(UserType.F_ASSIGNMENT)
                         .item(AssignmentType.F_LIFECYCLE_STATE).eq("assignment1-1"),
                 // all these users have none assignment with the specified lifecycle (none = not exists)
+                user2Oid, user3Oid, user4Oid, creatorOid, modifierOid);
+    }
+
+    @Test
+    public void test323NotBeforeMultiValueContainerImpliesExists() throws SchemaException {
+        // This works just like above, because path traversal via multi-value container (assignment)
+        // implies EXISTS which appears just after NOT. So "NOT + multi-value container => none of ...".
+        // For readability, it's better to make EXISTS explicit, so it's not interpreted as EXISTS (NOT ...).
+        searchUsersTest("matching the not exists assignment with specific lifecycle",
+                f -> f.not()
+                        .item(UserType.F_ASSIGNMENT, AssignmentType.F_LIFECYCLE_STATE).eq("assignment1-1"),
                 user2Oid, user3Oid, user4Oid, creatorOid, modifierOid);
     }
 
