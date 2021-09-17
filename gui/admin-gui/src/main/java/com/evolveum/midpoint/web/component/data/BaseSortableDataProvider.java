@@ -171,7 +171,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
      * @return By defaults it returns true.
      */
     public IModel<Boolean> isSizeAvailableModel() {
-        return (IModel<Boolean>) () -> true;
+        return () -> true;
     }
 
     protected boolean checkOrderingSettings() {

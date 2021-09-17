@@ -59,18 +59,14 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
             LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
         }
 
-        List<SelectableBean<O>> data = new ArrayList<SelectableBean<O>>();
+        List<SelectableBean<O>> data = new ArrayList<>();
         for (PrismObject<? extends O> object : list) {
             data.add(createDataObjectWrapper(object.asObjectable()));
         }
 
         return data;
     }
-
-    protected SelectableBean<O> getNewSelectableBean() {
-        return new SelectableBeanImpl<>();
-    }
-
+    
     public SelectableBean<O> createDataObjectWrapper(O obj) {
         SelectableBean<O> selectable = new SelectableBeanImpl<>(obj);
 
