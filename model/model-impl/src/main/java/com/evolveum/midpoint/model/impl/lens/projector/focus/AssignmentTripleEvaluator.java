@@ -137,7 +137,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     @NotNull
-    private Collection<AssignmentType> getVirtualAssignments() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private Collection<AssignmentType> getVirtualAssignments() throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Collection<AssignmentType> forcedAssignments =
                 focusContext.isDelete() ?
                         List.of() :
