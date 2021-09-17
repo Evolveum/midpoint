@@ -19,6 +19,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -680,58 +683,17 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     // Tests for MID-6839
     @Test
     public void test400RequestAuditDropped() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        long lastAuditId = getAuditRecordsMaxId(task, result);
-
-        when("modify action is audited with delta matching audit recording script");
-        // honorific suffix attribute is used to smuggle the instruction what to drop
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("drop-request-audit"));
-
-        then("request audit is skipped, only execution one is stored");
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
-
-        assertThat(records).hasSize(1);
-        assertThat(records.get(0).getEventStage()).isEqualTo(AuditEventStageType.EXECUTION);
+        requestAuditDropped(null);
     }
 
     @Test
     public void test401ExecutionAuditDropped() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        long lastAuditId = getAuditRecordsMaxId(task, result);
-
-        when("modify action is audited with delta matching audit recording script");
-        // honorific suffix attribute is used to smuggle the instruction what to drop
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("drop-execution-audit"));
-
-        then("execution audit is skipped, only request one is stored");
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
-
-        assertThat(records).hasSize(1);
-        assertThat(records.get(0).getEventStage()).isEqualTo(AuditEventStageType.REQUEST);
+        executionAuditDropped(null);
     }
 
     @Test
     public void test402AuditForBothStagesIsDropped() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        long lastAuditId = getAuditRecordsMaxId(task, result);
-
-        when("modify action is audited with delta matching audit recording script");
-        // honorific suffix attribute is used to smuggle the instruction what to drop
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, createPolyString("drop-audit"));
-
-        then("no audit is stored");
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
-
-        assertThat(records).isEmpty();
+        auditForBothStagesIsDropped(null);
     }
 
     /**
@@ -757,6 +719,75 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                 .allMatch(r -> r.getParameter().equals("modified in script"));
 
         // TODO assert trace readability
+    }
+
+    // Tests for MID-7119
+    @Test
+    public void test404RequestAuditDroppedUsedRawOption() throws Exception {
+        requestAuditDropped(ModelExecuteOptions.create(PrismContext.get()).raw());
+    }
+
+    @Test
+    public void test405ExecutionAuditDroppedUsedRawOption() throws Exception {
+        executionAuditDropped(ModelExecuteOptions.create(PrismContext.get()).raw());
+    }
+
+    @Test
+    public void test406AuditForBothStagesIsDroppedUsedRawOption() throws Exception {
+        auditForBothStagesIsDropped(ModelExecuteOptions.create(PrismContext.get()).raw());
+    }
+
+    private void requestAuditDropped(ModelExecuteOptions options) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        long lastAuditId = getAuditRecordsMaxId(task, result);
+
+        when("modify action is audited with delta matching audit recording script");
+        // honorific suffix attribute is used to smuggle the instruction what to drop
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, options, task, result, createPolyString("drop-request-audit"));
+
+        then("request audit is skipped, only execution one is stored");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
+
+        assertThat(records).hasSize(1);
+        assertThat(records.get(0).getEventStage()).isEqualTo(AuditEventStageType.EXECUTION);
+    }
+
+    private void executionAuditDropped(ModelExecuteOptions options) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        long lastAuditId = getAuditRecordsMaxId(task, result);
+
+        when("modify action is audited with delta matching audit recording script");
+        // honorific suffix attribute is used to smuggle the instruction what to drop
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, options, task, result, createPolyString("drop-execution-audit"));
+
+        then("execution audit is skipped, only request one is stored");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
+
+        assertThat(records).hasSize(1);
+        assertThat(records.get(0).getEventStage()).isEqualTo(AuditEventStageType.REQUEST);
+    }
+
+    private void auditForBothStagesIsDropped(ModelExecuteOptions options) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        long lastAuditId = getAuditRecordsMaxId(task, result);
+
+        when("modify action is audited with delta matching audit recording script");
+        // honorific suffix attribute is used to smuggle the instruction what to drop
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, options, task, result, createPolyString("drop-audit"));
+
+        then("no audit is stored");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        List<AuditEventRecordType> records = getAuditRecordsAfterId(lastAuditId, task, result);
+
+        assertThat(records).isEmpty();
     }
 
     /**

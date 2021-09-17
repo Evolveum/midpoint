@@ -145,7 +145,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();
                 initMainPanel(defaultConfiguration, form);
 
-                add(initNavigation());
+                form.add(initNavigation());
             }
         };
     }
@@ -362,8 +362,13 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 MidpointForm form = getMainForm();
-                initMainPanel(config, form);
-                target.add(form);
+                try {
+                    initMainPanel(config, form);
+                    target.add(form);
+                } catch (Throwable e) {
+                    error("Cannot instantiate panel, " + e.getMessage());
+                    target.add(getFeedbackPanel());
+                }
             }
         };
     }
