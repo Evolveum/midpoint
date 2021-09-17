@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.objectcollection.component;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
