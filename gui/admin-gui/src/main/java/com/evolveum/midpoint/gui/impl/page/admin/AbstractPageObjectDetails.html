@@ -20,51 +20,24 @@
                     <span wicket:id="buttons"/>
                 </div>
 
-                <div class="col-lg-9 col-md-10 col-sm-10 col-xs-10">
-                    <div class="box">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="box box-solid">
                         <div class="box-body">
-
-                            <div wicket:id="mainPanel"></div>
-
+                            <div class="row">
+                                <div class="col-lg-3 col-md-2 col-sm-2 col-xs-2">
+                                    <div wicket:id="navigation"></div>
+                                </div>
+                                <div class="col-lg-9 col-md-10 col-sm-10 col-xs-10">
+                                    <div wicket:id="mainPanel"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </form>
-            <div class="col-lg-3 col-md-2 col-sm-2 col-xs-2">
-                <div wicket:id="navigation"></div>
-            </div>
+
         </div>
     </wicket:fragment>
-
-    <wicket:fragment wicket:id="progressPanelFragment">
-        <div wicket:id="progressPanel"></div>
-    </wicket:fragment>
-<!--    <div wicket:id="progressPanel"></div>-->
-<!--    <div wicket:id="details">-->
-<!--        <div class="row">-->
-<!--            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">-->
-<!--                <div wicket:id="summary"></div>-->
-<!--            </div>-->
-<!--            <form wicket:id="mainForm">-->
-<!--                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">-->
-<!--                    <span wicket:id="buttons"/>-->
-<!--                </div>-->
-
-<!--                <div class="col-lg-9 col-md-10 col-sm-10 col-xs-10">-->
-<!--                    <div class="box">-->
-<!--                        <div class="box-body">-->
-
-<!--                            <div wicket:id="mainPanel"></div>-->
-
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </form>-->
-<!--            <div class="col-lg-3 col-md-2 col-sm-2 col-xs-2">-->
-<!--                <div wicket:id="navigation"></div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
     <wicket:child/>
 </wicket:extend>
 </body>
