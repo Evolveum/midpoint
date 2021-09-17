@@ -22,16 +22,13 @@ They are stored in various places, namely:
 | almost all midPoint objects
 | repository
 
-
 | remote resources
 | resource objects (accounts, groups, ...)
 | provisioning + connectors
 
-
 | embedded workflow engine
 | work items, process instances
 | workflow
-
 
 |===
 
@@ -74,18 +71,14 @@ Each query consists of a *filter* and a *paging instruction*. The former says wh
 The latter says how they are to be sorted and which ones have to be selected (e.g. those with numbers 100-199).
 Both of these components (filter, paging instruction) are optional.
 
-== Filter classification
-
 A filter is either a primitive or complex one.
 
-
-=== Primitive filters
+== Primitive filters
 
 Primitive filters are these that do not contain other filters.
 They are of two categories:
 
-
-==== Trivial filters
+=== Trivial filters
 
 [%autowidth]
 |===
@@ -106,10 +99,9 @@ For all fiters `F1` and `F2` the following holds:
 * `F1 && Undefined = F1`
 * `F2 \|\| Undefined = F2`
 
-
 |===
 
-==== Value filters
+=== Value filters
 
 These filters decide on value(s) of a given property, reference or container.
 
@@ -228,7 +220,7 @@ for a user that is a child of org O1 with the relation of manager, we are lookin
 is a manager of an org O2, which is either O1 itself or is any of its descendants.
 See also dedicated section about Org filter at the end of this document and examples there.
 
-=== Complex filters
+== Complex filters
 
 Complex filters do contain other filters.
 They are:
@@ -252,11 +244,11 @@ This is useful e.g. to find an assignment with a given tenantRef and orgRef.
 
 |===
 
-==== Logical filters
+=== Logical filters
 
 And, Or and Not filters are quite self-explanatory.
 
-==== Type filter
+=== Type filter
 
 An example: Imagine that the original query asked for an ObjectType.
 Then it is possible to set up Type filter with type=UserType, filter=(name equals "xyz") to find only users with the name of "xyz":
@@ -275,7 +267,7 @@ Then it is possible to set up Type filter with type=UserType, filter=(name equal
 </type>
 ----
 
-==== Exists filter
+=== Exists filter
 
 First of all, how should be individual value filters evaluated?
 
@@ -346,6 +338,20 @@ Written in XML:
 ----
 
 This feature is a part of midPoint 3.4 and above.
+
+[WARNING]
+====
+While `EXISTS` works as expected now with complex combination of conditions for the common
+multi-value container (like assignment in the example above), it does not properly work when
+preceded with `NOT`, see https://jira.evolveum.com/browse/MID-7203[MID-7203].
+
+`EXISTS` for "old repo" was implemented using `LEFT JOIN` which works fine for positive conditions,
+but does not work with `NOT` as usual in SQL.
+`NOT EXISTS` is interpreted as "any of the entries does not match the condition inside".
+
+Good news is that with the new (Sqale) repository coming with midPoint 4.4, `EXISTS` is translated
+to SQL `EXISTS` and `NOT EXISTS` works as expected.
+====
 
 == Differences in filter interpretation
 
