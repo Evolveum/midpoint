@@ -36,7 +36,7 @@ public class CompositedIcon implements Serializable {
     }
 
     public String getBasicIcon() {
-        return basicIcon;
+        return basicIcon != null ? basicIcon.trim() : basicIcon;
     }
 
     public List<LayerIcon> getLayerIcons() {
