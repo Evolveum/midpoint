@@ -70,11 +70,6 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
 
     @Override
     protected Panel createSummaryPanel(String id, LoadableModel<TaskType> summaryModel) {
-        // TODO create root task model in constructor - however, this method is called from super(), so it is executed
-        //  before local constructors have a chance to run!
-        //
-        // TODO Propagate loaded root also to other parts of task page, namely to subtasks (and their subtasks, etc)
-        //  (Unless we want to have really fresh information there.)
         return new TaskSummaryPanel(id, summaryModel, getObjectDetailsModels().getRootTaskModel(), this);
     }
 

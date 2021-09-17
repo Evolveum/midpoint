@@ -63,16 +63,6 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
     private static final String ID_SUBTASKS_LABEL = "subtasksLabel";
     private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
 
-    /**
-     * The root of the task tree is needed to have the activity tree overview. It is loaded on demand.
-     *
-     * TODO Eliminate repeated loading of the root task!
-     */
-//    @NotNull private final LoadableModel<TaskType> rootTaskModel =
-//            RootTaskLoader.createRootTaskModel(
-//                    () -> getObjectWrapper().getObject().asObjectable(),
-//                    this::getPageBase);
-
     public TaskSubtasksAndThreadsPanel(String id,
             TaskDetailsModel taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
