@@ -12297,15 +12297,19 @@
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element name="targetSubtype" type="xsd:string" minOccurs="1" maxOccurs="unbounded">
+                        <xsd:element name="targetSubtype" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                             <xsd:annotation>
                                 <xsd:documentation>
                                     Object subtype of the target persona.
                                     Constructions with the same type and subtype configuration are
                                     interpreted as if they describe the same persona.
+
+                                    DEPRECATED, use archetypeRef instead
                                 </xsd:documentation>
                                 <xsd:appinfo>
                                     <a:since>3.6</a:since>
+                                    <a:deprecated/>
+                                    <a:deprecatedSince>4.4</a:deprecatedSince>
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
@@ -12321,6 +12325,17 @@
                                 </xsd:documentation>
                                 <xsd:appinfo>
                                     <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="1" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Archetype of the target persona.
+                                </xsd:documentation>
+                                <xsd:appinfo>
+                                    <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                                    <a:since>4.4</a:since>
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>

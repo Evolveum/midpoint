@@ -33,15 +33,30 @@ public class FocusTypeUtil {
         return createTargetAssignment(roleOid, RoleType.COMPLEX_TYPE);
     }
 
-    public static AssignmentType createOrgAssignment(String roleOid) {
-        return createTargetAssignment(roleOid, OrgType.COMPLEX_TYPE);
+    public static AssignmentType createOrgAssignment(String orgOid) {
+        return createTargetAssignment(orgOid, OrgType.COMPLEX_TYPE);
+    }
+
+    public static AssignmentType createArchetypeAssignment(String archetypeOid) {
+        return createTargetAssignment(archetypeOid, ArchetypeType.COMPLEX_TYPE);
+    }
+
+    public static <AH extends AssignmentHolderType> void addArchetypeAssignments(PrismObject<AH> object, List<ObjectReferenceType> archetypeRefs) {
+        List<AssignmentType> archetypeAssignments = archetypeRefs.stream()
+                .map(archetypeRef -> createTargetAssignment(archetypeRef))
+                .collect(Collectors.toList());
+        object.asObjectable().getAssignment().addAll(archetypeAssignments);
     }
 
     public static AssignmentType createTargetAssignment(String targetOid, QName type) {
-        AssignmentType assignmentType = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
         targetRef.setOid(targetOid);
         targetRef.setType(type);
+        return createTargetAssignment(targetRef);
+    }
+
+    public static AssignmentType createTargetAssignment(ObjectReferenceType targetRef) {
+        AssignmentType assignmentType = new AssignmentType();
         assignmentType.setTargetRef(targetRef);
         return assignmentType;
     }

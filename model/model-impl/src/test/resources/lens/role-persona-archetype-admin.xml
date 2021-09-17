@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (C) 2017-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="e4a03293-cedb-4a49-94f0-e5cdd95f9252"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <name>Persona: archetype-admin</name>
+    <inducement>
+        <personaConstruction>
+            <targetType>UserType</targetType>
+            <objectMappingRef oid="e93145e7-5cbe-4e6f-8fdf-c5506a71ee47"/>
+            <archetypeRef oid="1783774f-042f-4baf-9812-8daf4ad1ce64"/>
+        </personaConstruction>
+    </inducement>
+    <requestable>true</requestable>
+</role>

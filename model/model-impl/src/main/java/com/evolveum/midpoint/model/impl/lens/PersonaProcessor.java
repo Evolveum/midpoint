@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.model.impl.lens.projector.focus.TemplateMappingsEvaluation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -252,7 +253,11 @@ public class PersonaProcessor {
         PrismObjectDefinition<T> objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetType);
         PrismObject<T> target = objectDef.instantiate();
 
-        FocusTypeUtil.setSubtype(target, constructionBean.getTargetSubtype());
+        if (constructionBean.getArchetypeRef() != null) {
+            FocusTypeUtil.addArchetypeAssignments(target, constructionBean.getArchetypeRef());
+        } else {
+            FocusTypeUtil.setSubtype(target, constructionBean.getTargetSubtype());
+        }
 
         // pretend ADD focusOdo. We need to push all the items through the object template
         ObjectDeltaObject<F> focusOdoAbsolute = new ObjectDeltaObject<>(null, focus.createAddDelta(), focus, context.getFocusContext().getObjectDefinition());
@@ -386,11 +391,13 @@ public class PersonaProcessor {
 
         private final QName type;
         private final List<String> subtypes;
+        private final List<ObjectReferenceType> archetypeRef;
 
         private PersonaKey(PersonaConstructionType constructionType) {
             super();
             this.type = constructionType.getTargetType();
             this.subtypes = constructionType.getTargetSubtype();
+            this.archetypeRef = constructionType.getArchetypeRef();
         }
 
         public QName getType() {
@@ -403,7 +410,7 @@ public class PersonaProcessor {
 
         @Override
         public String toHumanReadableDescription() {
-            return "persona "+type.getLocalPart()+"/"+subtypes+"'";
+            return "persona " + type.getLocalPart() + "/" + archetypeRef != null ? archetypeRef.toString() : subtypes + "'";
         }
 
         @Override
@@ -413,6 +420,7 @@ public class PersonaProcessor {
             result = prime * result + getOuterType().hashCode();
             result = prime * result + ((subtypes == null) ? 0 : subtypes.hashCode());
             result = prime * result + ((type == null) ? 0 : type.hashCode());
+            result = prime * result + ((archetypeRef == null) ? 0 : archetypeRef.hashCode());
             return result;
         }
 
@@ -438,12 +446,17 @@ public class PersonaProcessor {
                     return false;
             } else if (!type.equals(other.type))
                 return false;
+            if (archetypeRef == null) {
+                if (other.archetypeRef != null)
+                    return false;
+            } else if (!archetypeRef.equals(other.archetypeRef))
+                return false;
             return true;
         }
 
         @Override
         public String toString() {
-            return "PersonaKey(" + type + "/" + subtypes + ")";
+            return "PersonaKey(" + type + "/" + archetypeRef != null ? archetypeRef.toString() : subtypes + ")";
         }
 
         private PersonaProcessor getOuterType() {
