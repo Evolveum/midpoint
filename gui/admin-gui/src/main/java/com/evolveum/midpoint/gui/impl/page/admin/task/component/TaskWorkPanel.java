@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -21,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 @PanelType(name = "work")
 @PanelInstance(identifier = "work", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
         display = @PanelDisplay(label = "ActivityDefinitionType.work", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
-public class TaskWorkPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
+public class TaskWorkPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskWorkPanel.class);
     private static final String ID_MAIN_PANEL = "main";
@@ -30,7 +31,7 @@ public class TaskWorkPanel extends AbstractObjectMainPanel<TaskType, ObjectDetai
     private static final String DOT_CLASS = TaskWorkPanel.class.getName() + ".";
     private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateWrapper";
 
-    public TaskWorkPanel(String id, ObjectDetailsModels<TaskType> model, ContainerPanelConfigurationType config) {
+    public TaskWorkPanel(String id, TaskDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -21,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "controlFlow", defaultContainerPath = "activity/controlFlow", defaultType = ActivityControlFlowSpecificationType.class)
 @PanelInstance(identifier = "controlFlow", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
         display = @PanelDisplay(label = "ActivityDefinitionType.controlFlow", order = 20))
-public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
+public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskControlFlowSpecificationPanel.class);
     private static final String ID_MAIN_PANEL = "main";
@@ -30,7 +31,7 @@ public class TaskControlFlowSpecificationPanel extends AbstractObjectMainPanel<T
     private static final String DOT_CLASS = TaskControlFlowSpecificationPanel.class.getName() + ".";
     private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateWrapper";
 
-    public TaskControlFlowSpecificationPanel(String id, ObjectDetailsModels<TaskType> model, ContainerPanelConfigurationType config) {
+    public TaskControlFlowSpecificationPanel(String id, TaskDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
