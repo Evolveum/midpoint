@@ -96,7 +96,8 @@ public class QAssignmentMapping<OR extends MObject>
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
-                new TableRelationResolver<>(QAssignmentHolderMapping::getAssignmentHolderMapping,
+                TableRelationResolver.usingJoin(
+                        QAssignmentHolderMapping::getAssignmentHolderMapping,
                         // Adding and(q.ownerType.eq(p.objectType) doesn't help the planner.
                         (q, p) -> q.ownerOid.eq(p.oid)));
 

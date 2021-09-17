@@ -35,6 +35,7 @@
             <workState xsi:type="LiveSyncWorkStateType">
                 <token xsi:type="xsd:int">3</token> <!-- there are 3 events at the beginning: user1, user2, user3 -->
             </workState>
+            <persistence>perpetual</persistence>
         </activity>
     </activityState>
 </task>

@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<i:user oid="c0c010c0-d34d-b33f-f00d-111111111111" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
-   xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+<i:user oid="c0c010c0-d34d-b33f-f00d-111111111111"
+        xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+
     <c:name>jack</c:name>
     <i:fullName>Cpt. Jack Sparrow</i:fullName>
     <i:givenName>Jack</i:givenName>
@@ -20,15 +19,15 @@
     <i:emailAddress>jack.sparrow@evolveum.com</i:emailAddress>
     <i:telephoneNumber>555-1234</i:telephoneNumber>
     <i:employeeNumber>emp1234</i:employeeNumber>
-    <i:employeeType>CAPTAIN</i:employeeType>
+    <i:subtype>CAPTAIN</i:subtype>
     <i:organizationalUnit>Leaders</i:organizationalUnit>
     <i:locality>Black Pearl</i:locality>
 
-<!--     <i:credentials> -->
-<!--         <i:password> -->
-<!--             <i:protectedString> -->
-<!--                 <i:clearValue>deadmentellnotales</i:clearValue> -->
-<!--             </i:protectedString> -->
-<!--         </i:password> -->
-<!--     </i:credentials> -->
+    <!--     <i:credentials> -->
+    <!--         <i:password> -->
+    <!--             <i:protectedString> -->
+    <!--                 <i:clearValue>deadmentellnotales</i:clearValue> -->
+    <!--             </i:protectedString> -->
+    <!--         </i:password> -->
+    <!--     </i:credentials> -->
 </i:user>

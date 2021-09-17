@@ -72,24 +72,34 @@ public class CompositeActivityExecution<
         activity.initializeChildrenMapIfNeeded();
 
         logStart();
-        executeChildren(result);
+        List<Activity<?, ?>> children = activity.getChildrenCopyExceptSkipped();
+
+        initializeChildrenState(children, result);
+        executeChildren(children, result);
         logEnd();
 
         return executionResult;
     }
 
-    /** Executes child activities. */
-    private void executeChildren(OperationResult result) throws ActivityExecutionException {
-
-        Collection<Activity<?, ?>> children = activity.getChildrenCopyExceptSkipped();
-
-        // We create state before starting the execution in order to allow correct progress information reporting.
-        // (It needs to know the total number of activity executions at any open level.)
-        // An alternative would be to provide the count of executions explicitly.
+    /**
+     * We create state before starting the execution in order to allow correct progress information reporting.
+     * (It needs to know the total number of activity executions at any open level.)
+     * An alternative would be to provide the count of executions explicitly.
+     *
+     * We initialize the state in both full and overview state.
+     */
+    private void initializeChildrenState(List<Activity<?, ?>> children, OperationResult result)
+            throws ActivityExecutionException {
         for (Activity<?, ?> child : children) {
             child.createExecution(taskExecution, result)
                     .initializeState(result);
         }
+        getTreeStateOverview().recordChildren(this, children, result);
+    }
+
+    /** Executes child activities. */
+    private void executeChildren(Collection<Activity<?, ?>> children, OperationResult result)
+            throws ActivityExecutionException {
 
         List<ActivityExecutionResult> childResults = new ArrayList<>();
         boolean allChildrenFinished = true;

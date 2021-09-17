@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -37,8 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 @PanelType(name = "focusTriggers")
 @PanelInstance(identifier = "focusTriggers",
-        status = ItemStatus.NOT_CHANGED,
-        applicableFor = FocusType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        applicableForType = FocusType.class,
         display = @PanelDisplay(label = "pageAdminFocus.triggers", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON, order = 100))
 @Counter(provider = FocusTriggersCounter.class)
 public class FocusTriggersPanel<F extends FocusType, FDM extends FocusDetailsModels<F>> extends AbstractObjectMainPanel<F, FDM> {

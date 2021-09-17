@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -32,7 +32,7 @@
     <emailAddress>jack.sparrow@evolveum.com</emailAddress>
     <telephoneNumber>555-1234</telephoneNumber>
     <employeeNumber>emp1234</employeeNumber>
-    <employeeType>CAPTAIN</employeeType>
+    <subtype>CAPTAIN</subtype>
     <locality>Caribbean</locality>
 
     <credentials>

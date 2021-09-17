@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -359,6 +360,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> sendOid(Consumer<String> consumer) {
+        consumer.accept(getOid());
+        return this;
+    }
+
     public String getOid() {
         return getObject().getOid();
     }
@@ -572,5 +578,24 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return record.getRecordType() == type
                 && java.util.Objects.equals(realTaskOid, taskOid)
                 && record.getStatus() == status;
+    }
+
+    public MetadataAsserter<PrismObjectAsserter<O, RA>> passwordMetadata() {
+        MetadataType metadata = getPasswordMetadata();
+        MetadataAsserter<PrismObjectAsserter<O, RA>> asserter =
+                new MetadataAsserter<>(metadata, this, "password metadata in " + desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private MetadataType getPasswordMetadata() {
+        Item<?, ?> item = object.findItem(
+                ItemPath.create(
+                        FocusType.F_CREDENTIALS, // the same for ShadowType
+                        CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA));
+        assertThat(item).as("password metadata").isNotNull();
+        //noinspection unchecked
+        return ((PrismContainer<MetadataType>) item).getRealValue();
     }
 }

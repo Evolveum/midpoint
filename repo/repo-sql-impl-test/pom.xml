@@ -216,9 +216,6 @@
     <profiles>
         <profile>
             <id>dbtest</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -235,9 +232,6 @@
         </profile>
         <profile>
             <id>perftest</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -258,9 +252,6 @@
         <profile>
             <!-- New repo testing - skip all tests from this module -->
             <id>sqale</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <properties>
                 <!--
                 Skips test execution but still compiles them.

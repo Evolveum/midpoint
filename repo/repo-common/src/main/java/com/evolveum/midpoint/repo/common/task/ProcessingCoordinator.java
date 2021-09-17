@@ -127,7 +127,7 @@ public class ProcessingCoordinator<I> {
         LOGGER.warn("Processing was interrupted while processing {} in {}", request, coordinatorTask);
     }
 
-    void createWorkerThreads(@NotNull ActivityReportingOptions reportingOptions) {
+    void createWorkerThreads() {
         if (threadsCount == 0) {
             return;
         }
@@ -144,7 +144,6 @@ public class ProcessingCoordinator<I> {
             workerSpecificResults.add(workerSpecificResult);
 
             RunningLightweightTask subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
-            initializeStatisticsCollection(subtask, reportingOptions);
             subtask.setCategory(coordinatorTask.getCategory());
             subtask.setResult(new OperationResult(OP_EXECUTE_WORKER, OperationResultStatus.IN_PROGRESS, (String) null));
             subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
@@ -152,17 +151,6 @@ public class ProcessingCoordinator<I> {
             subtask.startLightweightHandler();
             LOGGER.trace("Worker subtask {} created", subtask);
         }
-    }
-
-    private void initializeStatisticsCollection(RunningLightweightTask subtask, ActivityReportingOptions reportingOptions) {
-        subtask.resetIterativeTaskInformation(null, reportingOptions.isCollectExecutions());
-//        if (reportingOptions.isEnableSynchronizationStatistics()) {
-//            subtask.resetSynchronizationInformation(null);
-//        }
-//        if (reportingOptions.isEnableActionsExecutedStatistics()) {
-//            subtask.resetActionsExecutedInformation(null);
-//        }
-        // Note we never maintain structured progress for LATs.
     }
 
     public boolean isMultithreaded() {
@@ -229,7 +217,7 @@ public class ProcessingCoordinator<I> {
                     } finally {
                         requestsBuffer.markProcessed(request, taskIdentifier);
                         treatOperationResultAfterOperation();
-                        workerTask.setProgress(workerTask.getProgress() + 1);
+                        workerTask.setLegacyProgress(workerTask.getLegacyProgress() + 1);
                     }
                 } else {
                     if (allItemsSubmitted.get()) {

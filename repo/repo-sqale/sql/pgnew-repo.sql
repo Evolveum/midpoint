@@ -450,6 +450,8 @@ CREATE TABLE m_focus (
 )
     INHERITS (m_assignment_holder);
 
+-- for each concrete sub-table indexes must be added, validFrom, validTo, etc.
+
 -- stores FocusType/personaRef
 CREATE TABLE m_ref_persona (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -480,8 +482,7 @@ CREATE INDEX m_ref_projectionTargetOidRelationId_idx
 CREATE TABLE m_generic_object (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED
-        CHECK (objectType = 'GENERIC_OBJECT'),
-    genericObjectTypeId INTEGER NOT NULL REFERENCES m_uri(id) -- GenericObjectType#objectType
+        CHECK (objectType = 'GENERIC_OBJECT')
 )
     INHERITS (m_focus);
 
@@ -496,6 +497,8 @@ CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
 ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_nameNorm_key UNIQUE (nameNorm);
 -- TODO No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtypes);
+CREATE INDEX m_generic_object_validFrom_idx ON m_generic_object (validFrom);
+CREATE INDEX m_generic_object_validTo_idx ON m_generic_object (validTo);
 -- endregion
 
 -- region USER related tables
@@ -521,8 +524,8 @@ CREATE TABLE m_user (
     nickNameNorm TEXT,
     titleOrig TEXT,
     titleNorm TEXT,
-    organizations JSONB, -- array of {o,n} objects
-    organizationUnits JSONB -- array of {o,n} objects
+    organizations JSONB, -- array of {o,n} objects (poly-strings)
+    organizationUnits JSONB -- array of {o,n} objects (poly-strings)
 )
     INHERITS (m_focus);
 
@@ -544,6 +547,8 @@ CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
 CREATE INDEX m_user_organizations_idx ON m_user USING gin(organizations);
 CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits);
+CREATE INDEX m_user_validFrom_idx ON m_user (validFrom);
+CREATE INDEX m_user_validTo_idx ON m_user (validTo);
 -- endregion
 
 -- region ROLE related tables
@@ -562,7 +567,9 @@ CREATE TABLE m_abstract_role (
 )
     INHERITS (m_focus);
 
-/* TODO: add for sub-tables, role, org... all? how many services?
+/*
+TODO: add for sub-tables, role, org... all? how many services?
+ identifier is OK (TEXT), but booleans are useless unless used in WHERE
 CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
@@ -572,8 +579,7 @@ CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
 CREATE TABLE m_role (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE') STORED
-        CHECK (objectType = 'ROLE'),
-    roleType TEXT
+        CHECK (objectType = 'ROLE')
 )
     INHERITS (m_abstract_role);
 
@@ -587,6 +593,9 @@ CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
 CREATE INDEX m_role_nameOrig_idx ON m_role (nameOrig);
 ALTER TABLE m_role ADD CONSTRAINT m_role_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_role_subtypes_idx ON m_role USING gin(subtypes);
+CREATE INDEX m_role_identifier_idx ON m_role (identifier);
+CREATE INDEX m_role_validFrom_idx ON m_role (validFrom);
+CREATE INDEX m_role_validTo_idx ON m_role (validTo);
 
 -- Represents ServiceType, see https://wiki.evolveum.com/display/midPoint/Service+Account+Management
 CREATE TABLE m_service (
@@ -606,6 +615,10 @@ CREATE TRIGGER m_service_oid_delete_tr AFTER DELETE ON m_service
 
 CREATE INDEX m_service_nameOrig_idx ON m_service (nameOrig);
 ALTER TABLE m_service ADD CONSTRAINT m_service_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_service_subtypes_idx ON m_service USING gin(subtypes);
+CREATE INDEX m_service_identifier_idx ON m_service (identifier);
+CREATE INDEX m_service_validFrom_idx ON m_service (validFrom);
+CREATE INDEX m_service_validTo_idx ON m_service (validTo);
 
 -- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
 CREATE TABLE m_archetype (
@@ -625,6 +638,9 @@ CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
 CREATE INDEX m_archetype_nameOrig_idx ON m_archetype (nameOrig);
 ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_archetype_subtypes_idx ON m_archetype USING gin(subtypes);
+CREATE INDEX m_archetype_identifier_idx ON m_archetype (identifier);
+CREATE INDEX m_archetype_validFrom_idx ON m_archetype (validFrom);
+CREATE INDEX m_archetype_validTo_idx ON m_archetype (validTo);
 -- endregion
 
 -- region Organization hierarchy support
@@ -649,6 +665,9 @@ CREATE INDEX m_org_nameOrig_idx ON m_org (nameOrig);
 ALTER TABLE m_org ADD CONSTRAINT m_org_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_org_displayOrder_idx ON m_org (displayOrder);
 CREATE INDEX m_org_subtypes_idx ON m_org USING gin(subtypes);
+CREATE INDEX m_org_identifier_idx ON m_org (identifier);
+CREATE INDEX m_org_validFrom_idx ON m_org (validFrom);
+CREATE INDEX m_org_validTo_idx ON m_org (validTo);
 
 -- stores ObjectType/parentOrgRef
 CREATE TABLE m_ref_object_parent_org (
@@ -1231,7 +1250,8 @@ CREATE TABLE m_case_wi_assignee (
     INHERITS (m_reference);
 
 ALTER TABLE m_case_wi_assignee ADD CONSTRAINT m_case_wi_assignee_id_fk
-    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid);
+    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
+        ON DELETE CASCADE;
 
 -- stores workItem/candidateRef
 CREATE TABLE m_case_wi_candidate (
@@ -1244,7 +1264,8 @@ CREATE TABLE m_case_wi_candidate (
     INHERITS (m_reference);
 
 ALTER TABLE m_case_wi_candidate ADD CONSTRAINT m_case_wi_candidate_id_fk
-    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid);
+    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
+        ON DELETE CASCADE;
 -- endregion
 
 -- region Access Certification object tables
@@ -1385,11 +1406,13 @@ CREATE TABLE m_access_cert_wi_assignee (
     INHERITS (m_reference);
 
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_case
-    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid);
+    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid)
+        ON DELETE CASCADE;
 
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
-        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid);
+        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
+        ON DELETE CASCADE;
 
 -- stores case/workItem/candidateRef
 CREATE TABLE m_access_cert_wi_candidate (
@@ -1403,12 +1426,13 @@ CREATE TABLE m_access_cert_wi_candidate (
     INHERITS (m_reference);
 
 ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_case
-    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid);
+    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid)
+        ON DELETE CASCADE;
 
 ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
         REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
-        ON DELETE CASCADE; -- TODO is the cascade needed?
+        ON DELETE CASCADE;
 
 /*
 CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (nameOrig);
@@ -1608,7 +1632,8 @@ CREATE TABLE m_assignment_ref_create_approver (
     INHERITS (m_reference);
 
 ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_create_approver_id_fk
-    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid);
+    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
+        ON DELETE CASCADE;
 
 -- TODO index targetOid, relationId?
 
@@ -1624,7 +1649,8 @@ CREATE TABLE m_assignment_ref_modify_approver (
     INHERITS (m_reference);
 
 ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_modify_approver_id_fk
-    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid);
+    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
+        ON DELETE CASCADE;
 
 -- TODO index targetOid, relationId?
 -- endregion
@@ -1698,38 +1724,12 @@ CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState
   ON m_object (lifecycleState);
-CREATE INDEX iExtensionBoolean
-  ON m_object_ext_boolean (booleanValue);
-CREATE INDEX iExtensionDate
-  ON m_object_ext_date (dateValue);
-CREATE INDEX iExtensionLong
-  ON m_object_ext_long (longValue);
-CREATE INDEX iExtensionPolyString
-  ON m_object_ext_poly (orig);
-CREATE INDEX iExtensionReference
-  ON m_object_ext_reference (targetoid);
-CREATE INDEX iExtensionString
-  ON m_object_ext_string (stringValue);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
   ON m_focus (effectiveStatus);
 CREATE INDEX iLocality
   ON m_focus (localityOrig);
-CREATE INDEX iFocusValidFrom
-  ON m_focus (validFrom);
-CREATE INDEX iFocusValidTo
-  ON m_focus (validTo);
-
-ALTER TABLE m_object_text_info
-  ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (ownerOid) REFERENCES m_object;
-ALTER TABLE m_user_organization
-  ADD CONSTRAINT fk_user_organization FOREIGN KEY (user_oid) REFERENCES m_user;
-ALTER TABLE m_user_organizational_unit
-  ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user;
-ALTER TABLE m_function_library
-  ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
-
 */
 
 -- region Schema versioning and upgrading

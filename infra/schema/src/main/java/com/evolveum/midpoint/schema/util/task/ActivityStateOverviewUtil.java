@@ -14,9 +14,11 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Utilities related to the helper activity tree state overview structure (maintained in the root task).
@@ -26,29 +28,47 @@ public class ActivityStateOverviewUtil {
     public static final ItemPath ACTIVITY_TREE_STATE_OVERVIEW_PATH =
             ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TREE, ActivityTreeStateType.F_ACTIVITY);
 
+    public static @NotNull ActivityStateOverviewType findOrCreateEntry(@NotNull ActivityStateOverviewType current,
+            @NotNull ActivityPath path) {
+        return findOrCreateEntry(current, path, true);
+    }
+
+    public static @Nullable ActivityStateOverviewType findEntry(@NotNull ActivityStateOverviewType current,
+            @NotNull ActivityPath path) {
+        return findOrCreateEntry(current, path, false);
+    }
+
     /**
      * Finds or creates a state overview entry for given activity path.
      */
-    public static @NotNull ActivityStateOverviewType findOrCreateEntry(@NotNull ActivityStateOverviewType current,
-            @NotNull ActivityPath path) {
+    @Contract("_, _, true -> !null")
+    private static @Nullable ActivityStateOverviewType findOrCreateEntry(@NotNull ActivityStateOverviewType current,
+            @NotNull ActivityPath path, boolean create) {
         if (path.isEmpty()) {
             return current;
         }
-        return findOrCreateEntry(
-                findOrCreateChildEntry(current, path.first()),
-                path.rest());
+        ActivityStateOverviewType childEntry = findOrCreateChildEntry(current, path.first(), create);
+        if (childEntry == null) {
+            return null;
+        }
+        return findOrCreateEntry(childEntry, path.rest(), create);
     }
 
-    private static @NotNull ActivityStateOverviewType findOrCreateChildEntry(@NotNull ActivityStateOverviewType current,
-            String identifier) {
+    @Contract("_, _, true -> !null")
+    public static @Nullable ActivityStateOverviewType findOrCreateChildEntry(@NotNull ActivityStateOverviewType current,
+            String identifier, boolean create) {
         List<ActivityStateOverviewType> matching = current.getActivity().stream()
                 .filter(a -> Objects.equals(a.getIdentifier(), identifier))
                 .collect(Collectors.toList());
         if (matching.isEmpty()) {
-            ActivityStateOverviewType newEntry = new ActivityStateOverviewType()
-                    .identifier(identifier);
-            current.getActivity().add(newEntry);
-            return newEntry;
+            if (create) {
+                ActivityStateOverviewType newEntry = new ActivityStateOverviewType()
+                        .identifier(identifier);
+                current.getActivity().add(newEntry);
+                return newEntry;
+            } else {
+                return null;
+            }
         } else if (matching.size() == 1) {
             return matching.get(0);
         } else {
@@ -57,53 +77,71 @@ public class ActivityStateOverviewUtil {
         }
     }
 
-    @SuppressWarnings("unused") // Maybe will be used later
-    public static boolean containsFailedExecution(@NotNull TaskType task) {
+    public static @NotNull ActivityStateOverviewType getOrCreateStateOverview(@NotNull TaskType task) {
         return task.getActivityState() != null &&
                 task.getActivityState().getTree() != null &&
-                containsFailedExecution(task.getActivityState().getTree().getActivity());
+                task.getActivityState().getTree().getActivity() != null ?
+                task.getActivityState().getTree().getActivity() : new ActivityStateOverviewType();
     }
 
-    private static boolean containsFailedExecution(@Nullable ActivityStateOverviewType stateOverview) {
-        return stateOverview != null &&
-                (isExecutionFailed(stateOverview) ||
-                        stateOverview.getActivity().stream().anyMatch(ActivityStateOverviewUtil::containsFailedExecution));
+    public static @Nullable ActivityStateOverviewType getStateOverview(@NotNull TaskType task) {
+        return task.getActivityState() != null &&
+                task.getActivityState().getTree() != null ?
+                task.getActivityState().getTree().getActivity() : null;
     }
 
-    private static boolean isExecutionFailed(@NotNull ActivityStateOverviewType stateOverview) {
-        return stateOverview.getExecutionState() == ActivityExecutionStateType.NOT_EXECUTING &&
-                (stateOverview.getResultStatus() == OperationResultStatusType.FATAL_ERROR ||
-                stateOverview.getResultStatus() == OperationResultStatusType.PARTIAL_ERROR);
+    static @Nullable ActivityStateOverviewType getStateOverview(@NotNull TaskType task,
+            @NotNull ActivityPath activityPath) {
+        var root = getStateOverview(task);
+        return root != null ? findEntry(root, activityPath) : null;
     }
 
-    @NotNull
-    public static ActivityStateOverviewType getOrCreateStateOverview(@NotNull TaskType taskBean) {
-        return taskBean.getActivityState() != null &&
-                taskBean.getActivityState().getTree() != null &&
-                taskBean.getActivityState().getTree().getActivity() != null ?
-                taskBean.getActivityState().getTree().getActivity() : new ActivityStateOverviewType();
+    static boolean hasStateOverview(@NotNull TaskType task) {
+        return getStateOverview(task) != null;
     }
 
-    public static ActivityStateOverviewType getStateOverview(@NotNull TaskType taskBean) {
-        return taskBean.getActivityState() != null &&
-                taskBean.getActivityState().getTree() != null ?
-                taskBean.getActivityState().getTree().getActivity() : null;
+    public static ActivityTaskStateOverviewType findOrCreateTaskEntry(@NotNull ActivityStateOverviewType entry,
+            @NotNull ObjectReferenceType taskRef) {
+        argCheck(taskRef.getOid() != null, "OID is null in %s", taskRef);
+        List<ActivityTaskStateOverviewType> matching = entry.getTask().stream()
+                .filter(t -> t.getTaskRef().getOid().equals(taskRef.getOid()))
+                .collect(Collectors.toList());
+        if (matching.isEmpty()) {
+            ActivityTaskStateOverviewType newEntry = new ActivityTaskStateOverviewType()
+                    .taskRef(taskRef.clone());
+            entry.getTask().add(newEntry);
+            return newEntry;
+        } else if (matching.size() == 1) {
+            return matching.get(0);
+        } else {
+            throw new IllegalStateException("State overview entry " + entry + " contains " + matching.size() + " entries " +
+                    "for task OID '" + taskRef.getOid() + "': " + matching);
+        }
     }
 
     /**
-     * Removes execution state and result for all finished & failed activities in the tree state overview.
+     * Visits activity state overview objects in depth-first manner.
      *
-     * TODO determine the fate of this method
+     * Similar to {@link ActivityTreeUtil#processStates(TaskType, TaskResolver, ActivityTreeUtil.ActivityStateProcessor)}.
+     * But this method has its life easier, because the structure of state overview objects is much simpler;
+     * and contained in a single object (does not cross task boundaries).
      */
-    public static void clearFailedState(@NotNull ActivityStateOverviewType state) {
-        doClearFailedState(state);
-        state.getActivity().forEach(ActivityStateOverviewUtil::clearFailedState);
+    static void acceptStateOverviewVisitor(@NotNull TaskType rootTask, @NotNull StateOverviewVisitor visitor) {
+        ActivityStateOverviewType rootState = getStateOverview(rootTask);
+        if (rootState != null) {
+            acceptStateOverviewVisitor(rootState, visitor);
+        }
     }
 
-    private static void doClearFailedState(@NotNull ActivityStateOverviewType state) {
-        if (isExecutionFailed(state)) {
-            state.setExecutionState(null);
-            state.setResultStatus(null);
-        }
+    public static void acceptStateOverviewVisitor(@NotNull ActivityStateOverviewType state,
+            @NotNull StateOverviewVisitor visitor) {
+        visitor.visit(state);
+        state.getActivity().forEach(sub -> acceptStateOverviewVisitor(sub, visitor));
+    }
+
+    public interface StateOverviewVisitor {
+
+        /** Visits given state overview object. When needed, we may add ActivityPath argument here. */
+        void visit(@NotNull ActivityStateOverviewType state);
     }
 }

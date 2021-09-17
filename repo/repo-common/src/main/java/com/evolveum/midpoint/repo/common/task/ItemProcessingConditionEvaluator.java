@@ -26,7 +26,7 @@ import java.util.List;
 class ItemProcessingConditionEvaluator {
 
     /** Execution of the related activity. */
-    @NotNull private final IterativeActivityExecution<?, ?, ?, ?, ?, ?> activityExecution;
+    @NotNull private final IterativeActivityExecution<?, ?, ?, ?> activityExecution;
 
     /** Request to be processed. */
     @NotNull private final ItemProcessingRequest<?> request;

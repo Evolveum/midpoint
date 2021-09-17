@@ -74,7 +74,8 @@ public interface WorkflowManager {
      * @param closedCasesPolicy specifies which tasks are to be deleted, e.g. how old they have to be
      * @param task task, within which context the cleanup executes (used to test for interruptions)
      */
-    void cleanupCases(CleanupPolicyType closedCasesPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
+    void cleanupCases(CleanupPolicyType closedCasesPolicy, RunningTask task, OperationResult opResult)
+            throws SchemaException, ObjectNotFoundException;
 
     //endregion
 

@@ -10,6 +10,8 @@ package com.evolveum.midpoint.task.api;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.schema.statistics.ProgressCollector;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -18,15 +20,9 @@ import org.jetbrains.annotations.NotNull;
  *
  * Definition: Statistics are:
  *
- * 1. Operational statistics (OperationStatsType),
- * 2. Structured progress,
- * 3. Legacy progress.
- *
- * Various parts of operational statistics (e.g. synchronization information, actions executed information) are optional:
- * they may or may not be maintained.
- *
- * Also, structured progress may or may not be maintained. For example, it is intentionally not maintained in LATs.
- * If it is maintained, the legacy progress is computed from it.
+ * 1. operational statistics (OperationStatsType),
+ * 2. higher-level information (residing in activity: progress and activity statistics),
+ * 3. legacy progress.
  *
  * BEWARE: Thread-local statistics (repo, caching, ...) need to be updated ONLY from the thread to which they are related.
  * This is controlled by `updateThreadLocalStatistics` parameter. Be sure to set it to `true` only when running in appropriate
@@ -41,7 +37,8 @@ import org.jetbrains.annotations.NotNull;
  * See {@link #updateStatisticsInTaskPrism(boolean)}.
  *
  * 3. From task.prism to the repository. This takes a lot of time, so it is driven by time interval.
- * See {@link #updateAndStoreStatisticsIntoRepository(boolean, OperationResult)} and {@link #storeStatisticsIntoRepositoryIfTimePassed(Runnable, OperationResult)}
+ * See {@link #updateAndStoreStatisticsIntoRepository(boolean, OperationResult)} and
+ * {@link #storeStatisticsIntoRepositoryIfTimePassed(Runnable, OperationResult)}
  * methods.
  *
  * Statistics collection is always started by calling {@link #startCollectingStatistics(StatisticsCollectionStrategy)} method.
@@ -52,6 +49,11 @@ public interface RunningTaskStatisticsCollector extends ProgressCollector {
      * Initializes the process of collecting statistics in Statistics object embedded in the task.
      */
     void startCollectingStatistics(@NotNull StatisticsCollectionStrategy strategy);
+
+    /**
+     * Re-initializes process of collecting statistics from zero values.
+     */
+    void restartCollectingStatisticsFromZero();
 
     /**
      * Refreshes thread-local statistics held in `task.statistics` from their respective thread-local stores.
@@ -71,19 +73,23 @@ public interface RunningTaskStatisticsCollector extends ProgressCollector {
      *
      * The time interval is there to avoid excessive repository operations. (Writing a large task can take quite a long time.)
      *
-     * FIXME this hack with additional updater
+     * @param additionalUpdater A code that is called to update the task with other related data, for example
+     * activity-related statistics. The code should add its changes in the form of task pending modifications
+     * that will be written by the main method afterwards.
+     *
+     * @return true if the time passed and the update was carried out
      */
-    void storeStatisticsIntoRepositoryIfTimePassed(Runnable additionalUpdater, OperationResult result);
+    boolean storeStatisticsIntoRepositoryIfTimePassed(Runnable additionalUpdater, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Stores statistics from `task.prism` to the repository. Costly operation.
      */
-    void storeStatisticsIntoRepository(OperationResult result);
+    void storeStatisticsIntoRepository(OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Convenience method: Updates the statistics in `task.prism`, and stores them into the repository. Costly operation.
      */
-    void updateAndStoreStatisticsIntoRepository(boolean updateThreadLocalStatistics, OperationResult result);
+    void updateAndStoreStatisticsIntoRepository(boolean updateThreadLocalStatistics, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Convenience method: Increments the legacy progress. Updates the statistics all the way through and stores them
@@ -96,7 +102,7 @@ public interface RunningTaskStatisticsCollector extends ProgressCollector {
      *
      * 2. Because this encompasses thread-local stats update, *CALL ONLY FROM THE THREAD EXECUTING THE TASK!*
      */
-    void incrementProgressAndStoreStatisticsIfTimePassed(OperationResult result);
+    void incrementLegacyProgressAndStoreStatisticsIfTimePassed(OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Sets the interval for storing statistics into the repository.

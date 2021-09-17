@@ -86,7 +86,7 @@
                             <value>replicated</value>
                         </expression>
                         <target>
-                            <path>orgType</path>
+                            <path>subtype</path>
                         </target>
                     </populateItem>
                     <populateItem>

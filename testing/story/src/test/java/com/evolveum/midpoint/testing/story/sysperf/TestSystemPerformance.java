@@ -527,7 +527,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
     private void recordProgress(String label, Task task) {
         Long start = task.getLastRunStartTimestamp();
-        long progress = task.getProgress();
+        long progress = task.getLegacyProgress();
 
         if (start == null || progress == lastProgress) {
             return;

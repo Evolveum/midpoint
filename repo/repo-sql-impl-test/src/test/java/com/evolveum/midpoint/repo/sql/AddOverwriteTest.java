@@ -114,7 +114,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
         PrismObjectDefinition<OrgType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class);
         Collection<PropertyDelta<String>> deltas = new ArrayList<>();
-        deltas.add(prismContext.deltaFactory().property().createAddDelta(def, OrgType.F_ORG_TYPE, "asdf"));
+        deltas.add(prismContext.deltaFactory().property().createAddDelta(def, OrgType.F_SUBTYPE, "asdf"));
         repositoryService.modifyObject(OrgType.class, ORG_OID, deltas, result);
 
         version = repositoryService.getVersion(OrgType.class, ORG_OID, result);

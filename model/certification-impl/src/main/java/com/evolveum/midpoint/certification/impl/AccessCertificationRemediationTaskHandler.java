@@ -64,13 +64,6 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         taskManager.registerHandler(HANDLER_URI, this);
     }
 
-    @NotNull
-    @Override
-    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy()
-                .fromZero();
-    }
-
     @Override
     public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.trace("Task run starting");
@@ -115,7 +108,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
                         caseHelper.markCaseAsRemedied(campaignOid, caseId, task, caseResult);
                         caseResult.computeStatus();
                         revokedOk++;
-                        task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
+                        task.incrementLegacyProgressAndStoreStatisticsIfTimePassed(opResult);
                     } catch (CommonException | RuntimeException e) {
                         String message = "Couldn't revoke case " + caseId + ": " + e.getMessage();
                         LoggingUtils.logUnexpectedException(LOGGER, message, e);

@@ -49,14 +49,6 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
     @Autowired private TaskManager taskManager;
     @Autowired private ScriptingService scriptingService;
 
-    @NotNull
-    @Override
-    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy()
-                .fromZero()
-                .maintainActionsExecutedStatistics();
-    }
-
     @Override
     public TaskRunResult run(@NotNull RunningTask task) {
         OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");

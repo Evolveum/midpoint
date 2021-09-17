@@ -74,7 +74,7 @@
                         <value>functional</value>
                     </expression>
                     <target>
-                        <path>$focus/orgType</path>
+                        <path>$focus/subtype</path>
                     </target>
                 </inbound>
             </attribute>

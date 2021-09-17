@@ -9,13 +9,17 @@ package com.evolveum.midpoint.schema.util.task;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketsProcessingRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.Objects;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateOverviewProgressInformationVisibilityType.HIDDEN;
 
 /**
  * Task progress counted in buckets.
@@ -23,21 +27,21 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 public class BucketsProgressInformation implements DebugDumpable, Serializable {
 
     /**
-     * Number of completed buckets.
+     * Number of complete buckets.
      */
-    private final int completedBuckets;
+    private final int completeBuckets;
 
     /**
      * Expected number of buckets.
      */
     private final Integer expectedBuckets;
 
-    private BucketsProgressInformation(Integer expectedBuckets, int completedBuckets) {
+    private BucketsProgressInformation(Integer expectedBuckets, int completeBuckets) {
         this.expectedBuckets = expectedBuckets;
-        this.completedBuckets = completedBuckets;
+        this.completeBuckets = completeBuckets;
     }
 
-    static BucketsProgressInformation fromActivityState(ActivityStateType state) {
+    static BucketsProgressInformation fromFullState(ActivityStateType state) {
         if (state == null || state.getBucketing() == null) {
             return null;
         } else if (state.getBucketing().getBucketsProcessingRole() == BucketsProcessingRoleType.WORKER) {
@@ -49,18 +53,33 @@ public class BucketsProgressInformation implements DebugDumpable, Serializable {
         }
     }
 
+    public static @Nullable BucketsProgressInformation fromOverview(@NotNull ActivityStateOverviewType overview) {
+        if (overview.getProgressInformationVisibility() == HIDDEN) {
+            return null;
+        }
+
+        BucketProgressOverviewType bucketProgress = overview.getBucketProgress();
+        if (bucketProgress != null) {
+            return new BucketsProgressInformation(
+                    bucketProgress.getTotalBuckets(),
+                    or0(bucketProgress.getCompleteBuckets()));
+        } else {
+            return null;
+        }
+    }
+
     public Integer getExpectedBuckets() {
         return expectedBuckets;
     }
 
-    public int getCompletedBuckets() {
-        return completedBuckets;
+    public int getCompleteBuckets() {
+        return completeBuckets;
     }
 
     @Override
     public String toString() {
         return "BucketsProgressInformation{" +
-                "completedBuckets=" + completedBuckets +
+                "completeBuckets=" + completeBuckets +
                 ", expectedBuckets=" + expectedBuckets +
                 '}';
     }
@@ -68,21 +87,38 @@ public class BucketsProgressInformation implements DebugDumpable, Serializable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.debugDumpWithLabelLn(sb, "Completed buckets", completedBuckets, indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "Complete buckets", completeBuckets, indent);
         DebugUtil.debugDumpWithLabel(sb, "Expected buckets", expectedBuckets, indent);
         return sb.toString();
     }
 
     public float getPercentage() {
         if (expectedBuckets != null && expectedBuckets > 0) {
-            return (float) getCompletedBuckets() / expectedBuckets;
+            return (float) getCompleteBuckets() / expectedBuckets;
         } else {
             return Float.NaN;
         }
     }
 
     public void checkConsistence() {
-        stateCheck(expectedBuckets == null || completedBuckets <= expectedBuckets,
-                "There are more completed buckets (%d) than expected buckets (%d)", completedBuckets, expectedBuckets);
+        stateCheck(expectedBuckets == null || completeBuckets <= expectedBuckets,
+                "There are more completed buckets (%d) than expected buckets (%d)", completeBuckets, expectedBuckets);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        BucketsProgressInformation that = (BucketsProgressInformation) o;
+        return completeBuckets == that.completeBuckets && Objects.equals(expectedBuckets, that.expectedBuckets);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(completeBuckets, expectedBuckets);
     }
 }

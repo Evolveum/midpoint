@@ -13,14 +13,12 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySimplifiedRealizationStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Summarized representation of a progress of an activity and its sub-activities.
@@ -35,8 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * TODO i8n
  */
 public class ActivityProgressInformation implements DebugDumpable, Serializable {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ActivityProgressInformation.class);
 
     /**
      * Activity identifier.
@@ -66,9 +62,9 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
      */
     private final ItemsProgressInformation itemsProgress;
 
-    @NotNull private final List<ActivityProgressInformation> children = new ArrayList<>();
+    @NotNull final List<ActivityProgressInformation> children = new ArrayList<>();
 
-    private ActivityProgressInformation(String activityIdentifier, @NotNull ActivityPath activityPath,
+    ActivityProgressInformation(String activityIdentifier, @NotNull ActivityPath activityPath,
             RealizationState realizationState, BucketsProgressInformation bucketsProgress,
             ItemsProgressInformation itemsProgress) {
         this.activityIdentifier = activityIdentifier;
@@ -78,106 +74,33 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         this.itemsProgress = itemsProgress;
     }
 
-    private static @NotNull ActivityProgressInformation unknown(String activityIdentifier, ActivityPath activityPath) {
+    static @NotNull ActivityProgressInformation unknown(String activityIdentifier, ActivityPath activityPath) {
         return new ActivityProgressInformation(activityIdentifier, activityPath, RealizationState.UNKNOWN, null, null);
+    }
+
+    /** Identifier is estimated from the path. Use only if it needs not be precise. */
+    static @NotNull ActivityProgressInformation unknown(ActivityPath activityPath) {
+        return unknown(
+                activityPath.isEmpty() ? activityPath.last() : null,
+                activityPath);
     }
 
     /**
      * Prepares the information from a root task. The task may or may not have its children resolved.
      */
-    public static @NotNull ActivityProgressInformation fromRootTask(@NotNull TaskType task, @NotNull TaskResolver resolver) {
+    public static @NotNull ActivityProgressInformation fromRootTask(@NotNull TaskType task,
+            @NotNull TaskResolver resolver) {
         return fromTask(task, ActivityPath.empty(), resolver);
+    }
+
+    public static @NotNull ActivityProgressInformation fromRootTask(@NotNull TaskType task,
+            @NotNull InformationSource source) {
+        return ActivityProgressInformationBuilder.fromTask(task, ActivityPath.empty(), TaskResolver.empty(), source);
     }
 
     public static @NotNull ActivityProgressInformation fromTask(@NotNull TaskType task, @NotNull ActivityPath activityPath,
             @NotNull TaskResolver resolver) {
-        TaskActivityStateType globalState = task.getActivityState();
-        if (globalState == null) {
-            return unknown(null, activityPath); // TODO or "no progress"?
-        }
-        ActivityStateType rootActivityState = globalState.getActivity();
-        if (rootActivityState == null) {
-            return unknown(null, activityPath); // TODO or "no progress"?
-        }
-        return fromDelegatableActivityState(rootActivityState, activityPath, task, resolver);
-    }
-
-    private static @NotNull ActivityProgressInformation fromDelegatableActivityState(@NotNull ActivityStateType state,
-            @NotNull ActivityPath activityPath, @NotNull TaskType task, @NotNull TaskResolver resolver) {
-        if (ActivityStateUtil.isDelegated(state)) {
-            return fromDelegatedActivityState(state.getIdentifier(), activityPath, getDelegatedTaskRef(state), task, resolver);
-        } else {
-            return fromNotDelegatedActivityState(state, activityPath, task, resolver);
-        }
-    }
-
-    private static ObjectReferenceType getDelegatedTaskRef(ActivityStateType state) {
-        AbstractActivityWorkStateType workState = state.getWorkState();
-        return workState instanceof DelegationWorkStateType ? ((DelegationWorkStateType) workState).getTaskRef() : null;
-    }
-
-    private static @NotNull ActivityProgressInformation fromDelegatedActivityState(String activityIdentifier,
-            @NotNull ActivityPath activityPath, ObjectReferenceType delegateTaskRef,
-            @NotNull TaskType task, @NotNull TaskResolver resolver) {
-        TaskType delegateTask = getSubtask(delegateTaskRef, task, resolver);
-        if (delegateTask != null) {
-            return fromTask(delegateTask, activityPath, resolver);
-        } else {
-            return unknown(activityIdentifier, activityPath);
-        }
-    }
-
-    private static TaskType getSubtask(ObjectReferenceType subtaskRef, TaskType task, TaskResolver resolver) {
-        String subTaskOid = subtaskRef != null ? subtaskRef.getOid() : null;
-        if (subTaskOid == null) {
-            return null;
-        }
-        TaskType inTask = TaskTreeUtil.findChildIfResolved(task, subTaskOid);
-        if (inTask != null) {
-            return inTask;
-        }
-        try {
-            return resolver.resolve(subTaskOid);
-        } catch (ObjectNotFoundException | SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve subtask {} of {}", e, subTaskOid, task);
-            return null;
-        }
-    }
-
-    private static @NotNull ActivityProgressInformation fromNotDelegatedActivityState(@NotNull ActivityStateType state,
-            @NotNull ActivityPath activityPath, @NotNull TaskType task, @NotNull TaskResolver resolver) {
-        String identifier = state.getIdentifier();
-        RealizationState realizationState = getRealizationState(state);
-        BucketsProgressInformation bucketsProgress = BucketsProgressInformation.fromActivityState(state);
-        ItemsProgressInformation itemsProgress = getItemsProgress(state, activityPath, task, resolver);
-
-        ActivityProgressInformation info
-                = new ActivityProgressInformation(identifier, activityPath, realizationState, bucketsProgress, itemsProgress);
-        for (ActivityStateType childState : state.getActivity()) {
-            info.children.add(
-                    fromDelegatableActivityState(childState, activityPath.append(childState.getIdentifier()), task, resolver));
-        }
-        return info;
-    }
-
-    private static ItemsProgressInformation getItemsProgress(@NotNull ActivityStateType state,
-            @NotNull ActivityPath activityPath, @NotNull TaskType task, @NotNull TaskResolver resolver) {
-        if (BucketingUtil.isCoordinator(state)) {
-            return ItemsProgressInformation.fromBucketingCoordinator(state, activityPath, task, resolver);
-        } else {
-            return ItemsProgressInformation.fromActivityState(state);
-        }
-    }
-
-    private static RealizationState getRealizationState(ActivityStateType state) {
-        ActivityRealizationStateType rawState = state.getRealizationState();
-        if (rawState == null) {
-            return null;
-        } else if (rawState == ActivityRealizationStateType.COMPLETE) {
-            return RealizationState.COMPLETE;
-        } else {
-            return RealizationState.IN_PROGRESS;
-        }
+        return ActivityProgressInformationBuilder.fromTask(task, activityPath, resolver, InformationSource.FULL_STATE_ONLY);
     }
 
     public String getActivityIdentifier() {
@@ -272,7 +195,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
             return bucketsProgress.getExpectedBuckets() > 1;
         } else {
             // We don't know how many buckets to expect. So let's guess according to buckets completed so far.
-            return bucketsProgress.getCompletedBuckets() > 1;
+            return bucketsProgress.getCompleteBuckets() > 1;
         }
     }
 
@@ -280,39 +203,30 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         float percentage = bucketsProgress.getPercentage();
         if (Float.isNaN(percentage)) {
             if (longForm) {
-                return bucketsProgress.getCompletedBuckets() + " buckets";
+                return bucketsProgress.getCompleteBuckets() + " buckets";
             } else {
-                return bucketsProgress.getCompletedBuckets() + " buckets"; // at least temporarily until we find something better
+                return bucketsProgress.getCompleteBuckets() + " buckets"; // at least temporarily until we find something better
             }
         }
         if (longForm) {
             return String.format("%.1f%% (%d of %d buckets)", percentage * 100,
-                    bucketsProgress.getCompletedBuckets(), bucketsProgress.getExpectedBuckets());
+                    bucketsProgress.getCompleteBuckets(), bucketsProgress.getExpectedBuckets());
         } else {
             return String.format("%.1f%%", percentage * 100);
         }
     }
 
     private String toHumanReadableStringForNonBucketed(boolean longForm) {
-        float percentage = itemsProgress.getPercentage();
-        if (Float.isNaN(percentage)) {
-            return String.valueOf(itemsProgress.getProgress());
-        }
-        if (longForm) {
-            return String.format("%.1f%% (%d of %d)", percentage * 100,
-                    itemsProgress.getProgress(), itemsProgress.getExpectedProgress());
-        } else {
-            return String.format("%.1f%%", percentage * 100);
-        }
+        return itemsProgress.toHumanReadableString(longForm);
     }
 
     private String toHumanReadableStringForNonLeaf(boolean longForm) {
-        if (isComplete()) {
-            return "Complete";
-        }
-
         if (children.size() == 1) {
             return children.get(0).toHumanReadableString(longForm);
+        }
+
+        if (isComplete()) {
+            return "Complete";
         }
 
         List<String> partials = new ArrayList<>();
@@ -369,6 +283,28 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
                 .findFirst().orElse(null);
     }
 
+    public int getErrorsRecursive() {
+        return getErrors() +
+                children.stream()
+                        .mapToInt(ActivityProgressInformation::getErrorsRecursive)
+                        .sum();
+    }
+
+    public int getErrors() {
+        return itemsProgress != null ? itemsProgress.getErrors() : 0;
+    }
+
+    public ActivityProgressInformation find(ActivityPath activityPath) {
+        ActivityProgressInformation current = this;
+        for (String identifier : activityPath.getIdentifiers()) {
+            current = current.getChild(identifier);
+            if (current == null) {
+                return null;
+            }
+        }
+        return current;
+    }
+
     public enum RealizationState {
         /**
          * The activity is in progress: it was started but not completed yet.
@@ -384,6 +320,31 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         /**
          * The state and progress of the activity is unknown. For example, the task it was delegated to is no longer available.
          */
-        UNKNOWN
+        UNKNOWN;
+
+        static RealizationState fromOverview(ActivitySimplifiedRealizationStateType state) {
+            if (state == null) {
+                return null;
+            }
+            switch (state) {
+                case IN_PROGRESS:
+                    return IN_PROGRESS;
+                case COMPLETE:
+                    return COMPLETE;
+                default:
+                    throw new AssertionError(state);
+            }
+        }
+
+        static RealizationState fromFullState(ActivityRealizationStateType state) {
+            if (state == null) {
+                return null;
+            } else if (state == ActivityRealizationStateType.COMPLETE) {
+                return RealizationState.COMPLETE;
+            } else {
+                // Variants of "in progress" (local, delegated, distributed)
+                return RealizationState.IN_PROGRESS;
+            }
+        }
     }
 }

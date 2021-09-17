@@ -124,7 +124,7 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
 
     @Override
     public long getProgress() {
-        return taskRunResult != null && taskRunResult.getProgress() != null ? taskRunResult.getProgress() : task.getProgress();
+        return taskRunResult != null && taskRunResult.getProgress() != null ? taskRunResult.getProgress() : task.getLegacyProgress();
     }
 
     @Override

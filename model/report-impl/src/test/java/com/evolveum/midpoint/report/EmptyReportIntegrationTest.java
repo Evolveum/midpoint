@@ -4,24 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report;
 
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +18,20 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static org.testng.AssertJUnit.assertNotNull;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Common superclass for "empty" report integration tests.
@@ -55,11 +53,11 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     static final TestResource<ReportType> REPORT_AUDIT_COLLECTION_WITH_VIEW = new TestResource<>(TEST_DIR_REPORTS,
             "report-audit-collection-with-view.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85cd");
     static final TestResource<ReportType> REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW = new TestResource<>(TEST_DIR_REPORTS,
-            "report-audit-collection-with-double-view.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85fg");
+            "report-audit-collection-with-double-view.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85f9");
     static final TestResource<ReportType> REPORT_AUDIT_COLLECTION_WITH_CONDITION = new TestResource<>(TEST_DIR_REPORTS,
-            "report-audit-collection-with-condition.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85rr");
+            "report-audit-collection-with-condition.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85fa");
     static final TestResource<ReportType> REPORT_AUDIT_COLLECTION_EMPTY = new TestResource<>(TEST_DIR_REPORTS,
-            "report-audit-collection-empty.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85qf");
+            "report-audit-collection-empty.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85aa");
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN = new TestResource<>(TEST_DIR_REPORTS,
             "report-object-collection-with-default-column.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ab");
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_WITH_VIEW = new TestResource<>(TEST_DIR_REPORTS,
@@ -67,19 +65,19 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW = new TestResource<>(TEST_DIR_REPORTS,
             "report-object-collection-with-double-view.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ef");
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_WITH_FILTER = new TestResource<>(TEST_DIR_REPORTS,
-            "report-object-collection-with-filter.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85gh");
+            "report-object-collection-with-filter.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ac");
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION = new TestResource<>(TEST_DIR_REPORTS,
-            "report-object-collection-with-filter-and-basic-collection.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85hi");
+            "report-object-collection-with-filter-and-basic-collection.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ad");
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_WITH_CONDITION = new TestResource<>(TEST_DIR_REPORTS,
             "report-object-collection-with-condition.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a851a");
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_EMPTY = new TestResource<>(TEST_DIR_REPORTS,
-            "report-object-collection-empty.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85sq");
+            "report-object-collection-empty.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85af");
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW = new TestResource<>(TEST_DIR_REPORTS,
-            "report-object-collection-filter-and-basic-collection-without-view.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85r7");
+            "report-object-collection-filter-and-basic-collection-without-view.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ae");
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_WITH_PARAM = new TestResource<>(TEST_DIR_REPORTS,
-            "report-object-collection-with-param.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ew");
+            "report-object-collection-with-param.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ee");
     static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM = new TestResource<>(TEST_DIR_REPORTS,
-            "report-object-collection-with-subreport-param.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85qq");
+            "report-object-collection-with-subreport-param.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ed");
     static final TestResource<ReportType> REPORT_USER_LIST = new TestResource<>(TEST_DIR_REPORTS,
             "report-user-list.xml", "00000000-0000-0000-0000-000000000110");
     static final TestResource<ReportType> REPORT_USER_LIST_SCRIPT = new TestResource<>(TEST_DIR_REPORTS,
@@ -91,14 +89,14 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     static final TestResource<ReportType> REPORT_DASHBOARD_WITH_TRIPLE_VIEW = new TestResource<>(TEST_DIR_REPORTS,
             "report-dashboard-with-triple-view.xml", "2b87aa2e-dd86-4842-bcf5-76200a9a8533");
     static final TestResource<ReportType> REPORT_DASHBOARD_EMPTY = new TestResource<>(TEST_DIR_REPORTS,
-            "report-dashboard-empty.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a8eq2");
+            "report-dashboard-empty.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a8eee");
 
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_AUDIT_RECORDS = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-audit-records.xml", "00000000-0000-0000-0001-000000001234");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_AUDIT_RECORDS_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-audit-records-with-view.xml", "11000000-0000-0000-0001-000000001234");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_AUDIT_EMPTY = new TestResource<>(TEST_DIR_COMMON,
-            "object-collection-audit-empty.xml", "11000000-0000-0000-0001-000000gh1234");
+            "object-collection-audit-empty.xml", "11000000-0000-0000-0001-000000aa1234");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_USERS = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-user.xml", "72b1f98e-f587-4b9f-b92b-72e251dbb266");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_USERS_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
@@ -135,7 +133,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     static final TestResource<ObjectCollectionType> DASHBOARD_WITH_TRIPLE_VIEW = new TestResource<>(TEST_DIR_COMMON,
             "dashboard-with-triple-view.xml", "00000000-0000-0000-0001-000022661231");
     static final TestResource<ObjectCollectionType> DASHBOARD_EMPTY = new TestResource<>(TEST_DIR_COMMON,
-            "dashboard-empty.xml", "00000000-0000-0000-0001-000000kj1231");
+            "dashboard-empty.xml", "00000000-0000-0000-0001-000000aa1231");
 
     static final TestResource<ObjectCollectionType> USER_WILL = new TestResource<>(TEST_DIR_COMMON,
             "user-will.xml", "c0c010c0-d34d-b33f-f00d-111111111122");
@@ -211,7 +209,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
                         .substring(name.substring(0, name.lastIndexOf(" ")).lastIndexOf(" "));
 
                 Date fileDate = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss.SSS").parse(stringDate);
-                if (date == null || date.before(fileDate)){
+                if (date == null || date.before(fileDate)) {
                     date = fileDate;
                 }
             }
@@ -223,7 +221,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         return matchingFiles[0];
     }
 
-    void changeTaskReport(TestResource<ReportType> reportResource, ItemPath reportRefPath, TestResource<TaskType> taskResource) throws CommonException{
+    void changeTaskReport(TestResource<ReportType> reportResource, ItemPath reportRefPath, TestResource<TaskType> taskResource) throws CommonException {
         Task task = getTestTask();
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(reportResource.oid);
@@ -233,7 +231,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
                 task,
                 task.getResult(),
                 ref
-                );
+        );
     }
 
     void runExportTask(TestResource<ReportType> reportResource, OperationResult result) throws CommonException {
@@ -249,7 +247,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
                         ActivityDefinitionType.F_WORK,
                         WorkDefinitionsType.F_REPORT_EXPORT,
                         ClassicReportImportWorkDefinitionType.F_REPORT_REF
-                        ),
+                ),
                 TASK_EXPORT_CLASSIC);
         rerunTask(TASK_EXPORT_CLASSIC.oid, result);
     }

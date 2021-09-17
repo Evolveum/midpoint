@@ -27,7 +27,7 @@ class ProgressOutputFile {
         Long lastFinish = task.getLastRunFinishTimestamp();
         long thisFinish = lastFinish != null && lastFinish > start ? lastFinish : System.currentTimeMillis();
         long running = thisFinish - start;
-        long progress = task.getProgress();
+        long progress = task.getLegacyProgress();
         writer.println(label + task.getName() + ";" + running + ";" + progress);
         writer.flush();
     }

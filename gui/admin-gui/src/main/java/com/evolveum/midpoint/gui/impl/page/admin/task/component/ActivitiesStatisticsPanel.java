@@ -48,7 +48,7 @@ import java.util.List;
  * provide detailed information later.)
  */
 @PanelType(name = "statistics")
-@PanelInstance(identifier = "statistics", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED,
+@PanelInstance(identifier = "statistics", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageTask.operationStats.title", order = 50))
 public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
 

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "dataProtectionAssignments", experimental = true)
 @PanelInstance(identifier = "dataProtectionAssignments",
-        applicableFor = FocusType.class,
+        applicableForType = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
         display = @PanelDisplay(label = "pageAdminFocus.dataProtection"))
 public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends AbstractRoleAssignmentPanel<F> {
@@ -75,9 +75,6 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
         return getPageBase().getPrismContext().queryFor(OrgType.class)
                 .block()
                 .item(OrgType.F_SUBTYPE)
-                .contains("access")
-                .or()
-                .item(OrgType.F_ORG_TYPE)
                 .contains("access")
                 .endBlock()
                 .buildFilter();

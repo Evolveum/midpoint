@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
 
     <!-- Users -->
 
@@ -51,7 +51,7 @@
         <description>The office of the most respectful Governor 2.</description>
         <displayName>Governor Office 2</displayName>
         <identifier>0007</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <costCenter>CC0</costCenter>
         <locality>The Governor's Mansion</locality>
     </org>
@@ -62,7 +62,7 @@
         <parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
         <displayName>Ministry of Defense 2</displayName>
         <identifier>0008</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <locality>The towers, bastions and bars 2</locality>
     </org>
 
@@ -72,7 +72,7 @@
         <parentOrgRef oid="00000000-8888-6666-0000-100000000007" type="c:OrgType"/>
         <displayName>Ministry of Offense 2</displayName>
         <identifier>0009</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <costCenter>CC666</costCenter>
     </org>
 
@@ -83,7 +83,7 @@
         <parentOrgRef oid="00000000-8888-6666-0000-100000000012" type="c:OrgType"/>
         <displayName>Scumm Bar 2</displayName>
         <identifier>00010</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
         <locality>Mêlée Island</locality>
     </org>
 
@@ -92,7 +92,7 @@
         <description>Swashing, buckling and insulting. Hard. 2</description>
         <displayName>Swashbuckler Section 2</displayName>
         <identifier>00011</identifier>
-        <orgType>functional</orgType>
+        <subtype>functional</subtype>
     </org>
 
 
@@ -102,7 +102,7 @@
         <name>PRoot2</name>
         <description>Project organizational structure root2</description>
         <displayName>Projects 2</displayName>
-        <orgType>project</orgType>
+        <subtype>project</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-200000000004">
@@ -110,7 +110,7 @@
         <parentOrgRef oid="00000000-8888-6666-0000-200000000003" type="c:OrgType"/>
         <displayName>Save Elaine 2</displayName>
         <identifier>0004</identifier>
-        <orgType>project</orgType>
+        <subtype>project</subtype>
     </org>
 
     <org oid="00000000-8888-6666-0000-200000000005">
@@ -119,9 +119,8 @@
         <parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/>
         <displayName>Kidnap and marry Elaine 2</displayName>
         <identifier>0005</identifier>
-        <orgType>project</orgType>
+        <subtype>project</subtype>
     </org>
-
 
 
 </objects>

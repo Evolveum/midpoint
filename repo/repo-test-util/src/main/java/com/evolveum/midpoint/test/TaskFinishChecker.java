@@ -62,7 +62,7 @@ public class TaskFinishChecker implements Checker {
         if (taskConsumer != null) {
             taskConsumer.accept(freshTask);
         }
-        long currentProgress = freshTask.getProgress();
+        long currentProgress = freshTask.getLegacyProgress();
         if (showProgressEach != 0 && currentProgress - progressLastShown >= showProgressEach) {
             System.out.println("Task progress: " + currentProgress);
             progressLastShown = currentProgress;

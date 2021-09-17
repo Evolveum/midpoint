@@ -338,7 +338,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // If this happens in reality, we need to adapt the assertion here.
         assertTrue("Token value is zero (should be greater)", token > 0);
 
-        int progress = (int) taskAfter.getProgress();
+        int progress = (int) taskAfter.getLegacyProgress();
         displayValue("Token value", token);
         displayValue("Task progress", progress);
         if (getWorkerThreads() <= 1) {
@@ -395,7 +395,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         displayValue("Token value", token);
         assertEquals("Wrong token value", (Integer) 0, token);
 
-        int progress = (int) taskAfter.getProgress();
+        int progress = (int) taskAfter.getLegacyProgress();
         displayValue("Task progress", progress);
 
         if (getWorkerThreads() <= 1) {

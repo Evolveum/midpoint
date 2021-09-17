@@ -8,13 +8,13 @@
 package com.evolveum.midpoint.repo.common.activity.execution;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -22,8 +22,6 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySimplifiedRealizationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
@@ -164,7 +162,7 @@ public class ActivityExecutionResult implements ShortDumpable {
         return isFinished() ? ActivitySimplifiedRealizationStateType.COMPLETE : ActivitySimplifiedRealizationStateType.IN_PROGRESS;
     }
 
-    public ActivityExecutionStateType getExecutionState() {
-        return isFinished() ? ActivityExecutionStateType.COMPLETE : ActivityExecutionStateType.NOT_EXECUTING;
+    public OperationResultStatusType getOperationResultStatusBean() {
+        return createStatusType(operationResultStatus);
     }
 }

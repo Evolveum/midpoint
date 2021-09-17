@@ -8,10 +8,6 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
-
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -26,6 +22,7 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.web.application.SimpleCounter;
@@ -33,6 +30,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List<ContainerPanelConfigurationType>> {
 
@@ -223,7 +221,12 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         if (status == ItemStatus.NOT_CHANGED) {
             return true;
         }
-        return ItemStatus.ADDED == status && BooleanUtils.isTrue(config.isVisibleForAdd());
+        return ItemStatus.ADDED == status && isAllowedForAdd(config);
+    }
+
+    private boolean isAllowedForAdd(ContainerPanelConfigurationType config) {
+        OperationTypeType applicableForOperation = config.getApplicableForOperation();
+        return applicableForOperation == null || OperationTypeType.ADD == applicableForOperation;
     }
 
     protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {

@@ -10,7 +10,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+
+import com.evolveum.midpoint.schema.util.task.LegacyTaskInformation;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
@@ -19,7 +24,6 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,21 +37,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-/**
- * @author mederly
- *
- */
+import org.jetbrains.annotations.NotNull;
+
 public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     private static final long serialVersionUID = -5077637168906420769L;
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskSummaryPanel.class);
 
-    public TaskSummaryPanel(String id, IModel<TaskType> model, final PageBase parentPage) {
+    /** Keeps the pre-processed task information. */
+    @NotNull private final NonEmptyModel<TaskInformation> taskInformationModel;
+
+    public TaskSummaryPanel(String id, IModel<TaskType> model, @NotNull IModel<TaskType> rootTaskModel, PageBase parentPage) {
         super(id, TaskType.class, model, parentPage);
+        this.taskInformationModel = createTaskInformationModel(rootTaskModel, model);
+    }
+
+    TaskSummaryPanel(String id, IModel<TaskType> model, PageBase parentPage) {
+        super(id, TaskType.class, model, parentPage);
+        this.taskInformationModel = createFallbackTaskInformationModel(model);
+    }
+
+    private NonEmptyModel<TaskInformation> createTaskInformationModel(@NotNull IModel<TaskType> taskModel,
+            @NotNull IModel<TaskType> rootTaskModel) {
+        return NonEmptyLoadableModel.create(
+                () -> TaskInformation.createForTask(taskModel.getObject(), rootTaskModel.getObject()),
+                false);
+    }
+
+    private NonEmptyModel<TaskInformation> createFallbackTaskInformationModel(@NotNull IModel<TaskType> model) {
+        return NonEmptyLoadableModel.create(
+                () -> LegacyTaskInformation.fromLegacyTaskOrNoTask(model.getObject()),
+                false);
     }
 
     @Override
-    protected List<SummaryTag<TaskType>> getSummaryTagComponentList(){
+    protected List<SummaryTag<TaskType>> getSummaryTagComponentList() {
         List<SummaryTag<TaskType>> summaryTagList = new ArrayList<>();
         SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
@@ -76,19 +100,19 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
             @Override
             protected void initialize(TaskType taskType) {
-                setIconCssClass(getTaskResultIcon(taskType));
-                setLabel(getTaskResultLabel(taskType));
+                setIconCssClass(getTaskResultIcon());
+                setLabel(getTaskResultLabel());
                 // TODO setColor
             }
 
             @Override
             public String getIconCssClass() {
-                return getTaskResultIcon(getModelObject());
+                return getTaskResultIcon();
             }
 
             @Override
             public String getLabel() {
-                return getTaskResultLabel(getModelObject());
+                return getTaskResultLabel();
             }
         };
         summaryTagList.add(tagResult);
@@ -161,7 +185,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
     @Override
     protected IModel<String> getTitleModel() {
-        return (IModel<String>) () -> {
+        return () -> {
                 TaskType taskType = getModelObject();
 
             String rv = WebComponentUtil.getTaskProgressInformation(taskType, true, getPageBase());
@@ -201,22 +225,14 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
     @Override
     protected IModel<String> getTitle3Model() {
-        return (IModel<String>) () -> {
-
-            TaskType taskType = getModelObject();
-            if (taskType == null) {
-                return null;
-            }
-            long started = XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
-            long finished = XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp());
+        return () -> {
+            TaskInformation taskInformation = taskInformationModel.getObject();
+            long started = XmlTypeConverter.toMillis(taskInformation.getStartTimestamp());
+            long finished = XmlTypeConverter.toMillis(taskInformation.getEndTimestamp());
             if (started == 0) {
                 return null;
             }
-            TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(
-                    taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
-            if (status.equals(TaskDtoExecutionState.RUNNING)
-                    || finished == 0 || finished < started) {
-
+            if (finished == 0) {
                 return getString("TaskStatePanel.message.executionTime.notFinished",
                         WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), getPageBase()),
                         DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
@@ -242,16 +258,13 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return getIconForExecutionStatus(status);
     }
 
-    private String getTaskResultLabel(TaskType task) {
-        OperationResultStatusType resultStatus = task.getResultStatus();
-        if (resultStatus != null){
-            return PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString();
-        }
-        return "";
+    private String getTaskResultLabel() {
+        OperationResultStatusType resultStatus = taskInformationModel.getObject().getResultStatus();
+        return PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString();
     }
 
-    private String getTaskResultIcon(TaskType task) {
-        OperationResultStatusType resultStatus = task.getResultStatus();
+    private String getTaskResultIcon() {
+        OperationResultStatusType resultStatus = taskInformationModel.getObject().getResultStatus();
         return OperationResultStatusPresentationProperties.parseOperationalResultStatus(resultStatus).getIcon();
     }
 
@@ -259,19 +272,11 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return "fa fa-hand-o-right";
     }
 
-    private <T> String getLiveSyncToken(TaskType taskType) {
+    private String getLiveSyncToken(TaskType taskType) {
         if (!ObjectTypeUtil.hasArchetype(taskType, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())) {
             return null;
         }
-        PrismProperty<T> tokenProperty = taskType.asPrismObject().findProperty(LivesyncTokenEditorPanel.PATH_TOKEN);
-        if (tokenProperty == null) {
-            return null;
-        }
-        T realValue = tokenProperty.getRealValue();
-        if (realValue == null) {
-            return null;
-        }
-
-        return realValue.toString();
+        Object token = taskInformationModel.getObject().getLiveSyncToken();
+        return token != null ? token.toString() : null;
     }
 }

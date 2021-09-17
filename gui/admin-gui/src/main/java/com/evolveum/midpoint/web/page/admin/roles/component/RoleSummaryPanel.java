@@ -32,7 +32,7 @@ public class RoleSummaryPanel extends FocusSummaryPanel<RoleType> {
 
     @Override
     protected QName getTitlePropertyName() {
-        return RoleType.F_ROLE_TYPE;        // TODO what about subtype? [MID-4818]
+        return RoleType.F_SUBTYPE;
     }
 
     @Override

@@ -170,7 +170,7 @@ public class UserDetailsModel extends FocusDetailsModels<UserType> {
         if (targetObject != null) {
             isDelegable = targetObject.asObjectable().isDelegable();
         }
-        return isDelegable;
+        return isDelegable != null && isDelegable;
     }
 
     private AssignmentInfoDto createDelegableAssignmentsPreviewDto(PrismObject<? extends AssignmentHolderType> targetObject, AssignmentType assignment) {
@@ -232,6 +232,10 @@ public class UserDetailsModel extends FocusDetailsModels<UserType> {
 
     public LoadableModel<List<AssignmentEditorDto>> getDelegationsModel() {
         return delegationsModel;
+    }
+
+    public List<AssignmentEditorDto> getDelegationsModelObject() {
+        return delegationsModel.getObject();
     }
 
     public LoadableModel<List<AssignmentInfoDto>> getPrivilegesListModel() {

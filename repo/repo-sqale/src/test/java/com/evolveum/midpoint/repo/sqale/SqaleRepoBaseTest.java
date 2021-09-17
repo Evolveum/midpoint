@@ -25,7 +25,9 @@ import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
+import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
@@ -37,17 +39,25 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SqaleRepoBaseTest extends AbstractSpringTest
         implements InfraTestMixin {
+
+    public static final String REPO_OP_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
+    public static final String AUDIT_OP_PREFIX = SqaleAuditService.class.getSimpleName() + '.';
 
     @Autowired protected SqaleRepositoryService repositoryService;
     @Autowired protected SqaleRepoContext sqlRepoContext;
@@ -59,7 +69,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     @BeforeClass
     public void clearDatabase() {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
 
             jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
@@ -78,7 +88,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
         // this is "suite" scope code, but @BeforeSuite can't use injected fields
         if (!cacheTablesCleared) {
-            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            try (JdbcSession jdbcSession = startTransaction()) {
                 // We could skip default relation ID with .where(u.id.gt(0)), but it must work.
                 jdbcSession.newDelete(QUri.DEFAULT).execute();
                 jdbcSession.newDelete(QExtItem.DEFAULT).execute();
@@ -97,7 +107,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     // Called on demand
     public void clearAudit() {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = startTransaction()) {
             jdbcSession.executeStatement("TRUNCATE ma_audit_event CASCADE;");
             jdbcSession.commit();
             display("AUDIT tables cleared");
@@ -141,7 +151,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> long count(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             SQLQuery<?> query = jdbcSession.newQuery()
                     .from(path)
                     .where(conditions);
@@ -156,7 +166,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> List<R> select(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             return jdbcSession.newQuery()
                     .from(path)
                     .where(conditions)
@@ -174,7 +184,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> @Nullable R selectOneNullable(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             return jdbcSession.newQuery()
                     .from(path)
                     .where(conditions)
@@ -268,10 +278,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected void assertOperationRecordedCount(String opKind, int count) {
-        // TODO see comment in SqaleServiceBase.registerOperationStart
-        opKind = "SqaleRepositoryService." + opKind;
         Map<String, OperationPerformanceInformation> pmAllData =
-                repositoryService.getPerformanceMonitor()
+                getPerformanceMonitor()
                         .getGlobalPerformanceInformation().getAllData();
         OperationPerformanceInformation operationInfo = pmAllData.get(opKind);
         if (count != 0) {
@@ -335,7 +343,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
         MExtItem.Key key = MExtItem.keyFrom(def, holder);
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
             QExtItem ei = QExtItem.DEFAULT;
             return jdbcSession.newQuery()
                     .from(ei)
@@ -349,10 +357,40 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
+    /** Returns performance monitor from repository service, override to get the one from audit. */
+    protected SqlPerformanceMonitorImpl getPerformanceMonitor() {
+        return repositoryService.getPerformanceMonitor();
+    }
+
     protected void clearPerformanceMonitor() {
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
         assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+    }
+
+    protected void refreshOrgClosureForce() {
+        try (JdbcSession jdbcSession = startTransaction()) {
+            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
+            jdbcSession.commit();
+        }
+    }
+
+    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
+    @SafeVarargs
+    @NotNull
+    protected final <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        return repositoryService.searchObjects(
+                        type,
+                        query,
+                        selectorOptions != null && selectorOptions.length != 0
+                                ? List.of(selectorOptions) : null,
+                        operationResult)
+                .map(p -> p.asObjectable());
     }
 
     /**
@@ -418,4 +456,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
     // endregion
+
+    protected JdbcSession startTransaction() {
+        return sqlRepoContext.newJdbcSession().startTransaction();
+    }
+
+    protected JdbcSession startReadOnlyTransaction() {
+        return sqlRepoContext.newJdbcSession().startReadOnlyTransaction();
+    }
 }

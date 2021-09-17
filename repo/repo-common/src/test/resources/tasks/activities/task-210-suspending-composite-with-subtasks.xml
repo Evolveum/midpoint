@@ -59,6 +59,19 @@
                             <subtask/>
                         </distribution>
                     </activity>
+                    <activity>
+                        <order>3</order>
+                        <work>
+                            <extension>
+                                <ext:simpleMock>
+                                    <ext:message>#2.3</ext:message>
+                                </ext:simpleMock>
+                            </extension>
+                        </work>
+                        <distribution>
+                            <subtask/>
+                        </distribution>
+                    </activity>
                 </composition>
                 <distribution>
                     <subtask/>

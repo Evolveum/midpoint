@@ -76,19 +76,16 @@ public class SearchFactory {
                 ItemPath.create(UserType.F_EMAIL_ADDRESS),
                 ItemPath.create(UserType.F_TELEPHONE_NUMBER),
                 ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
-                ItemPath.create(UserType.F_EMPLOYEE_TYPE),
                 ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
                 ItemPath.create(UserType.F_LOCALITY)
         ));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 ItemPath.create(RoleType.F_NAME),
-                ItemPath.create(RoleType.F_DISPLAY_NAME),
-                ItemPath.create(RoleType.F_ROLE_TYPE)
+                ItemPath.create(RoleType.F_DISPLAY_NAME)
         ));
         SEARCHABLE_OBJECTS.put(ServiceType.class, Arrays.asList(
                 ItemPath.create(ServiceType.F_NAME),
                 ItemPath.create(RoleType.F_DISPLAY_NAME),
-                ItemPath.create(ServiceType.F_SERVICE_TYPE),
                 ItemPath.create(ServiceType.F_URL)
         ));
         SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
@@ -106,14 +103,13 @@ public class SearchFactory {
         SEARCHABLE_OBJECTS.put(OrgType.class, Arrays.asList(
                 ItemPath.create(OrgType.F_DISPLAY_NAME),
                 ItemPath.create(OrgType.F_COST_CENTER),
-                ItemPath.create(OrgType.F_ORG_TYPE),
                 ItemPath.create(OrgType.F_TENANT),
                 ItemPath.create(OrgType.F_PARENT_ORG_REF),
                 ItemPath.create(OrgType.F_LOCALITY)
         ));
-        SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
-                ItemPath.create(GenericObjectType.F_OBJECT_TYPE)
-        ));
+//        SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
+//                ItemPath.create(GenericObjectType.F_OBJECT_TYPE)
+//        ));
         SEARCHABLE_OBJECTS.put(NodeType.class, Arrays.asList(
                 ItemPath.create(NodeType.F_NODE_IDENTIFIER)
         ));

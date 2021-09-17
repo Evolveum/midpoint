@@ -12,5 +12,5 @@
     <assignment>
         <targetRef oid="d20aefe6-3ecf-11e7-8068-5f346db1ee00" type="RoleType"/> <!-- Executive metarole -->
     </assignment>
-    <roleType>executive</roleType>
+    <subtype>executive</subtype>
 </role>

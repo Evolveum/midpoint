@@ -75,7 +75,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
         System.out.println("Validation result:");
         System.out.println(validationResult.debugDump(1));
 
-        assertWarnings(validationResult, RoleType.F_ROLE_TYPE);
+        assertWarnings(validationResult, RoleType.F_SUBTYPE);
     }
 
     /**
@@ -103,7 +103,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
         System.out.println("Validation result:");
         System.out.println(validationResult.debugDump(1));
 
-        assertWarnings(validationResult, RoleType.F_ROLE_TYPE);
+        assertWarnings(validationResult, RoleType.F_SUBTYPE);
     }
 
     /**

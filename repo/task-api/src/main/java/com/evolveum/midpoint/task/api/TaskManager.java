@@ -327,12 +327,12 @@ public interface TaskManager {
      * @param closedTasksPolicy specifies which tasks are to be deleted, e.g. how old they have to be
      * @param task task, within which context the cleanup executes (used to test for interruptions)
      */
-    void cleanupTasks(CleanupPolicyType closedTasksPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
+    void cleanupTasks(CleanupPolicyType closedTasksPolicy, RunningTask task, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Deletes dead nodes, i.e. ones that were not checked-in for a given time period.
      */
-    void cleanupNodes(DeadNodeCleanupPolicyType deadNodesPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
+    void cleanupNodes(DeadNodeCleanupPolicyType deadNodesPolicy, RunningTask task, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
     //endregion
 
     //region Remotely invokable methods

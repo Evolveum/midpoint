@@ -634,20 +634,20 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /**
      * Returns task progress, as reported by task handler.
      */
-    long getProgress();
+    long getLegacyProgress();
 
     /**
      * Records _legacy_ progress of the task, storing it persistently if needed.
      */
-    void setProgress(Long value);
+    void setLegacyProgress(Long value);
 
     /**
      * Increments legacy progress without creating a pending modification.
      */
-    void incrementProgressTransient();
+    void incrementLegacyProgressTransient();
 
     /**
-     * "Immediate" version of {@link #setProgress(Long)}.
+     * "Immediate" version of {@link #setLegacyProgress(Long)}.
      *
      * BEWARE: this method can take quite a long time to execute, if invoked in a cycle.
      */
@@ -866,6 +866,23 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     //endregion
 
     //region Task tree related methods
+    /**
+     * Looks for OID of the parent and the root of the task tree for this task.
+     *
+     * PRE: task is either persistent or is a {@link RunningTask}.
+     */
+    @NotNull ParentAndRoot getParentAndRoot(OperationResult result)
+            throws SchemaException, ObjectNotFoundException;
+
+    /**
+     * Returns the root of the task tree for this task.
+     *
+     * PRE: task is either persistent or is a {@link RunningTask}.
+     */
+    default @NotNull Task getRoot(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return getParentAndRoot(result).root;
+    }
+
     /**
      * Returns the path from this task to the task tree root. (Starts with this task, ends with the root.)
      */

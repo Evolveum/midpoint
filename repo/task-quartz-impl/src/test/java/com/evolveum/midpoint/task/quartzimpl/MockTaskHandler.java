@@ -10,6 +10,11 @@ import static com.evolveum.midpoint.task.quartzimpl.TestTaskManagerBasic.NS_EXT;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,14 +59,18 @@ public class MockTaskHandler implements TaskHandler {
         int steps = MoreObjects.firstNonNull(stepsProp != null ? stepsProp.getRealValue() : null, 1);
 
         LOGGER.info("Run starting; progress = {}, steps to be executed = {}, delay for one step = {}, in task {}",
-                task.getProgress(), steps, delay, task);
+                task.getLegacyProgress(), steps, delay, task);
 
         for (int i = 0; i < steps; i++) {
             LOGGER.info("Executing step {} (numbered from one) of {} in task {}", i + 1, steps, task);
 
             MiscUtil.sleepNonInterruptibly(delay);
 
-            task.incrementProgressAndStoreStatisticsIfTimePassed(result);
+            try {
+                task.incrementLegacyProgressAndStoreStatisticsIfTimePassed(result);
+            } catch (SchemaException | ObjectNotFoundException e) {
+                throw new SystemException(e);
+            }
 
             if (!task.canRun()) {
                 LOGGER.info("Got a shutdown request, finishing task {}", task);
@@ -69,7 +78,7 @@ public class MockTaskHandler implements TaskHandler {
             }
         }
 
-        LOGGER.info("Run finishing; progress = {} in task {}", task.getProgress(), task);
+        LOGGER.info("Run finishing; progress = {} in task {}", task.getLegacyProgress(), task);
 
         hasRun.set(true);
 

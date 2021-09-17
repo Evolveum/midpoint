@@ -27,5 +27,5 @@
             </attribute>
         </construction>
     </inducement>
-    <roleType>loot</roleType>
+    <subtype>loot</subtype>
 </role>

@@ -33,10 +33,12 @@ public class BucketFactory {
         this.contentFactory = contentFactory;
     }
 
-    public static BucketFactory create(@NotNull ActivityDistributionDefinition distributionDefinition,
+    public static BucketFactory create(@Nullable ActivityDistributionDefinition distributionDefinition,
             @Nullable ImplicitSegmentationResolver implicitSegmentationResolver, @NotNull CommonTaskBeans beans) {
 
-        @Nullable WorkBucketsManagementType bucketingConfig = distributionDefinition.getBuckets();
+        @Nullable WorkBucketsManagementType bucketingConfig =
+                distributionDefinition != null ? distributionDefinition.getBuckets() : null;
+
         return new BucketFactory(
                 beans.contentFactoryCreator.createContentFactory(bucketingConfig, implicitSegmentationResolver),
                 bucketingConfig);

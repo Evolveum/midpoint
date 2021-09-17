@@ -21,7 +21,7 @@
     <i:emailAddress>bob.dylan@evolveum.com</i:emailAddress>
     <i:telephoneNumber>555-1234</i:telephoneNumber>
     <i:employeeNumber>emp666</i:employeeNumber>
-    <i:employeeType>DRINKER</i:employeeType>
+    <i:subtype>DRINKER</i:subtype>
     <i:organizationalUnit>Leaders</i:organizationalUnit>
     <i:locality>Black Pearl</i:locality>
 

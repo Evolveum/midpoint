@@ -12,11 +12,12 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 @PanelType(name = "resourceGenerics")
-@PanelInstance(identifier = "resourceGenerics", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class,
+@PanelInstance(identifier = "resourceGenerics", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
         display = @PanelDisplay(label = "PageResource.tab.content.generic", order = 50))
 public class ResourceGenericsPanel extends ResourceContentTabPanel {
 

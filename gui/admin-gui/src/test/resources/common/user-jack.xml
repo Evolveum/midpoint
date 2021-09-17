@@ -39,7 +39,7 @@
     <honorificPrefix>Cpt.</honorificPrefix>
     <title>Captain</title>
     <employeeNumber>001</employeeNumber>
-    <employeeType>CAPTAIN</employeeType>
+    <subtype>CAPTAIN</subtype>
     <locality>Caribbean</locality>
     <credentials>
         <password>

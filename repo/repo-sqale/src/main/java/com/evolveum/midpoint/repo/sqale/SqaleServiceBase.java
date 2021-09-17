@@ -65,6 +65,11 @@ public class SqaleServiceBase {
         return sqlRepoContext.prismContext();
     }
 
+    // implements also RepositoryService method (not declared in AuditService)
+    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
+        return performanceMonitor;
+    }
+
     // region exception handling
 
     /**

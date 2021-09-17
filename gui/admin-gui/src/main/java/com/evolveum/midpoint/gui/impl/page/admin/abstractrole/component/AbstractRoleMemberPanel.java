@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -19,7 +18,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -76,7 +74,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -91,20 +88,28 @@ import java.util.*;
 @PanelType(name = "members")
 @PanelInstances(instances = {
         @PanelInstance(identifier = "roleMembers",
-                applicableFor = RoleType.class,
-                status = ItemStatus.NOT_CHANGED,
+                applicableForType = RoleType.class,
+                applicableForOperation = OperationTypeType.MODIFY,
                 display = @PanelDisplay(label = "pageRole.members", order = 80)),
         @PanelInstance(identifier = "roleGovernance",
-                applicableFor = RoleType.class,
-                status = ItemStatus.NOT_CHANGED,
+                applicableForType = RoleType.class,
+                applicableForOperation = OperationTypeType.MODIFY,
                 display = @PanelDisplay(label = "pageRole.governance", order = 90)),
         @PanelInstance(identifier = "serviceMembers",
-                applicableFor = ServiceType.class,
-                status = ItemStatus.NOT_CHANGED,
+                applicableForType = ServiceType.class,
+                applicableForOperation = OperationTypeType.MODIFY,
                 display = @PanelDisplay(label = "pageRole.members", order = 80)),
         @PanelInstance(identifier = "serviceGovernance",
-                applicableFor = ServiceType.class,
-                status = ItemStatus.NOT_CHANGED,
+                applicableForType = ServiceType.class,
+                applicableForOperation = OperationTypeType.MODIFY,
+                display = @PanelDisplay(label = "pageRole.governance", order = 90)),
+        @PanelInstance(identifier = "archetypeMembers",
+                applicableForType = ArchetypeType.class,
+                applicableForOperation = OperationTypeType.MODIFY,
+                display = @PanelDisplay(label = "pageRole.members", order = 80)),
+        @PanelInstance(identifier = "archetypeGovernance",
+                applicableForType = ArchetypeType.class,
+                applicableForOperation = OperationTypeType.MODIFY,
                 display = @PanelDisplay(label = "pageRole.governance", order = 90))
 })
 @PanelDisplay(label = "Members", order = 60)

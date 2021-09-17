@@ -138,7 +138,8 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public void cleanupCases(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult) throws SchemaException {
+    public void cleanupCases(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
         if (policy.getMaxAge() == null) {
             return;
         }
@@ -181,7 +182,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
                     op.failed(t);
                     LoggingUtils.logException(LOGGER, "Couldn't delete children cases for {}", t, parentCasePrism);
                 }
-                executionTask.incrementProgressAndStoreStatisticsIfTimePassed(result);
+                executionTask.incrementLegacyProgressAndStoreStatisticsIfTimePassed(result);
             }
 
             LOGGER.info("Case cleanup procedure " + (interrupted ? "was interrupted" : "finished")

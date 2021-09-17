@@ -45,8 +45,6 @@ public class RUser extends RFocus {
     private RPolyString honorificPrefix;
     private RPolyString honorificSuffix;
     private String employeeNumber;
-    @Deprecated //todo remove collection in 3.9
-    private Set<String> employeeType;
     private Set<RPolyString> organizationalUnit;
     private RPolyString title;
     private RPolyString nickName;
@@ -75,16 +73,6 @@ public class RUser extends RFocus {
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RPolyString> getOrganizationalUnit() {
         return organizationalUnit;
-    }
-
-    @ElementCollection
-    @ForeignKey(name = "fk_user_employee_type")
-    @CollectionTable(name = "m_user_employee_type", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid")
-    })
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-    public Set<String> getEmployeeType() {
-        return employeeType;
     }
 
     @Embedded
@@ -161,10 +149,6 @@ public class RUser extends RFocus {
         this.employeeNumber = employeeNumber;
     }
 
-    public void setEmployeeType(Set<String> employeeType) {
-        this.employeeType = employeeType;
-    }
-
     public void setFamilyName(RPolyString familyName) {
         this.familyName = familyName;
     }
@@ -206,7 +190,6 @@ public class RUser extends RFocus {
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
 
         //sets
-        repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
         repo.setOrganizationalUnit(RUtil.listPolyToSet(jaxb.getOrganizationalUnit()));
         repo.setOrganization(RUtil.listPolyToSet(jaxb.getOrganization()));
     }

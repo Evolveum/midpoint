@@ -16,7 +16,7 @@
         <targetRef type="RoleType">
             <filter>
                 <q:equal>
-                    <q:path>roleType</q:path>
+                    <q:path>subtype</q:path>
                     <q:value>loot</q:value>
                 </q:equal>
             </filter>

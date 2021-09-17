@@ -36,8 +36,6 @@ public class StalledTasksWatcher {
 
     private static final String DOT_CLASS = StalledTasksWatcher.class.getName() + ".";
 
-    private static final List<String> CATEGORIES_TO_SKIP = Collections.singletonList(TaskCategory.ASYNCHRONOUS_UPDATE);
-
     @Autowired private TaskRetriever taskRetriever;
     @Autowired private TaskThreadsDumper taskThreadsDumper;
     @Autowired private TaskManagerConfiguration configuration;
@@ -74,7 +72,8 @@ public class StalledTasksWatcher {
         LOGGER.trace("checkStalledTasks: running tasks = {}", runningTasks);
 
         for (RunningTaskQuartzImpl task : runningTasks.values()) {
-            if (CATEGORIES_TO_SKIP.contains(task.getCategory())) {
+            if (task.isExcludedFromStalenessChecking()) {
+                LOGGER.trace("Task {} is excluded from staleness checking", task);
                 continue;
             }
             long currentTimestamp = System.currentTimeMillis();
@@ -85,12 +84,13 @@ public class StalledTasksWatcher {
                 realProgress = heartbeatProgressInfo;
             } else {
                 try {
-                    realProgress = taskRetriever.getTaskPlain(task.getOid(), result).getProgress();
+                    realProgress = taskRetriever.getTaskPlain(task.getOid(), result).getLegacyProgress();
                 } catch (ObjectNotFoundException e) {
                     LoggingUtils.logException(LOGGER, "Task {} cannot be checked for staleness because it is gone", e, task);
                     continue;
                 } catch (SchemaException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Task {} cannot be checked for staleness because of schema exception", e, task);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Task {} cannot be checked for staleness because "
+                            + "of schema exception", e, task);
                     continue;
                 }
             }
@@ -102,10 +102,12 @@ public class StalledTasksWatcher {
 
             // check and/or update the last progress information
             if (hasEntryChanged(lastProgressEntry, lastStartedTimestamp, realProgress)) {
-                lastProgressMap.put(task.getTaskIdentifier(), new ProgressInformation(currentTimestamp, realProgress, lastStartedTimestamp));
+                lastProgressMap.put(task.getTaskIdentifier(),
+                        new ProgressInformation(currentTimestamp, realProgress, lastStartedTimestamp));
             } else {
                 if (isEntryStalled(currentTimestamp, lastProgressEntry)) {
-                    if (currentTimestamp - lastProgressEntry.lastNotificationIssuedTimestamp > configuration.getStalledTasksRepeatedNotificationInterval() * 1000L) {
+                    if (currentTimestamp - lastProgressEntry.lastNotificationIssuedTimestamp >
+                            configuration.getStalledTasksRepeatedNotificationInterval() * 1000L) {
                         LOGGER.error("Task {} is stalled (started {}; progress is still {}, observed since {}){}",
                                 task,
                                 new Date(lastProgressEntry.lastStartedTimestamp),
@@ -119,6 +121,7 @@ public class StalledTasksWatcher {
                         } catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record thread dump for stalled task {}", e, task);
                         }
+                        markTaskStalled(task, lastProgressEntry.measurementTimestamp, result);
                     }
                 }
             }
@@ -128,6 +131,15 @@ public class StalledTasksWatcher {
         lastProgressMap.keySet().removeIf(s -> !runningTasks.containsKey(s));
 
         LOGGER.trace("checkStalledTasks lastProgress map after cleaning up = {}", lastProgressMap);
+    }
+
+    private void markTaskStalled(RunningTaskQuartzImpl task, long stalledSince, OperationResult result) {
+        try {
+            Objects.requireNonNull(task.getHandler(), "No handler")
+                    .onTaskStalled(task, stalledSince, result);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark task {} as stalled", e, task);
+        }
     }
 
     public Long getStalledSinceForTask(TaskType taskType) {
@@ -155,4 +167,3 @@ public class StalledTasksWatcher {
                 || realProgress != lastProgressEntry.measuredProgress;
     }
 }
-

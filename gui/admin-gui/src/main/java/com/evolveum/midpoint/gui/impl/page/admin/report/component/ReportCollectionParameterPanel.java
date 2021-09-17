@@ -45,7 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PanelType(name = "reportCollectionParameter")
-@PanelInstance(identifier = "reportCollectionParameter", status = ItemStatus.NOT_CHANGED,
+@PanelInstance(identifier = "reportCollectionParameter", applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "ObjectCollectionReportEngineConfigurationType.parameter", order = 90))
 public class ReportCollectionParameterPanel extends AbstractObjectMainPanel<ReportType, AssignmentHolderDetailsModel<ReportType>> {
 

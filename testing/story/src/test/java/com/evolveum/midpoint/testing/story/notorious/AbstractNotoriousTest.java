@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Evolveum and contributors
+ * Copyright (c) 2017-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -80,7 +80,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     protected static final int NUMBER_OF_LEVEL_A_ROLES = 100;
     protected static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
-    protected static final String ROLE_LEVEL_A_ROLETYPE = "levelA";
+    protected static final String ROLE_LEVEL_A_SUBTYPE = "levelA";
     protected static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
 
     protected static final int NUMBER_OF_LEVEL_B_ROLES = 300;
@@ -108,7 +108,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         generateRoles(NUMBER_OF_LEVEL_A_ROLES, ROLE_LEVEL_A_NAME_FORMAT, ROLE_LEVEL_A_OID_FORMAT,
                 (role,i) -> {
-                    role.roleType(ROLE_LEVEL_A_ROLETYPE);
+                    role.subtype(ROLE_LEVEL_A_SUBTYPE);
                     role.beginInducement().targetRef(getNotoriousOid(), getNotoriousType()).end();
                 },
                 initResult);
@@ -131,7 +131,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     protected void fillLevelBRole(RoleType roleType, int i) {
         roleType
-            .roleType(ROLE_LEVEL_B_ROLETYPE);
+            .subtype(ROLE_LEVEL_B_ROLETYPE);
     }
 
     protected void fillNotorious(AbstractRoleType roleType) {

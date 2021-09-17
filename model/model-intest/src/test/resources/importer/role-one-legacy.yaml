@@ -3,7 +3,7 @@ role:
   oid: 0d70504c-d094-11e8-b0cc-675c492577e7
   name: One
   description: First role
-  roleType: lab
+  subtype: lab
   approverExpression:
     script:
       code: midpoint.oid2ort(user.getOid())

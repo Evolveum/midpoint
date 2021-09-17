@@ -71,14 +71,6 @@ public class DeleteTaskHandler implements TaskHandler {
         taskManager.registerHandler(HANDLER_URI, this);
     }
 
-    @NotNull
-    @Override
-    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy()
-                .fromZero()
-                .maintainActionsExecutedStatistics();
-    }
-
     @Override
     public TaskRunResult run(@NotNull RunningTask task) {
         return runInternal(task);
@@ -209,12 +201,12 @@ public class DeleteTaskHandler implements TaskHandler {
                         op.failed(t);
                         throw t; // TODO we don't want to continue processing if an error occurs?
                     }
-                    task.incrementProgressAndStoreStatisticsIfTimePassed(opResult);
+                    task.incrementLegacyProgressAndStoreStatisticsIfTimePassed(opResult);
                 }
 
                 opResult.summarize();
                 LOGGER.trace("Search returned {} objects, {} skipped, progress: {} (interrupted: {}), result:\n{}",
-                        objects.size(), skipped, task.getProgress(), !task.canRun(), opResult.debugDumpLazily());
+                        objects.size(), skipped, task.getLegacyProgress(), !task.canRun(), opResult.debugDumpLazily());
 
                 if (objects.size() == skipped) {
                     break;
@@ -242,9 +234,9 @@ public class DeleteTaskHandler implements TaskHandler {
         long wallTime = System.currentTimeMillis() - startTimestamp;
 
         String finishMessage = "Finished delete (" + task + "). ";
-        String statistics = "Processed " + task.getProgress() + " objects in " + wallTime/1000 + " seconds.";
-        if (task.getProgress() > 0) {
-            statistics += " Wall clock time average: " + ((float) wallTime / (float) task.getProgress()) + " milliseconds";
+        String statistics = "Processed " + task.getLegacyProgress() + " objects in " + wallTime/1000 + " seconds.";
+        if (task.getLegacyProgress() > 0) {
+            statistics += " Wall clock time average: " + ((float) wallTime / (float) task.getLegacyProgress()) + " milliseconds";
         }
         if (!task.canRun()) {
             statistics += " (task run was interrupted)";
@@ -260,7 +252,7 @@ public class DeleteTaskHandler implements TaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        return task.getProgress();
+        return task.getLegacyProgress();
     }
 
     @Override

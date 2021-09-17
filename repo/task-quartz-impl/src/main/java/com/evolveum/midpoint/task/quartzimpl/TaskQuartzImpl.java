@@ -700,19 +700,19 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public long getProgress() {
+    public long getLegacyProgress() {
         return defaultIfNull(getProperty(TaskType.F_PROGRESS), 0L);
     }
 
     @Override
-    public void setProgress(Long value) {
+    public void setLegacyProgress(Long value) {
         setProperty(TaskType.F_PROGRESS, value);
     }
 
     @Override
-    public void incrementProgressTransient() {
+    public void incrementLegacyProgressTransient() {
         synchronized (prismAccess) {
-            setProgressTransient(getProgress() + 1);
+            setProgressTransient(getLegacyProgress() + 1);
         }
     }
 
@@ -1731,8 +1731,8 @@ public class TaskQuartzImpl implements Task {
     }
 
     public TaskHandler getHandler() {
-        String handlerUri = getHandlerUri();
-        return handlerUri != null ? beans.handlerRegistry.getHandler(handlerUri) : null;
+        return beans.handlerRegistry.getHandler(
+                getHandlerUri());
     }
 
     @Override
@@ -2053,6 +2053,14 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public @NotNull ParentAndRoot getParentAndRoot(OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        argCheck(isPersistent(), "Couldn't determine parent and root for non-persistent, non-running task: %s", this);
+        return ParentAndRoot.fromPath(
+                getPathToRootTask(result));
+    }
+
+    @Override
     public List<Task> getPathToRootTask(OperationResult result) throws SchemaException {
         List<Task> allTasksToRoot = new ArrayList<>();
         TaskQuartzImpl current = this;
@@ -2084,7 +2092,7 @@ public class TaskQuartzImpl implements Task {
         }
 
         // TODO operation result handling here?
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getPathToRootTask");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getParentTaskSafe");
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
         try {
@@ -2260,13 +2268,6 @@ public class TaskQuartzImpl implements Task {
     @Override
     public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
         statistics.resetIterativeTaskInformation(value, collectExecutions);
-    }
-
-    @NotNull
-    @Override
-    @Deprecated
-    public List<String> getLastFailures() {
-        return emptyList();
     }
     //endregion
 

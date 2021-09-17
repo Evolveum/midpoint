@@ -16,7 +16,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -52,7 +51,6 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
     @Autowired private PrismContext prismContext;
-    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
     @Override
     public <AH extends AssignmentHolderType> EvaluatedHasAssignmentTrigger evaluate(@NotNull JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
@@ -108,12 +106,12 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
                     boolean isPlus = assignmentIsAdded || assignmentIsKept && targetIsInPlusSet;
                     boolean isZero = assignmentIsKept && targetIsInZeroSet;
                     boolean isMinus = assignmentIsDeleted || assignmentIsKept && targetIsInMinusSet;
+                    //noinspection ConstantConditions
                     if (!(allowPlus && isPlus || allowZero && isZero || allowMinus && isMinus)) {
                         continue;
                     }
                     if (ExclusionConstraintEvaluator
-                            .oidMatches(constraint.getTargetRef(), target, prismContext, matchingRuleRegistry,
-                                    "hasAssignment constraint")) {
+                            .refMatchesTarget(constraint.getTargetRef(), target.getTarget(), "hasAssignment constraint")) {
                         // TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
                         matchingTargets.add(target.getTarget());
                     }

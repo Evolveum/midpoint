@@ -16,10 +16,7 @@ import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author mederly
@@ -27,8 +24,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
  */
 @PanelType(name = "tasks")
 @PanelInstance(identifier = "tasks",
-        status = ItemStatus.NOT_CHANGED,
-        applicableFor = FocusType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
+        applicableForType = FocusType.class,
         display = @PanelDisplay(label = "pageAdminFocus.cases", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON, order = 50))
 @Counter(provider = FocusCasesCounter.class)
 public class FocusCasesPanel<F extends FocusType>

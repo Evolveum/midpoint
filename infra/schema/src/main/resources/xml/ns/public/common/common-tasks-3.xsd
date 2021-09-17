@@ -1871,13 +1871,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="monitoring" type="tns:ActivityMonitoringDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How the activity is monitored, e.g. using tracing or dynamic profiling.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="reporting" type="tns:ActivityReportingDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2817,7 +2810,37 @@
             <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Operation result status of this activity. TODO
+                        Operation result status of this activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="realizationStartTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) realization start?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="realizationEndTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) realization end? If null, this means that the current realization
+                        is in progress.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionStartTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) execution start?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionEndTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) execution end? If null, this means that the current execution
+                        is in progress.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2920,10 +2943,13 @@
     <xsd:complexType name="ActivityStateOverviewType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes the overview of the state of an activity.
-                This information is maintained in the root task only,
-                and is an excerpt from state information distributed throughout
-                the tree. It is intentionally not a container.
+                Describes an overview of the state of an activity. This information is maintained in the root task only,
+                and is an excerpt from state information distributed throughout the tree.
+
+                The idea is to provide all important information (needed e.g. in the task list) directly in the root
+                task, to avoid the need to fetch subtasks.
+
+                This structure is intentionally not a container (currently).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.4</a:since>
@@ -2946,41 +2972,75 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="executionState" type="tns:ActivityExecutionStateType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Is the activity really executing now?
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Operation result status of this activity. TODO
+                        Operation result status of this activity execution.
+
+                        If an activity realization is in progress (all tasks being run, or some of them stopped, or even
+                        all of the tasks stopped - but with work not being complete), here is either IN_PROGRESS
+                        (if there are no known errors, or if the activity handler does not report them),
+                        or PARTIAL_ERROR or FATAL_ERROR (if there are known errors, either partial or fatal).
+
+                        In a situations where the processing is stopped because of some fatal error (e.g. a "master" query
+                        cannot be issued against a resource in a synchronization activity, or a threshold was reached, etc.),
+                        usually FATAL_ERROR is present here. (Not IN_PROGRESS, although the activity - technically speaking -
+                        did not finish yet.)
+
+                        After the realization is complete, the status can no longer be IN_PROGRESS. It is
+                        usually either SUCCESS, PARTIAL_ERROR, or FATAL_ERROR. Other states (WARNING, HANDLED_ERROR)
+                        are possible but uncommon.
+
+                        For a distributed activity here is the aggregated result covering the whole activity.
+                        (May or may not be a simple aggregation of individual workers' results. For example,
+                        the result can be determined by taking into account success/failure status of items
+                        processed.)
+
+                        For a delegated activity here is the result of the delegate execution (not the delegating one).
+
+                        For a simple (non-distributed, non-delegated) activity the result stored here is related
+                        to the result in the "task" field. However, there can be situations where this result is IN_PROGRESS,
+                        but the result in the "task" field is not IN_PROGRESS (because the activity execution stopped).
+                        In any case, these results should not contradict each other.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="bucketProgress" type="tns:BucketProgressOverviewType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The task(s) in which the activity execution takes place.
+                        Activity progress in the terms of buckets.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="task" type="tns:ActivityTaskStateOverviewType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about activity execution within a task or tasks.
+
+                        However, not all executions are represented here: Delegating and distributing executions
+                        are not mentioned. Only local executions have their representation here.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="progressInformationVisibility" type="tns:ActivityStateOverviewProgressInformationVisibilityType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is progress information hidden e.g. because of redundancy
+                        (if the activity runs directly in the root task)?
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="persistence" type="tns:ActivityStatePersistenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How much is this state information persistent?
+                        How much is this state information persistent (between individual realizations)?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="activity" type="tns:ActivityStateOverviewType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Work state overview of child activities.
+                        State overview of child activities.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3041,10 +3101,229 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="ActivityStateOverviewProgressInformationVisibilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Is progress information present?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="visible">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Progress is visible (if there is any).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VISIBLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="hidden">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Progress is intentionally hidden (usually to avoid unnecessary task updates).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HIDDEN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ActivityStateOverviewProgressUpdateModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How is the progress updated?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Progress is always updated, even for the activities residing in the root task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="forNonLocalActivities">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Progress is updated only for activities that do not reside in the root task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FOR_NON_LOCAL_ACTIVITIES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Progress is never updated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="BucketProgressOverviewType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information on buckets processing (for activity state overview).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="totalBuckets" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many buckets are there? (if known)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="completeBuckets" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many buckets are complete?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemsProgressOverviewType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information on items processing (for activity state overview).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="expectedTotal" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expected total progress for an activity, if known.
+                        (Always null for worker tasks.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="successfullyProcessed" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many items have been successfully processed?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="failed" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many items have failed to be processed?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="skipped" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many items have been skipped?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityTaskStateOverviewType">
+        <xsd:annotation>
+            <xsd:documentation>
+                State of the local activity execution in an individual task.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="node" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of a node where the task is executing or was executing last.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bucketsProcessingRole" type="tns:BucketsProcessingRoleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Role of this task in the processing of the buckets: standalone executor, coordinator, or worker.
+                        Null if not applicable.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionState" type="tns:ActivityTaskExecutionStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the activity really executing now?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If not null, this property denotes since what time is this activity execution (in given task) stalled.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="progress" type="tns:ItemsProgressOverviewType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Simplified items progress information.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Result of this execution. Regarding IN_PROGRESS interpretation: it is currently
+                        similar to the one in "resultStatus" field of the containing activity entry.
+                        (I.e. as long as an activity is not complete, it may indicate this fact using IN_PROGRESS
+                        status here. However, it may also indicate errors using PARTIAL/FATAL ERROR status.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:simpleType name="ActivityStatePersistenceType">
         <xsd:annotation>
             <xsd:documentation>
-                How much is the activity state (full / overview) persistent?
+                How much is the activity state (full / overview) persistent across individual realizations?
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.4</a:since>
@@ -3165,10 +3444,10 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="ActivityExecutionStateType">
+    <xsd:simpleType name="ActivityTaskExecutionStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Execution state of an activity - to be used in activity overview.
+                Execution state of an activity task - to be used in activity overview.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.4</a:since>
@@ -3179,41 +3458,20 @@
             <xsd:enumeration value="executing">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Activity is executing.
+                        Activity in the task is executing. (Or stalled.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXECUTING"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="executingReduced">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Activity is executing, although the speed of execution may be reduced e.g. because of some
-                        of the tasks or threads failed. NOT IMPLEMENTED YET.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXECUTING_REDUCED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="notExecuting">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Activity execution was suspended or interrupted before the activity was complete.
+                        Activity in the task is not executing. (Might be complete or just interrupted.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NOT_EXECUTING"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="complete">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Activity is complete.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="COMPLETE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -5831,6 +6089,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="stateOverview" type="tns:ActivityStateOverviewMaintenanceConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Parameters related to the maintenance of activity tree state overview.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -5993,6 +6261,43 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="ActivityStateOverviewMaintenanceConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Parameters related to the maintenance of activity tree state overview.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="progressUpdateInterval" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How often should be the progress in the activity tree state overview updated?
+                        The value is in milliseconds.
+
+                        The interval should be such that its value divided by the number of workers should yield
+                        a reasonable time (e.g. no less than a couple of seconds).
+
+                        Note that the time to update is checked only after regular task progress is updated
+                        (each 3000 milliseconds by default). So there's no use in setting a value less than this.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="progressUpdateMode" type="tns:ActivityStateOverviewProgressUpdateModeType" minOccurs="0"
+                    default="forNonLocalActivities">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For what activities is the progress updated?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="ProcessTracingConfigurationType">
         <xsd:annotation>

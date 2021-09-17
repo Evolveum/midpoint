@@ -13,6 +13,7 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -138,7 +139,8 @@ public class CleanupActivityHandler
         return children;
     }
 
-    private void cleanupCases(CleanupPolicyType p, RunningTask task, OperationResult result1) throws SchemaException {
+    private void cleanupCases(CleanupPolicyType p, RunningTask task, OperationResult result1)
+            throws SchemaException, ObjectNotFoundException {
         if (workflowManager != null) {
             workflowManager.cleanupCases(p, task, result1);
         } else {

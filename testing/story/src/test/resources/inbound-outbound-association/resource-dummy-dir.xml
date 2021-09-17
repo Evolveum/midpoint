@@ -124,14 +124,14 @@
 
                                         if (assignment.targetRef != null) {
                                             if (assignment.targetRef.object != null) {
-                                                log.info("### (association) target roleType " + assignment.targetRef.objectable.roleType)
+                                                log.info("### (association) target subtype " + assignment.targetRef.objectable.subtype)
                                                 inRange = 'group'.equals(assignment.targetRef.objectable..subtype)
                                                 log.info("########## (association) inRange: " + inRange)
                                                 return inRange
                                             } else {
                                                 role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
                                                 log.info("### (association) role name " + role.name.orig)
-                                                log.info("### (association) role.roleType " + role.subtype)
+                                                log.info("### (association) role.subtype " + role.subtype)
                                                 inRange = ('group').equals(role.subtype)
                                                 log.info("########## (association) inRange: " + inRange)
                                                 return inRange

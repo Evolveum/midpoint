@@ -58,7 +58,7 @@ public interface SearchBasedActivityExecutionSpecifics<O extends ObjectType>
      *
      * Note: freely add {@link CommonException} and {@link ActivityExecutionException} to the signature of this method if needed.
      */
-    default @Nullable SearchSpecification<O> createSearchSpecification(OperationResult result) {
+    default @Nullable SearchSpecification<O> createCustomSearchSpecification(OperationResult result) {
         return null;
     }
 

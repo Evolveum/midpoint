@@ -13,55 +13,25 @@ package com.evolveum.midpoint.task.api;
 public class StatisticsCollectionStrategy {
 
     /**
-     * If true, all statistics are reset when the task starts from scratch.
-     * By starting from scratch we mean e.g. when all the work is done, and the task is started.
+     * If true, all statistics are automatically reset when the task run starts.
+     * This occurs for normal (scheduled) starts but also e.g. after resuming.
      *
-     * The usual value here is true. Notable exceptions are live sync or async update tasks.
+     * This flag should be set to false either for tasks that typically work in recurring mode with a short execution
+     * and short scheduling period, OR for activity-based tasks that manage clearing of the task statistics themselves.
      */
-    private boolean startFromZero;
-
-    /**
-     * Whether the task should maintain synchronization statistics.
-     */
-    private boolean maintainSynchronizationStatistics;
-
-    /**
-     * Whether the task should maintain "actions executed" statistics.
-     */
-    private boolean maintainActionsExecutedStatistics;
-
-    /**
-     * Whether the task should maintain structured progress;
-     */
-    private boolean maintainStructuredProgress;
+    private boolean startFromZero = true;
 
     public StatisticsCollectionStrategy() {
-    }
-
-    public StatisticsCollectionStrategy(boolean startFromZero, boolean maintainSynchronizationStatistics,
-            boolean maintainActionsExecutedStatistics, boolean maintainStructuredProgress) {
-        this.startFromZero = startFromZero;
-        this.maintainSynchronizationStatistics = maintainSynchronizationStatistics;
-        this.maintainActionsExecutedStatistics = maintainActionsExecutedStatistics;
-        this.maintainStructuredProgress = maintainStructuredProgress;
     }
 
     public boolean isStartFromZero() {
         return startFromZero;
     }
 
-    public boolean isMaintainSynchronizationStatistics() {
-        return maintainSynchronizationStatistics;
-    }
-
-    public boolean isMaintainActionsExecutedStatistics() {
-        return maintainActionsExecutedStatistics;
-    }
-
-    public boolean isMaintainStructuredProgress() {
-        return maintainStructuredProgress;
-    }
-
+    /**
+     * Just for clarity.
+     */
+    @SuppressWarnings("WeakerAccess")
     public StatisticsCollectionStrategy fromZero() {
         this.startFromZero = true;
         return this;
@@ -70,19 +40,5 @@ public class StatisticsCollectionStrategy {
     public StatisticsCollectionStrategy fromStoredValues() {
         this.startFromZero = false;
         return this;
-    }
-
-    public StatisticsCollectionStrategy maintainSynchronizationStatistics() {
-        this.maintainSynchronizationStatistics = true;
-        return this;
-    }
-
-    public StatisticsCollectionStrategy maintainActionsExecutedStatistics() {
-        this.maintainActionsExecutedStatistics = true;
-        return this;
-    }
-
-    public boolean isCollectExecutions() {
-        return startFromZero; // temporary implementation
     }
 }

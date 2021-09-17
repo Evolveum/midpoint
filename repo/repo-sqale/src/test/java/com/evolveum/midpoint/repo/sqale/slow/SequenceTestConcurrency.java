@@ -103,7 +103,7 @@ public class SequenceTestConcurrency extends SqaleRepoBaseTest {
     private void concurrencyUniversal(
             long duration, WorkerThread[] workerThreads, boolean alwaysOrder) throws Exception {
 
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = startTransaction()) {
             System.out.println(">>>>" + jdbcSession.connection().getTransactionIsolation());
         }
 

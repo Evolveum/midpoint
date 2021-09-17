@@ -13,7 +13,7 @@
     <name>TOP</name>
     <displayName>Top</displayName>
     <identifier>0000</identifier>
-    <orgType>functional</orgType>
+    <subtype>functional</subtype>
     <inducement>
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000003"/>

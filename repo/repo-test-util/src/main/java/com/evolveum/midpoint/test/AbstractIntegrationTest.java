@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
@@ -3259,6 +3260,35 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }, timeoutInterval, sleepInterval);
     }
 
+    protected void waitForTaskTreeCloseOrCondition(String taskOid, OperationResult result,
+            long timeoutInterval, long sleepInterval, @NotNull Predicate<List<Task>> predicate) throws CommonException {
+        waitFor("Waiting for task manager to finish the task", () -> {
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                    .item(TaskType.F_RESULT).retrieve()
+                    .build();
+            List<Task> allTasks = new ArrayList<>();
+            Task task = taskManager.getTaskPlain(taskOid, options, result);
+            String dump = TaskDebugUtil.dumpTaskTree(task, allTasks::add, result);
+            displayValue("Task tree while waiting", dump);
+            if (task.isClosed()) {
+                display("Task is closed, finishing waiting: " + task);
+                return true;
+            }
+
+            if (predicate.test(allTasks)) {
+                display("Predicate is true, done waiting");
+                return true;
+            }
+            return false;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected Predicate<List<Task>> tasksClosedPredicate(int expectedNumber) {
+        return tasks -> tasks.stream()
+                .filter(Task::isClosed)
+                .count() == expectedNumber;
+    }
+
     protected void waitForTaskStart(String oid, OperationResult result, long timeoutInterval, long sleepInterval) throws CommonException {
         waitFor("Waiting for task manager to start the task", () -> {
             Task task = taskManager.getTaskWithResult(oid, result);
@@ -3272,7 +3302,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         waitFor("Waiting for task progress reaching " + threshold, () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             displaySingleTask("Task while waiting for progress reaching " + threshold, task);
-            return task.getProgress() >= threshold;
+            return task.getLegacyProgress() >= threshold;
         }, timeoutInterval, sleepInterval);
     }
 

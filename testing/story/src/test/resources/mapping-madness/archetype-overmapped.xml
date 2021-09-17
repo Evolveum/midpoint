@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="da861c56-ec58-409a-adb1-3a95be9d2835">
+    <name>overmapped</name>
+    <archetypePolicy>
+        <objectTemplateRef oid="beed4a22-f341-4d56-9621-3a3843c1c58f"/>
+    </archetypePolicy>
+</archetype>

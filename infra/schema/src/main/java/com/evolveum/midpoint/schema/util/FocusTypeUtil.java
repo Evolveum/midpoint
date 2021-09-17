@@ -173,28 +173,7 @@ public class FocusTypeUtil {
         if (object == null) {
             return emptyList();
         }
-
-        List<String> subtypes = object.asObjectable().getSubtype();
-        if (!subtypes.isEmpty()) {
-            return subtypes;
-        }
-
-        if (object.canRepresent(UserType.class)) {
-            return (((UserType)object.asObjectable()).getEmployeeType());
-        }
-        if (object.canRepresent(OrgType.class)) {
-            return (((OrgType)object.asObjectable()).getOrgType());
-        }
-        if (object.canRepresent(RoleType.class)) {
-            // TODO why not return simply .getRoleType() [pmed]
-            List<String> roleTypes = new ArrayList<>(1);
-            roleTypes.add((((RoleType)object.asObjectable()).getRoleType()));
-            return roleTypes;
-        }
-        if (object.canRepresent(ServiceType.class)) {
-            return (((ServiceType)object.asObjectable()).getServiceType());
-        }
-        return emptyList();
+        return object.asObjectable().getSubtype();
     }
 
     public static <O extends ObjectType> boolean hasSubtype(PrismObject<O> object, String subtype) {

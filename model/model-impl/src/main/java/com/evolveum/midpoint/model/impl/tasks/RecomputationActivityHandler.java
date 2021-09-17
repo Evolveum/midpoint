@@ -23,11 +23,10 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
@@ -72,8 +71,8 @@ public class RecomputationActivityHandler
     }
 
     @Override
-    protected @NotNull SearchBasedSpecificsSupplier<ObjectType, MyWorkDefinition, RecomputationActivityHandler> getSpecificSupplier() {
-        return MyExecutionSpecifics::new;
+    protected @NotNull ExecutionSupplier<ObjectType, MyWorkDefinition, RecomputationActivityHandler> getExecutionSupplier() {
+        return MyExecution::new;
     }
 
     @Override
@@ -96,12 +95,13 @@ public class RecomputationActivityHandler
         return "recomputation";
     }
 
-    static class MyExecutionSpecifics extends
-            BaseSearchBasedExecutionSpecificsImpl<ObjectType, MyWorkDefinition, RecomputationActivityHandler> {
+    static class MyExecution extends
+            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, RecomputationActivityHandler, AbstractActivityWorkStateType> {
 
-        MyExecutionSpecifics(
-                @NotNull SearchBasedActivityExecution<ObjectType, MyWorkDefinition, RecomputationActivityHandler, ?> activityExecution) {
-            super(activityExecution);
+        MyExecution(
+                @NotNull ExecutionInstantiationContext<MyWorkDefinition, RecomputationActivityHandler> context,
+                String shortName) {
+            super(context, shortName);
         }
 
         @Override
@@ -114,7 +114,7 @@ public class RecomputationActivityHandler
         public boolean processObject(@NotNull PrismObject<ObjectType> object,
                 @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
                 throws CommonException, ActivityExecutionException {
-            boolean simulate = activityExecution.isPreview();
+            boolean simulate = isPreview();
             String action = simulate ? "Simulated recomputation" : "Recomputation";
 
             LOGGER.trace("{} of object {}", action, object);

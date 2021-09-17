@@ -41,6 +41,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import java.util.Iterator;
 
 public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationalButtonsPanel.class);
 
@@ -69,6 +70,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
         addButtons(repeatingView);
 
+        createBackButton(repeatingView);
 
         RepeatingView stateButtonsView = new RepeatingView(ID_STATE_BUTTONS);
         add(stateButtonsView);
@@ -79,6 +81,8 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     private void createEditRawButton(RepeatingView repeatingView) {
         AjaxIconButton edit = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_EDIT_MENU_ITEM),
                 getPageBase().createStringResource("AbstractObjectMainPanel.editXmlButton")) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 editRawPerformed(ajaxRequestTarget);
@@ -88,9 +92,25 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         repeatingView.add(edit);
     }
 
+    private void createBackButton(RepeatingView repeatingView) {
+        AjaxIconButton edit = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.ARROW_LEFT),
+                getPageBase().createStringResource("pageAdminFocus.button.back")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                backPerformed(ajaxRequestTarget);
+            }
+        };
+        edit.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(edit);
+    }
+
     private void createDeleteButton(RepeatingView repeatingView) {
         AjaxIconButton remove = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_REMOVE),
                 getPageBase().createStringResource("OperationalButtonsPanel.delete")) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 deletePerformed(ajaxRequestTarget);
@@ -108,6 +128,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton save = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
                 getPageBase().createStringResource("PageBase.button.save")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -135,6 +156,10 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     }
 
+    private void backPerformed(AjaxRequestTarget target) {
+        getPageBase().redirectBack();
+    }
+
     private void editRawPerformed(AjaxRequestTarget ajaxRequestTarget) {
         ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
                 getPageBase().createStringResource("AbstractObjectMainPanel.confirmEditXmlRedirect")) {
@@ -156,6 +181,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     private void deletePerformed(AjaxRequestTarget target) {
         ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("do you really want to delete " + getObjectType())) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {

@@ -10,7 +10,10 @@ package com.evolveum.midpoint.repo.common.task.work;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.ListUtils;
 import org.jetbrains.annotations.NotNull;
@@ -34,9 +37,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 public class CompleteBucketOperation extends BucketOperation {
 
@@ -45,9 +45,10 @@ public class CompleteBucketOperation extends BucketOperation {
     private final int sequentialNumber;
 
     CompleteBucketOperation(@NotNull String coordinatorTaskOid, @Nullable String workerTaskOid,
-            @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, CommonTaskBeans beans,
+            @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector,
+            @Nullable Consumer<BucketProgressOverviewType> bucketProgressConsumer, CommonTaskBeans beans,
             int sequentialNumber) {
-        super(coordinatorTaskOid, workerTaskOid, activityPath, collector, beans);
+        super(coordinatorTaskOid, workerTaskOid, activityPath, collector, bucketProgressConsumer, beans);
         this.sequentialNumber = sequentialNumber;
     }
 
@@ -58,15 +59,24 @@ public class CompleteBucketOperation extends BucketOperation {
         ModifyObjectResult<TaskType> modifyObjectResult =
                 plainRepositoryService.modifyObjectDynamically(TaskType.class, coordinatorTaskOid, null,
                         this::computeCompletionModifications, null, result);
+        bucketProgressHolder.passValue();
         statisticsKeeper.addToConflictCounts(modifyObjectResult);
         statisticsKeeper.register(BucketingConstants.COMPLETE_WORK_BUCKET);
     }
 
-    private @NotNull Collection<ItemDelta<?, ?>> computeCompletionModifications(@NotNull TaskType task) throws SchemaException {
-        List<WorkBucketType> buckets = CloneUtil.cloneCollectionMembers(
-                BucketingUtil.getBuckets(task.getActivityState(), activityPath));
+    private @NotNull Collection<ItemDelta<?, ?>> computeCompletionModifications(@NotNull TaskType task) {
+
+        ActivityStateType activityState = ActivityStateUtil.getActivityStateRequired(task.getActivityState(), activityPath);
+        ActivityBucketingStateType bucketing = activityState.getBucketing();
+        List<WorkBucketType> buckets = CloneUtil.cloneCollectionMembers(bucketing.getBucket());
+
         WorkBucketType bucket = BucketingUtil.findBucketByNumberRequired(buckets, sequentialNumber);
         checkBucketReadyOrDelegated(bucket);
+
+        bucketProgressHolder.accept(
+                new BucketProgressOverviewType()
+                        .totalBuckets(bucketing.getNumberOfBuckets())
+                        .completeBuckets(BucketingUtil.getCompleteBucketsNumber(buckets) + 1));
 
         ItemPath statePath = ActivityStateUtil.getStateItemPath(task.getActivityState(), activityPath);
         List<ItemDelta<?, ?>> closingMods = bucketStateChangeDeltas(statePath, bucket, WorkBucketStateType.COMPLETE);
@@ -87,7 +97,7 @@ public class CompleteBucketOperation extends BucketOperation {
         }
     }
     private List<ItemDelta<?, ?>> compressCompletedBuckets(ItemPath statePath, List<WorkBucketType> currentBuckets,
-            WorkBucketType closedBucketBefore, Holder<Boolean> recentlyClosedBucketDeletedHolder) throws SchemaException {
+            WorkBucketType closedBucketBefore, Holder<Boolean> recentlyClosedBucketDeletedHolder) {
 
         recentlyClosedBucketDeletedHolder.setValue(false);
 

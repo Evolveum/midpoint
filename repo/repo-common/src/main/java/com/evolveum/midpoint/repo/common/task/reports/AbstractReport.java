@@ -228,7 +228,7 @@ public abstract class AbstractReport {
                         .type(ReportDataType.COMPLEX_TYPE)
                         .description(getLocalNodeId())),
                 List.of());
-        activityState.flushPendingModificationsChecked(result);
+        activityState.flushPendingTaskModificationsChecked(result);
     }
 
     private @NotNull String getLocalNodeId() {
@@ -262,7 +262,7 @@ public abstract class AbstractReport {
                         List.of(),
                         CloneUtil.cloneCollectionMembers(references)
                 );
-                activityState.flushPendingModificationsChecked(result);
+                activityState.flushPendingTaskModificationsChecked(result);
             }
         }
     }
