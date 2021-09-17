@@ -25,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 @PanelType(name = "domain")
 @PanelInstance(identifier = "domain",
         applicableForType = ObjectCollectionType.class,
-        applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageObjectCollection.domain.title", order = 60))
 public class ObjectCollectionDomainPanel extends AbstractObjectMainPanel<ObjectCollectionType, ObjectDetailsModels<ObjectCollectionType>> {
     private static final long serialVersionUID = 1L;
