@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.task.RootTaskLoader;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -53,7 +54,7 @@ import java.util.List;
 @PanelType(name = "subtasks")
 @PanelInstance(identifier = "subtasks", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageTask.subtasks.title", order = 50))
-public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
+public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_WORKER_THREADS_TABLE = "workerThreadsTable";
@@ -62,18 +63,8 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
     private static final String ID_SUBTASKS_LABEL = "subtasksLabel";
     private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
 
-    /**
-     * The root of the task tree is needed to have the activity tree overview. It is loaded on demand.
-     *
-     * TODO Eliminate repeated loading of the root task!
-     */
-    @NotNull private final LoadableModel<TaskType> rootTaskModel =
-            RootTaskLoader.createRootTaskModel(
-                    () -> getObjectWrapper().getObject().asObjectable(),
-                    this::getPageBase);
-
     public TaskSubtasksAndThreadsPanel(String id,
-            ObjectDetailsModels<TaskType> taskWrapperModel, ContainerPanelConfigurationType config) {
+            TaskDetailsModel taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
         setOutputMarkupId(true);
     }
@@ -117,7 +108,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
 
             @Override
             protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
-                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, getObjectDetailsModels().getRootTaskModelObject());
             }
         };
 
@@ -145,7 +136,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
 
             @Override
             protected @NotNull TaskInformation getAttachedTaskInformation(SelectableBean<TaskType> selectableTaskBean) {
-                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, rootTaskModel.getObject());
+                return TaskInformationUtil.getOrCreateInfo(selectableTaskBean, getObjectDetailsModels().getRootTaskModelObject());
             }
         };
         add(workerThreadsTable);

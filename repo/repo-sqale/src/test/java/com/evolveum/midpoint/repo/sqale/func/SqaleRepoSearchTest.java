@@ -42,7 +42,6 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
-import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -879,7 +878,30 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test322AndFilterVersusExistsAndFilter() throws SchemaException {
+    public void test321QueryWithExistsFilterAndNotInside() throws SchemaException {
+        // this is NOT inverse of the exists query above
+        searchUsersTest("matching the exists filter for assignment not matching something",
+                f -> f.exists(UserType.F_ASSIGNMENT)
+                        .block()
+                        .not().item(AssignmentType.F_LIFECYCLE_STATE).eq("assignment1-1")
+                        .endBlock(),
+                // both these users have some assignment that doesn't have specified lifecycle state
+                user1Oid, user3Oid);
+    }
+
+    @Test
+    public void test322QueryWithNotExistsFilter() throws SchemaException {
+        // this one is the actual inverse of test320
+        searchUsersTest("matching the not exists assignment with specific lifecycle",
+                f -> f.not()
+                        .exists(UserType.F_ASSIGNMENT)
+                        .item(AssignmentType.F_LIFECYCLE_STATE).eq("assignment1-1"),
+                // all these users have none assignment with the specified lifecycle (none = not exists)
+                user2Oid, user3Oid, user4Oid, creatorOid, modifierOid);
+    }
+
+    @Test
+    public void test325AndFilterVersusExistsAndFilter() throws SchemaException {
         searchUsersTest("matching the AND filter for assignment (across multiple assignments)",
                 f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM)
                         .lt(createXMLGregorianCalendar("2021-02-01T00:00:00Z"))
@@ -901,7 +923,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test323ActivationOrAssignmentActivationBeforeDate() throws SchemaException {
+    public void test326ActivationOrAssignmentActivationBeforeDate() throws SchemaException {
         XMLGregorianCalendar scanDate = createXMLGregorianCalendar("2022-01-01T00:00:00Z");
         searchUsersTest("having activation/valid* or assignment/activation/valid* before",
                 f -> f.item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(scanDate)
@@ -918,7 +940,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test324ActivationOrAssignmentActivationBetweenDates() throws SchemaException {
+    public void test327ActivationOrAssignmentActivationBetweenDates() throws SchemaException {
         // taken from FocusValidityScanPartialExecutionSpecifics.createStandardFilter
         XMLGregorianCalendar lastScanTimestamp = createXMLGregorianCalendar("2021-01-01T00:00:00Z");
         XMLGregorianCalendar thisScanTimestamp = createXMLGregorianCalendar("2021-06-01T00:00:00Z");
@@ -939,7 +961,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test325ExistsFilterWithSizeColumn() throws SchemaException {
+    public void test328ExistsFilterWithSizeColumn() throws SchemaException {
         searchObjectTest("having pending operations", ShadowType.class,
                 f -> f.exists(ShadowType.F_PENDING_OPERATION),
                 shadow1Oid);

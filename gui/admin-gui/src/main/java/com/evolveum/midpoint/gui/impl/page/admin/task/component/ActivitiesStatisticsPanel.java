@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -50,7 +51,7 @@ import java.util.List;
 @PanelType(name = "statistics")
 @PanelInstance(identifier = "statistics", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageTask.operationStats.title", order = 50))
-public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
+public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final String ID_ITEM_PROCESSING = "itemProcessing";
     private static final String ID_SYNCHRONIZATION_STATISTICS = "synchronizationStatistics";
@@ -62,7 +63,7 @@ public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType,
 
     private final LoadableModel<ActivitiesStatisticsDto> statisticsModel;
 
-    public ActivitiesStatisticsPanel(String id, ObjectDetailsModels<TaskType> model, ContainerPanelConfigurationType config) {
+    public ActivitiesStatisticsPanel(String id, TaskDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
 
         statisticsModel = LoadableModel.create(

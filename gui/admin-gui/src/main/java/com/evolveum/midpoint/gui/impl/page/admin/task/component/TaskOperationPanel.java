@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,7 +43,7 @@ import java.util.Collections;
 @PanelType(name = "operation")
 @PanelInstance(identifier = "operation", applicableForType = TaskType.class,
         display = @PanelDisplay(label = "pageTaskEdit.operation", order = 60))
-public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
+public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_MODEL_OPERATION_STATUS_PANEL = "modelOperationStatusPanel";
@@ -51,7 +52,7 @@ public class TaskOperationPanel extends AbstractObjectMainPanel<TaskType, Object
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskOperationPanel.class);
 
-    public TaskOperationPanel(String id, ObjectDetailsModels<TaskType> modelContextModel, ContainerPanelConfigurationType config) {
+    public TaskOperationPanel(String id, TaskDetailsModel modelContextModel, ContainerPanelConfigurationType config) {
         super(id, modelContextModel, config);
         setOutputMarkupId(true);
     }

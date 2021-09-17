@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -29,14 +30,14 @@ import java.util.Collections;
 //@PanelType(name = "performance")
 @PanelInstance(identifier = "performance", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageTask.performance.title", order = 50))
-public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
+public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_STATISTICS_PANEL = "statisticsPanel";
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskPerformancePanel.class);
 
-    public TaskPerformancePanel(String id, ObjectDetailsModels<TaskType> taskWrapperModel, ContainerPanelConfigurationType config) {
+    public TaskPerformancePanel(String id, TaskDetailsModel taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
         setOutputMarkupId(true);
     }

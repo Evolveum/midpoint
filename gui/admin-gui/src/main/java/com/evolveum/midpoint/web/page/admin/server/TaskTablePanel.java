@@ -232,7 +232,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private AbstractColumn<SelectableBean<TaskType>, String> createNodesColumn() {
-        return new AbstractColumn<>(createStringResource("Nodes")) { // FIXME i8n
+        return new AbstractColumn<>(createStringResource("pageTasks.task.executingAt")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId,
                     IModel<SelectableBean<TaskType>> rowModel) {
