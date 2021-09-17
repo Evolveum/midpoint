@@ -475,7 +475,24 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         AuditEventRecord auditRecordRequest = createAuditEventRecordRaw(AuditEventStage.REQUEST, requestIdentifier,
                 targetRef, ObjectDeltaOperation.cloneDeltaCollection(deltas));
         // we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
-        auditHelper.audit(auditRecordRequest, null, task, result);
+
+        ExpressionType eventRecordingExpression = null;
+
+        PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(result);
+        if (config != null && config.asObjectable() != null && config.asObjectable().getAudit() != null
+                && config.asObjectable().getAudit().getEventRecording() != null) {
+            SystemConfigurationAuditEventRecordingType eventRecording = config.asObjectable().getAudit().getEventRecording();
+            eventRecordingExpression = eventRecording.getExpression();
+        }
+
+        if (eventRecordingExpression != null) {
+            // MID-6839
+            auditRecordRequest = auditHelper.evaluateRecordingExpression(eventRecordingExpression,
+                    auditRecordRequest, null, null, task, result);
+        }
+        if (auditRecordRequest != null) {
+            auditHelper.audit(auditRecordRequest, null, task, result);
+        }
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
         try {
@@ -491,7 +508,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             AuditEventRecord auditRecordExecution = createAuditEventRecordRaw(AuditEventStage.EXECUTION, requestIdentifier, targetRef, executedDeltas);
             auditRecordExecution.setTimestamp(System.currentTimeMillis());
             auditRecordExecution.setOutcome(result.getStatus());
-            auditHelper.audit(auditRecordExecution, null, task, result);
+
+            if (eventRecordingExpression != null) {
+                // MID-6839
+                auditRecordExecution = auditHelper.evaluateRecordingExpression(eventRecordingExpression,
+                        auditRecordExecution, null, null, task, result);
+            }
+            if (auditRecordExecution != null) {
+                auditHelper.audit(auditRecordExecution, null, task, result);
+            }
 
             task.markObjectActionExecutedBoundary();
         }

@@ -604,8 +604,10 @@
                         Causes some TestAudit tests skip and/or modify audit record.
                     </documentation>
                     <code>
-                        def mods = midpoint.focusContext?.primaryDelta?.modifications
-                        def mod = mods != null &amp;&amp; mods.size() == 1 ? mods[0] : null
+                        def deltas = auditRecord.deltas
+                        def delta = deltas != null &amp;&amp; deltas.size() == 1 ? deltas[0] : null
+                        def mods = delta?.objectDelta?.modifications
+                        def mod = mods != null &amp;&amp; mods.size() >= 1 ? mods[0] : null
                         if (mod?.elementName?.lastName()?.localPart == "honorificSuffix") {
                             // here are various TestAudit.test4xx cases
                             def val = mods[0]?.anyRealValue?.orig
@@ -618,7 +620,6 @@
                                 auditRecord.parameter = "modified in script"
                             }
                         }
-
                         return auditRecord
                     </code>
                 </script>

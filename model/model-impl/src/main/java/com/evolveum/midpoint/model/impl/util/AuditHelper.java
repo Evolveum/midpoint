@@ -12,6 +12,17 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.lens.ClockworkAuditHelper;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationKindType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +59,7 @@ public class AuditHelper {
     @Autowired private AuditService auditService;
     @Autowired private PrismContext prismContext;
     @Autowired private SchemaService schemaService;
+    @Autowired private ExpressionFactory expressionFactory;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -55,6 +67,8 @@ public class AuditHelper {
 
     private static final String OP_AUDIT = AuditHelper.class.getName() + ".audit";
     private static final String OP_RESOLVE_NAME = AuditHelper.class.getName() + ".resolveName";
+    private static final String OP_EVALUATE_RECORDING_SCRIPT =
+            AuditHelper.class.getName() + ".evaluateRecordingScript";
 
     /**
      * @param externalNameResolver Name resolver that should be tried first. It should be fast.
@@ -123,5 +137,48 @@ public class AuditHelper {
             };
             resolveNames(delta, nameResolver, prismContext);
         }
+    }
+
+    public <F extends ObjectType> AuditEventRecord evaluateRecordingExpression(
+            ExpressionType expression, AuditEventRecord auditRecord,
+            PrismObject<? extends ObjectType> primaryObject, LensContext<F> context,
+            Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_RECORDING_SCRIPT);
+
+        try {
+            VariablesMap variables = new VariablesMap();
+            variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
+            variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
+                    new ExpressionEnvironment<>(context, null, task, result));
+            try {
+                PrismValue returnValue = ExpressionUtil.evaluateExpression(
+                        variables,
+                        null,
+                        expression, context != null ? context.getPrivilegedExpressionProfile() : null,
+                        expressionFactory,
+                        OP_EVALUATE_RECORDING_SCRIPT,
+                        task,
+                        result
+                );
+
+                return returnValue != null
+                        ? (AuditEventRecord) returnValue.getRealValue()
+                        : null;
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            }
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit recording expression", t);
+            // Copied from evaluateAuditRecordProperty: Intentionally not throwing the exception. The error is marked as partial.
+            // (It would be better to mark it as fatal and to derive overall result as partial, but we aren't that far yet.)
+            result.recordPartialError(t);
+        } finally {
+            result.recordSuccessIfUnknown();
+        }
+
+        // In case of failure we want to return original auditRecord, although it might be
+        // modified by some part of the script too - this we have to suffer.
+        return auditRecord;
     }
 }
