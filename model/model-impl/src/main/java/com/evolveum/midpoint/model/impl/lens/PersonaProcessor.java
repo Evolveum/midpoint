@@ -254,7 +254,7 @@ public class PersonaProcessor {
         PrismObjectDefinition<T> objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetType);
         PrismObject<T> target = objectDef.instantiate();
 
-        if (constructionBean.getArchetypeRef() != null) {
+        if (!constructionBean.getArchetypeRef().isEmpty()) {
             FocusTypeUtil.addArchetypeAssignments(target, constructionBean.getArchetypeRef());
         } else {
             FocusTypeUtil.setSubtype(target, constructionBean.getTargetSubtype());
