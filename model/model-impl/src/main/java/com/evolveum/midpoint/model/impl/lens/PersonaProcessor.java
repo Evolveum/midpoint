@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -393,11 +394,17 @@ public class PersonaProcessor {
         private final List<String> subtypes;
         private final List<ObjectReferenceType> archetypeRef;
 
+        private final List<String> archetypeOids;
+
         private PersonaKey(PersonaConstructionType constructionType) {
             super();
             this.type = constructionType.getTargetType();
             this.subtypes = constructionType.getTargetSubtype();
             this.archetypeRef = constructionType.getArchetypeRef();
+
+            this.archetypeOids = archetypeRef.stream()
+                    .map(archetypeRef -> archetypeRef.getOid())
+                    .collect(Collectors.toList());
         }
 
         public QName getType() {
@@ -420,7 +427,7 @@ public class PersonaProcessor {
             result = prime * result + getOuterType().hashCode();
             result = prime * result + ((subtypes == null) ? 0 : subtypes.hashCode());
             result = prime * result + ((type == null) ? 0 : type.hashCode());
-            result = prime * result + ((archetypeRef == null) ? 0 : archetypeRef.hashCode());
+            result = prime * result + ((archetypeOids == null) ? 0 : archetypeOids.hashCode());
             return result;
         }
 
@@ -446,10 +453,10 @@ public class PersonaProcessor {
                     return false;
             } else if (!type.equals(other.type))
                 return false;
-            if (archetypeRef == null) {
-                if (other.archetypeRef != null)
+            if (archetypeOids == null) {
+                if (other.archetypeOids != null)
                     return false;
-            } else if (!archetypeRef.equals(other.archetypeRef))
+            } else if (!archetypeOids.equals(other.archetypeOids))
                 return false;
             return true;
         }
