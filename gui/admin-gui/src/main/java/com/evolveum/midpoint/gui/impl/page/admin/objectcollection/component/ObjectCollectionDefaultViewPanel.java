@@ -24,7 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 @PanelType(name = "defaultView")
 @PanelInstance(identifier = "defaultView",
         applicableForType = ObjectCollectionType.class,
-        applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageObjectCollection.defaultView.title", order = 50))
 public class ObjectCollectionDefaultViewPanel extends AbstractObjectMainPanel<ObjectCollectionType, ObjectDetailsModels<ObjectCollectionType>> {
     private static final long serialVersionUID = 1L;

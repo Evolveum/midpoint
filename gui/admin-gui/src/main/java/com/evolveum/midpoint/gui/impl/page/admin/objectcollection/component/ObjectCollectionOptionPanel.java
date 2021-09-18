@@ -25,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGet
 @PanelType(name = "objectCollectionOption")
 @PanelInstance(identifier = "objectCollectionOption",
         applicableForType = ObjectCollectionType.class,
-        applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageObjectCollection.option.title", order = 70))
 public class ObjectCollectionOptionPanel extends AbstractObjectMainPanel<ObjectCollectionType, ObjectDetailsModels<ObjectCollectionType>> {
     private static final long serialVersionUID = 1L;
