@@ -316,14 +316,14 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     protected void clickOnDetailsAssignmentMenu(int order, Class<? extends Page> expectedPage) {
         tester.assertRenderedPage(expectedPage);
         tester.debugComponentTrees("navigation");
-        String tabPath = "details:navigation:menu:2:navLinkStyle:subNavigation:menu:" + order + ":navLinkStyle:navItemLink";
+        String tabPath = "detailsView:mainForm:navigation:menu:2:navLinkStyle:subNavigation:menu:" + order + ":navLinkStyle:navItemLink";
         tester.clickLink(tabPath);
     }
 
     protected void clickOnDetailsMenu(int order, Class<? extends Page> expectedPage) {
         tester.assertRenderedPage(expectedPage);
         tester.debugComponentTrees("navigation");
-        String tabPath = "details:navigation:menu:" + order + ":navLinkStyle:navItemLink";
+        String tabPath = "detailsView:mainForm:navigation:menu:" + order + ":navLinkStyle:navItemLink";
         tester.clickLink(tabPath);
     }
 }

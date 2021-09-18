@@ -178,7 +178,7 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
             tester.debugComponentTrees();
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
-                tester.executeAjaxEvent("template:additionalButtons:0:additionalButton:compositedButton", "click");
+                tester.executeAjaxEvent("detailsView:template:template:additionalButtons:0:additionalButton:compositedButton", "click");
             }
         }
         queryListener.dumpAndStop();

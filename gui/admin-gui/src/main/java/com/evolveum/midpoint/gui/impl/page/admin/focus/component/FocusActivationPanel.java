@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "activation")
 @PanelInstance(identifier = "activation",
         applicableForType = FocusType.class,
-        display = @PanelDisplay(label = "ActivationType.title", order = 20))
+        display = @PanelDisplay(label = "ActivationType.title", order = 40))
 public class FocusActivationPanel<F extends FocusType, FDM extends FocusDetailsModels<F>> extends AbstractObjectMainPanel<F, FDM> {
     private static final long serialVersionUID = 1L;
 
