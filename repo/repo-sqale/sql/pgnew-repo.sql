@@ -26,7 +26,7 @@
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
 CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
--- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
+CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
 
 -- region custom enum types
 -- Some enums are from schema, some are only defined in repo-sqale.
@@ -495,10 +495,11 @@ CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
 
 CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
 ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_nameNorm_key UNIQUE (nameNorm);
--- TODO No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtypes);
 CREATE INDEX m_generic_object_validFrom_idx ON m_generic_object (validFrom);
 CREATE INDEX m_generic_object_validTo_idx ON m_generic_object (validTo);
+CREATE INDEX m_generic_object_fullTextInfo_idx
+    ON m_generic_object USING gin (fullTextInfo gin_trgm_ops);
 -- endregion
 
 -- region USER related tables
@@ -549,6 +550,7 @@ CREATE INDEX m_user_organizations_idx ON m_user USING gin(organizations);
 CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits);
 CREATE INDEX m_user_validFrom_idx ON m_user (validFrom);
 CREATE INDEX m_user_validTo_idx ON m_user (validTo);
+CREATE INDEX m_user_fullTextInfo_idx ON m_user USING gin (fullTextInfo gin_trgm_ops);
 -- endregion
 
 -- region ROLE related tables
@@ -596,6 +598,7 @@ CREATE INDEX m_role_subtypes_idx ON m_role USING gin(subtypes);
 CREATE INDEX m_role_identifier_idx ON m_role (identifier);
 CREATE INDEX m_role_validFrom_idx ON m_role (validFrom);
 CREATE INDEX m_role_validTo_idx ON m_role (validTo);
+CREATE INDEX m_role_fullTextInfo_idx ON m_role USING gin (fullTextInfo gin_trgm_ops);
 
 -- Represents ServiceType, see https://wiki.evolveum.com/display/midPoint/Service+Account+Management
 CREATE TABLE m_service (
@@ -619,6 +622,7 @@ CREATE INDEX m_service_subtypes_idx ON m_service USING gin(subtypes);
 CREATE INDEX m_service_identifier_idx ON m_service (identifier);
 CREATE INDEX m_service_validFrom_idx ON m_service (validFrom);
 CREATE INDEX m_service_validTo_idx ON m_service (validTo);
+CREATE INDEX m_service_fullTextInfo_idx ON m_service USING gin (fullTextInfo gin_trgm_ops);
 
 -- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
 CREATE TABLE m_archetype (
@@ -641,6 +645,7 @@ CREATE INDEX m_archetype_subtypes_idx ON m_archetype USING gin(subtypes);
 CREATE INDEX m_archetype_identifier_idx ON m_archetype (identifier);
 CREATE INDEX m_archetype_validFrom_idx ON m_archetype (validFrom);
 CREATE INDEX m_archetype_validTo_idx ON m_archetype (validTo);
+CREATE INDEX m_archetype_fullTextInfo_idx ON m_archetype USING gin (fullTextInfo gin_trgm_ops);
 -- endregion
 
 -- region Organization hierarchy support
@@ -668,6 +673,7 @@ CREATE INDEX m_org_subtypes_idx ON m_org USING gin(subtypes);
 CREATE INDEX m_org_identifier_idx ON m_org (identifier);
 CREATE INDEX m_org_validFrom_idx ON m_org (validFrom);
 CREATE INDEX m_org_validTo_idx ON m_org (validTo);
+CREATE INDEX m_org_fullTextInfo_idx ON m_org USING gin (fullTextInfo gin_trgm_ops);
 
 -- stores ObjectType/parentOrgRef
 CREATE TABLE m_ref_object_parent_org (
@@ -798,6 +804,7 @@ CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
 CREATE INDEX m_resource_nameOrig_idx ON m_resource (nameOrig);
 ALTER TABLE m_resource ADD CONSTRAINT m_resource_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_resource_subtypes_idx ON m_resource USING gin(subtypes);
+CREATE INDEX m_resource_fullTextInfo_idx ON m_resource USING gin (fullTextInfo gin_trgm_ops);
 
 -- stores ResourceType/business/approverRef
 CREATE TABLE m_ref_resource_business_configuration_approver (
@@ -854,6 +861,8 @@ CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
 CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING gin(policysituations gin__int_ops);
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin(ext);
 CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin(attributes);
+CREATE INDEX m_shadow_fullTextInfo_idx ON m_shadow USING gin (fullTextInfo gin_trgm_ops);
+
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRefTargetOid);
@@ -926,6 +935,8 @@ ALTER TABLE m_security_policy ADD CONSTRAINT m_security_policy_nameNorm_key UNIQ
 CREATE INDEX m_security_policy_subtypes_idx ON m_security_policy USING gin(subtypes);
 CREATE INDEX m_security_policy_policySituation_idx
     ON m_security_policy USING gin(policysituations gin__int_ops);
+CREATE INDEX m_security_policy_fullTextInfo_idx
+    ON m_security_policy USING gin (fullTextInfo gin_trgm_ops);
 
 -- Represents ObjectCollectionType, see https://wiki.evolveum.com/display/midPoint/Object+Collections+and+Views+Configuration
 CREATE TABLE m_object_collection (
@@ -947,6 +958,9 @@ ALTER TABLE m_object_collection ADD CONSTRAINT m_object_collection_nameNorm_key 
 CREATE INDEX m_object_collection_subtypes_idx ON m_object_collection USING gin(subtypes);
 CREATE INDEX m_object_collection_policySituation_idx
     ON m_object_collection USING gin(policysituations gin__int_ops);
+CREATE INDEX m_object_collection_fullTextInfo_idx
+    ON m_object_collection USING gin (fullTextInfo gin_trgm_ops);
+
 
 -- Represents DashboardType, see https://wiki.evolveum.com/display/midPoint/Dashboard+configuration
 CREATE TABLE m_dashboard (
@@ -1174,6 +1188,8 @@ ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifi
 CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING gin(dependentTaskIdentifiers);
 CREATE INDEX m_task_subtypes_idx ON m_task USING gin(subtypes);
 CREATE INDEX m_task_policySituation_idx ON m_task USING gin(policysituations gin__int_ops);
+CREATE INDEX m_task_ext_idx ON m_task USING gin(ext);
+CREATE INDEX m_task_fullTextInfo_idx ON m_task USING gin (fullTextInfo gin_trgm_ops);
 -- endregion
 
 -- region cases
@@ -1210,6 +1226,7 @@ CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
 CREATE INDEX m_case_nameNorm_idx ON m_case (nameNorm);
 CREATE INDEX m_case_subtypes_idx ON m_case USING gin(subtypes);
 CREATE INDEX m_case_policySituation_idx ON m_case USING gin(policysituations gin__int_ops);
+CREATE INDEX m_case_fullTextInfo_idx ON m_case USING gin (fullTextInfo gin_trgm_ops);
 
 CREATE INDEX m_case_objectRefTargetOid_idx ON m_case(objectRefTargetOid);
 CREATE INDEX m_case_targetRefTargetOid_idx ON m_case(targetRefTargetOid);
@@ -1297,6 +1314,8 @@ CREATE INDEX m_access_cert_definition_subtypes_idx ON m_access_cert_definition U
 CREATE INDEX m_access_cert_definition_policySituation_idx
     ON m_access_cert_definition USING gin(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin(ext);
+CREATE INDEX m_access_cert_definition_fullTextInfo_idx
+    ON m_access_cert_definition USING gin (fullTextInfo gin_trgm_ops);
 
 CREATE TABLE m_access_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -1331,6 +1350,8 @@ CREATE INDEX m_access_cert_campaign_subtypes_idx ON m_access_cert_campaign USING
 CREATE INDEX m_access_cert_campaign_policySituation_idx
     ON m_access_cert_campaign USING gin(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin(ext);
+CREATE INDEX m_access_cert_campaign_fullTextInfo_idx
+    ON m_access_cert_campaign USING gin (fullTextInfo gin_trgm_ops);
 
 CREATE TABLE m_access_cert_case (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
