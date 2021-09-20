@@ -14,6 +14,7 @@ import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -25,9 +26,8 @@ import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -52,6 +52,15 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     private final Map<String, String> users = new LinkedHashMap<>();
 
     private final List<String> memInfo = new ArrayList<>();
+
+    @BeforeClass
+    public void initFullTextConfig() {
+        repositoryService.applyFullTextSearchConfiguration(
+                new FullTextSearchConfigurationType(prismContext)
+                        .indexed(new FullTextSearchIndexedItemsConfigurationType(prismContext)
+                                .item(new ItemPathType(ObjectType.F_NAME))
+                                .item(new ItemPathType(ObjectType.F_DESCRIPTION))));
+    }
 
     @BeforeMethod
     public void reportBeforeTest() {
@@ -83,7 +92,8 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         for (int resourceIndex = 1; resourceIndex <= RESOURCE_COUNT; resourceIndex++) {
             String name = String.format("resource-%03d", resourceIndex);
             ResourceType resourceType = new ResourceType(prismContext)
-                    .name(PolyStringType.fromOrig(name));
+                    .name(PolyStringType.fromOrig(name))
+                    .description(randomDescription(name));
             if (resourceIndex == RESOURCE_COUNT) {
                 queryRecorder.clearBufferAndStartRecording();
             }
@@ -102,7 +112,8 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
             String name = String.format("user-%07d", userIndex);
             UserType userType = new UserType(prismContext)
-                    .name(PolyStringType.fromOrig(name));
+                    .name(PolyStringType.fromOrig(name))
+                    .description(randomDescription(name));
             if (userIndex == BASE_USER_COUNT) {
                 queryRecorder.clearBufferAndStartRecording();
             }
@@ -142,6 +153,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
     private ShadowType createShadow(String shadowName, String resourceOid) {
         return new ShadowType(prismContext)
                 .name(PolyStringType.fromOrig(shadowName))
+                .description(randomDescription(shadowName))
                 .resourceRef(MiscSchemaUtil.createObjectReference(
                         resourceOid, ResourceType.COMPLEX_TYPE));
     }
@@ -171,7 +183,8 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
             String name = String.format("user-more-%07d", userIndex);
             UserType userType = new UserType(prismContext)
-                    .name(PolyStringType.fromOrig(name));
+                    .name(PolyStringType.fromOrig(name))
+                    .description(randomDescription(name));
             if (userIndex == MORE_USER_COUNT) {
                 queryRecorder.startRecording();
             }
@@ -213,7 +226,8 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
             String name = String.format("user-peak-%07d", userIndex);
             UserType userType = new UserType(prismContext)
-                    .name(PolyStringType.fromOrig(name));
+                    .name(PolyStringType.fromOrig(name))
+                    .description(randomDescription(name));
             try (Split ignored = stopwatch.start()) {
                 repositoryService.addObject(userType.asPrismObject(), null, operationResult);
             }
@@ -247,7 +261,8 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
             UserType userType = new UserType(prismContext)
                     // (not) assigning OID makes little/no difference for old repo
                     .oid(UUID.randomUUID().toString())
-                    .name(PolyStringType.fromOrig(name));
+                    .name(PolyStringType.fromOrig(name))
+                    .description(randomDescription(name));
             try (Split ignored = stopwatch.start()) {
                 repositoryService.addObject(userType.asPrismObject(), null, operationResult);
             }
@@ -297,5 +312,33 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         display("users = " + users.size());
         // WIP: memInfo is not serious yet
         memInfo.forEach(System.out::println);
+    }
+
+    public static final String[] COMMON_WORDS = {
+            "object", "this", "random", "important", "ASAP", "čosi", "guľôčka", "and", "or",
+            "good", "bad", "right", "wrong", "left", "perfect"
+    };
+
+    public static final String[] RARE_WORDS = {
+            "rare", "hidden", "precious", "špeciálny", "midPoint", "identity", "new", "old",
+            "light", "heavy", "úžasný"
+    };
+
+    private String randomDescription(String name) {
+        List<String> descriptionWords = new ArrayList<>();
+        if (RND.nextDouble() < 0.2) {
+            descriptionWords.add(name);
+        }
+        for (String word : COMMON_WORDS) {
+            if (RND.nextDouble() < 0.1) {
+                descriptionWords.add(word);
+            }
+        }
+        for (String word : RARE_WORDS) {
+            if (RND.nextDouble() < 0.02) {
+                descriptionWords.add(word);
+            }
+        }
+        return String.join(" ", descriptionWords);
     }
 }
