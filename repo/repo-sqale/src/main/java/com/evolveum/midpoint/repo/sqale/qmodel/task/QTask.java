@@ -35,8 +35,8 @@ public class QTask extends QAssignmentHolder<MTask> {
             ColumnMetadata.named("category").ofType(Types.VARCHAR);
     public static final ColumnMetadata COMPLETION_TIMESTAMP =
             ColumnMetadata.named("completionTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata EXECUTION_STATUS =
-            ColumnMetadata.named("executionStatus").ofType(Types.OTHER);
+    public static final ColumnMetadata EXECUTION_STATE =
+            ColumnMetadata.named("executionState").ofType(Types.OTHER);
     public static final ColumnMetadata FULL_RESULT =
             ColumnMetadata.named("fullResult").ofType(Types.BINARY);
     public static final ColumnMetadata HANDLER_URI_ID =
@@ -83,8 +83,8 @@ public class QTask extends QAssignmentHolder<MTask> {
     public final StringPath category = createString("category", CATEGORY);
     public final DateTimePath<Instant> completionTimestamp =
             createInstant("completionTimestamp", COMPLETION_TIMESTAMP);
-    public final EnumPath<TaskExecutionStateType> executionStatus =
-            createEnum("executionStatus", TaskExecutionStateType.class, EXECUTION_STATUS);
+    public final EnumPath<TaskExecutionStateType> executionState =
+            createEnum("executionState", TaskExecutionStateType.class, EXECUTION_STATE);
     public final ArrayPath<byte[], Byte> fullResult = createByteArray("fullResult", FULL_RESULT);
     public final NumberPath<Integer> handlerUriId = createInteger("handlerUriId", HANDLER_URI_ID);
     public final DateTimePath<Instant> lastRunStartTimestamp =

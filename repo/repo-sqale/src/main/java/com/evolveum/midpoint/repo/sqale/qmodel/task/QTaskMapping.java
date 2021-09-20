@@ -53,7 +53,7 @@ public class QTaskMapping
         addItemMapping(F_CATEGORY, stringMapper(q -> q.category));
         addItemMapping(F_COMPLETION_TIMESTAMP,
                 timestampMapper(q -> q.completionTimestamp));
-        addItemMapping(F_EXECUTION_STATE, enumMapper(q -> q.executionStatus));
+        addItemMapping(F_EXECUTION_STATE, enumMapper(q -> q.executionState));
         addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
         addItemMapping(F_LAST_RUN_FINISH_TIMESTAMP,
                 timestampMapper(q -> q.lastRunFinishTimestamp));
@@ -100,7 +100,7 @@ public class QTaskMapping
         row.binding = task.getBinding();
         row.category = task.getCategory();
         row.completionTimestamp = MiscUtil.asInstant(task.getCompletionTimestamp());
-        row.executionStatus = task.getExecutionState();
+        row.executionState = task.getExecutionState();
 //        row.fullResult = TODO
         row.handlerUriId = processCacheableUri(task.getHandlerUri());
         row.lastRunStartTimestamp = MiscUtil.asInstant(task.getLastRunStartTimestamp());
