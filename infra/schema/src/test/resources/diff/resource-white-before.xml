@@ -14,12 +14,12 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
-            <objectClass xmlns:qn738="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn738:AccountObjectClass</objectClass>
+            <objectClass xmlns:qn738="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn738:AccountObjectClass</objectClass>
         </objectType>
         <objectType>
             <kind>account</kind>
             <intent>test</intent>
-            <objectClass xmlns:qn738="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn738:AccountObjectClass</objectClass>
+            <objectClass xmlns:qn738="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn738:AccountObjectClass</objectClass>
         </objectType>
     </schemaHandling>
 </resource>

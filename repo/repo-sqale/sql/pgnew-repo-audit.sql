@@ -23,7 +23,7 @@
 -- just in case PUBLIC schema was dropped (fastest way to remove all midpoint objects)
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
--- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
 
 -- region custom enum types
 DO $$ BEGIN
@@ -131,6 +131,7 @@ CREATE INDEX ma_audit_event_targetOid_idx ON ma_audit_event (targetOid);
 CREATE INDEX ma_audit_event_changedItemPaths_idx ON ma_audit_event USING gin(changeditempaths);
 CREATE INDEX ma_audit_event_resourceOids_idx ON ma_audit_event USING gin(resourceOids);
 CREATE INDEX ma_audit_event_properties_idx ON ma_audit_event USING gin(properties);
+-- TODO trigram indexes for LIKE support? What columns? message, ...
 
 CREATE TABLE ma_audit_delta (
     recordId BIGINT NOT NULL, -- references ma_audit_event.id

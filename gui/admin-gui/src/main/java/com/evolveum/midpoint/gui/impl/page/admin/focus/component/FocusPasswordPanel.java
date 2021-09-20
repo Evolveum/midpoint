@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
 @PanelType(name = "password")
 @PanelInstance(identifier = "password",
         applicableForType = UserType.class,
-        display = @PanelDisplay(label = "prismPropertyPanel.name.credentials.password", order = 10))
+        display = @PanelDisplay(label = "prismPropertyPanel.name.credentials.password", order = 50))
 public class FocusPasswordPanel<F extends FocusType, FDM extends FocusDetailsModels<F>> extends AbstractObjectMainPanel<F, FDM> {
     private static final long serialVersionUID = 1L;
 

@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -203,9 +204,12 @@ public class DependencyProcessor {
     private String getResourceNameFromRef(ResourceShadowDiscriminator refDiscr) {
         try {
             Task task = taskManager.createTaskInstance("Load resource");
-            GetOperationOptions rootOpts = GetOperationOptions.createNoFetch();
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOpts);
-            PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, refDiscr.getResourceOid(), options, task, task.getResult());
+            var options = SchemaService.get().getOperationOptionsBuilder()
+                    .noFetch()
+                    .readOnly()
+                    .build();
+            PrismObject<ResourceType> resource = provisioningService.getObject(
+                    ResourceType.class, refDiscr.getResourceOid(), options, task, task.getResult());
             return resource.getName().getOrig();
         } catch (Exception e) {
             //ignoring exception and return null

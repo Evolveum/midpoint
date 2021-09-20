@@ -21,7 +21,7 @@
 
     <taskIdentifier>6e2689dc-88fa-11e9-a382-0baf927677fd</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="ResourceType"/> <!-- ad2012 -->

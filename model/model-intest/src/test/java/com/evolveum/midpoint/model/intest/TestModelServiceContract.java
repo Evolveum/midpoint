@@ -2340,7 +2340,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         RefinedObjectClassDefinition accountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String) null);
         PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new ItemName(
-                "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004",
+                "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3",
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));
         assertNotNull("gossip attribute definition not found", gossipDefinition);
 

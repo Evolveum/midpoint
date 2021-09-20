@@ -12,7 +12,7 @@
     <name>task-import-no-limits</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <activity>
         <work>

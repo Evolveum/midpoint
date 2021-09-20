@@ -41,6 +41,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 /**
  *
  * @author lazyman
@@ -167,13 +169,15 @@ public class ExpressionHandler {
     public ObjectType resolveRef(ObjectReferenceType ref, String contextDescription, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
-        Class<? extends ObjectType> type = ObjectType.class;
+        Class<? extends ObjectType> type;
         if (ref.getType() != null) {
             ObjectTypes objectTypeType = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
             type = objectTypeType.getClassDefinition();
+        } else {
+            type = ObjectType.class;
         }
 
-        return repositoryService.getObject(type, ref.getOid(), null, result).asObjectable();
+        return repositoryService.getObject(type, ref.getOid(), createReadOnlyCollection(), result).asObjectable();
 
     }
 

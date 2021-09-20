@@ -13,6 +13,8 @@ import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -256,7 +258,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
-        ItemPath drinkItemPath = ItemPath.create(new QName(getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME).getNamespace(), "drink"));
+        ItemPath drinkItemPath = ItemPath.create(new QName(MidPointConstants.NS_RI, "drink"));
         PropertyDelta propertyDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, getUserDefinition(), "thiIsOk");
         userDelta.addModification(propertyDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);

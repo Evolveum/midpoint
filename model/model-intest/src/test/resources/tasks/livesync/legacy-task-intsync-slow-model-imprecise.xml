@@ -36,9 +36,8 @@
 
     <taskIdentifier>066c6993-8b94-445c-aaff-937184bbe6ca</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
     <objectRef oid="e396b76e-e010-46ed-bbf5-a3da78d358ea" type="ResourceType"/>
-    <recurrence>single</recurrence>
 </task>

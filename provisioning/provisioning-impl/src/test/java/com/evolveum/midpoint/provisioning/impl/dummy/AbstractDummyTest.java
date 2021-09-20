@@ -19,6 +19,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.test.DummyTestResource;
 
@@ -63,7 +64,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
     public static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-    public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+    public static final String RESOURCE_DUMMY_NS = MidPointConstants.NS_RI;
     public static final String RESOURCE_DUMMY_INTENT_GROUP = "group";
 
     protected static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";

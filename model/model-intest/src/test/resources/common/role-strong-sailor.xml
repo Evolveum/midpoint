@@ -7,7 +7,7 @@
 <role oid="0bf7532e-7d15-11e7-8594-7bff6e0adc6e"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Strong Sailor</name>
     <inducement id="1111">
         <construction>

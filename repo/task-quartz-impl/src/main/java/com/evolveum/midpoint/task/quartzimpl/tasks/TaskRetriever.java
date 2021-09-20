@@ -437,7 +437,7 @@ public class TaskRetriever {
     @SuppressWarnings("SameParameterValue")
     public List<? extends Task> listWaitingTasks(TaskWaitingReasonType reason, OperationResult result) throws SchemaException {
         S_AtomicFilterEntry q = prismContext.queryFor(TaskType.class);
-        q = q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING).and();
+        q = q.item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.WAITING).and();
         if (reason != null) {
             q = q.item(TaskType.F_WAITING_REASON).eq(reason).and();
         }

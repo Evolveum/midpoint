@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RObjectTextInfoId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
@@ -117,10 +117,10 @@ public class RObjectTextInfo implements Serializable {
             @NotNull RepositoryContext repositoryContext) {
 
         FullTextSearchConfigurationType config = repositoryContext.repositoryService.getFullTextSearchConfiguration();
-        if (!FullTextSearchConfigurationUtil.isEnabled(config)) {
+        if (!FullTextSearchUtil.isEnabled(config)) {
             return Collections.emptySet();
         }
-        Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, object.getClass());
+        Set<ItemPath> paths = FullTextSearchUtil.getFullTextSearchItemPaths(config, object.getClass());
 
         List<PrismValue> values = new ArrayList<>();
         for (ItemPath path : paths) {

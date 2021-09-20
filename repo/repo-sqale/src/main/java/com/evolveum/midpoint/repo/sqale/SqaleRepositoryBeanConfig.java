@@ -59,6 +59,7 @@ import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorsCollectionImpl;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -118,6 +119,10 @@ public class SqaleRepositoryBeanConfig {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
         SqaleRepoContext repositoryContext = new SqaleRepoContext(
                 repositoryConfiguration, dataSource, schemaService, mappingRegistry);
+
+        // logger on com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger
+        // DEBUG = show query, TRACE = add parameter values too (bindings)
+        repositoryContext.setQuerydslSqlListener(new SqlLogger());
 
         // Registered mapping needs repository context which needs registry. Now we can fill it.
         // Mappings are ordered alphabetically here, mappings without schema type are at the end.

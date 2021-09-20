@@ -73,7 +73,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     @Override
     protected List<SummaryTag<TaskType>> getSummaryTagComponentList() {
         List<SummaryTag<TaskType>> summaryTagList = new ArrayList<>();
-        SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
+        SummaryTag<TaskType> tagExecutionState = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -93,7 +93,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                 return getTaskExecutionLabel(getModelObject());
             }
         };
-        summaryTagList.add(tagExecutionStatus);
+        summaryTagList.add(tagExecutionState);
 
         SummaryTag<TaskType> tagResult = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
@@ -136,7 +136,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return summaryTagList;
     }
 
-    private String getIconForExecutionStatus(TaskDtoExecutionState status) {
+    private String getIconForExecutionState(TaskDtoExecutionState status) {
         if (status == null) {
             return "fa fa-fw fa-question-circle text-warning";
         }
@@ -189,8 +189,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                 TaskType taskType = getModelObject();
 
             String rv = WebComponentUtil.getTaskProgressInformation(taskType, true, getPageBase());
-            if (taskType.getExecutionStatus() != null) {
-                    switch (taskType.getExecutionStatus()) {
+            if (taskType.getExecutionState() != null) {
+                    switch (taskType.getExecutionState()) {
                         case SUSPENDED:
                             rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
                             break;
@@ -246,7 +246,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     }
 
     private String getTaskExecutionLabel(TaskType task) {
-        TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+        TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionState(task.getExecutionState(), task.getNodeAsObserved() != null);
         if (status != null){
             return PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString();
         }
@@ -254,8 +254,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     }
 
     private String getTaskExecutionIcon(TaskType task) {
-        TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
-        return getIconForExecutionStatus(status);
+        TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionState(task.getExecutionState(), task.getNodeAsObserved() != null);
+        return getIconForExecutionState(status);
     }
 
     private String getTaskResultLabel() {

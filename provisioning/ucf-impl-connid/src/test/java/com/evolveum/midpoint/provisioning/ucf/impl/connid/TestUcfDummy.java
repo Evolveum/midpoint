@@ -18,6 +18,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfSyncToken;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -238,7 +240,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
         displayDumpable("Configuration container", configContainer);
         List<QName> objectClassesToGenerate = new ArrayList<>();
-        QName accountObjectClass = new QName(resource.asObjectable().getNamespace(), "AccountObjectClass");
+        QName accountObjectClass = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
         objectClassesToGenerate.add(accountObjectClass);
 
         cc.configure(configContainer, objectClassesToGenerate, result);

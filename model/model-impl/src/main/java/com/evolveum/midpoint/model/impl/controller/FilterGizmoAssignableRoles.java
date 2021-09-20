@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.namespace.QName;
 import java.util.List;
 
@@ -51,15 +53,21 @@ public class FilterGizmoAssignableRoles implements FilterGizmo<RoleSelectionSpec
     @Override
     public RoleSelectionSpecification adopt(ObjectFilter objectFilter, Authorization autz) {
         RoleSelectionSpecification spec = new RoleSelectionSpecification();
-        List<QName> relations = autz.getRelation();
-        // TODO: What about "any" relation?
-        if (relations.isEmpty()) {
-            relations.add(SchemaConstants.ORG_DEFAULT);
-        }
-        spec.setFilters(relations, objectFilter);
+        spec.setFilters(
+                getRelations(autz),
+                objectFilter);
         return spec;
     }
 
+    private @NotNull List<QName> getRelations(Authorization autz) {
+        List<QName> relations = autz.getRelation();
+        // TODO: What about "any" relation?
+        if (!relations.isEmpty()) {
+            return relations;
+        } else {
+            return List.of(SchemaConstants.ORG_DEFAULT);
+        }
+    }
 
     @Override
     public RoleSelectionSpecification createDenyAll() {

@@ -15,7 +15,7 @@
     <name>LiveSync Simulate</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>suspended</executionStatus>
+    <executionState>suspended</executionState>
 
     <activity>
         <work>

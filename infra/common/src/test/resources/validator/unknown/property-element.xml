@@ -11,7 +11,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:my="http://myself.me/schemas/whatever">
 
@@ -24,7 +24,7 @@
          <!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
     <connectorRef type="ConnectorType">
         <description>Search for LDAP connector type, resolved during import</description>
-        
+
         <filter>
                 <q:equal>
                     <q:path>connectorType</q:path>
@@ -53,5 +53,5 @@
     </connectorConfiguration>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance-3</namespace>
 </resource>

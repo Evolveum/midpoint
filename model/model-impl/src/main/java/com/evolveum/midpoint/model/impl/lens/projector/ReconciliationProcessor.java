@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
@@ -129,11 +130,13 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         if (!projCtx.isFullShadow()) {
             // We need to load the object
-            GetOperationOptions rootOps = GetOperationOptions.createDoNotDiscovery();
-            rootOps.setPointInTimeType(PointInTimeType.FUTURE);
-            PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-                    projCtx.getOid(), SelectorOptions.createCollection(rootOps),
-                    task, result);
+            var options = SchemaService.get().getOperationOptionsBuilder()
+                    .doNotDiscovery()
+                    .futurePointInTime()
+                    //.readOnly() [not yet]
+                    .build();
+            PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class, projCtx.getOid(),
+                    options, task, result);
             projCtx.determineFullShadowFlag(objectOld);
             projCtx.setLoadedObject(objectOld);
             projCtx.setExists(ShadowUtil.isExists(objectOld.asObjectable()));
@@ -856,9 +859,12 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         }
         PrismObject<ShadowType> target;
         try {
-            GetOperationOptions rootOpt = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
-            rootOpt.setNoFetch(true);
-            target = provisioningService.getObject(ShadowType.class, oid, SelectorOptions.createCollection(rootOpt), task, result);
+            var options = SchemaService.get().getOperationOptionsBuilder()
+                    .noFetch()
+                    .futurePointInTime()
+                    .readOnly()
+                    .build();
+            target = provisioningService.getObject(ShadowType.class, oid, options, task, result);
         } catch (ObjectNotFoundException e) {
             // TODO maybe warn/error log would suffice (also for other exceptions?)
             throw new ObjectNotFoundException("Couldn't evaluate tolerant/intolerant values for association " + isCValue

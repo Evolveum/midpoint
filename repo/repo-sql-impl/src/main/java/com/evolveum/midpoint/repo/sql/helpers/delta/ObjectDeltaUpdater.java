@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -35,7 +34,7 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.EntityRegistry;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -170,30 +169,10 @@ public class ObjectDeltaUpdater {
         // full object column will be updated later
     }
 
-    private <T extends ObjectType> boolean isObjectTextInfoRecomputationNeeded(Class<T> type, Collection<? extends ItemDelta<?, ?>> modifications) {
-        FullTextSearchConfigurationType config = repositoryService.getFullTextSearchConfiguration();
-        if (!FullTextSearchConfigurationUtil.isEnabled(config)) {
-            return false;
-        }
-
-        Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, type);
-
-        for (ItemDelta<?, ?> modification : modifications) {
-            ItemPath namesOnly = modification.getPath().namedSegmentsOnly();
-            for (ItemPath path : paths) {
-                if (path.startsWith(namesOnly)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     private void handleObjectTextInfoChanges(Class<? extends ObjectType> type, Collection<? extends ItemDelta<?, ?>> modifications,
             PrismObject<?> prismObject, RObject object) {
-        // update object text info if necessary
-        if (!isObjectTextInfoRecomputationNeeded(type, modifications)) {
+        FullTextSearchConfigurationType config = repositoryService.getFullTextSearchConfiguration();
+        if (!FullTextSearchUtil.isObjectTextInfoRecomputationNeeded(config, type, modifications)) {
             return;
         }
 

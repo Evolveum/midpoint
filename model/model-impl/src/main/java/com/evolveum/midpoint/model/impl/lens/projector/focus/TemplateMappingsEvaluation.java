@@ -308,7 +308,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         }
         for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplate.getItem()) {
             for (ObjectTemplateMappingType mapping: templateItemDefType.getMapping()) {
-                setMappingTarget(mapping, templateItemDefType.getRef());
+                mapping = setMappingTarget(mapping, templateItemDefType.getRef());
                 mappings.add(new TemplateMappingEvaluationRequest(mapping, objectTemplate));
             }
         }

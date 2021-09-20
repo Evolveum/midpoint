@@ -32,7 +32,7 @@
     <filter>
         <q:and>
             <q:equal>
-                <q:path>executionStatus</q:path>
+                <q:path>executionState</q:path>
                 <q:value>runnable</q:value>
             </q:equal>
             <q:equal>

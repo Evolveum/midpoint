@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.*;
@@ -463,8 +464,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 shadowRef.getValue().setObject(projectionContext.getEntitlementMap().get(shadowRef.getOid()));
             } else {
                 try {
-                    PrismObject<ShadowType> entitlement = beans.provisioningService.getObject(ShadowType.class, shadowRef.getOid(),
-                            null, env.task, result);
+                    PrismObject<ShadowType> entitlement = beans.provisioningService.getObject(ShadowType.class,
+                            shadowRef.getOid(), createReadOnlyCollection(), env.task, result);
                     projectionContext.getEntitlementMap().put(entitlement.getOid(), entitlement);
                 } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException
                         | SecurityViolationException | ExpressionEvaluationException e) {

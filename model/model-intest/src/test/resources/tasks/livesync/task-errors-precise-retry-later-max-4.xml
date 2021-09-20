@@ -13,9 +13,10 @@
     <name>task-errors-precise-retry-later-max-4</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-
-    <recurrence>recurring</recurrence> <!-- to demonstrate task suspension -->
+    <executionState>runnable</executionState>
+    <schedule>
+        <recurrence>recurring</recurrence> <!-- to demonstrate task suspension -->
+    </schedule>
     <activity>
         <work>
             <liveSynchronization>

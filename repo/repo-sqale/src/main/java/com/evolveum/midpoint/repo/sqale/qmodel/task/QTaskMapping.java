@@ -17,7 +17,9 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAutoScalingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -51,7 +53,7 @@ public class QTaskMapping
         addItemMapping(F_CATEGORY, stringMapper(q -> q.category));
         addItemMapping(F_COMPLETION_TIMESTAMP,
                 timestampMapper(q -> q.completionTimestamp));
-        addItemMapping(F_EXECUTION_STATUS, enumMapper(q -> q.executionStatus));
+        addItemMapping(F_EXECUTION_STATE, enumMapper(q -> q.executionState));
         addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
         addItemMapping(F_LAST_RUN_FINISH_TIMESTAMP,
                 timestampMapper(q -> q.lastRunFinishTimestamp));
@@ -69,7 +71,6 @@ public class QTaskMapping
                 q -> q.ownerRefRelationId,
                 QUserMapping::getUserMapping);
         addItemMapping(F_PARENT, stringMapper(q -> q.parent));
-        addItemMapping(F_RECURRENCE, enumMapper(q -> q.recurrence));
         addItemMapping(F_RESULT_STATUS, enumMapper(q -> q.resultStatus));
         addItemMapping(F_SCHEDULING_STATE, enumMapper(q -> q.schedulingState));
         addNestedMapping(F_AUTO_SCALING, TaskAutoScalingType.class)
@@ -77,6 +78,9 @@ public class QTaskMapping
         addItemMapping(F_THREAD_STOP_ACTION, enumMapper(q -> q.threadStopAction));
         addItemMapping(F_WAITING_REASON, enumMapper(q -> q.waitingReason));
         addItemMapping(F_DEPENDENT, multiStringMapper(q -> q.dependentTaskIdentifiers));
+
+        addNestedMapping(F_SCHEDULE, ScheduleType.class)
+                .addItemMapping(F_RECURRENCE, enumMapper(q -> q.recurrence));
     }
 
     @Override
@@ -98,7 +102,7 @@ public class QTaskMapping
         row.binding = task.getBinding();
         row.category = task.getCategory();
         row.completionTimestamp = MiscUtil.asInstant(task.getCompletionTimestamp());
-        row.executionStatus = task.getExecutionStatus();
+        row.executionState = task.getExecutionState();
 //        row.fullResult = TODO
         row.handlerUriId = processCacheableUri(task.getHandlerUri());
         row.lastRunStartTimestamp = MiscUtil.asInstant(task.getLastRunStartTimestamp());
@@ -113,7 +117,10 @@ public class QTaskMapping
                 t -> row.ownerRefTargetType = t,
                 r -> row.ownerRefRelationId = r);
         row.parent = task.getParent();
-        row.recurrence = task.getRecurrence();
+        // Using effective recurrence instead of specified one might be questionable, but
+        // it's needed to reasonably use filtering based on recurrence.
+        // (Otherwise the null value of recurrence is really ambiguous.)
+        row.recurrence = TaskTypeUtil.getEffectiveRecurrence(task);
         row.resultStatus = task.getResultStatus();
         row.schedulingState = task.getSchedulingState();
         TaskAutoScalingType autoScaling = task.getAutoScaling();

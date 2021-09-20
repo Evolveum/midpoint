@@ -27,6 +27,13 @@ Parameters:
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="memberOf" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 #foreach($item in $itemList)
             <xsd:element name="$item.name" type="xsd:string" minOccurs="0" maxOccurs="$item.maxOccurs">
                 <xsd:annotation>

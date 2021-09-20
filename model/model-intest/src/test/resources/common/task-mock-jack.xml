@@ -13,9 +13,7 @@
 
     <taskIdentifier>10000000-0000-0000-5656-565674633301</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
-    <executionStatus>runnable</executionStatus>
-
-    <recurrence>recurring</recurrence>
+    <executionState>runnable</executionState>
     <binding>tight</binding>
     <schedule>
         <interval>1</interval>

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationStatisticsCollector;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -214,9 +215,8 @@ public class TaskQuartzImpl implements Task {
     public static TaskQuartzImpl createNew(@NotNull TaskManagerQuartzImpl taskManager, String operationName) {
         TaskType taskBean = new TaskType(taskManager.getPrismContext())
                 .taskIdentifier(taskManager.getBeans().taskPersister.generateTaskIdentifier().toString())
-                .executionStatus(TaskExecutionStateType.RUNNABLE)
+                .executionState(TaskExecutionStateType.RUNNABLE)
                 .schedulingState(TaskSchedulingStateType.READY)
-                .recurrence(TaskRecurrenceType.SINGLE)
                 .progress(0L)
                 .result(createTaskResult(operationName));
         return new TaskQuartzImpl(taskManager, taskBean.asPrismObject());
@@ -881,7 +881,7 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public TaskExecutionStateType getExecutionState() {
-        return getProperty(TaskType.F_EXECUTION_STATUS);
+        return getProperty(TaskType.F_EXECUTION_STATE);
     }
 
     @Override
@@ -890,7 +890,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     public void setExecutionState(@NotNull TaskExecutionStateType value) {
-        setProperty(TaskType.F_EXECUTION_STATUS, value);
+        setProperty(TaskType.F_EXECUTION_STATE, value);
     }
 
     public void setSchedulingState(@NotNull TaskSchedulingStateType value) {
@@ -902,7 +902,7 @@ public class TaskQuartzImpl implements Task {
             TaskSchedulingStateType schedulingState) {
         stateCheck(isTransient(), "Initial execution/scheduling state can be set only on transient tasks.");
         synchronized (prismAccess) { // maybe not really necessary
-            setProperty(TaskType.F_EXECUTION_STATUS, executionState);
+            setProperty(TaskType.F_EXECUTION_STATE, executionState);
             setProperty(TaskType.F_SCHEDULING_STATE, schedulingState);
         }
     }
@@ -933,7 +933,7 @@ public class TaskQuartzImpl implements Task {
             throws ObjectNotFoundException, SchemaException, PreconditionViolationException {
         try {
             List<ItemDelta<?, ?>> deltas = Arrays.asList(
-                    createPropertyDelta(TaskType.F_EXECUTION_STATUS, newExecState),
+                    createPropertyDelta(TaskType.F_EXECUTION_STATE, newExecState),
                     createPropertyDelta(TaskType.F_SCHEDULING_STATE, newSchedulingState));
             modifyRepositoryWithoutQuartz(deltas,
                     t -> oldSchedulingState == null || oldSchedulingState == t.asObjectable().getSchedulingState(), result);
@@ -953,25 +953,10 @@ public class TaskQuartzImpl implements Task {
         setProperty(TaskType.F_WAITING_REASON, value);
     }
 
-    public TaskRecurrenceType getRecurrence() {
-        return getProperty(TaskType.F_RECURRENCE);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    void setRecurrence(@NotNull TaskRecurrenceType value) {
-        setProperty(TaskType.F_RECURRENCE, value);
-    }
-
-    @Override
-    public void makeSingle() {
-        setRecurrence(TaskRecurrenceType.SINGLE);
-        setSchedule(new ScheduleType());
-    }
-
-    @Override
-    public void makeSingle(ScheduleType schedule) {
-        setRecurrence(TaskRecurrenceType.SINGLE);
-        setSchedule(schedule);
+    public @NotNull TaskRecurrenceType getRecurrence() {
+        synchronized (prismAccess) {
+            return TaskTypeUtil.getEffectiveRecurrence(taskPrism.asObjectable());
+        }
     }
 
     // checks latest start time (useful for recurring tightly coupled tasks)
@@ -1057,7 +1042,13 @@ public class TaskQuartzImpl implements Task {
     }
 
     public void setSchedule(ScheduleType value) {
-        setContainerable(TaskType.F_SCHEDULE, value);
+        synchronized (prismAccess) {
+            TaskType taskBean = taskPrism.asObjectable();
+            if (taskBean.getRecurrence() != null) {
+                setProperty(TaskType.F_RECURRENCE, null);
+            }
+            setContainerable(TaskType.F_SCHEDULE, value);
+        }
     }
 
     @Override

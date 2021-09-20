@@ -41,7 +41,7 @@ import java.util.List;
  */
 @PanelType(name = "delegatedToMe")
 @PanelInstance(identifier = "delegatedToMe", applicableForType = UserType.class,
-        display = @PanelDisplay(label = "FocusType.delegatedToMe", order = 80))
+        display = @PanelDisplay(label = "FocusType.delegatedToMe", order = 100))
 @Counter(provider = DelegatedToMeCounter.class)
 public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
     private static final long serialVersionUID = 1L;

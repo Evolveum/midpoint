@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 /**
  * @author semancik
  *
@@ -102,7 +104,8 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                     .item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
             List<PrismObject<UserType>> owners = new ArrayList<>();
             try {
-                objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), task, result);
+                objectResolver.searchIterative(UserType.class, query, createReadOnlyCollection(),
+                        (o,result) -> owners.add(o), task, result);
             } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
                     | SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
                 LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);

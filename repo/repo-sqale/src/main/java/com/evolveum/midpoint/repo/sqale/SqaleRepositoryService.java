@@ -1758,6 +1758,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         logger.info("Applying full text search configuration ({} entries)",
                 fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
         fullTextSearchConfiguration = fullTextSearch;
+        sqlRepoContext.setFullTextSearchConfiguration(fullTextSearch);
     }
 
     @Override

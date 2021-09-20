@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Array;
+import java.util.Collection;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
@@ -16,7 +18,9 @@ import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.QuerydslJsonbType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
@@ -30,6 +34,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
@@ -42,6 +47,8 @@ public class SqaleRepoContext extends SqlRepoContext {
 
     private final UriCache uriCache;
     private final ExtItemCache extItemCache;
+
+    private FullTextSearchConfigurationType fullTextSearchConfig;
 
     public SqaleRepoContext(
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
@@ -152,5 +159,32 @@ public class SqaleRepoContext extends SqlRepoContext {
 
     public @Nullable MExtItem getExtensionItem(Integer id) {
         return extItemCache.getExtensionItem(id);
+    }
+
+    public void setFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearchConfig) {
+        this.fullTextSearchConfig = fullTextSearchConfig;
+    }
+
+    /**
+     * Returns string with words for full-text index, or null if there is nothing to index.
+     * This also checks whether the configuration is enabled.
+     */
+    public String fullTextIndex(ObjectType object) {
+        if (FullTextSearchUtil.isEnabled(fullTextSearchConfig)) {
+            Set<String> words = FullTextSearchUtil.createWords(fullTextSearchConfig, object);
+            if (words != null) {
+                // The first/last space allows searching for start/ends with word or whole words.
+                // TODO: Currently, this is not supported on the query side because space separates
+                //  AND components and no other character was discussed yet.
+                return ' ' + String.join(" ", words) + ' ';
+            }
+        }
+        return null;
+    }
+
+    public <S extends ObjectType> boolean requiresFullTextReindex(
+            Collection<? extends ItemDelta<?, ?>> modifications, PrismObject<S> prismObject) {
+        return FullTextSearchUtil.isObjectTextInfoRecomputationNeeded(
+                fullTextSearchConfig, prismObject.getCompileTimeClass(), modifications);
     }
 }

@@ -95,10 +95,8 @@ public class TestDelayedEnable extends AbstractStoryTest {
         // subtype==employee: Make sure that this is not applied to administrator or other non-person accounts.
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_EMPLOYEE, OBJECT_TEMPLATE_USER_OID, initResult);
 
-        // TODO or consider just deleting recurrence section
         ObjectDelta<TaskType> delta = deltaFor(TaskType.class)
                 .item(TaskType.F_SCHEDULE).replace()
-                .item(TaskType.F_RECURRENCE).replace(TaskRecurrenceType.SINGLE)
                 .asObjectDelta(TASK_TRIGGER_SCANNER_OID);
         executeChanges(delta, null, initTask, initResult);
 

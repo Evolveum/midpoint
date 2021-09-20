@@ -7,7 +7,7 @@
 <role oid="553e8df2-df29-11e6-a7ca-cb7c1f38d89f"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Color: Blue</name>
     <assignment>
         <targetRef oid="0b759ce2-df29-11e6-a84c-9b213183a815" type="RoleType"/> <!-- Color metarole -->

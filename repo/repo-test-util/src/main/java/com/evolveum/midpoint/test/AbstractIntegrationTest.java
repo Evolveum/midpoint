@@ -3437,11 +3437,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 TaskAsserter.forTask(task.asPrismObject(), message));
     }
 
-    protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStateType expectedExecutionStatus)
+    protected void assertTaskExecutionState(String taskOid, TaskExecutionStateType expectedExecutionState)
             throws ObjectNotFoundException, SchemaException {
-        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionStatus");
+        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionState");
         Task task = taskManager.getTaskPlain(taskOid, result);
-        assertEquals("Wrong executionStatus in " + task, expectedExecutionStatus, task.getExecutionState());
+        assertEquals("Wrong executionState in " + task, expectedExecutionState, task.getExecutionState());
     }
 
     protected void assertTaskSchedulingState(String taskOid, TaskSchedulingStateType expectedState)

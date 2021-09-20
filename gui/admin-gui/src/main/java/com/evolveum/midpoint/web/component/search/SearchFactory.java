@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,38 +8,32 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
-
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.GuiChannel;
-import com.evolveum.midpoint.schema.constants.Channel;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import javax.xml.namespace.QName;
 
 import org.apache.cxf.common.util.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SearchFactory {
 
@@ -129,7 +123,7 @@ public class SearchFactory {
                 ItemPath.create(TaskType.F_NODE),
                 ItemPath.create(TaskType.F_CATEGORY),
                 ItemPath.create(TaskType.F_RESULT_STATUS),
-                ItemPath.create(TaskType.F_EXECUTION_STATUS),
+                ItemPath.create(TaskType.F_EXECUTION_STATE),
                 ItemPath.create(TaskType.F_HANDLER_URI),
                 ItemPath.create(TaskType.F_OBJECT_REF)
 
@@ -224,7 +218,7 @@ public class SearchFactory {
 
     public static <T extends ObjectType> Search createSearch(Class<? extends T> type, ModelServiceLocator modelServiceLocator) {
         @NotNull ObjectTypes objectTypes = ObjectTypes.getObjectType(type);
-        return createSearch(new ContainerTypeSearchItem<T>(new SearchValue(type,"ObjectType." + objectTypes.getTypeQName().getLocalPart())), null, null,
+        return createSearch(new ContainerTypeSearchItem<T>(new SearchValue(type, "ObjectType." + objectTypes.getTypeQName().getLocalPart())), null, null,
                 null, modelServiceLocator, null, true, true, Search.PanelType.DEFAULT);
     }
 
@@ -237,7 +231,7 @@ public class SearchFactory {
             ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType) {
         return createSearch(type, collectionViewName, fixedSearchItems, discriminator, modelServiceLocator, availableItemPath, useDefsFromSuperclass, useObjectCollection,
-                panelType, false );
+                panelType, false);
     }
 
     private static <T extends ObjectType> Search createSearch(
@@ -426,9 +420,9 @@ public class SearchFactory {
     }
 
     private static List<DisplayableValue> getAllowedValues(ItemPath path) {
-        if (AuditEventRecordType.F_CHANNEL.equivalent(path)){
+        if (AuditEventRecordType.F_CHANNEL.equivalent(path)) {
             List<DisplayableValue> list = new ArrayList<>();
-            for (GuiChannel channel : GuiChannel.values()){
+            for (GuiChannel channel : GuiChannel.values()) {
                 list.add(new SearchValue(channel.getUri(), channel.getLocalizationKey()));
             }
             return list;
@@ -448,7 +442,7 @@ public class SearchFactory {
             if (systemConfigurationType != null && systemConfigurationType.getAudit() != null
                     && systemConfigurationType.getAudit().getEventRecording() != null &&
                     Boolean.TRUE.equals(systemConfigurationType.getAudit().getEventRecording().isRecordResourceOids())) {
-                ArrayList<ItemPath> auditItems = new ArrayList<ItemPath>();
+                ArrayList<ItemPath> auditItems = new ArrayList<>();
                 auditItems.addAll(items);
                 auditItems.add(ItemPath.create(AuditEventRecordType.F_RESOURCE_OID));
                 items = auditItems;
@@ -460,14 +454,14 @@ public class SearchFactory {
     private static <T extends ObjectType> boolean isFullTextSearchEnabled(ModelServiceLocator modelServiceLocator, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_SYSTEM_CONFIGURATION);
         try {
-            return FullTextSearchConfigurationUtil.isEnabledFor(modelServiceLocator.getModelInteractionService().getSystemConfiguration(result)
+            return FullTextSearchUtil.isEnabledFor(modelServiceLocator.getModelInteractionService().getSystemConfiguration(result)
                     .getFullTextSearch(), type);
         } catch (SchemaException | ObjectNotFoundException ex) {
             throw new SystemException(ex);
         }
     }
 
-    private static <T extends ObjectType> boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, QName type,
+    private static boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, QName type,
             String collectionViewName, Search.PanelType panelType) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
         if (searchConfig == null || searchConfig.isAllowToConfigureSearchItems() == null) {
@@ -476,7 +470,7 @@ public class SearchFactory {
         return searchConfig.isAllowToConfigureSearchItems();
     }
 
-    private static <C extends Containerable> SearchBoxConfigurationType getSearchBoxConfiguration(ModelServiceLocator modelServiceLocator,
+    private static SearchBoxConfigurationType getSearchBoxConfiguration(ModelServiceLocator modelServiceLocator,
             QName type, String collectionViewName, Search.PanelType panelType) {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {

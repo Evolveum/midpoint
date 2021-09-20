@@ -37,6 +37,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 /**
  * Updates focus -> shadow links (linkRef, to be renamed to projectionRef)
  * based on {@link ShadowDeathEvent} emitted by provisioning.
@@ -126,7 +128,7 @@ public class ProjectionLinkUpdater implements ShadowDeathListener {
         ObjectQuery query = prismContext.queryFor(FocusType.class)
                 .item(FocusType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
                 .build();
-        return repositoryService.searchObjects(FocusType.class, query, null, result);
+        return repositoryService.searchObjects(FocusType.class, query, createReadOnlyCollection(), result);
     }
 
     @Override

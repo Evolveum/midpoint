@@ -37,8 +37,7 @@
         <mext:objectType xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">UserType</mext:objectType>
     </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <category>BulkActions</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
-    <recurrence>single</recurrence>
 </task>

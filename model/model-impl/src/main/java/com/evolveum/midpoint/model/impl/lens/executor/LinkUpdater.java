@@ -379,6 +379,7 @@ class LinkUpdater<F extends FocusType> {
             LOGGER.trace("updateSituationInShadow: called with newSituation={}", newSituation);
             PrismObject<ShadowType> currentShadow;
             Collection<SelectorOptions<GetOperationOptions>> getOptions = schemaService.getOperationOptionsBuilder()
+                    .readOnly()
                     .noFetch()
                     .allowNotFound(true)
                     .build();

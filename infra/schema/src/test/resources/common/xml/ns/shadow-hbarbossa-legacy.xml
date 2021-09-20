@@ -17,8 +17,8 @@
         <situation>linked</situation>
         <channel>syncChannel</channel>
     </synchronizationSituationDescription>
-    <objectClass xmlns:qn80="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">qn80:AccountObjectClass</objectClass>
-    <attributes xmlns:gen913="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
+    <objectClass xmlns:qn80="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn80:AccountObjectClass</objectClass>
+    <attributes xmlns:gen913="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
         <gen913:cn>Hector Barbossa</gen913:cn>
         <icfs:name>uid=hbarbossa,ou=people,dc=example,dc=com</icfs:name>
         <gen913:sn>Barbossa</gen913:sn>

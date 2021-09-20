@@ -43,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 /**
  * @author Radovan Semancik
  */
@@ -188,7 +190,7 @@ public class ScriptExpressionFactory implements Cache {
             };
             try {
                 repositoryService.searchObjectsIterative(FunctionLibraryType.class, null, functionLibraryHandler,
-                        SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), true, subResult);
+                        createReadOnlyCollection(), true, subResult);
                 subResult.recordSuccessIfUnknown();
             } catch (SchemaException | RuntimeException e) {
                 subResult.recordFatalError("Failed to initialize custom functions", e);

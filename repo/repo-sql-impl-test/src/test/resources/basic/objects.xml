@@ -10,7 +10,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:my="http://myself.me/schemas/whatever"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -267,11 +267,10 @@
                 <icfc:schema>-1</icfc:schema>
             </icfc:timeouts>
         </connectorConfiguration>
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
         <schema>
             <definition>
                 <xsd:schema elementFormDefault="qualified"
-                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                         xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
@@ -683,7 +682,7 @@
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <archetypeRef oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad"/>
-        <executionStatus>runnable</executionStatus>
+        <executionState>runnable</executionState>
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
@@ -698,7 +697,7 @@
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>8daaeeae-f0c7-41c9-b258-2a3351aa8876</name>
         <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
-        <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
+        <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
         <kind>account</kind>
         <attributes>
             <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
@@ -725,7 +724,7 @@
     <object xsi:type="ShadowType" oid="11223355" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>8daaeeae-f0c7-41c9-b258-2a3351aa8876</name>
         <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
-        <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
+        <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
         <kind>account</kind>
         <attributes>
             <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>

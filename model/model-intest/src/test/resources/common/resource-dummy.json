@@ -39,14 +39,13 @@
         "enableAttributesToGetSearchResultsHandler" : false
       }
     },
-    "namespace" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004",
     "schemaHandling" : {
       "objectType" : [ {
         "kind" : "account",
         "intent" : "default",
         "displayName" : "Default Account",
         "default" : true,
-        "objectClass" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#AccountObjectClass",
+        "objectClass" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#AccountObjectClass",
         "attribute" : [ {
           "ref" : "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; icfs:name",
           "displayName" : "Username",
@@ -72,7 +71,7 @@
           "ref" : "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; icfs:uid",
           "displayName" : "UID"
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:fullname",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:fullname",
           "displayName" : "Full Name",
           "outbound" : {
             "source" : [ {
@@ -93,10 +92,10 @@
             }
           } ]
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:title",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:title",
           "tolerant" : true
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:location",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:location",
           "displayName" : "Location",
           "outbound" : {
             "strength" : "strong",
@@ -118,7 +117,7 @@
             }
           } ]
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:ship",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:ship",
           "displayName" : "Ship",
           "inbound" : [ {
             "expression" : {
@@ -139,7 +138,7 @@
             }
           } ]
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:loot",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:loot",
           "displayName" : "Loot",
           "fetchStrategy" : "explicit",
           "outbound" : {
@@ -152,7 +151,7 @@
             }
           }
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:weapon",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:weapon",
           "displayName" : "Weapon",
           "outbound" : {
             "strength" : "weak",
@@ -161,7 +160,7 @@
             } ]
           }
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:drink",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:drink",
           "displayName" : "Drink",
           "tolerant" : false,
           "outbound" : {
@@ -171,7 +170,7 @@
             }
           }
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:quote",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:quote",
           "displayName" : "Quote",
           "tolerant" : true,
           "outbound" : {
@@ -181,11 +180,11 @@
             }
           }
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:gossip",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:gossip",
           "displayName" : "Gossip",
           "tolerant" : true
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:water",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:water",
           "limitations" : [ {
             "ignore" : true
           } ],
@@ -204,20 +203,20 @@
           } ]
         } ],
         "association" : [ {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:group",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:group",
           "tolerant" : false,
           "tolerantValuePattern" : [ "LaNdLuBeRs", "mapmakers" ],
           "kind" : "entitlement",
           "intent" : [ "group" ],
           "direction" : "objectToSubject",
-          "associationAttribute" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#members",
+          "associationAttribute" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#members",
           "valueAttribute" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3#name"
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:priv",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:priv",
           "kind" : "entitlement",
           "intent" : [ "privilege" ],
           "direction" : "subjectToObject",
-          "associationAttribute" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#privileges",
+          "associationAttribute" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#privileges",
           "valueAttribute" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3#name"
         } ],
         "iteration" : {
@@ -290,7 +289,7 @@
         "intent" : "test",
         "displayName" : "Testing Account",
         "default" : false,
-        "objectClass" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#AccountObjectClass",
+        "objectClass" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#AccountObjectClass",
         "attribute" : [ {
           "ref" : "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; icfs:name",
           "outbound" : {
@@ -318,7 +317,7 @@
             }
           } ]
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:fullname",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:fullname",
           "outbound" : {
             "source" : [ {
               "path" : "$user/fullName"
@@ -337,7 +336,7 @@
             }
           } ]
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:location",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:location",
           "outbound" : {
             "strength" : "strong",
             "source" : [ {
@@ -345,7 +344,7 @@
             } ]
           }
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:ship",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:ship",
           "displayName" : "Ship",
           "inbound" : [ {
             "expression" : {
@@ -366,7 +365,7 @@
           } ]
         } ],
         "association" : [ {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:group",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:group",
           "outbound" : {
             "expression" : {
               "value" : [ {
@@ -381,14 +380,14 @@
           "kind" : "entitlement",
           "intent" : [ "group" ],
           "direction" : "objectToSubject",
-          "associationAttribute" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#members",
+          "associationAttribute" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#members",
           "valueAttribute" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3#name"
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:priv",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:priv",
           "kind" : "entitlement",
           "intent" : [ "privilege" ],
           "direction" : "subjectToObject",
-          "associationAttribute" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#privileges",
+          "associationAttribute" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#privileges",
           "valueAttribute" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3#name"
         } ],
         "iteration" : {
@@ -411,7 +410,7 @@
         "kind" : "entitlement",
         "intent" : "group",
         "default" : true,
-        "objectClass" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#GroupObjectClass",
+        "objectClass" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#GroupObjectClass",
         "attribute" : [ {
           "ref" : "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; icfs:name",
           "displayName" : "Groupname",
@@ -429,14 +428,14 @@
             }
           }
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:description",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:description",
           "outbound" : {
             "source" : [ {
               "path" : "$focus/description"
             } ]
           }
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:cc",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:cc",
           "outbound" : {
             "strength" : "weak",
             "source" : [ {
@@ -449,14 +448,14 @@
             }
           } ]
         }, {
-          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004'; ri:members",
+          "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:members",
           "fetchStrategy" : "minimal"
         } ]
       }, {
         "kind" : "entitlement",
         "intent" : "privilege",
         "default" : false,
-        "objectClass" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#CustomprivilegeObjectClass"
+        "objectClass" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#CustomprivilegeObjectClass"
       } ]
     },
     "scripts" : {
@@ -561,7 +560,7 @@
     },
     "synchronization" : {
       "objectSynchronization" : [ {
-        "objectClass" : [ "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#AccountObjectClass" ],
+        "objectClass" : [ "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#AccountObjectClass" ],
         "kind" : "account",
         "intent" : "default",
         "enabled" : true,
@@ -604,7 +603,7 @@
           } ]
         } ]
       }, {
-        "objectClass" : [ "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#AccountObjectClass" ],
+        "objectClass" : [ "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#AccountObjectClass" ],
         "kind" : "account",
         "intent" : "test",
         "enabled" : true,
