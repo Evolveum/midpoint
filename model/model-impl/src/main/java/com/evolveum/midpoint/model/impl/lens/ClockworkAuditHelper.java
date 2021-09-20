@@ -54,8 +54,6 @@ public class ClockworkAuditHelper {
 
     private static final String OP_EVALUATE_AUDIT_RECORD_PROPERTY =
             ClockworkAuditHelper.class.getName() + ".evaluateAuditRecordProperty";
-    private static final String OP_EVALUATE_RECORDING_SCRIPT =
-            ClockworkAuditHelper.class.getName() + ".evaluateRecordingScript";
 
     @Autowired private PrismContext prismContext;
     @Autowired private AuditHelper auditHelper;
@@ -212,7 +210,7 @@ public class ClockworkAuditHelper {
 
         if (eventRecordingExpression != null) {
             // MID-6839
-            auditRecord = evaluateRecordingExpression(eventRecordingExpression,
+            auditRecord = auditHelper.evaluateRecordingExpression(eventRecordingExpression,
                     auditRecord, primaryObject, context, task, result);
         }
 
@@ -228,42 +226,6 @@ public class ClockworkAuditHelper {
             assert stage == AuditEventStage.REQUEST;
             context.setRequestAudited(true);
         }
-    }
-
-    private <F extends ObjectType> AuditEventRecord evaluateRecordingExpression(
-            ExpressionType expression, AuditEventRecord auditRecord,
-            PrismObject<? extends ObjectType> primaryObject, LensContext<F> context,
-            Task task, OperationResult parentResult) {
-        OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_RECORDING_SCRIPT);
-
-        try {
-            VariablesMap variables = new VariablesMap();
-            variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
-            variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                    new ExpressionEnvironment<>(context, null, task, result));
-            try {
-                PrismValue returnValue = ExpressionUtil.evaluateExpression(
-                        variables, null, expression, context.getPrivilegedExpressionProfile(),
-                        expressionFactory, OP_EVALUATE_RECORDING_SCRIPT, task, result);
-                return returnValue != null
-                        ? (AuditEventRecord) returnValue.getRealValue()
-                        : null;
-            } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-            }
-        } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit recording expression", t);
-            // Copied from evaluateAuditRecordProperty: Intentionally not throwing the exception. The error is marked as partial.
-            // (It would be better to mark it as fatal and to derive overall result as partial, but we aren't that far yet.)
-            result.recordPartialError(t);
-        } finally {
-            result.recordSuccessIfUnknown();
-        }
-
-        // In case of failure we want to return original auditRecord, although it might be
-        // modified by some part of the script too - this we have to suffer.
-        return auditRecord;
     }
 
     private <F extends ObjectType> void evaluateAuditRecordProperty(SystemConfigurationAuditEventRecordingPropertyType propertyDef,

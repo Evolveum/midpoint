@@ -90,8 +90,10 @@ public class CompositedIconBuilder {
         return this;
     }
 
-    public CompositedIconBuilder appendLayerIcon(String icon, CompositedIconCssStyle style) {
-        return appendLayerIcon(icon, style, "");
+    public CompositedIconBuilder appendLayerIcon(String icon, LayeredIconCssStyle style) {
+        IconType iconType = new IconType();
+        iconType.setCssClass(icon);
+        return appendLayerIcon(iconType, style);
     }
 
     public CompositedIconBuilder appendLayerIcon(String icon, CompositedIconCssStyle style, String additionalCssClass) {

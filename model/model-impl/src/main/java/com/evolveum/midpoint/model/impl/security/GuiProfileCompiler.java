@@ -363,16 +363,6 @@ public class GuiProfileCompiler {
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
-//        compileActions(existingView, objectListViewType);
-//        compileAdditionalPanels(existingView, objectListViewType);
-//        compileColumns(existingView, objectListViewType);
-//        compileDisplay(existingView, objectListViewType);
-//        compileDistinct(existingView, objectListViewType);
-//        compileSorting(existingView, objectListViewType);
-//        compileCounting(existingView, objectListViewType);
-//        compileDisplayOrder(existingView, objectListViewType);
-//        compileSearchBox(existingView, objectListViewType);
-//        compileRefreshInterval(existingView, objectListViewType);
         collectionProcessor.compileView(existingView, objectListViewType);
         compileCollection(existingView, objectListViewType, task, result);
     }

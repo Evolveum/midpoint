@@ -13,21 +13,16 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import com.evolveum.midpoint.web.page.admin.PageCreateFromTemplate;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -50,7 +45,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
@@ -74,13 +68,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_SUMMARY = "summary";
     private static final String ID_BUTTONS = "buttons";
-    private static final String ID_PROGRESS_PANEL = "progressPanel";
+
     private static final String ID_DETAILS = "details";
+    protected static final String ID_DETAILS_VIEW = "detailsView";
 
     private ODM objectDetailsModels;
-
-    protected ProgressPanel progressPanel;
-    protected boolean previewRequested;
+    private final boolean isAdd;
 
     public AbstractPageObjectDetails() {
         this(null, null);
@@ -96,21 +89,20 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object) {
         super(params);
-
-        if (params == null && object == null) {
-            ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getType());
-            Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
-            if (!applicableArchetypes.isEmpty()) {
-                PageParameters templateParams = new PageParameters();
-                templateParams.add("type", objectType.getRestType());
-                throw new RestartResponseException(PageCreateFromTemplate.class, templateParams);
-            }
-        }
+        isAdd = params == null && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
         initLayout();
     }
 
-    public ObjectDetailsModels<O> getObjectDetailsModels() {
+    protected boolean isAdd() {
+        return isAdd;
+    }
+
+    protected void reloadObjectDetailsModel(PrismObject<O> prismObject) {
+        objectDetailsModels = createObjectDetailsModels(prismObject);
+    }
+
+    public ODM getObjectDetailsModels() {
         return objectDetailsModels;
     }
 
@@ -132,28 +124,30 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         };
     }
 
-    private void initLayout() {
-        initDetailsPanel();
+    protected void initLayout() {
 
-        progressPanel = new ProgressPanel(ID_PROGRESS_PANEL);
-        add(progressPanel);
+        DetailsFragment detailsFragment = createDetailsFragment();
+        add(detailsFragment);
+
     }
 
-    private void initDetailsPanel() {
-        WebMarkupContainer detialsPanel = new WebMarkupContainer(ID_DETAILS);
-        detialsPanel.setOutputMarkupId(true);
-        add(detialsPanel);
+    protected DetailsFragment createDetailsFragment() {
+        return new DetailsFragment(ID_DETAILS_VIEW, ID_DETAILS, AbstractPageObjectDetails.this) {
 
-        detialsPanel.add(initSummaryPanel());
-        MidpointForm form = new MidpointForm(ID_MAIN_FORM);
-        detialsPanel.add(form);
+            @Override
+            protected void initFragmentLayout() {
+                add(initSummaryPanel());
+                MidpointForm form = new MidpointForm(ID_MAIN_FORM);
+                add(form);
 
-        initButtons(form);
+                initButtons(form);
 
-        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();
-        initMainPanel(defaultConfiguration, form);
+                ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();
+                initMainPanel(defaultConfiguration, form);
 
-        detialsPanel.add(initNavigation());
+                form.add(initNavigation());
+            }
+        };
     }
 
     private Panel initSummaryPanel() {
@@ -166,7 +160,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private void initButtons(MidpointForm form) {
         OperationalButtonsPanel opButtonPanel = createButtonsPanel(ID_BUTTONS, objectDetailsModels.getObjectWrapperModel());
         opButtonPanel.setOutputMarkupId(true);
-//        opButtonPanel.add(new VisibleBehaviour(() -> isOperationalButtonsVisible() && opButtonPanel.buttonsExist()));
 
         AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(getRefreshInterval())) {
             private static final long serialVersionUID = 1L;
@@ -188,8 +181,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     //TODO make abstract
-    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<O>> wrapperModel) {
-        return new OperationalButtonsPanel(id, wrapperModel) {
+    protected OperationalButtonsPanel<O> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<O>> wrapperModel) {
+        return new OperationalButtonsPanel<>(id, wrapperModel) {
 
             @Override
             protected void addStateButtons(RepeatingView stateButtonsView) {
@@ -206,26 +199,17 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
 
     public void savePerformed(AjaxRequestTarget target) {
-        progressPanel.onBeforeSave();
-        previewRequested = false;
         OperationResult result = new OperationResult(OPERATION_SAVE);
         saveOrPreviewPerformed(target, result, false);
     }
 
-    public void previewPerformed(AjaxRequestTarget target) {
-        progressPanel.onBeforeSave();
-        OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
-        previewRequested = true;
-        saveOrPreviewPerformed(target, result, true);
-    }
-
-    public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
-        saveOrPreviewPerformed(target, result, previewOnly, null);
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
+        return saveOrPreviewPerformed(target, result, previewOnly, null);
     }
 
 //    private ObjectDelta<O> delta;
 
-    public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 
 
         PrismObjectWrapper<O> objectWrapper = getModelWrapperObject();
@@ -242,48 +226,42 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
         }
 
+        ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
         Collection<ObjectDelta<? extends ObjectType>> deltas;
         try {
             deltas = objectDetailsModels.collectDeltas(result);
+            checkValidationErrors(target, objectDetailsModels.getValidationErrors());
         } catch (Throwable ex) {
             result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
             showResult(result);
             target.add(getFeedbackPanel());
-            return;
+            return null;
         }
 
-//        ModelExecuteOptions options = getOptions(previewOnly);
-
-//            LOGGER.debug("Using execute options {}.", options);
-
-//            delta = prepareDelta(objectWrapper, result, target);
-
-            switch (objectWrapper.getStatus()) {
-                case ADDED:
-                    executeAddDelta(deltas, previewOnly, getExecuteChangesOptionsDto(), task, result, target);
-                    break;
-
-                case NOT_CHANGED:
-                    executeModifyDelta(deltas, previewOnly, getExecuteChangesOptionsDto(), task, result, target);
-                    break;
-                // support for add/delete containers (e.g. delete credentials)
-                default:
-                    error(getString("pageAdminFocus.message.unsupportedState", objectWrapper.getStatus()));
-            }
-
-
         LOGGER.trace("returning from saveOrPreviewPerformed");
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
+//        result.computeStatusIfUnknown();
+//        showResult(result);
+        return executedDeltas;
     }
 
-//    @NotNull
-//    protected ModelExecuteOptions getOptions(boolean previewOnly) {
-//        ModelExecuteOptions options = mainPanel.getExecuteChangeOptionsDto().createOptions(getPrismContext());
-//        if (previewOnly) {
-//            options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
-//        }
-//        return options;
-//    }
+    protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
+        if (deltas.isEmpty()) {
+            //nothing to do;
+            return null;
+        }
+        //TODO force
+        ////            if (!executeForceDelete(objectWrapper, task, options, result)) {
+////                result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
+////                LoggingUtils.logUnexpectedException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
+////            } else {
+////                result.recomputeStatus();
+////            }
+
+        return getChangeExecutor().executeChanges(deltas, previewOnly, task, result, target);
+    }
+
 
     protected ExecuteChangeOptionsDto getExecuteChangesOptionsDto() {
         return getOperationalButtonsPanel().getExecuteChangeOptions();
@@ -294,56 +272,13 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 //        WebComponentUtil.revive(parentOrgModel, getPrismContext());
     }
 
-
-
-    private void executeAddDelta(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto executeChangeOptionsDto, Task task, OperationResult result, AjaxRequestTarget target) {
-        try {
-            if (!deltas.isEmpty()) {
-                if (checkValidationErrors(target, objectDetailsModels.getValidationErrors())) {
-                    return;
-                }
-                progressPanel.executeChanges(deltas, previewOnly, executeChangeOptionsDto, task, result, target);
-            } else {
-                result.recordSuccess();
-            }
-        } catch (Exception ex) {
-            result.recordFatalError(getString("pageFocus.message.cantCreateFocus"), ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
-            showResult(result);
-        }
+    protected ObjectChangeExecutor getChangeExecutor() {
+        return new ObjectChangesExecutorImpl();
     }
 
-    protected void executeModifyDelta(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto executeChangeOptionsDto, Task task, OperationResult result, AjaxRequestTarget target) {
-        try {
-            if (deltas.isEmpty() && !executeChangeOptionsDto.isReconcile()) {
-                progressPanel.clearProgressPanel();            // from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
-                if (!previewOnly) {
-                    redirectBack();
-                }
-                return;
-            }
-            if (deltas.isEmpty() && executeChangeOptionsDto.isReconcile()) {
-                ObjectDelta emptyDelta = getPrismContext().deltaFor(getType()).asObjectDelta(getModelPrismObject().getOid());
-                deltas.add(emptyDelta);
-            }
-            if (checkValidationErrors(target, objectDetailsModels.getValidationErrors())) {
-                return;
-            }
-            progressPanel.executeChanges(deltas, previewOnly, executeChangeOptionsDto, task, result, target);
 
-        } catch (Exception ex) {
-            //TODO force
-//            if (!executeForceDelete(objectWrapper, task, options, result)) {
-//                result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
-//                LoggingUtils.logUnexpectedException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
-//            } else {
-//                result.recomputeStatus();
-//            }
-            showResult(result);
-        }
-    }
 
-    private boolean checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {
+    private void checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {
         if (validationErrors != null && !validationErrors.isEmpty()) {
             for (SimpleValidationError error : validationErrors) {
                 LOGGER.error("Validation error, attribute: '" + error.printAttribute()
@@ -353,9 +288,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             }
 
             target.add(getFeedbackPanel());
-            return true;
+            throw new IllegalStateException("Validation errors found");
         }
-        return false;
     }
 
     protected void initStateButtons(RepeatingView stateButtonsView) {
@@ -419,20 +353,24 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private DetailsNavigationPanel initNavigation() {
-        return createNavigationPanel(ID_NAVIGATION, getPanelConfigurations());
+        return createNavigationPanel(getPanelConfigurations());
     }
 
-    private DetailsNavigationPanel createNavigationPanel(String id, IModel<List<ContainerPanelConfigurationType>> panels) {
+    private DetailsNavigationPanel<O> createNavigationPanel(IModel<List<ContainerPanelConfigurationType>> panels) {
 
-        DetailsNavigationPanel panel = new DetailsNavigationPanel(id, objectDetailsModels, panels) {
+        return new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 MidpointForm form = getMainForm();
-                initMainPanel(config, form);
-                target.add(form);
+                try {
+                    initMainPanel(config, form);
+                    target.add(form);
+                } catch (Throwable e) {
+                    error("Cannot instantiate panel, " + e.getMessage());
+                    target.add(getFeedbackPanel());
+                }
             }
         };
-        return panel;
     }
 
 
@@ -505,91 +443,19 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected abstract Class<O> getType();
     protected abstract Panel createSummaryPanel(String id, LoadableModel<O> summaryModel);
 
-    protected Component getDetailsPanel() {
-        return get(ID_DETAILS);
-    }
 
     private MidpointForm getMainForm() {
-        return (MidpointForm) get(createComponentPath(ID_DETAILS, ID_MAIN_FORM));
+        return (MidpointForm) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM));
     }
     protected Component getSummaryPanel() {
-        return get(createComponentPath(ID_DETAILS, ID_SUMMARY));
+        return get(createComponentPath(ID_DETAILS_VIEW, ID_SUMMARY));
     }
     protected OperationalButtonsPanel getOperationalButtonsPanel() {
-        return (OperationalButtonsPanel) get(createComponentPath(ID_DETAILS, ID_MAIN_FORM, ID_BUTTONS));
+        return (OperationalButtonsPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_BUTTONS));
     }
 
     public PrismObject<O> getPrismObject() {
         return getModelPrismObject();
-    }
-
-//    @Override
-//    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
-//
-//        if (previewRequested) {
-//            finishPreviewProcessing(target, result);
-//            return;
-//        }
-//        if (result.isSuccess() && getDelta() != null && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
-//            Session.get().setLocale(WebComponentUtil.getLocale());
-//            LOGGER.debug("Using {} as locale", getLocale());
-//            WebSession.get().getClientInfo().getProperties().
-//                    setTimeZone(WebModelServiceUtils.getTimezone());
-//            LOGGER.debug("Using {} as time zone", WebSession.get().getClientInfo().getProperties().getTimeZone());
-//        }
-//        boolean focusAddAttempted = getDelta() != null && getDelta().isAdd();
-//        boolean focusAddSucceeded = focusAddAttempted && StringUtils.isNotEmpty(getDelta().getOid());
-//
-//        // we don't want to allow resuming editing if a new focal object was created (on second 'save' there would be a conflict with itself)
-//        // and also in case of partial errors, like those related to projections (many deltas would be already executed, and this could cause problems on second 'save').
-//        boolean canContinueEditing = !focusAddSucceeded && result.isFatalError();
-//
-//        boolean canExitPage;
-//        if (returningFromAsync) {
-//            canExitPage = getProgressPanel().isAllSuccess() || result.isInProgress() || result.isHandledError(); // if there's at least a warning in the progress table, we would like to keep the table open
-//        } else {
-//            canExitPage = !canContinueEditing;                            // no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
-//        }
-//
-//        if (!isKeepDisplayingResults() && canExitPage) {
-//            showResult(result);
-//            redirectBack();
-//        } else {
-//            if (returningFromAsync) {
-//                getProgressPanel().showBackButton(target);
-//                getProgressPanel().hideAbortButton(target);
-//            }
-//            showResult(result);
-//            target.add(getFeedbackPanel());
-//
-//            if (canContinueEditing) {
-//                getProgressPanel().hideBackButton(target);
-//                getProgressPanel().showContinueEditingButton(target);
-//            }
-//        }
-//    }
-
-//    private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
-//        getMainPanel().setVisible(true);
-//        getProgressPanel().hide();
-//        getProgressPanel().hideAbortButton(target);
-//        getProgressPanel().hideBackButton(target);
-//        getProgressPanel().hideContinueEditingButton(target);
-//
-//        showResult(result);
-//        target.add(getFeedbackPanel());
-//
-//        Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap = new LinkedHashMap<>();
-//        modelContextMap.put(getModelPrismObject(), getProgressPanel().getPreviewResult());
-//
-//        //TODO
-////        processAdditionalFocalObjectsForPreview(modelContextMap);
-//
-//        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
-//    }
-
-    protected ProgressPanel getProgressPanel() {
-        return (ProgressPanel) get(ID_PROGRESS_PANEL);
     }
 
     @Override

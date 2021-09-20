@@ -25,7 +25,7 @@ import java.util.List;
 
 @PanelType(name = "roleInducements")
 @PanelInstance(identifier = "roleInducements",
-        applicableFor = AbstractRoleType.class,
+        applicableForType = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
         display = @PanelDisplay(label = "ObjectType.RoleType", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 20))
 public class RoleInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {

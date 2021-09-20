@@ -52,7 +52,7 @@ import java.util.List;
 
 @PanelType(name = "inducedEntitlements")
 @PanelInstance(identifier = "inducedEntitlements",
-        applicableFor = AbstractRoleType.class,
+        applicableForType = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
         display = @PanelDisplay(label = "AbstractRoleMainPanel.inducedEntitlements", order = 70))
 public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {

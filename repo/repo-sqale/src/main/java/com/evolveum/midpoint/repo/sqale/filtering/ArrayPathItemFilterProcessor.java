@@ -29,7 +29,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * Our filter "contains" (meaning substring) is *not* supported.
  *
  * @param <T> type of value in schema
- * @param <E> type of element in DB (can be the same like `T`)
+ * @param <E> type of element in DB (can be the same as `T`)
  */
 public class ArrayPathItemFilterProcessor<T, E>
         extends SinglePathItemFilterProcessor<T, ArrayPath<E[], E>> {

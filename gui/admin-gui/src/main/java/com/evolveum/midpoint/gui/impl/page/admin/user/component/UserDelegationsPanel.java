@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
@@ -44,8 +43,8 @@ import java.util.List;
  * Created by honchar
  */
 @PanelType(name = "userDelegations")
-@PanelInstance(identifier = "userDelegations", applicableFor = UserType.class,
-        display = @PanelDisplay(label = "FocusType.delegations", order = 70))
+@PanelInstance(identifier = "userDelegations", applicableForType = UserType.class,
+        display = @PanelDisplay(label = "FocusType.delegations", order = 90))
 @Counter(provider = UserDelegationsCounter.class)
 public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
     private static final long serialVersionUID = 1L;

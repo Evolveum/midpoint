@@ -7,6 +7,18 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
+
+import java.io.Serializable;
+import java.util.*;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
@@ -17,7 +29,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -26,19 +38,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.apache.commons.lang3.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
-import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author lazyman
@@ -84,7 +83,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     @Override
     public List<SelectableBean<C>> getSelectedObjects() {
         preprocessSelectedDataInternal();
-        List<SelectableBean<C>> ret = new ArrayList<SelectableBean<C>>();
+        List<SelectableBean<C>> ret = new ArrayList<>();
         for (SelectableBean<C> selectable : super.getAvailableData()) {
             if (selectable.isSelected()) {
                 (ret).add(selectable);
@@ -191,7 +190,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
             LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
         }
 
-        List<SelectableBean<C>> data = new ArrayList<SelectableBean<C>>();
+        List<SelectableBean<C>> data = new ArrayList<>();
         for (C object : list) {
             data.add(createDataObjectWrapper(object));
         }

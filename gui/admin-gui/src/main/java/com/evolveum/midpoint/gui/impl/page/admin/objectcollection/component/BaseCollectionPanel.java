@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.objectcollection.component;
 
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -31,8 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType
 
 @PanelType(name = "baseCollection")
 @PanelInstance(identifier = "baseCollection",
-        applicableFor = ObjectCollectionType.class,
-        status = ItemStatus.NOT_CHANGED,
+        applicableForType = ObjectCollectionType.class,
         display = @PanelDisplay(label = "pageObjectCollection.baseCollection.title", order = 40))
 public class BaseCollectionPanel  extends AbstractObjectMainPanel<ObjectCollectionType, ObjectDetailsModels<ObjectCollectionType>> {
     private static final long serialVersionUID = 1L;

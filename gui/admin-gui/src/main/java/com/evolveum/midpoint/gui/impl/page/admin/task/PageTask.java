@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
                         label = "PageUser.auth.user.label",
                         description = "PageUser.auth.user.description")
         })
-public class PageTask extends PageAssignmentHolderDetails<TaskType, AssignmentHolderDetailsModel<TaskType>> {
+public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsModel> {
 
     public PageTask() {
         super();
@@ -64,14 +64,13 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, AssignmentHo
     }
 
     @Override
+    protected TaskDetailsModel createObjectDetailsModels(PrismObject<TaskType> object) {
+        return new TaskDetailsModel(createPrismObejctModel(object), PageTask.this);
+    }
+
+    @Override
     protected Panel createSummaryPanel(String id, LoadableModel<TaskType> summaryModel) {
-        // TODO create root task model in constructor - however, this method is called from super(), so it is executed
-        //  before local constructors have a chance to run!
-        //
-        // TODO Propagate loaded root also to other parts of task page, namely to subtasks (and their subtasks, etc)
-        //  (Unless we want to have really fresh information there.)
-        LoadableModel<TaskType> rootTaskModel = RootTaskLoader.createRootTaskModel(this::getModelObjectType, () -> this);
-        return new TaskSummaryPanel(id, summaryModel, rootTaskModel, this);
+        return new TaskSummaryPanel(id, summaryModel, getObjectDetailsModels().getRootTaskModel(), this);
     }
 
     @Override
@@ -87,7 +86,7 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, AssignmentHo
     }
 
     @Override
-    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> wrapperModel) {
+    protected TaskOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> wrapperModel) {
         return new TaskOperationalButtonsPanel(id, wrapperModel) {
 
             @Override

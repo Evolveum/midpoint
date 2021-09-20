@@ -46,7 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PanelType(name = "reportCollectionView")
-@PanelInstance(identifier = "reportCollectionView", status = ItemStatus.NOT_CHANGED,
+@PanelInstance(identifier = "reportCollectionView", applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "ObjectCollectionReportEngineConfigurationType.view", order = 80))
 public class ReportCollectionViewPanel extends AbstractObjectMainPanel<ReportType, AssignmentHolderDetailsModel<ReportType>> {
 

@@ -96,7 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 @PanelType(name = "projections")
-@PanelInstance(identifier = "projections", applicableFor = FocusType.class,
+@PanelInstance(identifier = "projections", applicableForType = FocusType.class,
         display = @PanelDisplay(label = "pageAdminFocus.projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, order = 20))
 @Counter(provider = FocusProjectionsCounter.class)
 public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
@@ -112,19 +112,8 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusProjectionsPanel.class);
 
-//    private final LoadableModel<List<ShadowWrapper>> projectionModel;
-
     public FocusProjectionsPanel(String id, FocusDetailsModels<F> focusModel, ContainerPanelConfigurationType config) {
         super(id, focusModel, config);
-
-//        this.projectionModel = new LoadableModel<>(false) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected List<ShadowWrapper> load() {
-//                return loadShadowWrappers();
-//            }
-//        };
     }
 
     private PrismObjectDefinition<ShadowType> getShadowDefinition() {
@@ -301,7 +290,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     return null; // let the default behavior to take their chance
                 }
 
-                return getPrismContext().queryFor(ShadowType.class)
+                return PrismContext.get().queryFor(ShadowType.class)
                         .not()
                         .item(ShadowType.F_DEAD)
                         .eq(true)
@@ -411,7 +400,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
         List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> columns = new ArrayList<>();
         columns.add(new CheckBoxHeaderColumn<>());
-        columns.add(new CompositedIconColumn<PrismContainerValueWrapper<ShadowType>>(Model.of("")) {
+        columns.add(new CompositedIconColumn<>(Model.of("")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -449,7 +438,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                 return "col-xs-1";
             }
         });
-        columns.add(new PrismContainerWrapperColumn<ShadowType>(shadowDef, ShadowType.F_PENDING_OPERATION, getPageBase()) {
+        columns.add(new PrismContainerWrapperColumn<>(shadowDef, ShadowType.F_PENDING_OPERATION, getPageBase()) {
             @Override
             public String getCssClass() {
                 return "col-xs-2";

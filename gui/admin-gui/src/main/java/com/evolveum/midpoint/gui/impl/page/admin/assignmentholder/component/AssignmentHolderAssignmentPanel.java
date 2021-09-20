@@ -21,7 +21,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 //@PanelType(name = "assignments", defaultContainerPath = "assignment")
 @PanelInstance(identifier = "assignments",
-        applicableFor = AssignmentHolderType.class,
+        applicableForType = AssignmentHolderType.class,
         notApplicableFor = ObjectCollectionType.class,
         display = @PanelDisplay(label = "pageAdminFocus.assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 30))
 @Counter(provider = AssignmentCounter.class)

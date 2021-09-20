@@ -10,6 +10,9 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
@@ -232,7 +235,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private AbstractColumn<SelectableBean<TaskType>, String> createNodesColumn() {
-        return new AbstractColumn<>(createStringResource("Nodes")) { // FIXME i8n
+        return new AbstractColumn<>(createStringResource("pageTasks.task.executingAt")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId,
                     IModel<SelectableBean<TaskType>> rowModel) {
@@ -359,7 +362,11 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(icon);
+                CompositedIconBuilder builder = getDefaultCompositedIconBuilder(icon);
+                if (GuiStyleConstants.CLASS_SUSPEND_MENU_ITEM.equals(icon) || GuiStyleConstants.CLASS_START_MENU_ITEM.equals(icon)) {
+                    builder.appendLayerIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON, CompositedIconCssStyle.BOTTOM_RIGHT_STYLE);
+                }
+                return builder;
             }
 
             @Override

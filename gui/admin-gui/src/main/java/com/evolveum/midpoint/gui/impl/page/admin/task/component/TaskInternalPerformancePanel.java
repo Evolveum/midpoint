@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.Format;
@@ -41,9 +41,9 @@ import java.util.Collections;
 import java.util.Locale;
 
 @PanelType(name = "internalPerformance")
-@PanelInstance(identifier = "internalPerformance", applicableFor = TaskType.class, childOf = TaskPerformancePanel.class,
+@PanelInstance(identifier = "internalPerformance", applicableForType = TaskType.class, childOf = TaskPerformancePanel.class,
         display = @PanelDisplay(label = "pageTask.internalPerformance.title", order = 50))
-public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
+public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_FORMAT = "format";
@@ -52,7 +52,7 @@ public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskTy
 
     private static final String LINE = "\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 
-    public TaskInternalPerformancePanel(String id, ObjectDetailsModels<TaskType> taskModel, ContainerPanelConfigurationType config) {
+    public TaskInternalPerformancePanel(String id, TaskDetailsModel taskModel, ContainerPanelConfigurationType config) {
         super(id, taskModel, config);
     }
 

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelType;
 
+import javax.xml.namespace.QName;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,7 +45,7 @@ public class GenericMultivalueContainerPanel<C extends Containerable, O extends 
 
     @Override
     protected void initLayout() {
-        MultivalueContainerListPanelWithDetailsPanel<C> panel = new MultivalueContainerListPanelWithDetailsPanel<C>(ID_DETAILS, getTypeClass()) {
+        MultivalueContainerListPanelWithDetailsPanel<C> panel = new MultivalueContainerListPanelWithDetailsPanel<C>(ID_DETAILS, getListTypeClass()) {
             @Override
             protected MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item) {
                 return null;
@@ -71,7 +73,7 @@ public class GenericMultivalueContainerPanel<C extends Containerable, O extends 
 
             @Override
             protected boolean isCollectionViewPanel() {
-                return getPanelConfiguration().getListView() !=null;
+                return getPanelConfiguration().getListView() != null;
             }
 
             //TODO generalize
@@ -88,7 +90,7 @@ public class GenericMultivalueContainerPanel<C extends Containerable, O extends 
                 Task task = getPageBase().createSimpleTask("Compile collection");
                 OperationResult result = task.getResult();
                 try {
-                    return getPageBase().getModelInteractionService().compileObjectCollectionView(collectionRefSpecificationType, getTypeClass(), task, result);
+                    return getPageBase().getModelInteractionService().compileObjectCollectionView(collectionRefSpecificationType, getListTypeClass(), task, result);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
@@ -97,9 +99,21 @@ public class GenericMultivalueContainerPanel<C extends Containerable, O extends 
         };
 //        SingleContainerPanel<C> panel = new SingleContainerPanel<>(ID_DETAILS, createContainerModel(), getType());
         add(panel);
+    }
 
-        AssignmentType a;
+    private <C extends Containerable> Class<C> getListTypeClass() {
+        return (Class<C>) WebComponentUtil.qnameToClass(getPrismContext(), getListType());
+    }
 
+    private QName getListType() {
+        if (getPanelConfiguration().getListView() == null) {
+            throw new IllegalArgumentException("Cannot instantiate panel without proper configuration. List view configuration missing for " + getPanelConfiguration());
+        }
+
+        if (getPanelConfiguration().getListView().getType() == null) {
+            throw new IllegalArgumentException("Cannot instantiate panel without proper configuration. Type is mandatory for list view configuration in " + getPanelConfiguration());
+        }
+        return getPanelConfiguration().getListView().getType();
     }
 
 }

@@ -6,15 +6,27 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
+import java.util.*;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,29 +41,16 @@ import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.*;
 
 /**
  * @author semancik
  */
 @PanelType(name = "results")
-@PanelInstance(identifier = "results", applicableFor = TaskType.class, status = ItemStatus.NOT_CHANGED,
+@PanelInstance(identifier = "results", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageTask.result.title", order = 70))
-public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> implements RefreshableTabPanel {
+public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_OPERATION_RESULT = "operationResult";
@@ -59,26 +58,26 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, ObjectDet
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskResultPanel.class);
 
-    public TaskResultPanel(String id, ObjectDetailsModels<TaskType> taskWrapperModel, ContainerPanelConfigurationType config) {
+    public TaskResultPanel(String id, TaskDetailsModel taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
 
     }
 
     protected void initLayout() {
 
-        IModel<List<OperationResult>> resultModel= new ReadOnlyModel<>(() -> createOperationResultList());
+        IModel<List<OperationResult>> resultModel= new ReadOnlyModel<>(this::createOperationResultList);
 
         SelectableListDataProvider<SelectableBean<OperationResult>, OperationResult> provider = new SelectableListDataProvider<>(this, resultModel);
         BoxedTablePanel<SelectableBean<OperationResult>> resultTablePanel = new BoxedTablePanel<>(ID_OPERATION_RESULT, provider, initResultColumns());
         resultTablePanel.setOutputMarkupId(true);
         add(resultTablePanel);
 
-        AjaxFallbackLink<Void> showResult = new AjaxFallbackLink<Void>(ID_SHOW_RESULT) {
+        AjaxFallbackLink<Void> showResult = new AjaxFallbackLink<>(ID_SHOW_RESULT) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(Optional<AjaxRequestTarget> optionalTarget) {
-                if (!optionalTarget.isPresent()) {
+                if (optionalTarget.isEmpty()) {
                     LOGGER.warn("Cannot show result in interactive way, request target not present.");
                     return;
                 }
@@ -92,7 +91,6 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, ObjectDet
                 body.setOutputMarkupId(true);
                 getPageBase().showMainPopup(body, target);
             }
-
 
         };
         showResult.setOutputMarkupId(true);
@@ -120,15 +118,15 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, ObjectDet
 
     private List<IColumn<SelectableBean<OperationResult>, String>> initResultColumns() {
         List<IColumn<SelectableBean<OperationResult>, String>> columns = new ArrayList<>();
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.token"), createPropertyExpression("token")));
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.operation"), createPropertyExpression("operation")));
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.status"), createPropertyExpression("status")));
-        columns.add(new AbstractColumn<SelectableBean<OperationResult>, String>(createStringResource("pageTaskEdit.opResult.timestamp")){
+        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.token"), OperationResultType.F_TOKEN.getLocalPart(), createPropertyExpression("token")));
+        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.operation"), OperationResultType.F_OPERATION.getLocalPart(), createPropertyExpression("operation")));
+        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.status"), OperationResultType.F_STATUS.getLocalPart(), createPropertyExpression("status")));
+        columns.add(new AbstractColumn<>(createStringResource("pageTaskEdit.opResult.timestamp"), OperationResultType.F_END.getLocalPart()) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<OperationResult>>> cellItem, String componentId,
-                                     IModel<SelectableBean<OperationResult>> rowModel) {
+                    IModel<SelectableBean<OperationResult>> rowModel) {
                 Label label = new Label(componentId, (IModel<String>) () -> {
                     Long resultEndTime = rowModel.getObject().getValue().getEnd();
                     return resultEndTime != null && resultEndTime > 0 ?
@@ -137,7 +135,7 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, ObjectDet
                 cellItem.add(label);
             }
         });
-        columns.add(new AbstractColumn<SelectableBean<OperationResult>, String>(createStringResource("pageTaskEdit.opResult.message"), createPropertyExpression("message")) {
+        columns.add(new AbstractColumn<>(createStringResource("pageTaskEdit.opResult.message"), OperationResultType.F_MESSAGE.getLocalPart()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -148,7 +146,6 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, ObjectDet
                 cellItem.add(label);
             }
         });
-        //columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.message"), "message"));
         return columns;
     }
 

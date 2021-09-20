@@ -254,7 +254,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable {
         return objectWrapperModel;
     }
 
-    private PrismObjectWrapper<O> getObjectWrapper() {
+    public PrismObjectWrapper<O> getObjectWrapper() {
         return getObjectWrapperModel().getObject();
     }
 

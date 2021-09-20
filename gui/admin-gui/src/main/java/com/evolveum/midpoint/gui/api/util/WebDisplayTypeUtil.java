@@ -56,7 +56,7 @@ public class WebDisplayTypeUtil {
     public static DisplayType createDisplayType(String iconCssClass, String iconColor, PolyStringType label, PolyStringType title) {
         DisplayType displayType = new DisplayType();
         IconType icon = new IconType();
-        icon.setCssClass(iconCssClass);
+        icon.setCssClass(iconCssClass != null ? iconCssClass.trim() : iconCssClass);
         icon.setColor(iconColor);
         displayType.setIcon(icon);
         displayType.setLabel(label);

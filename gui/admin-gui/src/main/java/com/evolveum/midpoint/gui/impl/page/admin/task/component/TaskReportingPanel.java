@@ -6,10 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -21,9 +20,9 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "reporting", defaultContainerPath = "activity/reporting")
-@PanelInstance(identifier = "reporting", applicableFor = TaskType.class, childOf = TaskActivityPanel.class,
+@PanelInstance(identifier = "reporting", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
         display = @PanelDisplay(label = "ActivityDefinitionType.reporting", order = 50))
-public class TaskReportingPanel extends AbstractObjectMainPanel<TaskType, ObjectDetailsModels<TaskType>> {
+public class TaskReportingPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskReportingPanel.class);
     private static final String ID_MAIN_PANEL = "main";
@@ -32,7 +31,7 @@ public class TaskReportingPanel extends AbstractObjectMainPanel<TaskType, Object
     private static final String DOT_CLASS = TaskReportingPanel.class.getName() + ".";
     private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateWrapper";
 
-    public TaskReportingPanel(String id, ObjectDetailsModels<TaskType> model, ContainerPanelConfigurationType config) {
+    public TaskReportingPanel(String id, TaskDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 

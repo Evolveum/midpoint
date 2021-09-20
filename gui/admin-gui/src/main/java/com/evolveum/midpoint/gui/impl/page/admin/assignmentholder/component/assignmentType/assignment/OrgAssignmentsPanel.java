@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 @PanelType(name = "orgAssignments")
 @PanelInstance(identifier = "orgAssignments",
-        applicableFor = FocusType.class,
+        applicableForType = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class,
         display = @PanelDisplay(label = "ObjectType.OrgType", icon = GuiStyleConstants.CLASS_OBJECT_ORG_ICON, order = 30))
 public class OrgAssignmentsPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel<AH> {

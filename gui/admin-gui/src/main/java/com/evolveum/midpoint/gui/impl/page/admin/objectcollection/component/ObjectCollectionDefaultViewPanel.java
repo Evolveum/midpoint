@@ -6,14 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.objectcollection.component;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -23,13 +19,11 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-
-import org.apache.wicket.model.IModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 @PanelType(name = "defaultView")
 @PanelInstance(identifier = "defaultView",
-        applicableFor = ObjectCollectionType.class,
-        status = ItemStatus.NOT_CHANGED,
+        applicableForType = ObjectCollectionType.class,
         display = @PanelDisplay(label = "pageObjectCollection.defaultView.title", order = 50))
 public class ObjectCollectionDefaultViewPanel extends AbstractObjectMainPanel<ObjectCollectionType, ObjectDetailsModels<ObjectCollectionType>> {
     private static final long serialVersionUID = 1L;
