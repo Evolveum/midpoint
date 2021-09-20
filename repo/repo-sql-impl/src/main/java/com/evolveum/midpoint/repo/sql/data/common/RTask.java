@@ -136,6 +136,7 @@ public class RTask extends RObject implements OperationResultFull {
         return binding;
     }
 
+    @JaxbName(localPart = "executionState")
     @Enumerated(EnumType.ORDINAL)
     public RTaskExecutionState getExecutionStatus() {
         return executionStatus;
