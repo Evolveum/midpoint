@@ -75,7 +75,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private boolean savedPassword = false;
 
     public PageAbstractSelfCredentials() {
-        model = new LoadableModel<MyCredentialsDto>(false) {
+        model = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -118,7 +118,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     protected Collection<? extends ITab> createSpecificTabs(){
         return new ArrayList<>();
-    };
+    }
 
     private Collection<? extends ITab> createDefaultTabs(){
         List<ITab> tabs = new ArrayList<>();
@@ -127,7 +127,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new ChangePasswordPanel(panelId, new PropertyModel<MyPasswordsDto>(model, MyCredentialsDto.F_MY_PASSOWRDS_DTO)) {
+                return new ChangePasswordPanel(panelId, new PropertyModel<>(model, MyCredentialsDto.F_MY_PASSOWRDS_DTO)) {
                     @Override
                     protected boolean shouldShowPasswordPropagation() {
                         return shouldLoadAccounts();

@@ -22,7 +22,7 @@ public class MTask extends MObject {
     public TaskBindingType binding;
     public String category;
     public Instant completionTimestamp;
-    public TaskExecutionStateType executionStatus;
+    public TaskExecutionStateType executionState;
     public byte[] fullResult;
     public Integer handlerUriId;
     public Instant lastRunStartTimestamp;

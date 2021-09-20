@@ -13,8 +13,7 @@
     <name>Live Sync Xfer2</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <recurrence>single</recurrence>
+    <executionState>runnable</executionState>
     <activity>
         <work>
             <liveSynchronization>

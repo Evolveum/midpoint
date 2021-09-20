@@ -25,7 +25,7 @@
     </c:extension>
     <c:taskIdentifier>5658878f-7d80-4530-afd6-69561d9762fd</c:taskIdentifier>
     <c:ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <c:executionStatus>runnable</c:executionStatus>
+    <c:executionState>runnable</c:executionState>
     <c:category>BulkActions</c:category>
     <c:handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</c:handlerUri>
     <c:recurrence>single</c:recurrence>

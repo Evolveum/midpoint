@@ -12,7 +12,7 @@
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
     <name>task-bucketed-tree</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <recurrence>single</recurrence>
     <activity>
         <composition>

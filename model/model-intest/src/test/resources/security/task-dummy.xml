@@ -13,7 +13,7 @@
 
     <taskIdentifier>89bf08ec-c5b8-4641-95ca-37559c1f3896</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
-    <executionStatus>closed</executionStatus>
+    <executionState>closed</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3</handlerUri>
 
@@ -22,7 +22,4 @@
         <status>success</status>
     </result>
     <resultStatus>success</resultStatus>
-
-    <recurrence>single</recurrence>
-
 </task>

@@ -405,7 +405,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
              *  ### task: Equal (executionStatus, WAITING)
              */
             ObjectQuery query = prismContext.queryFor(TaskType.class)
-                    .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING)
+                    .item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.WAITING)
                     .build();
             String real = getInterpretedQuery(session, TaskType.class, query);
 
@@ -4930,6 +4930,33 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     + "    a.targetRef.targetOid = :targetOid and\n"
                     + "    a.targetRef.relation in (:relation)\n"
                     + "  )");
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test801QueryTaskRecurrence() throws Exception {
+        Session session = open();
+
+        try {
+            given();
+            ObjectQuery query = prismContext.queryFor(TaskType.class)
+                    .item(TaskType.F_SCHEDULE, ScheduleType.F_RECURRENCE)
+                    .eq(TaskRecurrenceType.RECURRING)
+                    .build();
+
+            when("the query is executed");
+            String real = getInterpretedQuery(session, TaskType.class, query);
+
+            then("expected HQL is generated");
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
+                    + "  t.oid,\n"
+                    + "  t.fullObject\n"
+                    + "from\n"
+                    + "  RTask t\n"
+                    + "where\n"
+                    + "  t.recurrence = :recurrence");
         } finally {
             close(session);
         }

@@ -32,7 +32,7 @@
     </extension>
     <taskIdentifier>1952f893-ac76-49c5-a2b1-e65af4d28c63</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
     <workManagement>
         <buckets>

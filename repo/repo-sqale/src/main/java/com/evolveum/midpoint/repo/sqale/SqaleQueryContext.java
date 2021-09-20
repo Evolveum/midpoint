@@ -16,13 +16,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.repo.sqale.filtering.ExistsFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.filtering.OrgFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.filtering.TypeFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.*;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -89,8 +85,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         } else if (filter instanceof OrgFilter) {
             return new OrgFilterProcessor(this).process((OrgFilter) filter);
         } else if (filter instanceof FullTextFilter) {
-            // TODO
-            throw new QueryException("TODO filter " + filter);
+            return new FullTextFilterProcessor(this).process((FullTextFilter) filter);
         } else if (filter instanceof ExistsFilter) {
             return new ExistsFilterProcessor<>(this).process((ExistsFilter) filter);
         } else if (filter instanceof TypeFilter) {

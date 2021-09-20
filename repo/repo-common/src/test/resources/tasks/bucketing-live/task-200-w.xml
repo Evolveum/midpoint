@@ -12,7 +12,7 @@
     <taskIdentifier>44444444-2222-2222-2222-200w00000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <parent>44444444-2222-2222-2222-200c00000000</parent>
-    <executionStatus>suspended</executionStatus>
+    <executionState>suspended</executionState>
     <handlerUri>http://midpoint.evolveum.com/test/single-wb-task-handler</handlerUri>
     <workManagement>
         <taskKind>worker</taskKind>

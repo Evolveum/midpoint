@@ -21,9 +21,11 @@
 
     <taskIdentifier>b5ee6532-b779-4bee-b713-d394346170f7</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="bb9b9bca-5d47-446a-83ed-6c5411ac219f" type="c:ResourceType"/> <!-- resource-hr -->
-    <recurrence>recurring</recurrence> <!-- scheduled manually -->
+    <schedule>
+        <recurrence>recurring</recurrence> <!-- scheduled manually -->
+    </schedule>
 </task>

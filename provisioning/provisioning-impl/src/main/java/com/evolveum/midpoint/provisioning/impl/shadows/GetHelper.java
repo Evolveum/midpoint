@@ -148,6 +148,7 @@ class GetHelper {
                 MaintenanceException ex = new MaintenanceException("Resource " + resource + " is in the maintenance");
                 PrismObject<ShadowType> handledShadow = handleGetError(ctx, repoShadow, rootOptions, ex, task, parentResult);
                 validateShadow(handledShadow, true);
+                shadowCaretaker.applyAttributesDefinition(ctx, handledShadow);
                 return handledShadow;
             } catch (GenericFrameworkException | ObjectAlreadyExistsException | PolicyViolationException e) {
                 throw new SystemException(e.getMessage(), e);

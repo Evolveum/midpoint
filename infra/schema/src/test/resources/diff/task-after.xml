@@ -13,7 +13,7 @@
         </description>
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
 </object>

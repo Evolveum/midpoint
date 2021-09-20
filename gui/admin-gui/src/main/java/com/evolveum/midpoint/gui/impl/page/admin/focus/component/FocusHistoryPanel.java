@@ -57,7 +57,7 @@ import java.util.List;
  */
 @PanelType(name = "history")
 @PanelInstance(identifier = "history", applicableForType = FocusType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageAdminFocus.objectHistory", icon = "fa fa-history", order = 40))
+        display = @PanelDisplay(label = "pageAdminFocus.objectHistory", icon = "fa fa-history", order = 60))
 public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
 
     private static final long serialVersionUID = 1L;

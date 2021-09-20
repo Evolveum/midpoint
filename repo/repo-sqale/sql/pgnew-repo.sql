@@ -268,7 +268,7 @@ CREATE TABLE m_object (
     -- TODO compare with [] in JSONB, check performance, indexing, etc. first
     policySituations INTEGER[], -- soft-references m_uri, only EQ filter
     subtypes TEXT[], -- only EQ filter
-    textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet, this may not be []
+    fullTextInfo TEXT,
     /*
     Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
     and values are stored as follows (this is internal and has no effect on how query is written):
@@ -1136,7 +1136,7 @@ CREATE TABLE m_task (
     binding TaskBindingType,
     category TEXT, -- TODO revise, deprecated, probably can go away soon
     completionTimestamp TIMESTAMPTZ,
-    executionStatus TaskExecutionStateType,
+    executionState TaskExecutionStateType,
     fullResult BYTEA,
     handlerUriId INTEGER REFERENCES m_uri(id),
     lastRunStartTimestamp TIMESTAMPTZ,

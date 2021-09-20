@@ -22,7 +22,7 @@
 
     <taskIdentifier>b3a2fae2-6805-11e9-825d-27f67acbabae</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/> <!-- OpenDj -->

@@ -411,7 +411,7 @@ public class WorkersReconciliation {
 
     private WorkerState determineWorkerState() {
         if (coordinatorTask.getSchedulingState() == null) {
-            throw new IllegalStateException("Null executionStatus of " + coordinatorTask);
+            throw new IllegalStateException("Null scheduling state of " + coordinatorTask);
         }
         switch (coordinatorTask.getSchedulingState()) {
             case WAITING:
@@ -443,10 +443,9 @@ public class WorkersReconciliation {
         applyDeltas(worker, workersConfigBean.getOtherDeltas());
         applyDeltas(worker, perNodeConfigurationMap.get(workerCharacterization).getOtherDeltas());
 
-        worker.setExecutionStatus(workerState.executionState);
+        worker.setExecutionState(workerState.executionState);
         worker.setSchedulingState(workerState.schedulingState);
         worker.setOwnerRef(CloneUtil.clone(coordinatorTask.getOwnerRef()));
-        worker.setRecurrence(TaskRecurrenceType.SINGLE);
         worker.setParent(coordinatorTask.getTaskIdentifier());
         worker.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));
         worker.beginActivityState()

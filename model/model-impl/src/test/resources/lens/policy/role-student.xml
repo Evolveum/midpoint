@@ -479,7 +479,7 @@
                                             </expression>
                                         </q:ref>
                                         <q:equal>
-                                            <q:path>executionStatus</q:path>
+                                            <q:path>executionState</q:path>
                                             <q:value>waiting</q:value>
                                         </q:equal>
                                         <q:equal>

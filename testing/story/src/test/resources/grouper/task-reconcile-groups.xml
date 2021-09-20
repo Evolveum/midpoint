@@ -28,7 +28,7 @@
 
     <taskIdentifier>1fde833d-7105-40fb-b59a-c863a1f53609</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="1eff65de-5bb6-483d-9edf-8cc2c2ee0233" type="ResourceType" />        <!-- Grouper -->

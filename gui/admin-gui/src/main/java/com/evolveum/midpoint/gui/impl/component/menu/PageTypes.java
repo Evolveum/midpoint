@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
+import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
+import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
@@ -17,7 +20,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
+import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
+import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplates;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
@@ -41,6 +47,9 @@ public enum PageTypes {
     TASK("tasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON, PageTasks.class, PageTask.class, com.evolveum.midpoint.web.page.admin.server.PageTask.class, TaskType.COMPLEX_TYPE),
     RESOURCE("resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class, PageResource.class, PageResourceWizard.class, ResourceType.COMPLEX_TYPE),
     CASE("cases", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class, null, null, CaseType.COMPLEX_TYPE),
+    ARCHETYPE("archetypes", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class, PageArchetype.class, com.evolveum.midpoint.web.page.admin.archetype.PageArchetype.class, ArchetypeType.COMPLEX_TYPE),
+    OBJECT_COLLECTION("objectCollections", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class, PageObjectCollection.class, com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection.class, ObjectCollectionType.COMPLEX_TYPE),
+    OBJECT_TEMPLATE("objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON, PageObjectTemplates.class, PageObjectTemplate.class, com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate.class, ObjectTemplateType.COMPLEX_TYPE),
     REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports .class, PageReport.class, com.evolveum.midpoint.web.page.admin.reports.PageReport.class, ReportType.COMPLEX_TYPE);
 
     private String identifier;

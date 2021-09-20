@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 
 import org.apache.commons.beanutils.PropertyUtils;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.opensaml.xmlsec.signature.P;
 
 /**
  * @author lazyman
@@ -56,6 +58,8 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
         getAvailableData().clear();
 
         List<T> list = model.getObject();
+        sort(list);
+
         if (list != null) {
             for (long i = first; i < first + count; i++) {
                 if (i < 0 || i >= list.size()) {
@@ -67,6 +71,32 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
         }
 
         return getAvailableData().iterator();
+    }
+
+    //TODO clenaup, coppied from MultivalueCOntainerListDataProvider
+    @SuppressWarnings("unchecked")
+    protected <V extends Comparable<V>> void sort(List<T> list) {
+        if (getSort() == null) {
+            return;
+        }
+
+        list.sort((o1, o2) -> {
+            SortParam<String> sortParam = getSort();
+            String propertyName = sortParam.getProperty();
+            V prop1 = getPropertyValue(o1, propertyName);
+            V prop2 = getPropertyValue(o2, propertyName);
+
+            int comparison = ObjectUtils.compare(prop1, prop2, true);
+            return sortParam.isAscending() ? comparison : -comparison;
+        });
+    }
+
+    private <V extends Comparable<V>> V getPropertyValue(T o1, String propertyName) {
+        try {
+            return (V) PropertyUtils.getProperty(o1, propertyName);
+        } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            return null;
+        }
     }
 
     protected W createObjectWrapper(T object) {

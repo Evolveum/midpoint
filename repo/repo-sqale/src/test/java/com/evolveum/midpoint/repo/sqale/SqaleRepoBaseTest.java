@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
@@ -25,7 +26,10 @@ import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -43,6 +47,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
@@ -51,6 +56,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SqaleRepoBaseTest extends AbstractSpringTest
@@ -391,6 +398,107 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                                 ? List.of(selectorOptions) : null,
                         operationResult)
                 .map(p -> p.asObjectable());
+    }
+
+    /** Search objects using Axiom query language. */
+    @SafeVarargs
+    @NotNull
+    protected final <T extends ObjectType> SearchResultList<T> searchObjects(
+            @NotNull Class<T> type,
+            String query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        ObjectFilter objectFilter = prismContext.createQueryParser().parseQuery(type, query);
+        ObjectQuery objectQuery = prismContext.queryFactory().createQuery(objectFilter);
+        return searchObjects(type, objectQuery, operationResult, selectorOptions);
+    }
+
+    protected SearchResultList<UserType> searchUsersTest(String description,
+            Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
+            throws SchemaException {
+        return searchObjectTest(description, UserType.class, filter, expectedOids);
+    }
+
+    protected <T extends ObjectType> SearchResultList<T> searchObjectTest(
+            String description, Class<T> type,
+            Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
+            throws SchemaException {
+        String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
+        when("searching for " + typeName + "(s) " + description);
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<T> result = searchObjects(type,
+                filter.apply(prismContext.queryFor(type)).build(),
+                operationResult);
+
+        then(typeName + "(s) " + description + " are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(expectedOids);
+        return result;
+    }
+
+    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks. */
+    @SafeVarargs
+    @NotNull
+    protected final <T extends ObjectType> SearchResultList<T> searchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        display("QUERY: " + query);
+        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
+        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
+                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        display("Serialized QUERY: " + serializedQuery);
+
+        // sanity check if it's re-parsable
+        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
+                .isNotNull();
+        return repositorySearchObjects(type, query, operationResult, selectorOptions);
+    }
+
+    protected <T extends Containerable> SearchResultList<T> searchContainerTest(
+            String description, Class<T> type, Function<S_FilterEntryOrEmpty, S_FilterExit> filter)
+            throws SchemaException {
+        String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
+        when("searching for " + typeName + "(s) " + description);
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<T> result = searchContainers(type,
+                filter.apply(prismContext.queryFor(type)).build(),
+                operationResult);
+
+        then(typeName + "(s) " + description + " are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        return result;
+    }
+
+    /** Search containers using {@link ObjectQuery}. */
+    @SafeVarargs
+    @NotNull
+    private <T extends Containerable> SearchResultList<T> searchContainers(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        display("QUERY: " + query);
+        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
+        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
+                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        display("Serialized QUERY: " + serializedQuery);
+
+        // sanity check if it's re-parsable
+        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
+                .isNotNull();
+        return repositoryService.searchContainers(
+                type,
+                query,
+                selectorOptions != null && selectorOptions.length != 0
+                        ? List.of(selectorOptions) : null,
+                operationResult);
     }
 
     /**

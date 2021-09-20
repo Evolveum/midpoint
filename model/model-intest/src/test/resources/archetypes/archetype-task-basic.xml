@@ -52,7 +52,7 @@
                         </display>
                         <displayOrder>900</displayOrder>
                         <item>
-                            <c:path>executionStatus</c:path>
+                            <c:path>executionState</c:path>
                         </item>
                         <item>
                             <c:path>node</c:path>

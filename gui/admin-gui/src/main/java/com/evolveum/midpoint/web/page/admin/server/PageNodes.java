@@ -118,7 +118,7 @@ public class PageNodes extends PageAdmin {
     private List<IColumn<SelectableBean<NodeType>, String>> initNodeColumns() {
         List<IColumn<SelectableBean<NodeType>, String>> columns = new ArrayList<>();
 
-        columns.add(new EnumPropertyColumn<SelectableBean<NodeType>>(createStringResource("pageTasks.node.executionStatus"),
+        columns.add(new EnumPropertyColumn<SelectableBean<NodeType>>(createStringResource("pageTasks.node.executionState"),
                 SelectableBeanImpl.F_VALUE + "." + NodeType.F_EXECUTION_STATE) {
 
             @SuppressWarnings("rawtypes")

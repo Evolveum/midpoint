@@ -124,7 +124,7 @@ public class DelegatingActivityExecution<
                     + "not be retrieved", childOid, getActivityPath(), getRunningTask()), FATAL_ERROR, PERMANENT_ERROR, e);
         }
 
-        TaskExecutionStateType childStatus = childTask.getExecutionStatus();
+        TaskExecutionStateType childStatus = childTask.getExecutionState();
         if (childStatus == TaskExecutionStateType.CLOSED) {
             LOGGER.debug("Child task {} is closed, considering delegated action to be complete", childTask);
             return DelegationState.DELEGATED_COMPLETE;
@@ -186,10 +186,9 @@ public class DelegatingActivityExecution<
             TaskType childToCreate = new TaskType(getPrismContext());
             childToCreate.setName(PolyStringType.fromOrig(getChildTaskName(parent)));
             // group?
-            childToCreate.setExecutionStatus(TaskExecutionStateType.SUSPENDED);
+            childToCreate.setExecutionState(TaskExecutionStateType.SUSPENDED);
             childToCreate.setSchedulingState(TaskSchedulingStateType.SUSPENDED);
             childToCreate.setOwnerRef(CloneUtil.clone(parent.getOwnerRef()));
-            childToCreate.setRecurrence(TaskRecurrenceType.SINGLE);
             childToCreate.setParent(parent.getTaskIdentifier());
             childToCreate.setExecutionEnvironment(CloneUtil.clone(parent.getExecutionEnvironment()));
             ActivityPath localRoot = getActivityPath();

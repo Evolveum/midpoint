@@ -434,6 +434,8 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
         if (schemaHandlingAttrDefType != null) {
 
+            rAttrDef.emphasized = BooleanUtils.isTrue(schemaHandlingAttrDefType.isEmphasized());
+
             if (schemaHandlingAttrDefType.getDescription() != null) {
                 rAttrDef.setDescription(schemaHandlingAttrDefType.getDescription());
             }

@@ -73,7 +73,7 @@ public class AutoScalingActivityExecution extends
         // We select all autoscaling-enabled running tasks that have some children.
         // (The last condition is approximated by being in WAITING state.)
         ObjectFilter reconcilableTasksFilter = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.RUNNING)
+                .item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.RUNNING)
                 .and().item(TaskType.F_SCHEDULING_STATE).eq(TaskSchedulingStateType.WAITING)
                 .and().not().item(TaskType.F_AUTO_SCALING, TaskAutoScalingType.F_MODE).eq(TaskAutoScalingModeType.DISABLED)
                 .buildFilter();

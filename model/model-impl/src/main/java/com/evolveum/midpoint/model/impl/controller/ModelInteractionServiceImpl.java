@@ -20,7 +20,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -96,7 +95,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -1677,7 +1675,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             newTask.setOid(null);
             newTask.setTaskIdentifier(null);
             newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
-            newTask.setExecutionStatus(RUNNABLE);
+            newTask.setExecutionState(RUNNABLE);
             newTask.setSchedulingState(READY);
             for (Item<?, ?> extensionItem : extensionItems) {
                 newTask.asPrismObject().getExtension().add(extensionItem.clone());
