@@ -292,6 +292,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         task2Oid = repositoryService.addObject(
                 new TaskType(prismContext).name("task-2")
                         .executionState(TaskExecutionStateType.CLOSED)
+                        .schedule(new ScheduleType(prismContext)
+                                .recurrence(TaskRecurrenceType.RECURRING))
                         .asPrismObject(),
                 null, result);
 
@@ -526,6 +528,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 f -> f.item(TaskType.F_EXECUTION_STATE)
                         .eq(TaskExecutionStateType.RUNNABLE, TaskExecutionStateType.CLOSED),
                 task1Oid, task2Oid);
+    }
+
+    @Test
+    public void test143SearchTaskByScheduleRecurring() throws Exception {
+        searchObjectTest("by schedule/recurring status", TaskType.class,
+                f -> f.item(TaskType.F_SCHEDULE, ScheduleType.F_RECURRENCE)
+                        .eq(TaskRecurrenceType.RECURRING),
+                task2Oid);
     }
 
     @Test

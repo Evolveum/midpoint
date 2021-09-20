@@ -10,8 +10,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.*;
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -19,7 +17,9 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAutoScalingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -71,7 +71,6 @@ public class QTaskMapping
                 q -> q.ownerRefRelationId,
                 QUserMapping::getUserMapping);
         addItemMapping(F_PARENT, stringMapper(q -> q.parent));
-        addItemMapping(F_RECURRENCE, enumMapper(q -> q.recurrence)); // TODO resolve (MID-7221)
         addItemMapping(F_RESULT_STATUS, enumMapper(q -> q.resultStatus));
         addItemMapping(F_SCHEDULING_STATE, enumMapper(q -> q.schedulingState));
         addNestedMapping(F_AUTO_SCALING, TaskAutoScalingType.class)
@@ -79,6 +78,9 @@ public class QTaskMapping
         addItemMapping(F_THREAD_STOP_ACTION, enumMapper(q -> q.threadStopAction));
         addItemMapping(F_WAITING_REASON, enumMapper(q -> q.waitingReason));
         addItemMapping(F_DEPENDENT, multiStringMapper(q -> q.dependentTaskIdentifiers));
+
+        addNestedMapping(F_SCHEDULE, ScheduleType.class)
+                .addItemMapping(F_RECURRENCE, enumMapper(q -> q.recurrence));
     }
 
     @Override
