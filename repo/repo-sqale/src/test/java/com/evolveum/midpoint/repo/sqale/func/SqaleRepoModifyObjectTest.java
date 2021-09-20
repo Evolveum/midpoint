@@ -822,7 +822,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("externalized column is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.executionStatus).isEqualTo(TaskExecutionStateType.SUSPENDED);
+        assertThat(row.executionState).isEqualTo(TaskExecutionStateType.SUSPENDED);
     }
 
     @Test
@@ -837,7 +837,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         and("task row previously having the handler URI value");
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
-        assertThat(originalRow.executionStatus).isNotNull();
+        assertThat(originalRow.executionState).isNotNull();
 
         when("modifyObject is called");
         repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
@@ -854,7 +854,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("externalized column is set to NULL");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.executionStatus).isNull();
+        assertThat(row.executionState).isNull();
     }
 
     @Test

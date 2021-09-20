@@ -1676,7 +1676,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.binding).isEqualTo(TaskBindingType.LOOSE);
         assertThat(row.category).isEqualTo("category");
         assertThat(row.completionTimestamp).isEqualTo(Instant.ofEpochMilli(1));
-        assertThat(row.executionStatus).isEqualTo(TaskExecutionStateType.RUNNABLE);
+        assertThat(row.executionState).isEqualTo(TaskExecutionStateType.RUNNABLE);
         assertCachedUri(row.handlerUriId, "handler-uri");
         assertThat(row.lastRunStartTimestamp).isEqualTo(Instant.ofEpochMilli(1));
         assertThat(row.lastRunFinishTimestamp).isEqualTo(Instant.ofEpochMilli(2));
