@@ -127,4 +127,4 @@ likely to be fetched without index-only attributes.
 for search are normalized before compared.
 E.g. "šiť" will also find word "sit" and anything containing the substring as well.
 
-These limitations apply as of version 4.4 and to both repository implementations.
+These limitations apply at least up to version 4.4 and to both repository implementations.
