@@ -170,7 +170,8 @@ public class ArchetypeManager implements Cache {
         return ArchetypeTypeUtil.getStructuralArchetype(archetypes);
     }
 
-    public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+    public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result)
+            throws SchemaException, ConfigurationException {
         if (object == null) {
             return null;
         }

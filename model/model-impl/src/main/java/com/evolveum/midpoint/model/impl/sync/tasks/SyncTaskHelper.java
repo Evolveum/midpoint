@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isInMaintenance;
 
@@ -145,7 +146,9 @@ public class SyncTaskHelper {
 
     private @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult opResult) throws ActivityExecutionException {
         try {
-            return provisioningService.getObject(ResourceType.class, resourceOid, null, task, opResult).asObjectable();
+            return provisioningService
+                    .getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, opResult)
+                    .asObjectable();
         } catch (ObjectNotFoundException ex) {
             // This is bad. The resource does not exist. Permanent problem.
             throw new ActivityExecutionException("Resource " + resourceOid + " not found", FATAL_ERROR, PERMANENT_ERROR, ex);

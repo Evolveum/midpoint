@@ -423,6 +423,13 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return SelectorOptions.createCollection(createNoFetch());
     }
 
+    public static Collection<SelectorOptions<GetOperationOptions>> createNoFetchReadOnlyCollection() {
+        return SchemaService.get().getOperationOptionsBuilder()
+                .noFetch()
+                .readOnly()
+                .build();
+    }
+
     public Boolean getRaw() {
         return raw;
     }
@@ -1235,6 +1242,16 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     public static Collection<SelectorOptions<GetOperationOptions>> updateToNoFetch(
             Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
         return updateRootOptions(originalOptions, opt -> opt.setNoFetch(true));
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> updateToReadWrite(
+            Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
+        return updateRootOptions(originalOptions, opt -> opt.setReadOnly(false));
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> updateToReadOnly(
+            Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
+        return updateRootOptions(originalOptions, opt -> opt.setReadOnly(true));
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> updateRootOptions(

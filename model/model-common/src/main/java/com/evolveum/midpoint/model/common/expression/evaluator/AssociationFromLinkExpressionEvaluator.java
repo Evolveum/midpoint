@@ -54,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 
 /**
  * Creates an association (or associations) based on projections of given role.
@@ -200,8 +200,8 @@ public class AssociationFromLinkExpressionEvaluator
         ObjectQuery query = filter.build();
 
         try {
-            SearchResultList<PrismObject<ShadowType>> objects = objectResolver
-                    .searchObjects(ShadowType.class, query, createNoFetchCollection(), context.getTask(), result);
+            List<PrismObject<ShadowType>> objects = objectResolver
+                    .searchObjects(ShadowType.class, query, createNoFetchReadOnlyCollection(), context.getTask(), result);
             for (PrismObject<ShadowType> object : objects) {
                 PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
                 ShadowAssociationType shadowAssociationType = newValue.asContainerable();

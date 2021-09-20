@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType.F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP;
 
@@ -159,6 +160,7 @@ class RemainingShadowsActivityExecution
                             .doNotDiscovery() // We are doing "discovery" ourselves
                             .errorReportingMethod(FetchErrorReportingMethodType.FORCED_EXCEPTION) // As well as complete handling!
                             .forceRefresh(!isDryRun())
+                            .readOnly()
                             .build();
             getModelBeans().provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, result);
         } catch (ObjectNotFoundException e) {
@@ -209,6 +211,7 @@ class RemainingShadowsActivityExecution
     private PrismObject<ShadowType> reloadShadow(PrismObject<ShadowType> originalShadow, OperationResult result)
             throws SchemaException {
         try {
+            // not read-only because we modify the shadow afterwards
             return getBeans().repositoryService.getObject(ShadowType.class, originalShadow.getOid(), null, result);
         } catch (ObjectNotFoundException e) {
             // TODO Could be the shadow deleted during preprocessing?

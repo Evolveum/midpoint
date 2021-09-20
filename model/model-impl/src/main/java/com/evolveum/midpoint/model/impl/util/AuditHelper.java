@@ -121,8 +121,11 @@ public class AuditHelper {
                         }
                     }
                     // we use only cache-compatible options here, in order to utilize the local or global repository cache
-                    Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
-                            .allowNotFound().build();
+                    Collection<SelectorOptions<GetOperationOptions>> options =
+                            schemaService.getOperationOptionsBuilder()
+                                    .readOnly()
+                                    .allowNotFound()
+                                    .build();
                     PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, options, result);
                     return object.getName();
                 } catch (ObjectNotFoundException e) {

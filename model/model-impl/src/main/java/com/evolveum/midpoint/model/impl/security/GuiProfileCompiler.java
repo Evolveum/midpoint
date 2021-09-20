@@ -161,7 +161,10 @@ public class GuiProfileCompiler {
         FocusType focus = principal.getFocus();
         byte[] jpegPhoto = focus.getJpegPhoto();
         if (jpegPhoto == null) {
-            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder().item(FocusType.F_JPEG_PHOTO).retrieve().build();
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                    // no read-only because the photo (byte[]) is provided to unknown actors
+                    .item(FocusType.F_JPEG_PHOTO).retrieve()
+                    .build();
             try {
                 PrismObject<? extends FocusType> resolvedFocus = repositoryService.getObject(focus.getClass(), focus.getOid(), options, result);
                 jpegPhoto = resolvedFocus.asObjectable().getJpegPhoto();

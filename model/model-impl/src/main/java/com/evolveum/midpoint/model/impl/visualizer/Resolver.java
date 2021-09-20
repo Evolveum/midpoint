@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -30,8 +31,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
-import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 
 /**
@@ -81,7 +81,7 @@ public class Resolver {
                 if (object.getName() == null && object.getOid() != null) {
                     String oid = object.getOid();
                     try {
-                        PrismObject<O> originalObject = modelService.getObject(clazz, oid, createCollection(createNoFetch()), task, result);
+                        PrismObject<O> originalObject = modelService.getObject(clazz, oid, createNoFetchReadOnlyCollection(), task, result);
                         object.asObjectable().setName(new PolyStringType(originalObject.getName()));
                     } catch (ObjectNotFoundException e) {
                         //ignore when object doesn't exist
@@ -129,7 +129,7 @@ public class Resolver {
                     final String oid = objectDelta.getOid();
                     if (!originalObjectFetched && oid != null && includeOriginalObject) {
                         try {
-                            originalObject = modelService.getObject(clazz, oid, createCollection(createNoFetch()), task, result);
+                            originalObject = modelService.getObject(clazz, oid, createNoFetchReadOnlyCollection(), task, result);
                         } catch (ObjectNotFoundException e) {
                             result.recordHandledError(e);
                             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
@@ -142,7 +142,7 @@ public class Resolver {
                     if (originalObject != null) {
                         Item<?,?> originalItem = originalObject.findItem(itemDelta.getPath());
                         if (originalItem != null) {
-                            itemDelta.setEstimatedOldValues(new ArrayList(originalItem.getValues()));
+                            itemDelta.setEstimatedOldValues(CloneUtil.cloneCollectionMembers(originalItem.getValues()));
                         }
                     }
                 }

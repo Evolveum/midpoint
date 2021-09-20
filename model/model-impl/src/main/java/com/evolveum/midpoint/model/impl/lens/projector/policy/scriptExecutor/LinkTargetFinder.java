@@ -172,6 +172,7 @@ class LinkTargetFinder implements AutoCloseable {
             if (!objects.containsKey(oid)) {
                 try {
                     Class<? extends ObjectType> clazz = getClassForType(link.getTargetType());
+                    // TODO consider reading in read-only mode
                     objects.put(oid, beans.repositoryService.getObject(clazz, oid, null, result));
                 } catch (SchemaException | ObjectNotFoundException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve reference {} in {} when applying script on link targets",

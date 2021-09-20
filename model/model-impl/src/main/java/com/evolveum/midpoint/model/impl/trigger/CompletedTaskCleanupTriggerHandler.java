@@ -27,6 +27,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 /**
  * @author Radovan Semancik
  *
@@ -55,7 +57,9 @@ public class CompletedTaskCleanupTriggerHandler implements SingleTriggerHandler 
             if (!(object.asObjectable() instanceof TaskType)) {
                 return;
             }
-            TaskType completedTask = repositoryService.getObject(TaskType.class, object.getOid(), null, result).asObjectable();
+            TaskType completedTask = repositoryService
+                    .getObject(TaskType.class, object.getOid(), createReadOnlyCollection(), result)
+                    .asObjectable();
             LOGGER.trace("Checking completed task to be deleted {}", completedTask);
             if (completedTask.getExecutionState() != TaskExecutionStateType.CLOSED) {
                 LOGGER.debug("Task {} is not closed, not deleting it.", completedTask);
