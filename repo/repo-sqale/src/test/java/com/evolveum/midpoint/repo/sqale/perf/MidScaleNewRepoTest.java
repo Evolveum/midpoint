@@ -13,12 +13,12 @@ import java.util.*;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
@@ -58,11 +58,20 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         Runtime.getRuntime().gc();
         memInfo.add(String.format("%-40.40s before: %,15d",
                 contextName(), Runtime.getRuntime().totalMemory()));
-//        queryListener.clear();
+        queryRecorder.clearBuffer();
+        queryRecorder.stopRecording(); // each test starts recording as needed
     }
 
     @AfterMethod
     public void reportAfterTest() {
+        Collection<SqlRecorder.QueryEntry> sqlBuffer = queryRecorder.getBuffer();
+        if (!sqlBuffer.isEmpty()) {
+            display("Recorded SQL queries:");
+            for (SqlRecorder.QueryEntry entry : sqlBuffer) {
+                display(entry.toString());
+            }
+        }
+
         memInfo.add(String.format("%-40.40s  after: %,15d",
                 contextName(), Runtime.getRuntime().totalMemory()));
     }
@@ -76,14 +85,14 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
             ResourceType resourceType = new ResourceType(prismContext)
                     .name(PolyStringType.fromOrig(name));
             if (resourceIndex == RESOURCE_COUNT) {
-//                queryListener.start();
+                queryRecorder.clearBufferAndStartRecording();
             }
             try (Split ignored = stopwatch.start()) {
                 repositoryService.addObject(resourceType.asPrismObject(), null, operationResult);
             }
             resources.put(name, resourceType.getOid());
         }
-//        queryListener.dumpAndStop();
+        queryRecorder.stopRecording();
     }
 
     @Test
@@ -95,14 +104,14 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
             UserType userType = new UserType(prismContext)
                     .name(PolyStringType.fromOrig(name));
             if (userIndex == BASE_USER_COUNT) {
-//                queryListener.start();
+                queryRecorder.clearBufferAndStartRecording();
             }
             try (Split ignored = stopwatch.start()) {
                 repositoryService.addObject(userType.asPrismObject(), null, operationResult);
             }
             users.put(name, userType.getOid());
         }
-//        queryListener.dumpAndStop();
+        queryRecorder.stopRecording();
     }
 
     @Test
@@ -114,19 +123,19 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                 String name = String.format("shadow-%07d-at-%s", userIndex, resourceEntry.getKey());
                 ShadowType shadowType = createShadow(name, resourceEntry.getValue());
                 // for the last user, but only once for a single resource
-//                if (userIndex == BASE_USER_COUNT && queryListener.hasNoEntries()) {
-//                    queryListener.start();
-//                }
+                if (userIndex == BASE_USER_COUNT && queryRecorder.getBuffer().isEmpty()) {
+                    queryRecorder.startRecording();
+                }
                 try (Split ignored = stopwatch.start()) {
                     repositoryService.addObject(shadowType.asPrismObject(), null, operationResult);
                 }
-//                if (queryListener.isStarted()) {
-//                     stop does not clear entries, so it will not be started again
-//                    queryListener.stop();
-//                }
+                if (queryRecorder.isRecording()) {
+                    // stop does not clear entries, so it will not be started again above
+                    queryRecorder.stopRecording();
+                }
             }
         }
-//        queryListener.dumpAndStop();
+        queryRecorder.stopRecording();
     }
 
     @NotNull
@@ -144,7 +153,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         for (int i = 1; i <= FIND_COUNT; i++) {
             String randomName = String.format("user-%07d", RND.nextInt(BASE_USER_COUNT) + 1);
             if (i == FIND_COUNT) {
-//                queryListener.start();
+                queryRecorder.startRecording();
             }
             try (Split ignored = stopwatch.start()) {
                 assertThat(repositoryService.getObject(
@@ -152,7 +161,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                         .isNotNull();
             }
         }
-//        queryListener.dumpAndStop();
+        queryRecorder.stopRecording();
     }
 
     @Test
@@ -164,14 +173,14 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
             UserType userType = new UserType(prismContext)
                     .name(PolyStringType.fromOrig(name));
             if (userIndex == MORE_USER_COUNT) {
-//                queryListener.start();
+                queryRecorder.startRecording();
             }
             try (Split ignored = stopwatch.start()) {
                 repositoryService.addObject(userType.asPrismObject(), null, operationResult);
             }
             users.put(name, userType.getOid());
         }
-//        queryListener.dumpAndStop();
+        queryRecorder.stopRecording();
     }
 
     @Test
@@ -183,18 +192,18 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                 String name = String.format("shadow-more-%07d-at-%s", userIndex, resourceEntry.getKey());
                 ShadowType shadowType = createShadow(name, resourceEntry.getValue());
                 // for the last user, but only once for a single resource
-//                if (userIndex == MORE_USER_COUNT && queryListener.hasNoEntries()) {
-//                    queryListener.start();
-//                }
+                if (userIndex == MORE_USER_COUNT && queryRecorder.getBuffer().isEmpty()) {
+                    queryRecorder.startRecording();
+                }
                 try (Split ignored = stopwatch.start()) {
                     repositoryService.addObject(shadowType.asPrismObject(), null, operationResult);
                 }
-//                if (queryListener.isStarted()) {
-//                    queryListener.stop();
-//                }
+                if (queryRecorder.isRecording()) {
+                    queryRecorder.stopRecording();
+                }
             }
         }
-//        queryListener.dumpAndStop();
+        queryRecorder.stopRecording();
     }
 
     @Test
@@ -210,7 +219,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
             }
             users.put(name, userType.getOid());
         }
-        // no query listener in this test
+        // no query recorder in this test
     }
 
     @Test
@@ -226,7 +235,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                 }
             }
         }
-        // no query listener in this test
+        // no query recorder in this test
     }
 
     @Test
@@ -244,7 +253,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
             }
             users.put(name, userType.getOid());
         }
-        // no query listener in this test
+        // no query recorder in this test
     }
 
     @Test
@@ -261,7 +270,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                 }
             }
         }
-        // no query listener in this test
+        // no query recorder in this test
     }
 
     @Test
@@ -271,7 +280,7 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         for (int i = 1; i <= FIND_COUNT; i++) {
             String randomName = String.format("user-more-%07d", RND.nextInt(MORE_USER_COUNT) + 1);
             if (i == FIND_COUNT) {
-//                queryListener.start();
+                queryRecorder.startRecording();
             }
             try (Split ignored = stopwatch.start()) {
                 assertThat(repositoryService.getObject(
@@ -279,13 +288,13 @@ public class MidScaleNewRepoTest extends SqaleRepoBaseTest
                         .isNotNull();
             }
         }
-//        queryListener.dumpAndStop();
+        queryRecorder.stopRecording();
     }
 
     @Test
     public void test900PrintObjects() {
-        System.out.println("resources = " + resources.size());
-        System.out.println("users = " + users.size());
+        display("resources = " + resources.size());
+        display("users = " + users.size());
         // WIP: memInfo is not serious yet
         memInfo.forEach(System.out::println);
     }

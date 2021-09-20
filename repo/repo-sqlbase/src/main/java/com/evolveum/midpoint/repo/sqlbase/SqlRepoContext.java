@@ -11,10 +11,7 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
-import com.querydsl.sql.Configuration;
-import com.querydsl.sql.RelationalPath;
-import com.querydsl.sql.SQLQuery;
-import com.querydsl.sql.SQLTemplates;
+import com.querydsl.sql.*;
 import com.querydsl.sql.dml.SQLDeleteClause;
 import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.sql.dml.SQLUpdateClause;
@@ -45,6 +42,8 @@ public class SqlRepoContext {
     private final QueryModelMappingRegistry mappingRegistry;
     private final DataSource dataSource;
 
+    private SQLBaseListener querydslSqlListener;
+
     public SqlRepoContext(
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
             DataSource dataSource,
@@ -56,6 +55,18 @@ public class SqlRepoContext {
         this.schemaService = schemaService;
         this.mappingRegistry = mappingRegistry;
         this.dataSource = dataSource;
+    }
+
+    /**
+     * Sets Querydsl SQL listener for this repository, replacing any previously one.
+     */
+    public void setQuerydslSqlListener(SQLBaseListener listener) {
+        SQLListeners listeners = querydslConfig.getListeners();
+        if (querydslSqlListener != null) {
+            listeners.getListeners().remove(querydslSqlListener);
+        }
+        listeners.add(listener);
+        querydslSqlListener = listener;
     }
 
     public SQLQuery<?> newQuery() {

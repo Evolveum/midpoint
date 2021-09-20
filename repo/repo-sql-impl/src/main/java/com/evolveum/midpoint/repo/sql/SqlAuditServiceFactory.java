@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -111,6 +112,8 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
         SqlRepoContext repositoryContext =
                 new SqlRepoContext(config, dataSource, schemaService, mappingRegistry);
+        repositoryContext.setQuerydslSqlListener(new SqlLogger());
+
         // Registered mapping needs repository context which needs registry - but we fill it now:
         mappingRegistry
                 .register(AuditEventRecordType.COMPLEX_TYPE,

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -66,16 +67,23 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     public static final String REPO_OP_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
     public static final String AUDIT_OP_PREFIX = SqaleAuditService.class.getSimpleName() + '.';
 
+    private static final int QUERY_BUFFER_SIZE = 1000;
+
+    private static boolean cacheTablesCleared = false;
+
     @Autowired protected SqaleRepositoryService repositoryService;
     @Autowired protected SqaleRepoContext sqlRepoContext;
     @Autowired protected SqaleRepositoryConfiguration repositoryConfiguration;
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
 
-    private static boolean cacheTablesCleared = false;
+    protected SqlRecorder queryRecorder;
 
     @BeforeClass
     public void clearDatabase() {
+        queryRecorder = new SqlRecorder(QUERY_BUFFER_SIZE);
+        sqlRepoContext.setQuerydslSqlListener(queryRecorder);
+
         try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
 
