@@ -8,6 +8,7 @@
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-since: "3.6"
 :page-upkeep-status: yellow
+:page-toc: top
 
 == Background information
 
@@ -27,13 +28,12 @@ A user can specify a word (or a part of it) and midPoint will look up all object
 
 Current limitations:
 
-. Because conventional database mechanisms (standard indices) are used, this feature is applicable to small or medium sized installations; we estimate the threshold to be few thousands or tens of thousands records.
+. Because conventional database mechanisms (standard indices) are used, this feature is applicable to small or medium-sized installations; we estimate the threshold to be few thousands or tens of thousands records.
 (In the future we expect to apply specialized approaches to full-text search to provide wider applicability.)
 
 . Because of the implementation chosen, it is not possible to search for a phrase.
-Since 3.6.1 if multiple words are entered, midPoint looks for objects that contain all of the specified words (possibly in different parts of the object).
+Since 3.6.1 if multiple words are entered, midPoint looks for objects that contain all the specified words (possibly in different parts of the object).
 In "plain" 3.6, the result of multiple words searches is undefined and can be falsely negative.
-
 
 == Setting it up
 
@@ -41,7 +41,9 @@ By default, the full-text search feature is disabled.
 How to enable it:
 
 . Provide a list of items to be indexed.
-This is done in system configuration object, for example by including the following configuration:.Sample configuration for indexing objects' text content
+This is done in system configuration object, for example by including the following configuration:
+
+.Sample configuration for indexing objects' text content
 [source,xml]
 ----
 <fullTextSearch>
@@ -101,9 +103,28 @@ The `m_object_text_info` table content will then look like this:
 
 image::IMG_24022017_180501_0.png[]
 
-
 == Using it
 
 If the full text search feature is enabled in the system configuration, it can be used from the GUI.
 
 image::image2017-2-28-10-46-42.png[]
+
+== Limitations
+
+Current version of full-text search has the following limitations:
+
+* Full-text of items inside multi-value containers is not supported.
+
+* Full-text of index-only items is not supported.
+It may seem working, but it is unreliable and the results are undefined.
+The reason for this is that when object is modified any change of the full-text-indexed attribute
+refreshes the full-text system column from the fetched part of the object - and the object is
+likely to be fetched without index-only attributes.
+
+* It is not possible to search for the start/end of the words or for whole words only.
+
+* It is not possible to search for diacritics because both prepared index and values used
+for search are normalized before compared.
+E.g. "šiť" will also find word "sit" and anything containing the substring as well.
+
+These limitations apply as of version 4.4 and to both repository implementations.
