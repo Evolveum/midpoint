@@ -32,6 +32,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 
 /**
@@ -77,14 +79,15 @@ public class AutoAssignMappingCollector {
             }
 
             for (AutoassignMappingType autoMapping: focalAutoassignSpec.getMapping()) {
-                AutoassignMappingType mapping = autoMapping.clone();
-                LensUtil.setMappingTarget(mapping, new ItemPathType(SchemaConstants.PATH_ASSIGNMENT));
+                AutoassignMappingType mapping =
+                        LensUtil.setMappingTarget(autoMapping, new ItemPathType(SchemaConstants.PATH_ASSIGNMENT));
                 mappings.add(new AutoassignRoleMappingEvaluationRequest(mapping, role.asObjectable()));
                 LOGGER.trace("Collected autoassign mapping {} from {}", mapping.getName(), role);
             }
             return true;
         };
-        cacheRepositoryService.searchObjectsIterative(AbstractRoleType.class, query, handler, GetOperationOptions.createReadOnlyCollection(), true, result);
+        cacheRepositoryService.searchObjectsIterative(AbstractRoleType.class, query, handler,
+                createReadOnlyCollection(), true, result);
     }
 
     private <AH extends AssignmentHolderType> boolean isApplicableFor(ObjectSelectorType selector, LensFocusContext<AH> focusContext, OperationResult result) {

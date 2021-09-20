@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
-import static com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted.PRIMARY_OR_SECONDARY;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +61,7 @@ public class InboundProcessor implements ProjectorProcessor {
 
         // It's actually a bit questionable if such cross-components interactions should be treated like this
         // or in some higher-level component. But let's try this approach until something nicer is found.
-        contextLoader.updateArchetypePolicy(context, task, result);
+        contextLoader.updateArchetypePolicy(context, result);
         contextLoader.updateArchetype(context, task, result);
         contextLoader.updateFocusTemplate(context, result);
         context.checkConsistenceIfNeeded();

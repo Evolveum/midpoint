@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.common.SynchronizationUtils.*;
 import static com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils.isLogDebug;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 import java.util.List;
@@ -163,6 +164,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         ObjectQuery query = prismContext.queryFor(FocusType.class)
                 .item(FocusType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
                 .build();
+        // TODO read-only later
         SearchResultList<PrismObject<FocusType>> owners =
                 repositoryService.searchObjects(FocusType.class, query, null, result);
 
@@ -754,7 +756,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private <F extends FocusType> void setObjectTemplate(SynchronizationContext<F> syncCtx, LensContext<F> context, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         if (syncCtx.getObjectTemplateRef() != null) {
             ObjectTemplateType objectTemplate = repositoryService
-                    .getObject(ObjectTemplateType.class, syncCtx.getObjectTemplateRef().getOid(), null, parentResult)
+                    .getObject(ObjectTemplateType.class, syncCtx.getObjectTemplateRef().getOid(), createReadOnlyCollection(), parentResult)
                     .asObjectable();
             context.setFocusTemplate(objectTemplate);
             context.setFocusTemplateExternallySet(true); // we do not want to override this template e.g. when subtype changes

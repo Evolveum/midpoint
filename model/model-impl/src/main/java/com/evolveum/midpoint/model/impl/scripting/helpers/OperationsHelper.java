@@ -152,7 +152,7 @@ public class OperationsHelper {
 
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, boolean noFetch, ExecutionContext context, OperationResult result) throws ScriptExecutionException, ExpressionEvaluationException {
         try {
-            return modelService.getObject(type, oid, createGetOptions(null, noFetch), context.getTask(), result);
+            return modelService.getObject(type, oid, createGetOptions(null, noFetch), context.getTask(), result); // TODO readOnly?
         } catch (ConfigurationException|ObjectNotFoundException|SchemaException|CommunicationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't get object: " + e.getMessage(), e);
         }

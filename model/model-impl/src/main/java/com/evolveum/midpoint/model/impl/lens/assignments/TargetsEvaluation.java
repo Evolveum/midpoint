@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import static com.evolveum.midpoint.model.api.util.ReferenceResolver.Source.REPOSITORY;
 import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isChanged;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -200,7 +201,8 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectReferenceType targetRef = segment.assignment.getTargetRef();
         ReferenceResolver.FilterEvaluator filterEvaluator = createFilterEvaluator(segment, ctx);
-        return ctx.ae.referenceResolver.resolve(targetRef, null, REPOSITORY, filterEvaluator, ctx.task, result);
+        return ctx.ae.referenceResolver.resolve(targetRef, createReadOnlyCollection(), REPOSITORY,
+                filterEvaluator, ctx.task, result);
     }
 
     @NotNull

@@ -38,6 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.model.impl.scripting.actions.AssignExecutor.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -156,7 +158,7 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
             }
             ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(clazz, ref.getFilter());
             QName effectiveRelation = getEffectiveRelation(ref, relationOverride);
-            return modelService.searchObjects(clazz, query, null, task, result).stream()
+            return modelService.searchObjects(clazz, query, createReadOnlyCollection(), task, result).stream()
                     .map(object -> ObjectTypeUtil.createObjectRef(object, effectiveRelation))
                     .collect(Collectors.toList());
         } else if (relationOverride != null) {

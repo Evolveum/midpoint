@@ -2111,7 +2111,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         when();
         var options = schemaService.getOperationOptionsBuilder()
                 .forceRetry()
-                .pointInTime(PointInTimeType.FUTURE)
+                .futurePointInTime()
                 .build();
         provisioningService.getObject(ShadowType.class, ACCOUNT_LATE.oid, options, task, result);
 
@@ -2156,7 +2156,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         when();
         var options = schemaService.getOperationOptionsBuilder()
                 .forceRetry()
-                .pointInTime(PointInTimeType.FUTURE)
+                .futurePointInTime()
                 .build();
         provisioningService.getObject(ShadowType.class, ACCOUNT_LATE.oid, options, task, result);
 

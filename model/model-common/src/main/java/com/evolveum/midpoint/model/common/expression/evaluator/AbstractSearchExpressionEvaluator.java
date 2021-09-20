@@ -60,6 +60,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 import static com.evolveum.midpoint.util.caching.CacheConfiguration.getStatisticsLevel;
 
 /**
@@ -307,6 +308,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
         if (!searchOnResource) {
             options.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
         }
+        options = GetOperationOptions.updateToReadOnly(options);
         extendOptions(options, searchOnResource);
 
         try {
@@ -317,20 +319,18 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
             throw new SchemaException(e.getMessage()+" in "+contextDescription, e);
         } catch (SystemException e) {
             throw new SystemException(e.getMessage()+" in "+contextDescription, e);
-        } catch (CommunicationException | ConfigurationException
-                | SecurityViolationException e) {
+        } catch (CommunicationException | ConfigurationException | SecurityViolationException e) {
             if (searchOnResource && tryAlsoRepository) {
-                options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+                options = createNoFetchReadOnlyCollection();
                 try {
                     executeSearch(valueResults, rawResults, targetTypeClass, targetTypeQName, query, options, task, result, params,
                             additionalAttributeDeltas);
                 } catch (SchemaException e1) {
                     throw new SchemaException(e1.getMessage()+" in "+contextDescription, e1);
-                } catch (CommunicationException | ConfigurationException
-                        | SecurityViolationException e1) {
+                } catch (CommunicationException | ConfigurationException | SecurityViolationException e1) {
                     // TODO improve handling of exception.. we do not want to
-                    // stop whole projection computation, but what to do if the
-                    // shadow for group doesn't exist? (MID-2107)
+                    //  stop whole projection computation, but what to do if the
+                    //  shadow for group doesn't exist? (MID-2107)
                     throw new ExpressionEvaluationException("Unexpected expression exception "+e+": "+e.getMessage(), e);
                 }
             } else {

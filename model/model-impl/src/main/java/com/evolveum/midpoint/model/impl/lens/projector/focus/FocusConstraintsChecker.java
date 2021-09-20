@@ -38,6 +38,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
+import static java.util.Objects.requireNonNull;
+
 /**
  * @author semancik
  *
@@ -136,9 +140,10 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
         String oid = objectNew.getOid();
 
         ObjectQuery query;
+        Class<AH> objectClass = requireNonNull(objectNew.getCompileTimeClass());
         if (property.getDefinition() != null && QNameUtil.match(PolyStringType.COMPLEX_TYPE, property.getDefinition().getTypeName())) {
             List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismValueCollectionsUtil.cloneCollection(property.getValues());
-            query = prismContext.queryFor(objectNew.getCompileTimeClass())
+            query = prismContext.queryFor(objectClass)
                         .item(property.getPath())
                         .eq(clonedValues)
                         .matchingOrig()
@@ -148,21 +153,19 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
                         .matchingNorm()
                     .build();
         } else {
-            query = prismContext.queryFor(objectNew.getCompileTimeClass())
+            query = prismContext.queryFor(objectClass)
                 .itemAs(property)
                 .build();
         }
 
-        List<PrismObject<AH>> foundObjects = repositoryService.searchObjects(objectNew.getCompileTimeClass(), query, null, result);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Uniqueness check of {}, property {} resulted in {} results, using query:\n{}",
-                    objectNew, propPath, foundObjects.size(), query.debugDump());
-        }
+        List<PrismObject<AH>> foundObjects = repositoryService.searchObjects(objectClass, query, createReadOnlyCollection(), result);
+        LOGGER.trace("Uniqueness check of {}, property {} resulted in {} results, using query:\n{}",
+                objectNew, propPath, foundObjects.size(), query.debugDumpLazily());
         if (foundObjects.isEmpty()) {
             return true;
         }
         if (foundObjects.size() > 1) {
-            LOGGER.trace("Found more than one object with property "+propPath+" = " + property);
+            LOGGER.trace("Found more than one object with property {} = {}: {}", propPath, property, foundObjects.size());
             message("Found more than one object with property "+propPath+" = " + property);
             return false;
         }
@@ -170,10 +173,8 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
         LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), oid);
         boolean match = foundObjects.get(0).getOid().equals(oid);
         if (!match) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Found conflicting existing object with property "+propPath+" = " + property + ":\n"
-                        + foundObjects.get(0).debugDump());
-            }
+            LOGGER.trace("Found conflicting existing object with property {} = {}:\n",
+                    propPath, property, foundObjects.get(0).debugDumpLazily());
             message("Found conflicting existing object with property "+propPath+" = " + property + ": "
                     + foundObjects.get(0));
 

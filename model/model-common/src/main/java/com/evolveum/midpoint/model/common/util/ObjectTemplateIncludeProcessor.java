@@ -17,6 +17,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 public class ObjectTemplateIncludeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateIncludeProcessor.class);
@@ -48,13 +50,19 @@ public class ObjectTemplateIncludeProcessor {
                 includedObject = includeRef.asReferenceValue().getObject();
             } else {
                 ObjectTemplateType includeObjectType = objectResolver.resolve(includeRef, ObjectTemplateType.class,
-                        null, "include reference in "+objectTemplate + " in " + contextDesc, task, result);
+                        createReadOnlyCollection(),
+                        "include reference in "+objectTemplate + " in " + contextDesc, task, result);
                 includedObject = includeObjectType.asPrismObject();
-                // Store resolved object for future use (e.g. next waves).
-                includeRef.asReferenceValue().setObject(includedObject);
+                if (!includeRef.asReferenceValue().isImmutable()) {
+                    // Store resolved object for future use (e.g. next waves).
+                    // TODO If we have a template including other templates (i.e. !includeRef.isEmpty) we might clone
+                    //  it right after fetching from the repository. But this is quite rare case, and resolving template
+                    //  from the cache is fast. So maybe we shouldn't bother with that.
+                    includeRef.asReferenceValue().setObject(includedObject);
+                }
             }
             LOGGER.trace("Including template {}", includedObject);
-            processThisAndIncludedTemplates(includedObject.asObjectable(), includedObject.toString() + " in " + contextDesc,
+            processThisAndIncludedTemplates(includedObject.asObjectable(), includedObject + " in " + contextDesc,
                     task, result, processor);
         }
     }

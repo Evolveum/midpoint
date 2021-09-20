@@ -682,15 +682,16 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public abstract void cleanup();
 
     public void normalize() {
-        if (objectNew != null) {
-            objectNew.normalize();
-        }
-        if (objectOld != null) {
-            objectOld.normalize();
-        }
-        if (objectCurrent != null) {
-            objectCurrent.normalize();
-        }
+        // This does nothing. Should be removed eventually.
+//        if (objectNew != null) {
+//            objectNew.normalize();
+//        }
+//        if (objectOld != null) {
+//            objectOld.normalize();
+//        }
+//        if (objectCurrent != null) {
+//            objectCurrent.normalize();
+//        }
         if (primaryDelta != null && !primaryDelta.isImmutable()) {
             primaryDelta.normalize();
         }

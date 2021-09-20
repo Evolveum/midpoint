@@ -579,8 +579,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         PrismObject<E> objectToModify = null;
         try {
             Collection<SelectorOptions<GetOperationOptions>> getOptions = b.schemaService.getOperationOptionsBuilder()
+                    .readOnly()
                     .noFetch()
-                    .pointInTime(PointInTimeType.FUTURE)
+                    .futurePointInTime()
                     .build();
             objectToModify = b.provisioningService.getObject(objectClass, oid, getOptions, task, result);
         } catch (ObjectNotFoundException e) {
@@ -724,8 +725,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         PrismObject<E> objectToDelete = null;
         try {
             Collection<SelectorOptions<GetOperationOptions>> getOptions = b.schemaService.getOperationOptionsBuilder()
+                    .readOnly()
                     .noFetch()
-                    .pointInTime(PointInTimeType.FUTURE)
+                    .futurePointInTime()
                     .build();
             objectToDelete = b.provisioningService.getObject(type, oid, getOptions, task, result);
         } catch (ObjectNotFoundException ex) {
