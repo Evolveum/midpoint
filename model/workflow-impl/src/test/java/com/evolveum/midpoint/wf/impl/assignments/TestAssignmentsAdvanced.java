@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -61,8 +61,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
     private static final File METAROLE_DEFAULT_FILE = new File(TEST_RESOURCE_DIR, "metarole-default.xml");
     private static final File METAROLE_SECURITY_FILE = new File(TEST_RESOURCE_DIR, "metarole-security.xml");
-    private static final TestResource METAROLE_ADMINISTRATOR_APPROVAL = new TestResource(TEST_RESOURCE_DIR, "metarole-administrator-approval.xml", "715dc3b6-eb2c-4cc8-b2bf-0f7968bbc52a");
-    private static final TestResource METAROLE_ADMINISTRATOR_APPROVAL_IDEMPOTENT = new TestResource(TEST_RESOURCE_DIR, "metarole-administrator-approval-idempotent.xml", "00586339-50f0-4aa8-aa0a-d600810f6577");
+    private static final TestResource<ObjectType> METAROLE_ADMINISTRATOR_APPROVAL = new TestResource<>(
+            TEST_RESOURCE_DIR, "metarole-administrator-approval.xml", "715dc3b6-eb2c-4cc8-b2bf-0f7968bbc52a");
+    private static final TestResource<ObjectType> METAROLE_ADMINISTRATOR_APPROVAL_IDEMPOTENT = new TestResource<>(
+            TEST_RESOURCE_DIR, "metarole-administrator-approval-idempotent.xml", "00586339-50f0-4aa8-aa0a-d600810f6577");
 
     private static final File ROLE_ROLE21_FILE = new File(TEST_RESOURCE_DIR, "role-role21-standard.xml");
     private static final File ROLE_ROLE22_FILE = new File(TEST_RESOURCE_DIR, "role-role22-special.xml");
@@ -74,11 +76,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final File ROLE_ROLE28_FILE = new File(TEST_RESOURCE_DIR, "role-role28-modifications-or.xml");
     private static final File ROLE_ROLE29_FILE = new File(TEST_RESOURCE_DIR, "role-role29-modifications-no-items.xml");
 
-    private static final TestResource ROLE_SKIPPED_FILE = new TestResource(TEST_RESOURCE_DIR, "role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
+    private static final TestResource<ObjectType> ROLE_SKIPPED_FILE = new TestResource<>(TEST_RESOURCE_DIR, "role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
     private static final TestResource<RoleType> ROLE_APPROVE_UNASSIGN = new TestResource<>(TEST_RESOURCE_DIR, "role-approve-unassign.xml", "3746aa73-ae91-4326-8493-f5ac5b22f3b6");
 
-    private static final TestResource ROLE_IDEMPOTENT = new TestResource(TEST_RESOURCE_DIR, "role-idempotent.xml", "e2f2d977-887b-4ea1-99d8-a6a030a1a6c0");
-    private static final TestResource ROLE_WITH_IDEMPOTENT_METAROLE = new TestResource(TEST_RESOURCE_DIR, "role-with-idempotent-metarole.xml", "34855a80-3899-4ecf-bdb3-9fc008c4ff70");
+    private static final TestResource<ObjectType> ROLE_IDEMPOTENT = new TestResource<>(TEST_RESOURCE_DIR, "role-idempotent.xml", "e2f2d977-887b-4ea1-99d8-a6a030a1a6c0");
+    private static final TestResource<ObjectType> ROLE_WITH_IDEMPOTENT_METAROLE = new TestResource<>(TEST_RESOURCE_DIR, "role-with-idempotent-metarole.xml", "34855a80-3899-4ecf-bdb3-9fc008c4ff70");
 
     private static final File ORG_LEADS2122_FILE = new File(TEST_RESOURCE_DIR, "org-leads2122.xml");
 
@@ -1548,7 +1550,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     }
 
     private static class ExpectedStagePreview {
-        @SuppressWarnings({ "FieldCanBeLocal", "unused" }) private int number;
+        @SuppressWarnings({ "FieldCanBeLocal", "unused" }) private final int number;
         private final Set<String> definitionApproverOids;
         private final Set<String> expectedApproverOids;
         private final ApprovalLevelOutcomeType outcome;
