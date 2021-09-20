@@ -11,7 +11,7 @@
 <task oid="74d4297d-cdeb-43e6-a7f9-0af38d36de12"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Reconciliation: Dummy</name>
 

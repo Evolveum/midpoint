@@ -13,7 +13,7 @@
         xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <name>account-attribute</name>
     <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
-    <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
+    <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
     <kind>account</kind>
     <attributes>
         <icfs:name xsi:type="xsd:string">account123</icfs:name>

@@ -11,7 +11,7 @@
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
       xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
       xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema">

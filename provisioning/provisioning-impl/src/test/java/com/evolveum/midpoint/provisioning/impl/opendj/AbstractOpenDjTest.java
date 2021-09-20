@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,7 +41,7 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     public static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     protected static final File RESOURCE_OPENDJ_INITIALIZED_FILE = new File(TEST_DIR, "resource-opendj-initialized.xml");
     public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-    public static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+    public static final String RESOURCE_OPENDJ_NS = MidPointConstants.NS_RI;
 
     protected static final File RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE = new File(TEST_DIR, "resource-opendj-bad-credentials.xml");
     protected static final String RESOURCE_OPENDJ_BAD_CREDENTIALS_OID = "8bc3ff5a-ef5d-11e4-8bba-001e8c717e5b";
@@ -135,7 +137,7 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
 
     protected static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 
-    public static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+    public static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
     public static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS, "inetOrgPerson");
     public static final QName RESOURCE_OPENDJ_GROUP_OBJECTCLASS = new QName(RESOURCE_NS, "groupOfUniqueNames");
     public static final QName RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS, "posixAccount");

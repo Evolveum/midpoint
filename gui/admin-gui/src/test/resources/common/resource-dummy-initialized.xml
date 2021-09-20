@@ -11,7 +11,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -51,7 +51,6 @@
          </gen99:uselessGuardedString>
       </icfc:configurationProperties>
    </connectorConfiguration>
-   <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004</namespace>
    <schema>
       <cachingMetadata>
          <retrievalTimestamp>2016-01-05T17:49:22.501+01:00</retrievalTimestamp>
@@ -60,10 +59,10 @@
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
                      elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
@@ -360,7 +359,7 @@
          <intent>default</intent>
          <displayName>Default Account</displayName>
          <default>true</default>
-         <objectClass xmlns:qn371="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn371:AccountObjectClass</objectClass>
+         <objectClass xmlns:qn371="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn371:AccountObjectClass</objectClass>
          <attribute>
             <ref>icfs:name</ref>
             <displayName>Username</displayName>
@@ -389,7 +388,7 @@
             <displayName>UID</displayName>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:fullname</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:fullname</c:ref>
             <displayName>Full Name</displayName>
             <outbound>
                <source>
@@ -416,11 +415,11 @@
             </inbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:title</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:title</c:ref>
             <tolerant>true</tolerant>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:location</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:location</c:ref>
             <displayName>Location</displayName>
             <outbound>
                <strength>strong</strength>
@@ -442,7 +441,7 @@
             </inbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:ship</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:ship</c:ref>
             <displayName>Ship</displayName>
             <inbound>
                <expression>
@@ -462,7 +461,7 @@
             </inbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:loot</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:loot</c:ref>
             <displayName>Loot</displayName>
             <fetchStrategy>explicit</fetchStrategy>
             <outbound>
@@ -475,7 +474,7 @@
             </outbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:weapon</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:weapon</c:ref>
             <displayName>Weapon</displayName>
             <outbound>
                <strength>weak</strength>
@@ -485,7 +484,7 @@
             </outbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:drink</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:drink</c:ref>
             <displayName>Drink</displayName>
             <tolerant>false</tolerant>
             <outbound>
@@ -496,7 +495,7 @@
             </outbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:quote</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:quote</c:ref>
             <displayName>Quote</displayName>
             <tolerant>true</tolerant>
             <outbound>
@@ -507,12 +506,12 @@
             </outbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:gossip</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:gossip</c:ref>
             <displayName>Gossip</displayName>
             <tolerant>true</tolerant>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:water</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:water</c:ref>
             <limitations>
                <ignore>true</ignore>
             </limitations>
@@ -531,20 +530,20 @@
             </inbound>
          </attribute>
          <association>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:group</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:group</c:ref>
             <tolerant>false</tolerant>
             <kind>entitlement</kind>
             <intent>group</intent>
             <direction>objectToSubject</direction>
-            <associationAttribute xmlns:qn854="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn854:members</associationAttribute>
+            <associationAttribute xmlns:qn854="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn854:members</associationAttribute>
             <valueAttribute>icfs:name</valueAttribute>
          </association>
          <association>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:priv</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:priv</c:ref>
             <kind>entitlement</kind>
             <intent>privilege</intent>
             <direction>subjectToObject</direction>
-            <associationAttribute xmlns:qn551="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn551:privileges</associationAttribute>
+            <associationAttribute xmlns:qn551="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn551:privileges</associationAttribute>
             <valueAttribute>icfs:name</valueAttribute>
          </association>
          <iteration>
@@ -598,7 +597,7 @@
          <intent>test</intent>
          <displayName>Testing Account</displayName>
          <default>false</default>
-         <objectClass xmlns:qn931="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn931:AccountObjectClass</objectClass>
+         <objectClass xmlns:qn931="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn931:AccountObjectClass</objectClass>
          <attribute>
             <c:ref>icfs:name</c:ref>
             <outbound>
@@ -629,7 +628,7 @@
             </inbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:fullname</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:fullname</c:ref>
             <outbound>
                <source>
                   <c:path>$user/fullName</c:path>
@@ -648,7 +647,7 @@
             </inbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:location</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:location</c:ref>
             <outbound>
                <strength>strong</strength>
                <source>
@@ -657,7 +656,7 @@
             </outbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:ship</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:ship</c:ref>
             <displayName>Ship</displayName>
             <inbound>
                <expression>
@@ -676,11 +675,11 @@
             </inbound>
          </attribute>
          <association>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:group</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:group</c:ref>
             <outbound>
                <expression>
                   <value>
-                     <name xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:group</name>
+                     <name xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:group</name>
                      <shadowRef oid="20000000-0000-0000-3333-000000000002" type="ShadowType"/>
                   </value>
                </expression>
@@ -688,15 +687,15 @@
             <kind>entitlement</kind>
             <intent>group</intent>
             <direction>objectToSubject</direction>
-            <associationAttribute xmlns:qn196="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn196:members</associationAttribute>
+            <associationAttribute xmlns:qn196="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn196:members</associationAttribute>
             <valueAttribute>icfs:name</valueAttribute>
          </association>
          <association>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:priv</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:priv</c:ref>
             <kind>entitlement</kind>
             <intent>privilege</intent>
             <direction>subjectToObject</direction>
-            <associationAttribute xmlns:qn175="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn175:privileges</associationAttribute>
+            <associationAttribute xmlns:qn175="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn175:privileges</associationAttribute>
             <valueAttribute>icfs:name</valueAttribute>
          </association>
          <iteration>
@@ -720,7 +719,7 @@
          <kind>entitlement</kind>
          <intent>group</intent>
          <default>true</default>
-         <objectClass xmlns:qn426="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn426:GroupObjectClass</objectClass>
+         <objectClass xmlns:qn426="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn426:GroupObjectClass</objectClass>
          <attribute>
             <c:ref>icfs:name</c:ref>
             <displayName>Groupname</displayName>
@@ -735,7 +734,7 @@
             </outbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:description</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:description</c:ref>
             <outbound>
                <source>
                   <c:path>$focus/description</c:path>
@@ -743,7 +742,7 @@
             </outbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:cc</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:cc</c:ref>
             <outbound>
                <strength>weak</strength>
                <source>
@@ -757,7 +756,7 @@
             </inbound>
          </attribute>
          <attribute>
-            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:members</c:ref>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:members</c:ref>
             <fetchStrategy>minimal</fetchStrategy>
          </attribute>
       </objectType>
@@ -765,7 +764,7 @@
          <kind>entitlement</kind>
          <intent>privilege</intent>
          <default>false</default>
-         <objectClass xmlns:qn759="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn759:CustomprivilegeObjectClass</objectClass>
+         <objectClass xmlns:qn759="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn759:CustomprivilegeObjectClass</objectClass>
       </objectType>
    </schemaHandling>
    <capabilities>
@@ -906,7 +905,7 @@ end
    </consistency>
    <synchronization>
       <objectSynchronization>
-         <objectClass xmlns:qn237="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn237:AccountObjectClass</objectClass>
+         <objectClass xmlns:qn237="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn237:AccountObjectClass</objectClass>
          <kind>account</kind>
          <intent>default</intent>
          <enabled>true</enabled>
@@ -950,7 +949,7 @@ end
          </reaction>
       </objectSynchronization>
       <objectSynchronization>
-         <objectClass xmlns:qn258="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn258:AccountObjectClass</objectClass>
+         <objectClass xmlns:qn258="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn258:AccountObjectClass</objectClass>
          <kind>account</kind>
          <intent>test</intent>
          <enabled>true</enabled>

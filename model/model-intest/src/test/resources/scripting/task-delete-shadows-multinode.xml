@@ -10,7 +10,7 @@
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-        xmlns:dummy="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+        xmlns:dummy="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         oid="931e34be-5cf0-46c6-8cc1-90812a66d5cb">
     <name>Delete shadows segmented, raw</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>

@@ -89,8 +89,6 @@
 
     </connectorConfiguration>
 
-    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
-
     <schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -99,7 +97,7 @@
               <xsd:schema elementFormDefault="qualified"
               xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                     xmlns:xsd="http://www.w3.org/2001/XMLSchema">
                     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
@@ -396,7 +394,7 @@ This is now the only account type that midPoint can work with. -->
             <!-- Definition of uid attribute handling.
        Do not confuse with __UID__! -->
             <attribute>
-                <ref>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"; ri:uid</ref>
+                <ref>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"; ri:uid</ref>
                 <displayName>Login Name</displayName>
                 <matchingRule>stringIgnoreCase</matchingRule>
                 <outbound>

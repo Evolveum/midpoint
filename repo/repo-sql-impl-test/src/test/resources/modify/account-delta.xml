@@ -8,10 +8,10 @@
 <account xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="c0c010c0-d34d-b44f-f11d-33322212dddd" version="4">
     <name>Will</name>
     <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" relation="org:default" type="tns:ResourceType"/>
-    <objectClass xmlns:qn638="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">qn638:AccountObjectClass</objectClass>
+    <objectClass xmlns:qn638="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn638:AccountObjectClass</objectClass>
     <kind>account</kind>
     <exists>true</exists>
-    <attributes xmlns:gen701="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ShadowAttributesType">
+    <attributes xmlns:gen701="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ShadowAttributesType">
         <gen701:loot>42</gen701:loot>
         <gen701:ship>Interceptor</gen701:ship>
         <icfs:name>Will</icfs:name>

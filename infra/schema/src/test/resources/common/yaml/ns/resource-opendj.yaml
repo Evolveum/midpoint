@@ -55,12 +55,11 @@ resource:
       validate: -1
       sync: -1
       schema: -1
-  namespace: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
   schema:
     definition:
       '@ns': "http://www.w3.org/2001/XMLSchema"
       schema: "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n<xsd:schema elementFormDefault=\"\
-        qualified\" targetNamespace=\"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff\"\
+        qualified\" targetNamespace=\"http://midpoint.evolveum.com/xml/ns/public/resource/instance-3\"\
         \ xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" xmlns:icfs=\"\
         http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"\
         \ xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-3\" xmlns:xsd=\"\
@@ -189,7 +188,7 @@ resource:
     - intent: "default"
       displayName: "Default Account"
       default: true
-      objectClass: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff#AccountObjectClass"
+      objectClass: "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#AccountObjectClass"
       attribute:
       - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; icfs:name"
         displayName: "Distinguished Name"
@@ -209,7 +208,7 @@ resource:
         limitations:
         - access:
             read: true
-      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:cn"
+      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:cn"
         displayName: "Common Name"
         limitations:
         - access:
@@ -222,7 +221,7 @@ resource:
         inbound:
         - target:
             path: "$user/fullName"
-      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:sn"
+      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:sn"
         displayName: "Surname"
         limitations:
         - access:
@@ -235,7 +234,7 @@ resource:
         inbound:
         - target:
             path: "familyName"
-      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:givenName"
+      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:givenName"
         displayName: "Given Name"
         limitations:
         - access:
@@ -248,7 +247,7 @@ resource:
         inbound:
         - target:
             path: "$user/givenName"
-      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:uid"
+      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:uid"
         displayName: "Login Name"
         matchingRule: "http://midpoint.evolveum.com/xml/ns/public/common/matching-rule-3#stringIgnoreCase"
         outbound:
@@ -260,26 +259,26 @@ resource:
         - target:
             description: "Targets may have description"
             path: "$user/name"
-      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:description"
+      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:description"
         outbound:
           strength: "weak"
           expression:
             description: "Expression that assigns a fixed value"
             value:
             - "Created by IDM"
-      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:employeeType"
+      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:employeeType"
         displayName: "Employee Type"
         tolerant: false
         outbound:
           source:
           - path: "$user/employeeType"
-      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:departmentNumber"
+      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:departmentNumber"
         displayName: "Department Number"
         tolerant: true
         outbound:
           source:
           - path: "declare namespace z='http://z/'; $user/extension/z:dept"
-      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:l"
+      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:l"
         tolerant: false
         outbound:
           expression:
@@ -324,7 +323,7 @@ resource:
       '@ns': "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
       activation:
       - status:
-          attribute: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff#ds-pwp-account-disabled"
+          attribute: "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#ds-pwp-account-disabled"
           enableValue:
           - ""
           disableValue:

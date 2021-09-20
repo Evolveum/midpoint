@@ -22,4 +22,3 @@ resource:
       uselessGuardedString:
         '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         clearValue: "whatever"
-  namespace: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"

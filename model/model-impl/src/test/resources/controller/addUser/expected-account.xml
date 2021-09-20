@@ -8,7 +8,7 @@
 <c:object xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
     xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
     xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
     xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xsi:type="c:AccountShadowType"

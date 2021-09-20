@@ -2541,7 +2541,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        ResourceAttribute attributes = ShadowUtil.getAttribute(accountModel, new QName(resourceTypeOpenDjrepo.getNamespace(), "uid"));
+        ResourceAttribute attributes = ShadowUtil.getAttribute(accountModel, new QName(MidPointConstants.NS_RI, "uid"));
         assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account
     }
