@@ -573,6 +573,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void setupRecurrence(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
+        // TODO resolve (MID-7221)
         PrismPropertyWrapper<TaskRecurrenceType> recurrenceWrapper = taskWrapper.findProperty(ItemPath.create(TaskType.F_RECURRENCE));
         if (recurrenceWrapper == null) {
             return;
@@ -611,6 +612,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private boolean checkScheduleFilledForReccurentTask(PrismObjectWrapper<TaskType> taskWrapper) {
         PrismObject<TaskType> task = taskWrapper.getObject();
 
+        // TODO resolve (MID-7221)
         PrismProperty<TaskRecurrenceType> recurrenceType = task.findProperty(ItemPath.create(TaskType.F_RECURRENCE));
         if (recurrenceType == null) {
             return true;

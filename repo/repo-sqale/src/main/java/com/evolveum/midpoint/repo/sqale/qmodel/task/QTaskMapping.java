@@ -71,7 +71,7 @@ public class QTaskMapping
                 q -> q.ownerRefRelationId,
                 QUserMapping::getUserMapping);
         addItemMapping(F_PARENT, stringMapper(q -> q.parent));
-        addItemMapping(F_RECURRENCE, enumMapper(q -> q.recurrence));
+        addItemMapping(F_RECURRENCE, enumMapper(q -> q.recurrence)); // TODO resolve (MID-7221)
         addItemMapping(F_RESULT_STATUS, enumMapper(q -> q.resultStatus));
         addItemMapping(F_SCHEDULING_STATE, enumMapper(q -> q.schedulingState));
         addNestedMapping(F_AUTO_SCALING, TaskAutoScalingType.class)
