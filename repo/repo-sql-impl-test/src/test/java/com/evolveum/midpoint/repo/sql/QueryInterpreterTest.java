@@ -4935,6 +4935,33 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void test801QueryTaskRecurrence() throws Exception {
+        Session session = open();
+
+        try {
+            given();
+            ObjectQuery query = prismContext.queryFor(TaskType.class)
+                    .item(TaskType.F_SCHEDULE, ScheduleType.F_RECURRENCE)
+                    .eq(TaskRecurrenceType.RECURRING)
+                    .build();
+
+            when("the query is executed");
+            String real = getInterpretedQuery(session, TaskType.class, query);
+
+            then("expected HQL is generated");
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
+                    + "  t.oid,\n"
+                    + "  t.fullObject\n"
+                    + "from\n"
+                    + "  RTask t\n"
+                    + "where\n"
+                    + "  t.recurrence = :recurrence");
+        } finally {
+            close(session);
+        }
+    }
+
     private Collection<SelectorOptions<GetOperationOptions>> distinct() {
         return createCollection(createDistinct());
     }

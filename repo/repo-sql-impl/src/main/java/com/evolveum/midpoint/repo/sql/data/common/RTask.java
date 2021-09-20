@@ -12,6 +12,7 @@ import javax.persistence.Table;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 
 import org.hibernate.annotations.ForeignKey;
@@ -140,6 +141,7 @@ public class RTask extends RObject implements OperationResultFull {
         return executionStatus;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "schedule"), @JaxbName(localPart = "recurrence") })
     @Enumerated(EnumType.ORDINAL)
     public RTaskRecurrence getRecurrence() {
         return recurrence;
