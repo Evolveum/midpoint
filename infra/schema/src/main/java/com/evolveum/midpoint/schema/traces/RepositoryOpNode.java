@@ -57,7 +57,9 @@ public class RepositoryOpNode extends OpNode {
 
     /** Only approximate for now. */
     private boolean isReadOnlyFromOptions(String options) {
-        return options != null && options.contains("readOnly");
+        return options != null &&
+                options.contains("readOnly") &&
+                !options.contains("readOnly=false");
     }
 
     /** Only approximate for now. */
@@ -67,7 +69,7 @@ public class RepositoryOpNode extends OpNode {
             return null;
         } else {
             return TraceUtil.getParametersAsStringList(result, "options").stream()
-                    .anyMatch(o -> o.contains("readOnly"));
+                    .anyMatch(o -> o.contains("readOnly") && !o.contains("readOnly=false"));
         }
     }
 }
