@@ -193,12 +193,12 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
         // other objects
         task1Oid = repositoryService.addObject(
                 new TaskType(prismContext).name("task-1")
-                        .executionStatus(TaskExecutionStateType.RUNNABLE)
+                        .executionState(TaskExecutionStateType.RUNNABLE)
                         .asPrismObject(),
                 null, result);
         task2Oid = repositoryService.addObject(
                 new TaskType(prismContext).name("task-2")
-                        .executionStatus(TaskExecutionStateType.CLOSED)
+                        .executionState(TaskExecutionStateType.CLOSED)
                         .asPrismObject(),
                 null, result);
 

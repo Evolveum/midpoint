@@ -41,7 +41,7 @@
               oid="00000000-0000-0000-0000-000000000002"
               relation="org:default"
               type="tns:UserType"><!-- administrator --></ownerRef>
-    <executionStatus>closed</executionStatus>
+    <executionState>closed</executionState>
     <category>BulkActions</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
     <recurrence>single</recurrence>

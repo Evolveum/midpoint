@@ -526,28 +526,28 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void setTaskInitialState(PrismObjectWrapper<TaskType> taskWrapper, boolean run) throws SchemaException {
-        PrismPropertyWrapper<TaskExecutionStateType> executionStatus = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATUS));
+        PrismPropertyWrapper<TaskExecutionStateType> executionState = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATE));
         PrismPropertyWrapper<TaskSchedulingStateType> schedulingState = taskWrapper.findProperty(ItemPath.create(TaskType.F_SCHEDULING_STATE));
-        if (executionStatus == null || schedulingState == null) {
+        if (executionState == null || schedulingState == null) {
             throw new SchemaException("Task cannot be set as running, no execution status or scheduling status present");
         }
         if (run) {
-            setTaskInitiallyRunning(executionStatus, schedulingState);
+            setTaskInitiallyRunning(executionState, schedulingState);
         } else {
             if (!isAdd()) {
                 return;
             }
-            setTaskInitiallySuspended(executionStatus, schedulingState);
+            setTaskInitiallySuspended(executionState, schedulingState);
         }
     }
 
-    private void setTaskInitiallyRunning(PrismPropertyWrapper<TaskExecutionStateType> executionStatus, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
-        executionStatus.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
+    private void setTaskInitiallyRunning(PrismPropertyWrapper<TaskExecutionStateType> executionState, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
+        executionState.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
         schedulingState.getValue().setRealValue(TaskSchedulingStateType.READY);
     }
 
-    private void setTaskInitiallySuspended(PrismPropertyWrapper<TaskExecutionStateType> executionStatus, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
-        executionStatus.getValue().setRealValue(TaskExecutionStateType.SUSPENDED);
+    private void setTaskInitiallySuspended(PrismPropertyWrapper<TaskExecutionStateType> executionState, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
+        executionState.getValue().setRealValue(TaskExecutionStateType.SUSPENDED);
         schedulingState.getValue().setRealValue(TaskSchedulingStateType.SUSPENDED);
     }
 

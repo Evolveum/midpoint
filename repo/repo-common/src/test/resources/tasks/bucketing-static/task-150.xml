@@ -10,7 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-150</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>suspended</executionStatus>
+    <executionState>suspended</executionState>
     <recurrence>single</recurrence>
     <activity>
         <distribution>

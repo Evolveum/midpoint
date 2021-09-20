@@ -51,7 +51,7 @@
     </extension>
     <taskIdentifier>44444444-4444-4444-4444-000000001111</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <category>BulkActions</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
     <recurrence>single</recurrence>

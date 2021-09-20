@@ -13,8 +13,7 @@
 
     <taskIdentifier>4a574260-ae0c-4e00-8dfc-f833b703e45a</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>closed</executionStatus> <!-- run on demand only -->
+    <executionState>closed</executionState> <!-- run on demand only -->
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-3</handlerUri>
-    <recurrence>single</recurrence>
 </task>

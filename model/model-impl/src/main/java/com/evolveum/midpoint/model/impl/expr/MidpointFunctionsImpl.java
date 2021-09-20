@@ -1681,13 +1681,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         } else {
             newTask = new TaskType(prismContext);
             newTask.setName(PolyStringType.fromOrig("Execute changes"));
-            newTask.setRecurrence(TaskRecurrenceType.SINGLE);
         }
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
-        newTask.setExecutionStatus(RUNNABLE);
+        newTask.setExecutionState(RUNNABLE);
         newTask.setSchedulingState(TaskSchedulingStateType.READY);
         newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
         if (deltas.isEmpty()) {

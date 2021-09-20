@@ -32,9 +32,7 @@
 
     <taskIdentifier>220865f2-65a5-11e9-a835-9b2de4ec0be6</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/shadowRefresh/handler-3</handlerUri>
-    <recurrence>single</recurrence>
-
 </task>

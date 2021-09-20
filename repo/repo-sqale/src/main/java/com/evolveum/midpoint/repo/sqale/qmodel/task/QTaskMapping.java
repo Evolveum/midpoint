@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.*;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -51,7 +53,7 @@ public class QTaskMapping
         addItemMapping(F_CATEGORY, stringMapper(q -> q.category));
         addItemMapping(F_COMPLETION_TIMESTAMP,
                 timestampMapper(q -> q.completionTimestamp));
-        addItemMapping(F_EXECUTION_STATUS, enumMapper(q -> q.executionStatus));
+        addItemMapping(F_EXECUTION_STATE, enumMapper(q -> q.executionStatus));
         addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
         addItemMapping(F_LAST_RUN_FINISH_TIMESTAMP,
                 timestampMapper(q -> q.lastRunFinishTimestamp));
@@ -98,7 +100,7 @@ public class QTaskMapping
         row.binding = task.getBinding();
         row.category = task.getCategory();
         row.completionTimestamp = MiscUtil.asInstant(task.getCompletionTimestamp());
-        row.executionStatus = task.getExecutionStatus();
+        row.executionStatus = task.getExecutionState();
 //        row.fullResult = TODO
         row.handlerUriId = processCacheableUri(task.getHandlerUri());
         row.lastRunStartTimestamp = MiscUtil.asInstant(task.getLastRunStartTimestamp());
@@ -113,7 +115,10 @@ public class QTaskMapping
                 t -> row.ownerRefTargetType = t,
                 r -> row.ownerRefRelationId = r);
         row.parent = task.getParent();
-        row.recurrence = task.getRecurrence();
+        // Using effective recurrence instead of specified one might be questionable, but
+        // it's needed to reasonably use filtering based on recurrence.
+        // (Otherwise the null value of recurrence is really ambiguous.)
+        row.recurrence = TaskTypeUtil.getEffectiveRecurrence(task);
         row.resultStatus = task.getResultStatus();
         row.schedulingState = task.getSchedulingState();
         TaskAutoScalingType autoScaling = task.getAutoScaling();

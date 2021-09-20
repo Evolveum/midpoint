@@ -42,7 +42,7 @@ public class TestThresholdsStoryReconExecuteMultinode extends TestThresholdsStor
                     .display()
                     .getObjectable();
         TaskType suspended = TaskTreeUtil.getAllTasksStream(coordinator)
-                .filter(task -> task.getExecutionStatus() == TaskExecutionStateType.SUSPENDED)
+                .filter(task -> task.getExecutionState() == TaskExecutionStateType.SUSPENDED)
                 .findFirst().orElse(null);
         assertThat(suspended).as("suspended subtask").isNotNull();
 

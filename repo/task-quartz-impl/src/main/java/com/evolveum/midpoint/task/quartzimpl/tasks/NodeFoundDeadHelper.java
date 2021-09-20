@@ -91,8 +91,8 @@ class NodeFoundDeadHelper {
                                         .item(TaskType.F_NODE).replace();
 
                         // The following should be always true. But let's check that just to be sure.
-                        if (currentTask.getExecutionStatus() == TaskExecutionStateType.RUNNING) {
-                            builder = builder.item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStateType.RUNNABLE);
+                        if (currentTask.getExecutionState() == TaskExecutionStateType.RUNNING) {
+                            builder = builder.item(TaskType.F_EXECUTION_STATE).replace(TaskExecutionStateType.RUNNABLE);
                             changed.setValue(true);
                         }
 

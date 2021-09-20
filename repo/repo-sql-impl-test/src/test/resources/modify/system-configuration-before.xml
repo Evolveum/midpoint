@@ -312,7 +312,7 @@
                     </display>
                     <displayOrder>900</displayOrder>
                     <item id="115">
-                        <c:path>executionStatus</c:path>
+                        <c:path>executionState</c:path>
                     </item>
                     <item id="116">
                         <c:path>unpauseAction</c:path>

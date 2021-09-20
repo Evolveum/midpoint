@@ -12,6 +12,8 @@ import javax.persistence.Table;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.*;
@@ -288,14 +290,14 @@ public class RTask extends RObject implements OperationResultFull {
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
-        repo.setExecutionStatus(RUtil.getRepoEnumValue(jaxb.getExecutionStatus(), RTaskExecutionState.class));
+        repo.setExecutionStatus(RUtil.getRepoEnumValue(jaxb.getExecutionState(), RTaskExecutionState.class));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setLastRunFinishTimestamp(jaxb.getLastRunFinishTimestamp());
         repo.setCompletionTimestamp(jaxb.getCompletionTimestamp());
         repo.setLastRunStartTimestamp(jaxb.getLastRunStartTimestamp());
         repo.setNode(jaxb.getNode());
         repo.setBinding(RUtil.getRepoEnumValue(jaxb.getBinding(), RTaskBinding.class));
-        repo.setRecurrence(RUtil.getRepoEnumValue(jaxb.getRecurrence(), RTaskRecurrence.class));
+        repo.setRecurrence(RUtil.getRepoEnumValue(TaskTypeUtil.getEffectiveRecurrence(jaxb), RTaskRecurrence.class));
         repo.setThreadStopAction(RUtil.getRepoEnumValue(jaxb.getThreadStopAction(), RThreadStopAction.class));
         repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());

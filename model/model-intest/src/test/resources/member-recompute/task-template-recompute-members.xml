@@ -11,6 +11,5 @@
     <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
         <mext:workerThreads>2</mext:workerThreads>
     </extension>
-    <executionStatus>waiting</executionStatus>
-    <recurrence>single</recurrence>
+    <executionState>waiting</executionState>
 </task>

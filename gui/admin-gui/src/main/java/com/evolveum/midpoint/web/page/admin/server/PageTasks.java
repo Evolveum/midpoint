@@ -19,7 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateTy
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
@@ -139,7 +138,7 @@ public class PageTasks extends PageAdmin {
                     public Date getObject() {
                         Date date = getCurrentRuntime(rowModel);
                         SelectableBean<TaskType> task = rowModel.getObject();
-                        if (task.getValue().getExecutionStatus() == TaskExecutionStateType.CLOSED && date != null) {
+                        if (task.getValue().getExecutionState() == TaskExecutionStateType.CLOSED && date != null) {
                             ((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString() + " ");
                         } else if (date != null) {
                             ((DateLabelComponent) item.get(componentId))
@@ -157,7 +156,7 @@ public class PageTasks extends PageAdmin {
                 Date date = getCurrentRuntime(rowModel);
                 String displayValue = "";
                 if (date != null) {
-                    if (task.getValue().getExecutionStatus() == TaskExecutionStateType.CLOSED) {
+                    if (task.getValue().getExecutionState() == TaskExecutionStateType.CLOSED) {
                         displayValue =
                                 createStringResource("pageTasks.task.closedAt").getString() +
                                         WebComponentUtil.getShortDateTimeFormattedValue(date, PageTasks.this);
@@ -201,7 +200,7 @@ public class PageTasks extends PageAdmin {
     private Date getCurrentRuntime(IModel<SelectableBean<TaskType>> taskModel) {
         TaskType task = taskModel.getObject().getValue();
 
-        if (task.getExecutionStatus() == TaskExecutionStateType.CLOSED) {
+        if (task.getExecutionState() == TaskExecutionStateType.CLOSED) {
 
             Long time = getCompletionTimestamp(task);
             if (time == null) {

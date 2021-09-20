@@ -71,7 +71,7 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
 
     // Assuming no subtasks
     private void updateFromLegacyTask(@NotNull TaskType task) {
-        if (task.getExecutionStatus() == TaskExecutionStateType.RUNNING) {
+        if (task.getExecutionState() == TaskExecutionStateType.RUNNING) {
             updateWorkersCounters(task.getNode(),
                     true,
                     task.getStalledSince() != null);

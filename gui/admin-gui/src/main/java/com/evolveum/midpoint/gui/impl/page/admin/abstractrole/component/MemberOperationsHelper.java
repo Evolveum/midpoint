@@ -409,9 +409,9 @@ public class MemberOperationsHelper {
 
         operationalTask.setInitiallyRunnable();
         operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
-        ScheduleType schedule = new ScheduleType();
+        ScheduleType schedule = new ScheduleType(PrismContext.get());
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        operationalTask.makeSingle(schedule);
+        operationalTask.setSchedule(schedule);
         operationalTask.setName(taskName);
 
         QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);

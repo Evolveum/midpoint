@@ -286,12 +286,12 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         // other objects
         task1Oid = repositoryService.addObject(
                 new TaskType(prismContext).name("task-1")
-                        .executionStatus(TaskExecutionStateType.RUNNABLE)
+                        .executionState(TaskExecutionStateType.RUNNABLE)
                         .asPrismObject(),
                 null, result);
         task2Oid = repositoryService.addObject(
                 new TaskType(prismContext).name("task-2")
-                        .executionStatus(TaskExecutionStateType.CLOSED)
+                        .executionState(TaskExecutionStateType.CLOSED)
                         .asPrismObject(),
                 null, result);
 
@@ -516,14 +516,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test140SearchTaskByEnumValue() throws Exception {
         searchObjectTest("with execution status equal to one value", TaskType.class,
-                f -> f.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.RUNNABLE),
+                f -> f.item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.RUNNABLE),
                 task1Oid);
     }
 
     @Test
     public void test141SearchTaskByEnumWithMultipleValues() throws Exception {
         searchObjectTest("with execution status equal to any of provided value", TaskType.class,
-                f -> f.item(TaskType.F_EXECUTION_STATUS)
+                f -> f.item(TaskType.F_EXECUTION_STATE)
                         .eq(TaskExecutionStateType.RUNNABLE, TaskExecutionStateType.CLOSED),
                 task1Oid, task2Oid);
     }
@@ -533,7 +533,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         given("query for task's execution status containing (=substring) value");
         OperationResult operationResult = createOperationResult();
         ObjectQuery query = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_EXECUTION_STATUS).contains(TaskExecutionStateType.RUNNABLE)
+                .item(TaskType.F_EXECUTION_STATE).contains(TaskExecutionStateType.RUNNABLE)
                 .build();
 
         expect("repository throws exception because it is not supported");
@@ -547,7 +547,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         given("query for enum equality using string value");
         OperationResult operationResult = createOperationResult();
         ObjectQuery query = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_EXECUTION_STATUS).eq("RUNNABLE")
+                .item(TaskType.F_EXECUTION_STATE).eq("RUNNABLE")
                 .build();
 
         expect("repository throws exception because it is not supported, enum must be used");

@@ -14,8 +14,7 @@
         oid="931e34be-5cf0-46c6-8cc1-90812a66d5cb">
     <name>Delete shadows segmented, raw</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
-    <executionStatus>suspended</executionStatus> <!-- resumed by test method -->
-    <recurrence>single</recurrence>
+    <executionState>suspended</executionState> <!-- resumed by test method -->
     <activity>
         <work>
             <iterativeScripting>
