@@ -11,8 +11,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>task-100</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>suspended</executionStatus>
-    <recurrence>single</recurrence>
+    <executionState>suspended</executionState>
     <activity>
         <distribution>
             <buckets>

@@ -85,13 +85,12 @@ abstract class ScriptingTaskCreator {
         } else {
             newTask = new TaskType(beans.prismContext);
             newTask.setName(PolyStringType.fromOrig("Execute script"));
-            newTask.setRecurrence(TaskRecurrenceType.SINGLE);
         }
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), beans.prismContext));
-        newTask.setExecutionStatus(RUNNABLE);
+        newTask.setExecutionState(RUNNABLE);
         newTask.setSchedulingState(READY);
         return newTask;
     }

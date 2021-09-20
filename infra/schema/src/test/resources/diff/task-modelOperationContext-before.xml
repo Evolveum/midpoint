@@ -19,7 +19,7 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"
               relation="org:default"
               type="c:UserType"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <waitingReason>otherTasks</waitingReason>
     <node>DefaultNode</node>
     <category>Workflow</category>

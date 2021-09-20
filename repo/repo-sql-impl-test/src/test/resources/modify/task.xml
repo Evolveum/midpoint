@@ -11,7 +11,6 @@
     <name>Task1: basic single-run task (takes 3x60 sec)</name>
     <taskIdentifier>10000000-0000-0000-0000-123450000001</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-    <executionStatus>runnable</executionStatus>
-    <recurrence>single</recurrence>
+    <executionState>runnable</executionState>
     <binding>tight</binding>
 </task>

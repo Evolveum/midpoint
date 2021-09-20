@@ -28,6 +28,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -192,7 +194,6 @@ import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
@@ -689,9 +690,8 @@ public final class WebComponentUtil {
         task.setOwnerRef(ownerRef);
 
         task.setBinding(TaskBindingType.LOOSE);
-        task.setExecutionStatus(TaskExecutionStateType.RUNNABLE);
+        task.setExecutionState(TaskExecutionStateType.RUNNABLE);
         task.setSchedulingState(TaskSchedulingStateType.READY);
-        task.setRecurrence(TaskRecurrenceType.SINGLE);
         task.setThreadStopAction(ThreadStopActionType.RESTART);
         task.setHandlerUri(handlerUri);
         ScheduleType schedule = new ScheduleType();
@@ -738,30 +738,30 @@ public final class WebComponentUtil {
 
     /** Checks user-visible state, not the technical (scheduling) state. So RUNNABLE means the task is not actually running. */
     public static boolean isRunnableTask(TaskType task) {
-        return task != null && task.getExecutionStatus() == TaskExecutionStateType.RUNNABLE;
+        return task != null && task.getExecutionState() == TaskExecutionStateType.RUNNABLE;
     }
 
     public static boolean isRunningTask(TaskType task) {
-        return task != null && task.getExecutionStatus() == TaskExecutionStateType.RUNNING;
+        return task != null && task.getExecutionState() == TaskExecutionStateType.RUNNING;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isWaitingTask(TaskType task) {
-        return task != null && task.getExecutionStatus() == TaskExecutionStateType.WAITING;
+        return task != null && task.getExecutionState() == TaskExecutionStateType.WAITING;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. */
     public static boolean isSuspendedTask(TaskType task) {
-        return task != null && task.getExecutionStatus() == TaskExecutionStateType.SUSPENDED;
+        return task != null && task.getExecutionState() == TaskExecutionStateType.SUSPENDED;
     }
 
     /** Checks user-visible state, not the technical (scheduling) state. But for closed tasks, these are equivalent. */
     public static boolean isClosedTask(TaskType task) {
-        return task != null && task.getExecutionStatus() == TaskExecutionStateType.CLOSED;
+        return task != null && task.getExecutionState() == TaskExecutionStateType.CLOSED;
     }
 
     public static boolean isRecurringTask(TaskType task) {
-        return task != null && task.getRecurrence() == TaskRecurrenceType.RECURRING;
+        return task != null && TaskTypeUtil.isTaskRecurring(task);
     }
 
     // We no longer need to treat workflow-related tasks in a different way.

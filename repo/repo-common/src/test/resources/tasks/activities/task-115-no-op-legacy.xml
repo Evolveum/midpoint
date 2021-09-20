@@ -15,7 +15,6 @@
         <noop:delay>10</noop:delay>
     </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
-    <recurrence>single</recurrence>
 </task>

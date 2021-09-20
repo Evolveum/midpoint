@@ -1136,7 +1136,7 @@ CREATE TABLE m_task (
     binding TaskBindingType,
     category TEXT, -- TODO revise, deprecated, probably can go away soon
     completionTimestamp TIMESTAMPTZ,
-    executionStatus TaskExecutionStateType,
+    executionState TaskExecutionStateType,
     fullResult BYTEA,
     handlerUriId INTEGER REFERENCES m_uri(id),
     lastRunStartTimestamp TIMESTAMPTZ,

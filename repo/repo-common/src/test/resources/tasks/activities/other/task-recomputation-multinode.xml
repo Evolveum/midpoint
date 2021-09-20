@@ -11,7 +11,7 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>task-recomputation-multinode</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <recurrence>single</recurrence>
     <activity>
         <work>

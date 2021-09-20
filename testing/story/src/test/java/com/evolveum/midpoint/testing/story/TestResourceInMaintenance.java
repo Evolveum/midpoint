@@ -769,7 +769,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         assertTask(taskAfter, "reconciliation after run")
                 .display()
                 .assertHandledError()
-                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED); // Maybe should be discussed.
+                .assertExecutionState(TaskExecutionStateType.SUSPENDED); // Maybe should be discussed.
     }
 
     /**

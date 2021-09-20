@@ -249,7 +249,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         // THEN
         then();
-        assertTaskExecutionStatus(TASK_LIVE_SYNC_DUMMY_OID, TaskExecutionStateType.SUSPENDED);
+        assertTaskExecutionState(TASK_LIVE_SYNC_DUMMY_OID, TaskExecutionStateType.SUSPENDED);
     }
 
     @Test
@@ -332,7 +332,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
         // THEN
         then();
 
-        assertTaskExecutionStatus(TASK_RECONCILE_DUMMY_OID, TaskExecutionStateType.SUSPENDED);
+        assertTaskExecutionState(TASK_RECONCILE_DUMMY_OID, TaskExecutionStateType.SUSPENDED);
     }
 
     /**

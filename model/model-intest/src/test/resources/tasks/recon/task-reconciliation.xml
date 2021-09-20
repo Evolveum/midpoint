@@ -15,10 +15,9 @@
 
     <taskIdentifier>10000000-0000-0000-5656-56560000a204</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>closed</executionStatus> <!-- run by the test code -->
+    <executionState>closed</executionState> <!-- run by the test code -->
 
     <objectRef oid="10000000-0000-0000-0000-00000000a204" type="ResourceType"/>
-    <recurrence>single</recurrence>
     <activity>
         <work>
             <reconciliation>

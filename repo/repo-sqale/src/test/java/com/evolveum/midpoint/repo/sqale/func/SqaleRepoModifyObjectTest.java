@@ -804,7 +804,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with execution status change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_EXECUTION_STATUS).add(TaskExecutionStateType.SUSPENDED)
+                .item(TaskType.F_EXECUTION_STATE).add(TaskExecutionStateType.SUSPENDED)
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -817,12 +817,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getExecutionStatus()).isEqualTo(TaskExecutionStateType.SUSPENDED);
+        assertThat(taskObject.getExecutionState()).isEqualTo(TaskExecutionStateType.SUSPENDED);
 
         and("externalized column is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.executionStatus).isEqualTo(TaskExecutionStateType.SUSPENDED);
+        assertThat(row.executionState).isEqualTo(TaskExecutionStateType.SUSPENDED);
     }
 
     @Test
@@ -832,12 +832,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with execution status replace to null ('delete') for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_EXECUTION_STATUS).replace()
+                .item(TaskType.F_EXECUTION_STATE).replace()
                 .asObjectDelta(task1Oid);
 
         and("task row previously having the handler URI value");
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
-        assertThat(originalRow.executionStatus).isNotNull();
+        assertThat(originalRow.executionState).isNotNull();
 
         when("modifyObject is called");
         repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
@@ -849,12 +849,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getExecutionStatus()).isNull();
+        assertThat(taskObject.getExecutionState()).isNull();
 
         and("externalized column is set to NULL");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.executionStatus).isNull();
+        assertThat(row.executionState).isNull();
     }
 
     @Test

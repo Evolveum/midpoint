@@ -14,7 +14,6 @@
         <ext:message>msg1</ext:message>
     </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/simple-mock/handler-3</handlerUri>
-    <recurrence>single</recurrence>
 </task>

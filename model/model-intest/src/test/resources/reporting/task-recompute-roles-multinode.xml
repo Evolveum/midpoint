@@ -18,9 +18,8 @@
 
     <taskIdentifier>c8cfe559-3888-4b39-b835-3aead9a46581</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
-    <recurrence>single</recurrence>
     <activity>
         <work>
             <recomputation>

@@ -13,7 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateTy
  * TODO TODO TODO update this doc
  *
  * Original description:
- *  Adds "RUNNING" state to the TaskExecutionStatus (meaning the task is currently executing at a node).
+ *  Adds "RUNNING" state to the TaskExecutionState (meaning the task is currently executing at a node).
  *  And also "SUSPENDING" if it is running, but marked as suspended.
  *
  * New meaning:
@@ -30,22 +30,22 @@ public enum TaskDtoExecutionState {
     CLOSED;
 
     // TODO MID-6783
-    public static TaskDtoExecutionState fromTaskExecutionStatus(TaskExecutionStateType executionStatus, boolean running) {
+    public static TaskDtoExecutionState fromTaskExecutionState(TaskExecutionStateType executionState, boolean running) {
         if (running) {
-            if (executionStatus == TaskExecutionStateType.SUSPENDED) {
+            if (executionState == TaskExecutionStateType.SUSPENDED) {
                 return SUSPENDING;
             } else {
                 return TaskDtoExecutionState.RUNNING;
             }
         } else {
-            if (executionStatus != null) {
-                switch (executionStatus) {
+            if (executionState != null) {
+                switch (executionState) {
                     case RUNNABLE: return RUNNABLE;
                     case RUNNING: return RUNNING;
                     case WAITING: return WAITING;
                     case SUSPENDED: return SUSPENDED;
                     case CLOSED: return CLOSED;
-                    default: throw new IllegalArgumentException("executionStatus = " + executionStatus);
+                    default: throw new IllegalArgumentException("executionState = " + executionState);
                 }
             } else {
                 return null;

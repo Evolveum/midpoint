@@ -309,7 +309,7 @@
                         <label>Operational attributes (state)</label>
                     </display>
                     <item>
-                        <c:path>executionStatus</c:path>
+                        <c:path>executionState</c:path>
                     </item>
                     <item>
                         <c:path>unpauseAction</c:path>

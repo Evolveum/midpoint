@@ -20,8 +20,7 @@
         </extension>
         <taskIdentifier>10000000-0000-0000-0000-123450000001</taskIdentifier>
         <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
-        <executionStatus>runnable</executionStatus>
-        <recurrence>single</recurrence>
+        <executionState>runnable</executionState>
         <binding>tight</binding>
     </task>
 

@@ -266,7 +266,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /**
      * Returns task recurrence status.
      */
-    TaskRecurrenceType getRecurrence();
+    @NotNull TaskRecurrenceType getRecurrence();
 
     /**
      * Checks whether the task is a cyclic (recurring) one.
@@ -281,10 +281,12 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     }
 
     /** Makes a task single-run, with no particular schedule. */
-    void makeSingle();
+    default void makeSingle() {
+        setSchedule(null);
+    }
 
-    /** Makes a task single-run, with a given schedule. */
-    void makeSingle(ScheduleType schedule);
+    /** Sets the schedule for the task. Removes also the legacy recurrence flag. */
+    void setSchedule(ScheduleType schedule);
 
     /** Returns task execution constraints */
     TaskExecutionConstraintsType getExecutionConstraints();
