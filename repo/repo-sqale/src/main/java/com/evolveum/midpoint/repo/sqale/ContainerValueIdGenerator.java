@@ -63,6 +63,10 @@ public class ContainerValueIdGenerator {
             LOGGER.warn("Current CID sequence (" + containerIdSeq + ") is not above max used CID ("
                     + maxUsedId + ") for " + object.toDebugType() + "/" + object.getOid()
                     + ". CID sequence will be fixed, but it's suspicious!");
+        } else {
+            // TODO: Is this correct? containerIdSeq is used to reboot sequence of cids (eg. if
+            // cids are not in full object, but other items
+            maxUsedId = containerIdSeq != 0 ? containerIdSeq - 1 : 0;
         }
         return this;
     }

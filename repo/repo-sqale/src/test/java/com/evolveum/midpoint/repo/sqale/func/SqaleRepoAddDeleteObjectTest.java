@@ -1647,7 +1647,9 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .category("category")
                 .completionTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
                 .executionState(TaskExecutionStateType.RUNNABLE)
-                // TODO full result?
+                .result(new OperationResultType()
+                        .message("result message")
+                        .status(OperationResultStatusType.FATAL_ERROR))
                 .handlerUri("handler-uri")
                 .lastRunStartTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
                 .lastRunFinishTimestamp(MiscUtil.asXMLGregorianCalendar(2L))
@@ -1678,6 +1680,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.category).isEqualTo("category");
         assertThat(row.completionTimestamp).isEqualTo(Instant.ofEpochMilli(1));
         assertThat(row.executionState).isEqualTo(TaskExecutionStateType.RUNNABLE);
+        assertThat(row.fullResult).isNotNull();
+        assertThat(row.resultStatus).isEqualTo(OperationResultStatusType.UNKNOWN);
         assertCachedUri(row.handlerUriId, "handler-uri");
         assertThat(row.lastRunStartTimestamp).isEqualTo(Instant.ofEpochMilli(1));
         assertThat(row.lastRunFinishTimestamp).isEqualTo(Instant.ofEpochMilli(2));
@@ -1690,7 +1694,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(row.ownerRefRelationId, relationUri);
         assertThat(row.parent).isEqualTo("parent");
         assertThat(row.recurrence).isEqualTo(TaskRecurrenceType.RECURRING);
-        assertThat(row.resultStatus).isEqualTo(OperationResultStatusType.UNKNOWN);
         assertThat(row.schedulingState).isEqualTo(TaskSchedulingStateType.READY);
         assertThat(row.autoScalingMode).isEqualTo(TaskAutoScalingModeType.DEFAULT);
         assertThat(row.threadStopAction).isEqualTo(ThreadStopActionType.RESCHEDULE);

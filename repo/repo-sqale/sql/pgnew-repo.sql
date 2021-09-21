@@ -1151,7 +1151,9 @@ CREATE TABLE m_task (
     category TEXT, -- TODO revise, deprecated, probably can go away soon
     completionTimestamp TIMESTAMPTZ,
     executionState TaskExecutionStateType,
+    -- Logically fullResult and resultStatus are related, managed by Task manager.
     fullResult BYTEA,
+    resultStatus OperationResultStatusType,
     handlerUriId INTEGER REFERENCES m_uri(id),
     lastRunStartTimestamp TIMESTAMPTZ,
     lastRunFinishTimestamp TIMESTAMPTZ,
@@ -1164,7 +1166,6 @@ CREATE TABLE m_task (
     ownerRefRelationId INTEGER REFERENCES m_uri(id),
     parent TEXT, -- value of taskIdentifier
     recurrence TaskRecurrenceType,
-    resultStatus OperationResultStatusType,
     schedulingState TaskSchedulingStateType,
     autoScalingMode TaskAutoScalingModeType, -- autoScaling/mode
     threadStopAction ThreadStopActionType,

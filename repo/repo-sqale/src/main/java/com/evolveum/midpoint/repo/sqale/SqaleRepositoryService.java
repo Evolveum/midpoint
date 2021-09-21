@@ -95,7 +95,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
     private static final Collection<SelectorOptions<GetOperationOptions>> GET_FOR_UPDATE_OPTIONS =
-            SchemaService.get().getOperationOptionsBuilder().retrieve().build();
+            SchemaService.get().getOperationOptionsBuilder().build();
 
     public static final String REPOSITORY_IMPL_NAME = "SQaLe";
 
@@ -474,7 +474,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         try (JdbcSession transaction = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
-                    prepareUpdateContext(transaction, type, oidUuid);
+                    prepareUpdateContext(transaction, type, modifications, oidUuid, options);
 
             // commit is executed inside this method
             return modifyObjectInternal(updateContext, modifications,
@@ -537,7 +537,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         try (JdbcSession transaction = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
-                    prepareUpdateContext(transaction, type, oidUuid, getOptions);
+                    prepareUpdateContext(transaction, type, oidUuid, getOptions, modifyOptions);
 
             PrismObject<T> object = updateContext.getPrismObject();
             Collection<? extends ItemDelta<?, ?>> modifications =
@@ -625,14 +625,30 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return new ModifyObjectResult<>(originalObject, prismObject, modifications);
     }
 
-    /** Read object for update and returns update context that contains it. */
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
     RootUpdateContext<S, Q, R> prepareUpdateContext(
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid)
             throws SchemaException, ObjectNotFoundException {
-        return prepareUpdateContext(jdbcSession, schemaType, oid, GET_FOR_UPDATE_OPTIONS);
+        return prepareUpdateContext(jdbcSession, schemaType, Collections.emptyList(), oid, null);
+    }
+
+    /** Read object for update and returns update context that contains it.
+     **/
+    private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
+    RootUpdateContext<S, Q, R> prepareUpdateContext(
+            @NotNull JdbcSession jdbcSession,
+            @NotNull Class<S> schemaType,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull UUID oid, RepoModifyOptions options)
+            throws SchemaException, ObjectNotFoundException {
+
+        QueryTableMapping<S, FlexibleRelationalPathBase<Object>, Object> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
+        Collection<SelectorOptions<GetOperationOptions>> getOptions = rootMapping.updateGetOptions(GET_FOR_UPDATE_OPTIONS, modifications);
+
+
+        return prepareUpdateContext(jdbcSession, schemaType, oid, getOptions, options);
     }
 
     /** Read object for update and returns update context that contains it with specific get options. */
@@ -641,7 +657,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @NotNull JdbcSession jdbcSession,
             @NotNull Class<S> schemaType,
             @NotNull UUID oid,
-            Collection<SelectorOptions<GetOperationOptions>> getOptions)
+            Collection<SelectorOptions<GetOperationOptions>> getOptions,
+            RepoModifyOptions options)
             throws SchemaException, ObjectNotFoundException {
 
         SqaleTableMapping<S, QObject<R>, R> rootMapping =
@@ -664,7 +681,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
 
         S object = rootMapping.toSchemaObject(
-                result, entityPath, getOptions, jdbcSession, true);
+                result, entityPath, getOptions, jdbcSession, RepoModifyOptions.isForceReindex(options));
 
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;

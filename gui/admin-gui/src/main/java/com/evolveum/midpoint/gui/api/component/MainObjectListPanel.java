@@ -133,7 +133,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType));
+                    .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
+                    .setTitle(WebComponentUtil.getTranslatedPolyString(additionalButtonDisplayType.getTooltip()));
 //                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
         return builder.build();
