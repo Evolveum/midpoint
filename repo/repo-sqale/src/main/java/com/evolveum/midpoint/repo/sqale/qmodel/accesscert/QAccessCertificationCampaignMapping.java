@@ -8,16 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
+import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +32,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.querydsl.core.Tuple;
 
 /**
  * Mapping between {@link QAccessCertificationCampaign}
@@ -92,7 +85,6 @@ public class QAccessCertificationCampaignMapping
                 QAccessCertificationCaseMapping.initAccessCertificationCaseMapping(repositoryContext),
                 joinOn((o, acase) -> o.oid.eq(acase.ownerOid)));
     }
-
 
     @Override
     protected Collection<? extends QName> fullObjectItemsToSkip() {
@@ -155,7 +147,7 @@ public class QAccessCertificationCampaignMapping
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
         AccessCertificationCampaignType base = super.toSchemaObject(result, root, options, jdbcSession, forceFull);
-        if(forceFull || shouldLoadCases(options)) {
+        if (forceFull || shouldLoadCases(options)) {
             loadCases(base, options, jdbcSession, forceFull);
         }
         return base;
@@ -183,9 +175,9 @@ public class QAccessCertificationCampaignMapping
         PrismContainer<AccessCertificationCaseType> cases = base.asPrismObject().findOrCreateContainer(F_CASE);
         QAccessCertificationCase qcase = casesMapping.defaultAlias();
         var query = jdbcSession.newQuery()
-            .from(qcase)
-            .select(casesMapping.selectExpressions(qcase, options))
-            .where(qcase.ownerOid.eq(SqaleUtils.oidToUUid(base.getOid())));
+                .from(qcase)
+                .select(casesMapping.selectExpressions(qcase, options))
+                .where(qcase.ownerOid.eq(SqaleUtils.oidToUUid(base.getOid())));
         // Load all / changed containers
 
         Collection<Long> idsToFetch = casesToFetch(options);
@@ -247,9 +239,9 @@ public class QAccessCertificationCampaignMapping
         UniformItemPath path = option.getSelector() != null ? option.getSelector().getPath() : null;
         return RetrieveOption.INCLUDE.equals(getOp.getRetrieve())
                 && (path == null
-                    || path.isEmpty()
-                    || F_CASE.equivalent(path)
-       );
+                || path.isEmpty()
+                || F_CASE.equivalent(path)
+        );
     }
 
     @Override

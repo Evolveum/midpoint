@@ -517,6 +517,75 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test125ChangeTaskFullResult()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        // This one is specific to modifiable MTask.fullResult (the one in MAuditDelta is insert-only, luckily).
+        OperationResult result = createOperationResult();
+
+        given("delta changing operation result for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_RESULT).replace(new OperationResultType()
+                        .message("Result message")
+                        .status(OperationResultStatusType.SUCCESS))
+                .asObjectDelta(task1Oid);
+
+        and("test row previously having no fullResult (null)");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.fullResult).isNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType task = repositoryService
+                .getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(task.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // TODO assert that full object DOES NOT contain fullResult
+
+        and("externalized fullResult is updated");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.fullResult).isNotNull();
+    }
+
+    @Test
+    public void test126DeleteTaskFullResult()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("delta changing replacing operation result with no value task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_RESULT).replace()
+                .asObjectDelta(task1Oid);
+
+        and("test row previously having non-null fullResult");
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(originalRow.fullResult).isNotNull();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType task = repositoryService
+                .getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(task.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+
+        and("externalized column is set to null");
+        MTask row = selectObjectByOid(QTask.class, task1Oid);
+        assertThat(row.fullResult).isNull();
+    }
+
+    @Test
     public void test130ChangePolyStringAttribute()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
@@ -1607,7 +1676,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test192DeletingAllSubtypesByValuesSetsColumnToNull() throws Exception {
+    public void test192DeletingAllOrganizationsByValuesSetsColumnToNull() throws Exception {
         OperationResult result = createOperationResult();
 
         given("delta deleting all subtype values");
@@ -2914,7 +2983,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     @Test
     public void test333DeleteCertificationCaseById() throws Exception {
         OperationResult result = createOperationResult();
-        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
 
         given("delta remove case for campaign 1");
         ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
@@ -2933,8 +3001,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, retrieveWithCases(), result)
                 .asObjectable();
         assertThat(campaignObjectAfter.getCase().size()).isEqualTo(1);
-
-
     }
 
     @Test
