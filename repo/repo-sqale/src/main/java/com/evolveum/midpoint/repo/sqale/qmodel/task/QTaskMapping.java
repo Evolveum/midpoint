@@ -8,9 +8,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.*;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Function;
+import javax.xml.namespace.QName;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.ArrayPath;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,8 +28,11 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAutoScalingType;
@@ -93,6 +101,15 @@ public class QTaskMapping
     }
 
     @Override
+    public @NotNull Path<?>[] selectExpressions(
+            QTask entity, Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (SelectorOptions.hasToLoadPath(F_RESULT, options)) {
+            return new Path[] { entity.oid, entity.fullObject, entity.fullResult };
+        }
+        return new Path[] { entity.oid, entity.fullObject };
+    }
+
+    @Override
     protected QTask newAliasInstance(String alias) {
         return new QTask(alias);
     }
@@ -100,6 +117,11 @@ public class QTaskMapping
     @Override
     public MTask newRowObject() {
         return new MTask();
+    }
+
+    @Override
+    protected Collection<? extends QName> fullObjectItemsToSkip() {
+        return Collections.singletonList(F_RESULT);
     }
 
     @Override
@@ -148,6 +170,20 @@ public class QTaskMapping
         row.dependentTaskIdentifiers = stringsToArray(task.getDependent());
 
         return row;
+    }
+
+    @Override
+    public TaskType toSchemaObject(
+            Tuple row, QTask entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException {
+        TaskType task = super.toSchemaObject(row, entityPath, options);
+        // No need to check options, if it's in the tuple, we use it.
+        byte[] fullResult = row.get(entityPath.fullResult);
+        if (fullResult != null) {
+            task.setResult(
+                    parseSchemaObject(fullResult, "opResult", OperationResultType.class));
+        }
+        return task;
     }
 
     // Specific to Task, so we leave it as nested class right here.

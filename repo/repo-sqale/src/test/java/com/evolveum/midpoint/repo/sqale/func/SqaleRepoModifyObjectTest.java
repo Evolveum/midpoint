@@ -55,7 +55,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -545,12 +544,18 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(task.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        // TODO assert that full object DOES NOT contain fullResult
+        assertThat(task.getResult()).isNull(); // not stored as part of fullObject
 
         and("externalized fullResult is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.fullResult).isNotNull();
+
+        and("task with operation result can be obtained using options");
+        TaskType taskWithResult = repositoryService
+                .getObject(TaskType.class, task1Oid, retrieveGetOptions(TaskType.F_RESULT), result)
+                .asObjectable();
+        assertThat(taskWithResult.getResult()).isNotNull();
     }
 
     @Test
@@ -2771,9 +2776,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     private @NotNull Collection<SelectorOptions<GetOperationOptions>> retrieveWithCases() {
-        return SchemaService.get().getOperationOptionsBuilder()
-                .item(AccessCertificationCampaignType.F_CASE).retrieve()
-                .build();
+        return retrieveGetOptions(AccessCertificationCampaignType.F_CASE);
     }
 
     @Test

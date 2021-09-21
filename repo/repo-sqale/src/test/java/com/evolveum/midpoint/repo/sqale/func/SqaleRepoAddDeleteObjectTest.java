@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -1700,6 +1701,10 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.waitingReason).isEqualTo(TaskWaitingReasonType.OTHER_TASKS);
         assertThat(row.dependentTaskIdentifiers)
                 .containsExactlyInAnyOrder("dep-task-1", "dep-task-2");
+
+        and("stored full object does not contain operation result");
+        TaskType parsedTask = parseFullObject(row.fullObject);
+        assertThat(parsedTask.getResult()).isNull();
     }
 
     @Test
