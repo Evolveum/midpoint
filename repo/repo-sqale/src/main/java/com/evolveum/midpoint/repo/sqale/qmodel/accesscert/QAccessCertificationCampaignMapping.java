@@ -8,22 +8,31 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -146,26 +155,130 @@ public class QAccessCertificationCampaignMapping
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
         AccessCertificationCampaignType base = super.toSchemaObject(result, root, options, jdbcSession, forceFull);
-        if(forceFull || SelectorOptions.hasToLoadPath(F_CASE, options)) {
+        if(forceFull || shouldLoadCases(options)) {
             loadCases(base, options, jdbcSession, forceFull);
         }
         return base;
+    }
+
+    private boolean shouldLoadCases(Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options == null) {
+            return false;
+        }
+        for (SelectorOptions<GetOperationOptions> option : options) {
+            if (option.getOptions() == null || !RetrieveOption.INCLUDE.equals(option.getOptions().getRetrieve())) {
+                continue;
+            }
+            var path = option.getSelector() != null ? option.getSelector().getPath() : null;
+            if (path == null || path.isEmpty() || F_CASE.isSubPathOrEquivalent(path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void loadCases(AccessCertificationCampaignType base, Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession, boolean forceFull) throws SchemaException {
         QAccessCertificationCaseMapping casesMapping = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping();
         PrismContainer<AccessCertificationCaseType> cases = base.asPrismObject().findOrCreateContainer(F_CASE);
-        cases.setIncomplete(false);
         QAccessCertificationCase qcase = casesMapping.defaultAlias();
-        List<Tuple> rows = jdbcSession.newQuery()
+        var query = jdbcSession.newQuery()
             .from(qcase)
             .select(casesMapping.selectExpressions(qcase, options))
-            .where(qcase.ownerOid.eq(SqaleUtils.oidToUUid(base.getOid())))
-            .fetch();
+            .where(qcase.ownerOid.eq(SqaleUtils.oidToUUid(base.getOid())));
+        // Load all / changed containers
+
+        Collection<Long> idsToFetch = casesToFetch(options);
+        if (forceFull || idsToFetch == null) {
+            // Noop, no need to add additional condition
+            // we are fetching all cases
+            cases.setIncomplete(false);
+
+        } else if (idsToFetch.isEmpty()) {
+            return;
+        } else {
+            // We fetch only containers explicitly mentioned in retrieve options
+            query = query.where(qcase.cid.in(idsToFetch));
+        }
+        List<Tuple> rows = query.fetch();
         for (Tuple row : rows) {
             AccessCertificationCaseType c = casesMapping.toSchemaObject(row, qcase, options, jdbcSession, forceFull);
             cases.add(c.asPrismContainerValue());
         }
+    }
+
+    private @Nullable Collection<Long> casesToFetch(Collection<SelectorOptions<GetOperationOptions>> options) {
+        Set<Long> ret = new HashSet<>();
+        for (SelectorOptions<GetOperationOptions> option : options) {
+            if (isRetrieveAllCases(option)) {
+                return null;
+            }
+            Long id = caseId(option);
+            if (id != null) {
+                ret.add(id);
+            }
+        }
+        return ret;
+    }
+
+    private Long caseId(SelectorOptions<GetOperationOptions> option) {
+        GetOperationOptions getOp = option.getOptions();
+        if (getOp == null) {
+            return null;
+        }
+        if (!RetrieveOption.INCLUDE.equals(getOp.getRetrieve())) {
+            return null;
+        }
+        UniformItemPath path = option.getItemPath(null);
+        if (path == null || path.size() == 1) {
+            return null;
+        }
+        if (!F_CASE.equals(path.firstName())) {
+            return null;
+        }
+        return ItemPath.toIdOrNull(path.getSegment(1));
+    }
+
+    private boolean isRetrieveAllCases(SelectorOptions<GetOperationOptions> option) {
+        GetOperationOptions getOp = option.getOptions();
+        if (getOp == null) {
+            return false;
+        }
+        UniformItemPath path = option.getSelector() != null ? option.getSelector().getPath() : null;
+        return RetrieveOption.INCLUDE.equals(getOp.getRetrieve())
+                && (path == null
+                    || path.isEmpty()
+                    || F_CASE.equivalent(path)
+       );
+    }
+
+    @Override
+    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        Set<Long> alreadyAdded = new HashSet<>();
+        Collection<SelectorOptions<GetOperationOptions>> ret = new ArrayList<>(super.updateGetOptions(options, modifications));
+        for (ItemDelta<?, ?> modification : modifications) {
+            ItemPath modPath = modification.getPath();
+            if (modPath.isEmpty()) {
+                // Root modification is forbidden
+            }
+            if (F_CASE.isSubPath(modPath)) {
+                Object maybeId = modPath.getSegment(1);
+                if (ItemPath.isId(maybeId)) {
+                    Long id = ItemPath.toId(maybeId);
+                    if (alreadyAdded.contains(id)) {
+                        continue;
+                    }
+                    alreadyAdded.add(id);
+                    ret.addAll(SchemaService.get().getOperationOptionsBuilder()
+                            .item(modPath.allUpToIncluding(1))
+                            .retrieve()
+                            .build());
+                }
+            }
+        }
+        return ret;
+
     }
 }

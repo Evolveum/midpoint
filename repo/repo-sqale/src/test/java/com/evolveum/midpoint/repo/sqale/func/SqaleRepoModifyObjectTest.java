@@ -2912,6 +2912,32 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test333DeleteCertificationCaseById() throws Exception {
+        OperationResult result = createOperationResult();
+        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+
+        given("delta remove case for campaign 1");
+        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(ItemPath.create(AccessCertificationCampaignType.F_CASE))
+                .delete(new AccessCertificationCaseType().id(CAMPAIGN_1_CASE_2_ID).asPrismContainerValue())
+                .asObjectDelta(accessCertificationCampaign1Oid);
+        when("modifyObject is called");
+        repositoryService.modifyObject(AccessCertificationCampaignType.class,
+                accessCertificationCampaign1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("campaign cases contains only one case");
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService
+                .getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, retrieveWithCases(), result)
+                .asObjectable();
+        assertThat(campaignObjectAfter.getCase().size()).isEqualTo(1);
+
+
+    }
+
+    @Test
     public void test399DeleteAllAssignments()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
