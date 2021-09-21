@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
@@ -265,8 +264,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         then("photo is stored in row, but not in fullObject");
         MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
         assertThat(row.photo).isEqualTo(new byte[] { 0, 1, 2 });
-        UserType fullObjectUser = (UserType) prismContext.parseObject(
-                new String(row.fullObject, StandardCharsets.UTF_8)).asObjectable();
+        UserType fullObjectUser = parseFullObject(row.fullObject);
         assertThat(fullObjectUser.getJpegPhoto()).isNull();
 
         and("user obtained without special options does not have the photo");
@@ -306,14 +304,9 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         then("photo is stored in row, but not in fullObject");
         MUser row = selectObjectByOid(QUser.class, UUID.fromString(userOid));
         assertThat(row.photo).isEqualTo(new byte[] { 0, 1, 2 });
-        UserType fullObjectUser = (UserType) prismContext.parseObject(
-                new String(row.fullObject, StandardCharsets.UTF_8)).asObjectable();
+        UserType fullObjectUser = parseFullObject(row.fullObject);
         assertThat(fullObjectUser.getJpegPhoto()).isNull();
     }
-
-    // TODO test for getObject() with typical options (here or separate class?)
-    //  - ObjectOperationOptions(jpegPhoto:retrieve=INCLUDE)
-    //  - ObjectOperationOptions(/:resolveNames)
 
     @Test
     public void test300AddDiagnosticInformation() throws Exception {
