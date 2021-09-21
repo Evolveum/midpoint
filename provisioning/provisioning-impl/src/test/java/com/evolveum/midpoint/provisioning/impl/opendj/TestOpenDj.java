@@ -19,6 +19,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
@@ -3322,7 +3324,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         try {
             PropertyDelta delta =
                     prismContext.deltaFactory().property().createModificationReplaceProperty(
-                            ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")),
+                            ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "sn")),
                             prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class),
                             "doesnotmatter");
             Collection modifications = MiscUtil.createCollection(delta);

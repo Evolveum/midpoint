@@ -27,7 +27,6 @@
         </connectorRef>
         <connectorConfiguration>
         </connectorConfiguration>
-        <namespace>http://foo.bar.com/</namespace>
         <schema>
         </schema>
     </resource>

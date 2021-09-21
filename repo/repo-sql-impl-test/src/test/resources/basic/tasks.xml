@@ -1,29 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+TODO: is this even used?
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
-  -->
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-         xmlns:my="http://myself.me/schemas/whatever"
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <task oid="45c5efc3-96f2-4ea1-941f-dd8e81855e1b">
         <name>Synchronization: Embedded Test OpenDJ1</name>
         <description>
-            Definition of a live sychnronization task. It will poll changelog and pull in changes
+            Definition of a live synchronization task. It will poll changelog and pull in changes
         </description>
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>runnable</executionStatus>
+        <executionState>runnable</executionState>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
@@ -38,11 +32,11 @@
     <task oid="45c5efc3-96f2-4ea1-941f-dd8e81855e1c">
         <name>Synchronization: Embedded Test OpenDJ2</name>
         <description>
-            Definition of a live sychnronization task. It will poll changelog and pull in changes
+            Definition of a live synchronization task. It will poll changelog and pull in changes
         </description>
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>runnable</executionStatus>
+        <executionState>runnable</executionState>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
@@ -57,11 +51,11 @@
     <task oid="45c5efc3-96f2-4ea1-941f-dd8e81855e1d">
         <name>Synchronization: Embedded Test OpenDJ3</name>
         <description>
-            Definition of a live sychnronization task. It will poll changelog and pull in changes
+            Definition of a live synchronization task. It will poll changelog and pull in changes
         </description>
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>runnable</executionStatus>
+        <executionState>runnable</executionState>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
@@ -74,3 +68,4 @@
     </task>
 
 </objects>
+  -->

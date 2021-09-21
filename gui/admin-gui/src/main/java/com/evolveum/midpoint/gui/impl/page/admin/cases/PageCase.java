@@ -62,7 +62,7 @@ public class PageCase extends PageAssignmentHolderDetails<CaseType, AssignmentHo
     }
 
     @Override
-    protected OperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> wrapperModel) {
+    protected CaseOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> wrapperModel) {
         return new CaseOperationalButtonsPanel(id, wrapperModel);
     }
 

@@ -39,6 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 /**
  * Task handler for "Import from resource" task.
  * <p/>
@@ -78,7 +80,9 @@ public class ImportFromResourceTaskHandler {
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(OP_IMPORT_SINGLE_SHADOW);
         try {
-            ShadowType shadow = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result).asObjectable();
+            ShadowType shadow = provisioningService
+                    .getObject(ShadowType.class, shadowOid, createReadOnlyCollection(), task, result)
+                    .asObjectable();
             ResourceObjectClassSpecification spec = syncTaskHelper.createObjectClassSpecForShadow(shadow, task, result);
             Synchronizer synchronizer = new Synchronizer(
                     spec.getResource(),

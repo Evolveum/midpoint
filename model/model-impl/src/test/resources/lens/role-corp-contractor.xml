@@ -31,5 +31,5 @@ xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
         <action>http://midpoint.evolveum.com/xml/ns/test/authorization#work</action>
     </authorization>
     <requestable>true</requestable>
-    <roleType>job</roleType>
+    <subtype>job</subtype>
 </role>

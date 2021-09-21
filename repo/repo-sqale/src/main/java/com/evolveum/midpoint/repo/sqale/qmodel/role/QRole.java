@@ -6,11 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
-import java.sql.Types;
-
-import com.querydsl.core.types.dsl.StringPath;
-import com.querydsl.sql.ColumnMetadata;
-
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
@@ -21,12 +16,7 @@ public class QRole extends QAbstractRole<MRole> {
 
     public static final String TABLE_NAME = "m_role";
 
-    public static final ColumnMetadata ROLE_TYPE =
-            ColumnMetadata.named("roleType").ofType(Types.VARCHAR);
-
     // columns and relations
-
-    public final StringPath roleType = createString("roleType", ROLE_TYPE);
 
     public QRole(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

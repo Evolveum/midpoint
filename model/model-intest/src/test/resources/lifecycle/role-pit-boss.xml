@@ -8,11 +8,11 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Pit Boss</name>
     <description>This is non-employee role. It does NOT work as data processing basis.</description>
-    <!-- No roleType -->
+    <!-- No subtype -->
      <inducement id="1">
          <targetRef oid="a7b8de9a-20a1-84f6-b452-01254a1256e3" type="c:RoleType"/>
       </inducement>

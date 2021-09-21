@@ -1991,7 +1991,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         logger.info("start modifying user - account with weak mapping after stopping opendj.");
 
-        modifyUserReplace(USER_JOHN_WEAK_OID, UserType.F_EMPLOYEE_TYPE, task, parentResult, "boss");
+        modifyUserReplace(USER_JOHN_WEAK_OID, UserType.F_SUBTYPE, task, parentResult, "boss");
 
         assertModelShadowFutureNoFetch(shadowOid)
                 .pendingOperations()
@@ -2040,7 +2040,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PropertyDelta<String> employeeTypeDelta = prismContext.deltaFactory()
                 .property()
-                .createModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, getUserDefinition(), "boss");
+                .createModificationReplaceProperty(UserType.F_SUBTYPE, getUserDefinition(), "boss");
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory()
                 .object()
@@ -2541,7 +2541,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        ResourceAttribute attributes = ShadowUtil.getAttribute(accountModel, new QName(resourceTypeOpenDjrepo.getNamespace(), "uid"));
+        ResourceAttribute attributes = ShadowUtil.getAttribute(accountModel, new QName(MidPointConstants.NS_RI, "uid"));
         assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account
     }

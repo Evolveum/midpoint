@@ -10,7 +10,6 @@
           path: "connectorType"
           value: "com.evolveum.polygon.connector.ldap.LdapConnector"
     connectorConfiguration: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ConnectorConfigurationType> {}
-    namespace: "http://foo.bar.com/"
     schema: {}
 - '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
   user:

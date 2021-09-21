@@ -150,7 +150,7 @@
                 <ref>ri:employeeType</ref>
                 <outbound>
                     <source>
-                        <path>employeeType</path>
+                        <path>subtype</path>
                     </source>
                 </outbound>
             </attribute>
@@ -285,7 +285,7 @@
                     <q:equal>
                         <q:path>c:employeeNumber</q:path>
                         <expression>
-                        <path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
+                        <path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
                             $shadow/attributes/ri:employeeNumber</path>
                         </expression>
                     </q:equal>

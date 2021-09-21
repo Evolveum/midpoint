@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 import static java.util.Collections.emptyList;
 
 import java.util.ArrayList;
@@ -13,8 +15,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -215,8 +215,8 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
         PrismObject<SystemConfigurationType> systemConfiguration = null;
         try {
             // TODO: use SystemObjectCache instead?
-            systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                    null, result);
+            systemConfiguration = repositoryService.getObject(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), createReadOnlyCollection(), result);
         } catch (ObjectNotFoundException | SchemaException e) {
             LOGGER.warn("No system configuration: {}", e.getMessage(), e);
         }

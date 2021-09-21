@@ -39,7 +39,7 @@
     </familyName>
     <honorificPrefix>Cpt.</honorificPrefix>
     <emailAddress/>
-    <employeeType>PIRATE</employeeType>
+    <subtype>PIRATE</subtype>
     <organizationalUnit>Brethren of the Coast</organizationalUnit>
     <organizationalUnit>Davie Jones' Locker</organizationalUnit>
     <locality>Black Pearl</locality>

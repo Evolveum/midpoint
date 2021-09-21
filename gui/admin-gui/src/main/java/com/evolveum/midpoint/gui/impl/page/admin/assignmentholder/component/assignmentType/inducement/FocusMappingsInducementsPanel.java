@@ -26,7 +26,7 @@ import java.util.List;
 
 @PanelType(name = "focusMappingsInducements")
 @PanelInstance(identifier = "focusMappingsInducements",
-        applicableFor = AbstractRoleType.class,
+        applicableForType = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
         display = @PanelDisplay(label = "AssignmentType.focusMappings", order = 80))
 public class FocusMappingsInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {

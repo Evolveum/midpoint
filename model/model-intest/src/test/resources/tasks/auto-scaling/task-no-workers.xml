@@ -10,7 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-no-workers</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <activity>
         <work>
             <noOp>

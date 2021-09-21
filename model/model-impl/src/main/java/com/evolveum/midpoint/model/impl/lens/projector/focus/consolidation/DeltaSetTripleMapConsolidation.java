@@ -163,7 +163,8 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
 
                 DeltaSetTripleConsolidation<?, ?, ?> itemConsolidation =
                         new DeltaSetTripleConsolidation(itemPath, deltaSetTriple, aprioriItemDelta, valueMetadataComputer);
-                CollectionUtils.addIgnoreNull(itemDeltas, itemConsolidation.consolidateItem());
+                CollectionUtils.addIgnoreNull(itemDeltas,
+                        itemConsolidation.consolidateItem());
             }
         } catch (Throwable t) {
             result.recordFatalError(t);

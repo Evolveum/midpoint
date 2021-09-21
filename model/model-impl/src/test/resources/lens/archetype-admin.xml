@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (c) 2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="1783774f-042f-4baf-9812-8daf4ad1ce64"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Admin</name>
+    <archetypePolicy>
+        <display>
+            <label>Admin</label>
+            <pluralLabel>Admins</pluralLabel>
+            <icon>
+                <cssClass>fa fa-user-secret</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>UserType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

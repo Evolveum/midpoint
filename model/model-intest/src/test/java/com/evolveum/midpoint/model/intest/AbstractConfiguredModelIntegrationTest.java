@@ -82,7 +82,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
     protected static final File RESOURCE_DUMMY_CACHING_FILE = new File(COMMON_DIR, "resource-dummy-caching.xml");
     protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
-    protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+    protected static final String RESOURCE_DUMMY_NAMESPACE = MidPointConstants.NS_RI;
     protected static final String RESOURCE_DUMMY_DRINK = "rum";
     protected static final String RESOURCE_DUMMY_QUOTE = "Arr!";
     protected static final String RESOURCE_DUMMY_USELESS_STRING = "USEless";

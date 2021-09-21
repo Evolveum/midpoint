@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
 /**
- * Querydsl "row bean" type related to {@link QRole}.
+ * Querydsl "row bean" type related to {@link QService}.
  */
 public class MService extends MAbstractRole {
 

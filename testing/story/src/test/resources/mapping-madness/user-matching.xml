@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="99f95042-54e3-4fcf-b907-413ee6137408">
+    <name>matching</name>
+    <assignment>
+        <targetRef oid="da861c56-ec58-409a-adb1-3a95be9d2835" type="ArchetypeType"/>
+    </assignment>
+    <organization>org1</organization>
+    <organization>org2</organization>
+    <organization>org3</organization>
+    <organizationalUnit>ou1</organizationalUnit>
+    <organizationalUnit>ou2</organizationalUnit>
+    <organizationalUnit>ou3</organizationalUnit>
+</user>

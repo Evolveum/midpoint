@@ -19,12 +19,12 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
 
 @PanelType(name = "objectCollectionOption")
 @PanelInstance(identifier = "objectCollectionOption",
-        applicableFor = ObjectCollectionType.class,
-        status = ItemStatus.NOT_CHANGED,
+        applicableForType = ObjectCollectionType.class,
         display = @PanelDisplay(label = "pageObjectCollection.option.title", order = 70))
 public class ObjectCollectionOptionPanel extends AbstractObjectMainPanel<ObjectCollectionType, ObjectDetailsModels<ObjectCollectionType>> {
     private static final long serialVersionUID = 1L;

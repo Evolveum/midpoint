@@ -19,7 +19,7 @@ import org.apache.wicket.model.IModel;
 
 @PanelType(name = "policyRuleInducements")
 @PanelInstance(identifier = "policyRuleInducements",
-        applicableFor = AbstractRoleType.class,
+        applicableForType = AbstractRoleType.class,
         childOf = AbstractRoleInducementPanel.class,
         display = @PanelDisplay(label = "AssignmentType.policyRule", icon = GuiStyleConstants.CLASS_POLICY_RULES_ICON, order = 60))
 public class PolicyRuleInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {

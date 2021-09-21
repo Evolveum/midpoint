@@ -66,7 +66,6 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
     private static final File RESOURCE_BEFORE_FILE = new File(TEST_DIR, "resource-before.xml");
     private static final File RESOURCE_AFTER_FILE = new File(TEST_DIR, "resource-after.xml");
     private static final File RESOURCE_AFTER_CONST_FILE = new File(TEST_DIR, "resource-after-const.xml");
-    private static final File RESOURCE_AFTER_NS_CHANGE_FILE = new File(TEST_DIR, "resource-after-ns-change.xml");
     private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
     private static final File SYSTEM_CONFIGURATION_BEFORE_FILE = new File(TEST_DIR, "system-configuration-before.xml");
@@ -612,62 +611,6 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         resourceDelta.assertDefinitions(true);
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
-    }
-
-    @Test
-    public void testResourceNsChange() throws SchemaException, IOException {
-        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
-        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_NS_CHANGE_FILE);
-
-        resourceBefore.checkConsistence();
-        resourceAfter.checkConsistence();
-
-        // WHEN
-
-        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter);
-
-        // THEN
-
-        System.out.println("DELTA:");
-        System.out.println(resourceDelta.debugDump());
-
-        resourceDelta.checkConsistence();
-        resourceDelta.assertDefinitions(true);
-        resourceBefore.checkConsistence();
-        resourceAfter.checkConsistence();
-
-        if (!resourceDelta.isEmpty()) {
-            AssertJUnit.fail("The delta is not empty; it is " + resourceDelta);
-        }
-
-        // "post" sanity
-        assertTrue("equals does not work", resourceBefore.equals(resourceAfter));
-        assertTrue("equivalent does not work", resourceBefore.equivalent(resourceAfter));
-    }
-
-    @Test
-    public void testResourceNsChangeLiteral() throws SchemaException, IOException {
-        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
-        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_NS_CHANGE_FILE);
-
-        resourceBefore.checkConsistence();
-        resourceAfter.checkConsistence();
-
-        // WHEN
-        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, LITERAL);
-
-        // THEN
-
-        System.out.println("DELTA:");
-        System.out.println(resourceDelta.debugDump());
-
-        resourceDelta.checkConsistence();
-        resourceDelta.assertDefinitions(true);
-        resourceBefore.checkConsistence();
-        resourceAfter.checkConsistence();
-
-        assertFalse("The delta is empty", resourceDelta.isEmpty());
-
     }
 
     @Test

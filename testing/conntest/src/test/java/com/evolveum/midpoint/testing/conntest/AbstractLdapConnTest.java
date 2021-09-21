@@ -806,7 +806,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         // WHEN
         when();
-        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_EMPLOYEE_TYPE, task, result, "Pirate");
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_SUBTYPE, task, result, "Pirate");
 
         // THEN
         then();
@@ -831,7 +831,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         // WHEN
         when();
-        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_EMPLOYEE_TYPE, task, result, "Pirate");
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_SUBTYPE, task, result, "Pirate");
 
         // THEN
         then();
@@ -856,7 +856,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         // WHEN
         when();
-        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_EMPLOYEE_TYPE, task, result, "PIRATE");
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_SUBTYPE, task, result, "PIRATE");
 
         // THEN
         then();

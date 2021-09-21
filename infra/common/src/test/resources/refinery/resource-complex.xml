@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,7 @@
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
@@ -22,7 +22,7 @@
     <connectorConfiguration>
         <icfcldap:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
             xmlns:my="http://myself.me/schemas/whatever">
@@ -47,7 +47,7 @@
         </icfcldap:configurationProperties>
         <icfc:connectorPoolConfiguration xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
             xmlns:my="http://myself.me/schemas/whatever">
@@ -59,16 +59,15 @@
         </icfc:connectorPoolConfiguration>
         <icfc:producerBufferSize xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
             xmlns:my="http://myself.me/schemas/whatever">100</icfc:producerBufferSize>
     </connectorConfiguration>
-    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
     <schema>
       <definition>
         <xsd:schema elementFormDefault="qualified"
-            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
@@ -425,7 +424,7 @@
             <correlation>
                 <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+                    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                     xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
                     <path>name</path>
                     <c:expression>

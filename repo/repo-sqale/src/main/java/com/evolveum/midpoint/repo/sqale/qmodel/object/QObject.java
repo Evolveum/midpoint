@@ -62,6 +62,8 @@ public class QObject<R extends MObject> extends FlexibleRelationalPathBase<R> {
             ColumnMetadata.named("policySituations").ofType(Types.ARRAY);
     public static final ColumnMetadata SUBTYPES =
             ColumnMetadata.named("subtypes").ofType(Types.ARRAY);
+    public static final ColumnMetadata FULL_TEXT_INFO =
+            ColumnMetadata.named("fullTextInfo").ofType(Types.VARCHAR);
     public static final ColumnMetadata EXT = ColumnMetadata.named("ext").ofType(JSONB_TYPE);
     // metadata columns
     public static final ColumnMetadata CREATOR_REF_TARGET_OID =
@@ -106,6 +108,7 @@ public class QObject<R extends MObject> extends FlexibleRelationalPathBase<R> {
             createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
     public final ArrayPath<String[], String> subtypes =
             createArray("subtypes", String[].class, SUBTYPES);
+    public final StringPath fullTextInfo = createString("fullTextInfo", FULL_TEXT_INFO);
     public final JsonbPath ext = addMetadata(add(new JsonbPath(forProperty("ext"))), EXT);
     // metadata attributes
     public final UuidPath creatorRefTargetOid =

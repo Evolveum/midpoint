@@ -18,10 +18,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.DelegationTargetLimitationDialog;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemSelectorType;
@@ -33,13 +35,12 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -136,7 +137,12 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                nameClickPerformed(target);
+                if (delegatedToMe){
+                    String oid = DelegationEditorPanel.this.getModelObject().getTargetRef().getOid();
+                    navigateToDetails(target, oid);
+                } else {
+                    nameClickPerformed(target);
+                }
             }
         };
         headerRow.add(name);
@@ -173,7 +179,12 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                nameClickPerformed(target);
+                if (delegatedToMe) {
+                    nameClickPerformed(target);
+                } else {
+                    String oid = DelegationEditorPanel.this.getModelObject().getDelegationOwner().getOid();
+                    navigateToDetails(target, oid);
+                }
             }
         };
         headerRow.add(delegatedToName);
@@ -202,6 +213,25 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         headerRow.add(expandButton);
+    }
+
+    private void navigateToDetails(AjaxRequestTarget target, String oid) {
+        if (oid == null) {
+            nameClickPerformed(target);
+            return;
+        }
+
+        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("DelegationEditorPanel.navigate.confirmed", getUserDisplayName())) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                PageParameters params = new PageParameters();
+                params.add(OnePageParameterEncoder.PARAMETER, oid);
+                Class<? extends PageBase> detailsPageClass = WebComponentUtil.getObjectDetailsPage(UserType.class);
+                getPageBase().navigateToNext(detailsPageClass, params);
+            }
+        };
+        getPageBase().showMainPopup(confirmationPanel, target);
     }
 
     protected void initBodyLayout(WebMarkupContainer body) {
@@ -528,12 +558,18 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
     private String getUserDisplayName(){
         String displayName = "";
-        UserType delegationUser = getModelObject().getDelegationOwner();
-        if (getModelObject().getDelegationOwner() != null) {
-            if (delegationUser.getFullName() != null && StringUtils.isNotEmpty(delegationUser.getFullName().getOrig())) {
-                displayName = delegationUser.getFullName().getOrig() + " (" + delegationUser.getName().getOrig() + ")";
-            } else {
-                displayName = delegationUser.getName() != null ? delegationUser.getName().getOrig() : "";
+        if (delegatedToMe) {
+            OperationResult result = new OperationResult(OPERATION_GET_TARGET_REF_NAME);
+            Task task = getPageBase().createSimpleTask(OPERATION_GET_TARGET_REF_NAME);
+            displayName = WebModelServiceUtils.resolveReferenceName(getModelObject().getTargetRef(), getPageBase(), task, result);
+        } else {
+            UserType delegationUser = getModelObject().getDelegationOwner();
+            if (getModelObject().getDelegationOwner() != null) {
+                if (delegationUser.getFullName() != null && StringUtils.isNotEmpty(delegationUser.getFullName().getOrig())) {
+                    displayName = delegationUser.getFullName().getOrig() + " (" + delegationUser.getName().getOrig() + ")";
+                } else {
+                    displayName = delegationUser.getName() != null ? delegationUser.getName().getOrig() : "";
+                }
             }
         }
         return displayName;

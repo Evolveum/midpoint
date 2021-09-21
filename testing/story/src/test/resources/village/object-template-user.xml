@@ -102,7 +102,7 @@
         <name>role assignment</name>
         <authoritative>true</authoritative>
         <source>
-            <path>employeeType</path>
+            <path>subtype</path>
         </source>
         <expression>
             <assignmentTargetSearch>
@@ -111,7 +111,7 @@
                     <q:equal>
                         <q:path>name</q:path>
                         <expression>
-                            <path>$employeeType</path>
+                            <path>$subtype</path>
                         </expression>
                     </q:equal>
                 </filter>

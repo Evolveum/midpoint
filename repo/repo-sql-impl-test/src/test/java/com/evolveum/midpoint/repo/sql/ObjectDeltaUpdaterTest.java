@@ -447,11 +447,11 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test170ModifyEmployeeTypeAndMetadataCreateChannel() throws Exception {
-        OperationResult result = new OperationResult("test170ModifyEmployeeTypeAndMetadataCreateChannel");
+    public void test170ModifySubtypeAndMetadataCreateChannel() throws Exception {
+        OperationResult result = new OperationResult("test170ModifySubtypeAndMetadataCreateChannel");
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_EMPLOYEE_TYPE)
+                .item(UserType.F_SUBTYPE)
                 .add("one", "two")
                 .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
                 .replace("asdf")
@@ -464,9 +464,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         /*
          - select oid from m_object where oid = ? for update
          - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
-         - select employeety0_.user_oid as user_oid1_44_0_, employeety0_.employeeType as employee2_44_0_ from m_user_employee_type employeety0_ where employeety0_.user_oid=?
+         - select ... subtype
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
-         - insert into m_user_employee_type (user_oid, employeeType) values (?, ?)
+         - insert into m_user_subtype (user_oid, subtype) values (?, ?)
          */
 
         if (isUsingH2()) {
@@ -476,7 +476,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         try (Session session = factory.openSession()) {
             RUser u = session.get(RUser.class, userOid);
             AssertJUnit.assertEquals("asdf", u.getCreateChannel());
-            AssertJUnit.assertEquals(u.getEmployeeType(), new HashSet<>(Arrays.asList("one", "two")));
+            AssertJUnit.assertEquals(u.getSubtype(), new HashSet<>(Arrays.asList("one", "two")));
         }
     }
 

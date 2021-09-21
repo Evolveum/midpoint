@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 import static java.util.Collections.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
@@ -728,7 +730,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             }
         };
 
-        modelObjectResolver.searchIterative(ShadowType.class, query, null, handler, task, result);
+        modelObjectResolver.searchIterative(ShadowType.class, query, createReadOnlyCollection(), handler, task, result);
 
         return isUniqueHolder.getValue();
     }
@@ -1681,13 +1683,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         } else {
             newTask = new TaskType(prismContext);
             newTask.setName(PolyStringType.fromOrig("Execute changes"));
-            newTask.setRecurrence(TaskRecurrenceType.SINGLE);
         }
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
-        newTask.setExecutionStatus(RUNNABLE);
+        newTask.setExecutionState(RUNNABLE);
         newTask.setSchedulingState(TaskSchedulingStateType.READY);
         newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
         if (deltas.isEmpty()) {

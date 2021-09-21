@@ -8,7 +8,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Piracy Org Metarole</name>
     <description>Metarole for all piracy orgs (org-caribbean.xml)</description>
-    <inducement xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000704">
+    <inducement xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
         <description>Yellow account for ordinary org members</description>
         <construction>
             <description>yellow</description>

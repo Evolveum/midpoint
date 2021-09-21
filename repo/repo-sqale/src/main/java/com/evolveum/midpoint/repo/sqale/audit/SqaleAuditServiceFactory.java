@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTableMetadata;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -115,6 +116,8 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
         SqaleRepoContext repositoryContext =
                 new SqaleRepoContext(config, dataSource, schemaService, mappingRegistry);
+        repositoryContext.setQuerydslSqlListener(new SqlLogger());
+
         // Registered mapping needs repository context which needs registry - now we have both:
         mappingRegistry
                 .register(AuditEventRecordType.COMPLEX_TYPE,

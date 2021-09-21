@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -10,16 +10,16 @@
     <filter>
         <or>
             <substring>
-                <path>c:employeeType</path>
+                <path>c:subtype</path>
                 <value>A</value>
             </substring>
             <substring>
-                <path>c:employeeType</path>
+                <path>c:subtype</path>
                 <value>B</value>
                 <anchorStart>true</anchorStart>
             </substring>
             <substring>
-                <path>c:employeeType</path>
+                <path>c:subtype</path>
                 <value>C</value>
                 <anchorEnd>true</anchorEnd>
             </substring>

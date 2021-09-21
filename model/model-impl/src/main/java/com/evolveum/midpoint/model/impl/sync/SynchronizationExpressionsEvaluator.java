@@ -177,6 +177,7 @@ public class SynchronizationExpressionsEvaluator {
 
         try {
             LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}", q.debugDumpLazily());
+            // TODO read-only later
             return repositoryService.searchObjects(focusType, q, null, result);
         } catch (RuntimeException ex) {
             LoggingUtils.logException(LOGGER,

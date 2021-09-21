@@ -100,7 +100,7 @@
                     <value>suspended</value>
                 </expression>
                 <target>
-                    <c:path>executionStatus</c:path>
+                    <c:path>executionState</c:path>
                 </target>
             </mapping>
         </focusMappings>

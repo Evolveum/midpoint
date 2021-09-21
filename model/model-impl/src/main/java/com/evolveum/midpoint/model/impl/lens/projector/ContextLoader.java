@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.schema.result.OperationResult.DEFAULT;
 
@@ -393,8 +394,8 @@ public class ContextLoader implements ProjectorProcessor {
 
             PrismObject<O> object;
             if (ObjectTypes.isClassManagedByProvisioning(focusContext.getObjectTypeClass())) {
-                object = provisioningService.getObject(focusContext.getObjectTypeClass(), focusOid,
-                        SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+                var options = createNoFetchCollection(); // or also readonly?
+                object = provisioningService.getObject(focusContext.getObjectTypeClass(), focusOid, options, task, result);
                 setLoadedFocusInTrace(object, trace);
                 result.addReturnComment("Loaded via provisioning");
             } else {
@@ -402,8 +403,10 @@ public class ContextLoader implements ProjectorProcessor {
                 // Always load a complete object here, including the not-returned-by-default properties.
                 // This is temporary measure to make sure that the mappings will have all they need.
                 // See MID-2635
-                Collection<SelectorOptions<GetOperationOptions>> options =
-                        SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                Collection<SelectorOptions<GetOperationOptions>> options = SchemaService.get().getOperationOptionsBuilder()
+                        .retrieve()
+                        //.readOnly() [not yet]
+                        .build();
                 object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, options, result);
                 setLoadedFocusInTrace(object, trace);
                 result.addReturnComment("Loaded from repository");
@@ -495,7 +498,7 @@ public class ContextLoader implements ProjectorProcessor {
 
         if (context.getFocusContext() != null) {
             if (context.getFocusContext().getArchetypePolicyType() == null) {
-                ArchetypePolicyType archetypePolicy = determineArchetypePolicy(context, task, result);
+                ArchetypePolicyType archetypePolicy = determineArchetypePolicy(context, result);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Selected archetype policy:\n{}",
                             archetypePolicy==null?null:archetypePolicy.asPrismContainerValue().debugDump(1));
@@ -529,7 +532,8 @@ public class ContextLoader implements ProjectorProcessor {
         return systemConfiguration;
     }
 
-    private <F extends ObjectType> ArchetypePolicyType determineArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+    private <F extends ObjectType> ArchetypePolicyType determineArchetypePolicy(LensContext<F> context, OperationResult result)
+            throws SchemaException, ConfigurationException {
         if (!canProcessArchetype(context)) {
             return null;
         }
@@ -560,11 +564,11 @@ public class ContextLoader implements ProjectorProcessor {
         context.getFocusContext().setArchetypes(PrismObject.asObjectableList(archetypes));
     }
 
-    public <F extends ObjectType> void updateArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+    public <F extends ObjectType> void updateArchetypePolicy(LensContext<F> context, OperationResult result) throws SchemaException, ConfigurationException {
         if (context.getFocusContext() == null) {
             return;
         }
-        ArchetypePolicyType newArchetypePolicy = determineArchetypePolicy(context, task, result);
+        ArchetypePolicyType newArchetypePolicy = determineArchetypePolicy(context, result);
         if (newArchetypePolicy != context.getFocusContext().getArchetypePolicyType()) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Changed policy configuration because of changed subtypes:\n{}",
@@ -612,7 +616,9 @@ public class ContextLoader implements ProjectorProcessor {
         if (!java.util.Objects.equals(currentOid, newOid)) {
             ObjectTemplateType template;
             if (newOid != null) {
-                template = cacheRepositoryService.getObject(ObjectTemplateType.class, newOid, null, result).asObjectable();
+                template = cacheRepositoryService
+                        .getObject(ObjectTemplateType.class, newOid, createReadOnlyCollection(), result)
+                        .asObjectable();
             } else {
                 template = null;
             }
@@ -724,7 +730,8 @@ public class ContextLoader implements ProjectorProcessor {
         // We need to fetch from provisioning and not repository so the correct definition will be set.
         return schemaService.getOperationOptionsBuilder()
                 .noFetch()
-                .pointInTime(PointInTimeType.FUTURE)
+                .futurePointInTime()
+                //.readOnly() [not yet]
                 .build();
     }
 
@@ -740,12 +747,14 @@ public class ContextLoader implements ProjectorProcessor {
             //  (Fortunately, we ignore any exceptions but anyway: FUTURE is used in other cases in this class.)
             options = schemaService.getOperationOptionsBuilder()
                     .forceRetry()
+                    .readOnly()
                     .build();
         } else {
             // This ensures only minimal processing, e.g. the quick shadow refresh is done.
             options = schemaService.getOperationOptionsBuilder()
                     .noFetch()
-                    .pointInTime(PointInTimeType.FUTURE)
+                    .futurePointInTime()
+                    .readOnly()
                     .build();
         }
         try {
@@ -850,9 +859,12 @@ public class ContextLoader implements ProjectorProcessor {
                     try {
                         // Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
                         // We need to fetch from provisioning and not repository so the correct definition will be set.
-                        GetOperationOptions rootOpts = GetOperationOptions.createNoFetch();
-                        rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
-                        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOpts);
+                        var options =
+                                SchemaService.get().getOperationOptionsBuilder()
+                                        .noFetch()
+                                        .futurePointInTime()
+                                        //.readOnly() [not yet]
+                                        .build();
                         shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
                         // Create account context from retrieved object
                         projectionContext = getOrCreateAccountContext(context, shadow, task, result).context; // TODO what about shadowSet etc?
@@ -905,7 +917,11 @@ public class ContextLoader implements ProjectorProcessor {
                     try {
                         // Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
                         // We need to fetch from provisioning and not repository so the correct definition will be set.
-                        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+                        Collection<SelectorOptions<GetOperationOptions>> options =
+                                SchemaService.get().getOperationOptionsBuilder()
+                                        .noFetch()
+                                        //.readOnly() [not yet]
+                                        .build();
                         shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
                         // Create account context from retrieved object
                         projectionContext = getOrCreateAccountContext(context, shadow, task, result).context; // TODO what about shadowSet etc?
@@ -916,7 +932,11 @@ public class ContextLoader implements ProjectorProcessor {
                         try {
                             LOGGER.trace("Broken linkRef? We need to try again with raw options, because the error could be "
                                     + "thrown because of non-existent resource", e);
-                            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+                            Collection<SelectorOptions<GetOperationOptions>> options =
+                                    SchemaService.get().getOperationOptionsBuilder()
+                                            .raw()
+                                            //.readOnly() [not yet]
+                                            .build();
                             shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
                             projectionContext = getOrCreateEmptyThombstoneProjectionContext(context, oid);
                             projectionContext.setFresh(true);
@@ -1001,11 +1021,11 @@ public class ContextLoader implements ProjectorProcessor {
                     }
                     // Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account
                     // here. We need to fetch from provisioning and not repository so the correct definition will be set.
-                    GetOperationOptions option = GetOperationOptions.createNoFetch();
-                    option.setDoNotDiscovery(true);
-                    option.setPointInTimeType(PointInTimeType.FUTURE);
-                    Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(option);
-
+                    var options = SchemaService.get().getOperationOptionsBuilder()
+                            .doNotDiscovery()
+                            .futurePointInTime()
+                            //.readOnly() [not yet]
+                            .build();
                     try {
 
                         shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
@@ -1093,9 +1113,11 @@ public class ContextLoader implements ProjectorProcessor {
             // Chances are that the old object is already deleted (e.g. during rename). So let's be
             // slightly inefficient here and check for resource object existence.
             try {
-                GetOperationOptions rootOpt = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
-                rootOpt.setDoNotDiscovery(true);
-                Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(rootOpt);
+                var opts = SchemaService.get().getOperationOptionsBuilder()
+                        .doNotDiscovery()
+                        .futurePointInTime()
+                        //.readOnly() [not yet]
+                        .build();
                 LOGGER.trace("Projection conflict detected, existing: {}, new {}", mainCtx.getOid(), projection.getOid());
                 PrismObject<ShadowType> existingShadow = provisioningService.getObject(ShadowType.class, mainCtx.getOid(), opts, task, result);
                 // Maybe it is the other way around
@@ -1430,7 +1452,8 @@ public class ContextLoader implements ProjectorProcessor {
 
     private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions(LensProjectionContext projContext) {
         GetOperationOptionsBuilder builder = schemaService.getOperationOptionsBuilder()
-                .pointInTime(PointInTimeType.FUTURE)
+                //.readOnly() [not yet]
+                .futurePointInTime()
                 .allowNotFound();
 
         LensContext<?> context = projContext.getLensContext();
@@ -1546,6 +1569,7 @@ public class ContextLoader implements ProjectorProcessor {
             }
 
             GetOperationOptions getOptions = GetOperationOptions.createAllowNotFound();
+            //getOptions.setReadOnly(true);
             getOptions.setPointInTimeType(PointInTimeType.FUTURE);
             if (projCtx.isDoReconciliation()) {
                 getOptions.setForceRefresh(true);
@@ -1676,7 +1700,8 @@ public class ContextLoader implements ProjectorProcessor {
             // This linkRef is new, it is not in the existing lens context. Is it matching?
             PrismObject<ShadowType> newLinkRepoShadow;
             try {
-                newLinkRepoShadow = cacheRepositoryService.getObject(ShadowType.class, linkRef.getOid(), null, result);
+                Collection<SelectorOptions<GetOperationOptions>> options = null; // or createReadOnlyCollection() later
+                newLinkRepoShadow = cacheRepositoryService.getObject(ShadowType.class, linkRef.getOid(), options, result);
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't resolve {}, unlinking it from the focus {}",
                         e, linkRef.getOid(), reloadedFocus);
@@ -1687,6 +1712,7 @@ public class ContextLoader implements ProjectorProcessor {
             }
 
             if (ShadowUtil.matches(newLinkRepoShadow, projCtx.getResourceShadowDiscriminator())) {
+                //newLinkRepoShadow = newLinkRepoShadow.clone();
                 LOGGER.trace("Found new matching link: {}, updating projection context", newLinkRepoShadow);
                 LOGGER.trace("Applying definition from provisioning first."); // MID-3317
                 provisioningService.applyDefinition(newLinkRepoShadow, task, result);
@@ -1719,7 +1745,8 @@ public class ContextLoader implements ProjectorProcessor {
             return null;
         }
         try {
-            return cacheRepositoryService.getObject(focusClass, focusContext.getOid(), null, result);
+            Collection<SelectorOptions<GetOperationOptions>> options = null; // or createReadOnlyCollection() later
+            return cacheRepositoryService.getObject(focusClass, focusContext.getOid(), options, result);
         } catch (ObjectNotFoundException e) {
             if (focusContext.isDelete()) {
                 // This may be OK. This may be later wave and the focus may be already deleted.

@@ -484,9 +484,6 @@ public class ResourceTypeUtil {
 
     @NotNull
     public static String getResourceNamespace(ResourceType resourceType) {
-        if (resourceType.getNamespace() != null) {
-            return resourceType.getNamespace();
-        }
         return MidPointConstants.NS_RI;
     }
 

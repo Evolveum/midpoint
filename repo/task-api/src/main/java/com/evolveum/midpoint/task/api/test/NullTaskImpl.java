@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -90,8 +89,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskRecurrenceType getRecurrence() {
+    public @NotNull TaskRecurrenceType getRecurrence() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setSchedule(ScheduleType schedule) {
     }
 
     @Override
@@ -352,11 +355,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void makeSingle() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String getNode() {
         throw new UnsupportedOperationException();
     }
@@ -469,11 +467,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void setThreadStopAction(ThreadStopActionType value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void makeSingle(ScheduleType schedule) {
         throw new UnsupportedOperationException();
     }
 

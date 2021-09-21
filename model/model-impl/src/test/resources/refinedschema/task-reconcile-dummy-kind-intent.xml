@@ -22,7 +22,7 @@
 
     <taskIdentifier>bed15976-e604-11e5-a181-af0dade5e5a0</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>suspended</executionStatus>
+    <executionState>suspended</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>

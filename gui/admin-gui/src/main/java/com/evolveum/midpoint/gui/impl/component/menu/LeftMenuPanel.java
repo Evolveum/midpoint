@@ -512,32 +512,19 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
     private MainMenuItem createArchetypesItems() {
         MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.archetypes", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON);
-        item.addMenuItem(createObjectListPageMenuItem("PageAdmin.menu.top.archetypes.list", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class));
-        addCollectionsMenuItems(item, ArchetypeType.COMPLEX_TYPE, PageArchetypes.class);
-
-        createFocusPageNewEditMenu(item, "PageAdmin.menu.top.archetypes.new",
-                "PageAdmin.menu.top.archetypes.edit", PageArchetype.class);
-
+        createBasicAssignmentHolderMenuItems(item, PageTypes.ARCHETYPE);
         return item;
     }
 
     private MainMenuItem createObjectsCollectionItems() {
-        MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.objectCollections", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON
-        );
-        item.addMenuItem(createObjectListPageMenuItem("PageAdmin.menu.top.objectCollections.list", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class));
-        createFocusPageNewEditMenu(item, "PageAdmin.menu.top.objectCollections.new",
-                "PageAdmin.menu.top.objectCollections.edit", PageObjectCollection.class);
-
+        MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.objectCollections", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
+        createBasicAssignmentHolderMenuItems(item, PageTypes.OBJECT_COLLECTION);
         return item;
     }
 
     private MainMenuItem createObjectTemplatesItems() {
-        MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON
-        );
-        item.addMenuItem(createObjectListPageMenuItem("PageAdmin.menu.top.objectTemplates.list", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON, PageObjectTemplates.class));
-        createFocusPageNewEditMenu(item, "PageAdmin.menu.top.objectTemplates.new",
-                "PageAdmin.menu.top.objectTemplates.edit", PageObjectTemplate.class);
-
+        MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON);
+        createBasicAssignmentHolderMenuItems(item, PageTypes.OBJECT_TEMPLATE);
         return item;
     }
 

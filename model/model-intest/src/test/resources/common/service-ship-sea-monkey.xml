@@ -9,5 +9,5 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>The Sea Monkey</name>
-    <serviceType>ship</serviceType>
+    <subtype>ship</subtype>
 </service>

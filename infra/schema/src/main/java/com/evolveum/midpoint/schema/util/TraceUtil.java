@@ -17,7 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NamedValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-import org.jetbrains.annotations.NotNull;
+import com.google.common.base.MoreObjects;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -100,7 +101,8 @@ public class TraceUtil {
         return isAtLeast(level, TracingLevelType.NORMAL);
     }
 
-    private static boolean isAtLeast(TracingLevelType level, @NotNull TracingLevelType threshold) {
-        return level != null && level.ordinal() >= threshold.ordinal();
+    public static boolean isAtLeast(@Nullable TracingLevelType level, @Nullable TracingLevelType threshold) {
+        return MoreObjects.firstNonNull(level, TracingLevelType.OFF).ordinal() >=
+                MoreObjects.firstNonNull(threshold, TracingLevelType.OFF).ordinal();
     }
 }

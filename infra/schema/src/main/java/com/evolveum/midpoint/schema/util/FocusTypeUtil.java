@@ -33,15 +33,30 @@ public class FocusTypeUtil {
         return createTargetAssignment(roleOid, RoleType.COMPLEX_TYPE);
     }
 
-    public static AssignmentType createOrgAssignment(String roleOid) {
-        return createTargetAssignment(roleOid, OrgType.COMPLEX_TYPE);
+    public static AssignmentType createOrgAssignment(String orgOid) {
+        return createTargetAssignment(orgOid, OrgType.COMPLEX_TYPE);
+    }
+
+    public static AssignmentType createArchetypeAssignment(String archetypeOid) {
+        return createTargetAssignment(archetypeOid, ArchetypeType.COMPLEX_TYPE);
+    }
+
+    public static <AH extends AssignmentHolderType> void addArchetypeAssignments(PrismObject<AH> object, List<ObjectReferenceType> archetypeRefs) {
+        List<AssignmentType> archetypeAssignments = archetypeRefs.stream()
+                .map(archetypeRef -> createTargetAssignment(archetypeRef))
+                .collect(Collectors.toList());
+        object.asObjectable().getAssignment().addAll(archetypeAssignments);
     }
 
     public static AssignmentType createTargetAssignment(String targetOid, QName type) {
-        AssignmentType assignmentType = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
         targetRef.setOid(targetOid);
         targetRef.setType(type);
+        return createTargetAssignment(targetRef);
+    }
+
+    public static AssignmentType createTargetAssignment(ObjectReferenceType targetRef) {
+        AssignmentType assignmentType = new AssignmentType();
         assignmentType.setTargetRef(targetRef);
         return assignmentType;
     }
@@ -173,28 +188,7 @@ public class FocusTypeUtil {
         if (object == null) {
             return emptyList();
         }
-
-        List<String> subtypes = object.asObjectable().getSubtype();
-        if (!subtypes.isEmpty()) {
-            return subtypes;
-        }
-
-        if (object.canRepresent(UserType.class)) {
-            return (((UserType)object.asObjectable()).getEmployeeType());
-        }
-        if (object.canRepresent(OrgType.class)) {
-            return (((OrgType)object.asObjectable()).getOrgType());
-        }
-        if (object.canRepresent(RoleType.class)) {
-            // TODO why not return simply .getRoleType() [pmed]
-            List<String> roleTypes = new ArrayList<>(1);
-            roleTypes.add((((RoleType)object.asObjectable()).getRoleType()));
-            return roleTypes;
-        }
-        if (object.canRepresent(ServiceType.class)) {
-            return (((ServiceType)object.asObjectable()).getServiceType());
-        }
-        return emptyList();
+        return object.asObjectable().getSubtype();
     }
 
     public static <O extends ObjectType> boolean hasSubtype(PrismObject<O> object, String subtype) {

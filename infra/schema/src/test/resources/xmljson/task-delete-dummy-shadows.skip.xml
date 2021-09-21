@@ -10,7 +10,7 @@
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
     xmlns:modelext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
@@ -37,7 +37,7 @@
     </extension>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete/handler-3</handlerUri>
     <recurrence>single</recurrence>

@@ -12,7 +12,7 @@
     <name>Poker</name>
     <displayName>Poker</displayName>
     <identifier>0001</identifier>
-    <orgType>entertainment</orgType>
+    <subtype>entertainment</subtype>
     <assignment>
         <targetRef oid="10000000-ent0-0000-0000-000000006601" type="RoleType" />
      </assignment>

@@ -20,11 +20,11 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 @PanelType(name = "domain")
 @PanelInstance(identifier = "domain",
-        applicableFor = ObjectCollectionType.class,
-        status = ItemStatus.NOT_CHANGED,
+        applicableForType = ObjectCollectionType.class,
         display = @PanelDisplay(label = "pageObjectCollection.domain.title", order = 60))
 public class ObjectCollectionDomainPanel extends AbstractObjectMainPanel<ObjectCollectionType, ObjectDetailsModels<ObjectCollectionType>> {
     private static final long serialVersionUID = 1L;

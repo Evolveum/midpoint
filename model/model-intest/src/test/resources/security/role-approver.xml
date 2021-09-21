@@ -124,7 +124,7 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>serviceType</item>
+        <item>subtype</item>
     </authorization>
     <subtype>system</subtype>
 </role>

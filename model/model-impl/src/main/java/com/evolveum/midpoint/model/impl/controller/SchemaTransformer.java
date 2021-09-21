@@ -61,6 +61,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType.*;
 
 /**
@@ -683,7 +684,8 @@ public class SchemaTransformer {
         if (objectTemplateRef == null || StringUtils.isEmpty(objectTemplateRef.getOid())) {
             return null;
         }
-        PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
+        PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class,
+                objectTemplateRef.getOid(), createReadOnlyCollection(), result);
         return template.asObjectable();
     }
 
@@ -700,7 +702,8 @@ public class SchemaTransformer {
         if (objectTemplateRef == null) {
             return null;
         }
-        PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
+        PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(
+                ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), result);
         return template.asObjectable();
     }
 
@@ -709,7 +712,8 @@ public class SchemaTransformer {
             return;
         }
         for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
-            PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, includeRef.getOid(), null, result);
+            PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class,
+                    includeRef.getOid(), createReadOnlyCollection(), result);
             applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), result);
         }
         for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
@@ -734,7 +738,8 @@ public class SchemaTransformer {
             return;
         }
         for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
-            PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, includeRef.getOid(), null, result);
+            PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(
+                    ObjectTemplateType.class, includeRef.getOid(), createReadOnlyCollection(), result);
             applyObjectTemplateToObject(object, subTemplate.asObjectable(), result);
         }
         for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {

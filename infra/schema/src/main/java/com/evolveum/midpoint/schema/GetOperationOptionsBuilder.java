@@ -48,6 +48,9 @@ public interface GetOperationOptionsBuilder {
     GetOperationOptionsBuilder allowNotFound(Boolean value);
     GetOperationOptionsBuilder readOnly();
     GetOperationOptionsBuilder readOnly(Boolean value);
+    default GetOperationOptionsBuilder futurePointInTime() {
+        return pointInTime(PointInTimeType.FUTURE);
+    }
     GetOperationOptionsBuilder pointInTime(PointInTimeType value);
     GetOperationOptionsBuilder staleness(Long value);
     GetOperationOptionsBuilder forceRefresh();

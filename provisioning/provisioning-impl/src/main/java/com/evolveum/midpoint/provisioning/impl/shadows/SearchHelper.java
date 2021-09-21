@@ -386,10 +386,12 @@ class SearchHelper {
     }
 
     private SearchResultMetadata searchShadowsInRepositoryIteratively(final ProvisioningContext ctx,
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> originalOptions,
             final ResultHandler<ShadowType> shadowHandler, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException {
+        // This is because we need to apply definitions later
+        var options = GetOperationOptions.updateToReadWrite(originalOptions);
         ResultHandler<ShadowType> repoHandler = createRepoShadowHandler(ctx, options, shadowHandler);
         return shadowManager.searchShadowsIterative(ctx, query, options, repoHandler, parentResult);
     }
@@ -425,9 +427,11 @@ class SearchHelper {
 
     @NotNull
     private SearchResultList<PrismObject<ShadowType>> searchShadowsInRepository(ProvisioningContext ctx, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            Collection<SelectorOptions<GetOperationOptions>> originalOptions, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException {
+        // This is because we need to apply definitions later
+        var options = GetOperationOptions.updateToReadWrite(originalOptions);
         SearchResultList<PrismObject<ShadowType>> objects = shadowManager.searchShadows(ctx, query, options, parentResult);
         ResultHandler<ShadowType> repoHandler = createRepoShadowHandler(ctx, options, null);
         parentResult.setSummarizeSuccesses(true);

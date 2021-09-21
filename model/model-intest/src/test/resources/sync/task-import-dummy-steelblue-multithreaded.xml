@@ -24,9 +24,8 @@
 
     <taskIdentifier>d553eec5-0e03-4efd-80ba-18e6715c26aa</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="8d97261a-ef5e-4199-9700-670577441c7f" type="ResourceType"/>
-    <recurrence>single</recurrence>
 </task>

@@ -398,16 +398,20 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
     }
 
     protected void assertResource(PrismObject<ResourceType> resource, boolean checkConsistence, boolean checkJaxb, boolean isSimple)
-            throws SchemaException, JAXBException {
-        if (checkConsistence) {
-            resource.checkConsistence();
-        }
-        assertResourcePrism(resource, isSimple);
-        assertResourceJaxb(resource.asObjectable(), isSimple);
+            throws Exception {
+        try {
+            if (checkConsistence) {
+                resource.checkConsistence();
+            }
+            assertResourcePrism(resource, isSimple);
+            assertResourceJaxb(resource.asObjectable(), isSimple);
 
-        if (checkJaxb) {
-//            serializeDom(resource);
-            //serializeJaxb(resource);
+            if (checkJaxb) {
+                //            serializeDom(resource);
+                //serializeJaxb(resource);
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException("Test failure for "+resource+" "+language+"/"+namespaces+": "+e.getMessage(), e);
         }
     }
 
@@ -427,11 +431,6 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
         assertPropertyValue(resource, "name", PrismTestUtil.createPolyString("Embedded Test OpenDJ"));
         assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
-
-        if (!isSimple) {
-            assertPropertyValue(resource, "namespace", TestConstants.RESOURCE_NAMESPACE);
-            assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 0, 1);
-        }
 
         PrismReference connectorRef = resource.findReference(ResourceType.F_CONNECTOR_REF);
         assertNotNull("No connectorRef", connectorRef);
@@ -529,11 +528,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
     private void assertResourceJaxb(ResourceType resourceType, boolean isSimple) throws SchemaException {
         assertEquals("Wrong oid (JAXB)", TestConstants.RESOURCE_OID, resourceType.getOid());
         assertEquals("Wrong name (JAXB)", PrismTestUtil.createPolyStringType("Embedded Test OpenDJ"), resourceType.getName());
-        String expectedNamespace = TestConstants.RESOURCE_NAMESPACE;
-        if (isSimple) {
-            expectedNamespace = MidPointConstants.NS_RI;
-        }
-        assertEquals("Wrong namespace (JAXB)", expectedNamespace, ResourceTypeUtil.getResourceNamespace(resourceType));
+        assertEquals("Wrong namespace (JAXB)", MidPointConstants.NS_RI, ResourceTypeUtil.getResourceNamespace(resourceType));
 
         ObjectReferenceType connectorRef = resourceType.getConnectorRef();
         assertNotNull("No connectorRef (JAXB)", connectorRef);

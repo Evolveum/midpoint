@@ -338,8 +338,8 @@ public class ReportManagerImpl implements ReportManager {
                     return null;
                 }
                 Holder<InputStream> inputStreamHolder = new Holder<>();
-                String originalNodeId = reportData.getNodeRef() != null ? reportData.getNodeRef().getOid() : null;
-                PrismObject<NodeType> executorNode = clusterExecutionHelper.executeWithFallback(originalNodeId,
+                @Nullable String originalNodeOid = reportData.getNodeRef() != null ? reportData.getNodeRef().getOid() : null;
+                PrismObject<NodeType> executorNode = clusterExecutionHelper.executeWithFallback(originalNodeOid,
                         (client, node, result1) -> {
                             client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
                             client.query(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER, fileName);
@@ -347,7 +347,7 @@ public class ReportManagerImpl implements ReportManager {
                             Response response = client.get();
                             Response.StatusType statusInfo = response.getStatusInfo();
                             LOGGER.debug("Retrieving report output file ({}) from {} finished with status {}: {}",
-                                    fileName, reportData.getNodeRef().getOid(), statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
+                                    fileName, originalNodeOid, statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
                             if (statusInfo.getFamily() == Response.Status.Family.SUCCESSFUL) {
                                 Object entity = response.getEntity();
                                 if (entity == null || entity instanceof InputStream) {
@@ -360,13 +360,13 @@ public class ReportManagerImpl implements ReportManager {
                                 }
                             } else {
                                 LOGGER.warn("Retrieving report output file ({}) from {} finished with status {}: {}",
-                                        fileName, reportData.getNodeRef().getOid(), statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
+                                        fileName, originalNodeOid, statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
                                 result1.recordFatalError("Could not retrieve report output file: Got " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
                                 response.close();
                             }
                         }, new ClusterExecutionOptions().tryNodesInTransition().skipDefaultAccept(), "get report output", result);
 
-                if (executorNode != null && !executorNode.getOid().equals(originalNodeId)) {
+                if (executorNode != null && !executorNode.getOid().equals(originalNodeOid)) {
                     LOGGER.info("Recording new location of {}: {}", reportData, executorNode);
                     List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(ReportDataType.class)
                             .item(ReportDataType.F_NODE_REF).replace(createObjectRef(executorNode, prismContext))

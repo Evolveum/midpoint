@@ -54,10 +54,6 @@
 
     </connectorConfiguration>
 
-
-    <!-- Resource namespace -->
-<!--     <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace> -->
-
     <!-- No schema. It will be generated from the resource. -->
 
     <schemaHandling>
@@ -243,7 +239,7 @@
                 <outbound>
                 <strength>weak</strength>
                     <source>
-                        <path>employeeType</path>
+                        <path>subtype</path>
                     </source>
                 </outbound>
             </attribute>
@@ -554,7 +550,7 @@
                 <outbound>
                     <!--                 <strength>weak</strength> -->
                     <source>
-                        <path>$user/employeeType</path>
+                        <path>$user/subtype</path>
                     </source>
                 </outbound>
             </attribute>

@@ -17,7 +17,7 @@
 
     <taskIdentifier>00000000-0000-0000-0000-000000000007</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-3</handlerUri>
     <recurrence>recurring</recurrence>

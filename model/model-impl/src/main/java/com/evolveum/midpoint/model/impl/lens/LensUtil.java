@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentIm
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -76,6 +77,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
 import static java.util.Collections.emptySet;
 
@@ -89,14 +91,15 @@ public class LensUtil {
     private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
     public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context,
-                                                                  String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         ResourceType resourceType = context.getResource(resourceOid);
         if (resourceType == null) {
             // Fetching from provisioning to take advantage of caching and
             // pre-parsed schema
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-            resourceType = provisioningService.getObject(ResourceType.class, resourceOid, options, task, result)
+            resourceType = provisioningService
+                    .getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result)
                     .asObjectable();
             context.rememberResource(resourceType);
         }
@@ -111,8 +114,8 @@ public class LensUtil {
         if (resourceFromContext != null) {
             return resourceFromContext;
         } else {
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-            ResourceType resourceFetched = objectResolver.getObject(ResourceType.class, resourceOid, options, task, result);
+            ResourceType resourceFetched = objectResolver.getObject(ResourceType.class, resourceOid, createReadOnlyCollection(),
+                    task, result);
             context.rememberResource(resourceFetched);
             return resourceFetched;
         }
@@ -606,7 +609,8 @@ public class LensUtil {
             };
 
             objectResolver.searchIterative(virtualAssignmentSpecification.getType(),
-                   prismContext.queryFactory().createQuery(virtualAssignmentSpecification.getFilter()), null, handler, task, result);
+                   prismContext.queryFactory().createQuery(virtualAssignmentSpecification.getFilter()),
+                    createReadOnlyCollection(), handler, task, result);
         }
         return forcedAssignments;
     }
@@ -1191,17 +1195,20 @@ public class LensUtil {
         return explicitArchetypeOid;
     }
 
-    public static void setMappingTarget(MappingType mapping, ItemPathType path) {
+    public static <M extends MappingType> M setMappingTarget(M mapping, ItemPathType path) {
         VariableBindingDefinitionType target = mapping.getTarget();
         if (target == null) {
             target = new VariableBindingDefinitionType();
             target.setPath(path);
+            mapping = CloneUtil.cloneIfImmutable(mapping);
             mapping.setTarget(target);
         } else if (target.getPath() == null) {
             target = target.clone();
             target.setPath(path);
+            mapping = CloneUtil.cloneIfImmutable(mapping);
             mapping.setTarget(target);
         }
+        return mapping;
     }
 
     public static void rejectNonTolerantSettingIfPresent(ObjectTemplateItemDefinitionType templateItemDefinition,

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -240,7 +241,10 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                                 LOGGER.debug("Current shadow does not satisfy constraints. It conflicts with {}. Now going to find out what's wrong.", conflictingShadow);
                                 PrismObject<ShadowType> fullConflictingShadow = null;
                                 try {
-                                    Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+                                    var options = SchemaService.get().getOperationOptionsBuilder()
+                                            .futurePointInTime()
+                                            //.readOnly() [not yet]
+                                            .build();
                                     fullConflictingShadow = provisioningService.getObject(ShadowType.class, conflictingShadow.getOid(), options, task, iterationResult);
                                     LOGGER.trace("Full conflicting shadow = {}", fullConflictingShadow);
                                 } catch (ObjectNotFoundException ex) {

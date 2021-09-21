@@ -277,7 +277,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
         UserType userType = user.asObjectable();
         PrismAsserts.assertEqualsPolyString("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
         assertEquals("Wrong jack employeeNumber", "001", userType.getEmployeeNumber());
-        assertEquals("Wrong jack employeeType", "CAPTAIN", userType.getEmployeeType().get(0));
+        assertEquals("Wrong jack subtype", "CAPTAIN", userType.getSubtype().get(0));
         if (locality == null) {
             assertNull("Locality sneaked to user jack", userType.getLocality());
         } else {
@@ -316,14 +316,14 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     protected void clickOnDetailsAssignmentMenu(int order, Class<? extends Page> expectedPage) {
         tester.assertRenderedPage(expectedPage);
         tester.debugComponentTrees("navigation");
-        String tabPath = "details:navigation:menu:2:navLinkStyle:subNavigation:menu:" + order + ":navLinkStyle:navItemLink";
+        String tabPath = "detailsView:mainForm:navigation:menu:2:navLinkStyle:subNavigation:menu:" + order + ":navLinkStyle:navItemLink";
         tester.clickLink(tabPath);
     }
 
     protected void clickOnDetailsMenu(int order, Class<? extends Page> expectedPage) {
         tester.assertRenderedPage(expectedPage);
         tester.debugComponentTrees("navigation");
-        String tabPath = "details:navigation:menu:" + order + ":navLinkStyle:navItemLink";
+        String tabPath = "detailsView:mainForm:navigation:menu:" + order + ":navLinkStyle:navItemLink";
         tester.clickLink(tabPath);
     }
 }

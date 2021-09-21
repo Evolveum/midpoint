@@ -13,7 +13,7 @@
         <path>$user/additionalName</path>
     </source>
     <source>
-        <path>employeeType</path>
+        <path>subtype</path>
     </source>
     <source>
         <path>employeeNumber</path>
@@ -26,7 +26,7 @@
     <condition>
         <script>
             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            <code>employeeType == 'PIRATE'</code>
+            <code>subtype == 'PIRATE'</code>
         </script>
     </condition>
 </mapping>

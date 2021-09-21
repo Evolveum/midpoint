@@ -22,7 +22,7 @@
 
     <taskIdentifier>7d79f012-d861-11e8-b788-07bda6c5bb24</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>

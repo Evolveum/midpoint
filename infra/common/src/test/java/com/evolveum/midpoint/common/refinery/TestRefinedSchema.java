@@ -152,7 +152,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertEquals("findAccountDefinitionByObjectClass(null) returned wrong value", rAccountDef, accountDefByNullObjectclass);
 
         RefinedObjectClassDefinition accountDefByIcfAccountObjectclass = rSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT,
-                new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+                new QName(MidPointConstants.NS_RI, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
         assertEquals("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccountDef, accountDefByIcfAccountObjectclass);
 
         assertRObjectClassDef(rAccountDef, resourceType, sourceLayer, validationLayer);
@@ -172,7 +172,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         RefinedAttributeDefinition<?> displayNameAttributeDef = rAccountDef.getDisplayNameAttribute();
         assertNotNull("No account displayNameAttribute", displayNameAttributeDef);
-        assertEquals("Wrong account displayNameAttribute", new QName(resourceType.getNamespace(), "uid"), displayNameAttributeDef.getItemName());
+        assertEquals("Wrong account displayNameAttribute", new QName(MidPointConstants.NS_RI, "uid"), displayNameAttributeDef.getItemName());
 
         // This is compatibility with PrismContainerDefinition, it should work well
         Collection<? extends ItemDefinition> propertyDefinitions = rAccountDef.getDefinitions();
@@ -202,7 +202,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
             RefinedAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
             assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
-            assertEquals("Wrong entitlement displayNameAttribute", new QName(resourceType.getNamespace(), "cn"), entDisplayNameAttributeDef.getItemName());
+            assertEquals("Wrong entitlement displayNameAttribute", new QName(MidPointConstants.NS_RI, "cn"), entDisplayNameAttributeDef.getItemName());
 
             assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getAssociationDefinitions().size());
         }
@@ -219,7 +219,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         System.out.println(rComplexTypeDefinition.debugDump());
         assertRefinedToLayer(rComplexTypeDefinition, sourceLayer);
 
-        ResourceAttributeDefinition riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(resourceType.getNamespace(), "uid"));
+        ResourceAttributeDefinition riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def " + riUidAttrDef.getClass() + " (" + sourceLayer + ")");
         System.out.println(riUidAttrDef.debugDump());
@@ -640,7 +640,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         System.out.println("\nResourceAttributeContainerDefinition ComplexTypeDefinition");
         System.out.println(rComplexTypeDefinition.debugDump());
 
-        ResourceAttributeDefinition<String> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(resourceType.getNamespace(), "uid"));
+        ResourceAttributeDefinition<String> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def " + riUidAttrDef.getClass());
         System.out.println(riUidAttrDef.debugDump());

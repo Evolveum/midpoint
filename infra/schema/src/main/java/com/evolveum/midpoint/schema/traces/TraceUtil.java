@@ -20,6 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TraceType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import org.jetbrains.annotations.NotNull;
+
 @Experimental
 public class TraceUtil {
 
@@ -66,15 +68,19 @@ public class TraceUtil {
         }
     }
 
-    public static String getReturn(OperationResultType opResult, String name) {
+    public static @NotNull String getReturn(OperationResultType opResult, String name) {
         return String.join(", ", getReturnsAsStringList(opResult, name).toArray(new String[0]));
     }
 
-    public static List<String> getReturnsAsStringList(OperationResultType opResult, String name) {
+    public static @NotNull List<String> getReturnsAsStringList(OperationResultType opResult, String name) {
         return asStringList(selectByKey(opResult.getReturns(), name));
     }
 
-    public static List<String> asStringList(List<JAXBElement<?>> elements) {
+    public static @NotNull List<String> getParametersAsStringList(OperationResultType opResult, String name) {
+        return asStringList(selectByKey(opResult.getParams(), name));
+    }
+
+    public static @NotNull List<String> asStringList(List<JAXBElement<?>> elements) {
         return elements.stream()
                 .map(TraceUtil::dump)
                 .collect(Collectors.toList());

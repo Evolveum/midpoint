@@ -10,15 +10,14 @@
 
 <task oid="10000000-0000-0000-565b-565600000004"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Reconciliation: Dummy</name>
 
     <taskIdentifier>10000000-0000-0000-565b-565600000004</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
 
-    <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>
         <interval>10</interval>

@@ -68,7 +68,7 @@ public class SqlLogger extends SQLBaseListener {
 
     public static final int BYTE_ARRAY_PREVIEW_LEN = 20;
 
-    private String valueToString(Object o) {
+    protected String valueToString(Object o) {
         if (o == null) {
             return null; // unlikely
         } else if (o instanceof String) {

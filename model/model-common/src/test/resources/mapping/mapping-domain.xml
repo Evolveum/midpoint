@@ -13,18 +13,18 @@
     </source>
     <source>
         <!-- we need multivalue input -->
-        <path>employeeType</path>
+        <path>subtype</path>
         <set>
             <condition>
                 <script>
-                    <code>employeeType.isNumber()</code>
+                    <code>subtype.isNumber()</code>
                 </script>
             </condition>
         </set>
     </source>
     <expression>
         <script>
-            <code>'Pirate '+ additionalName + ' ('+employeeType+')'</code>
+            <code>'Pirate '+ additionalName + ' ('+subtype+')'</code>
         </script>
     </expression>
 </mapping>

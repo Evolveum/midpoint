@@ -9,22 +9,16 @@ package com.evolveum.midpoint.repo.sqale.perf;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.security.SecureRandom;
-import java.util.Arrays;
 
-import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrg;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -33,7 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 // TODO experimental, maybe temporary
 public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
@@ -120,30 +113,5 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
         display("Orgs: " + count(QOrg.CLASS));
         display("Org closure: " + count(new QOrgClosure()));
         display("Users: " + count(QUser.class));
-    }
-
-    // support methods
-    @SafeVarargs
-    @NotNull
-    private <T extends ObjectType> SearchResultList<T> searchObjects(
-            @NotNull Class<T> type,
-            ObjectQuery query,
-            OperationResult operationResult,
-            SelectorOptions<GetOperationOptions>... selectorOptions)
-            throws SchemaException {
-        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
-        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
-                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        display("QUERY: " + serializedQuery);
-
-        // sanity check if it's re-parsable
-        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
-                .isNotNull();
-        return repositoryService.searchObjects(
-                type,
-                query,
-                Arrays.asList(selectorOptions),
-                operationResult)
-                .map(p -> p.asObjectable());
     }
 }

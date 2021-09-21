@@ -151,7 +151,6 @@ public class TestResourceSchema extends AbstractSchemaTest {
         PrismObject<ResourceType> resource = resourceDefinition.instantiate();
         ResourceType resourceType = resource.asObjectable();
         resourceType.setName(PrismTestUtil.createPolyStringType("Prism With Dynamic Schemas Test"));
-        resourceType.setNamespace(SCHEMA_NAMESPACE);
         ResourceTypeUtil.setResourceXsdSchema(resource, DOMUtil.getFirstChildElement(xsd));
 
         // WHEN

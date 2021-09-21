@@ -10,5 +10,5 @@
     <inducement id="1">
         <targetRef type="RoleType" oid="00000000-0000-0000-0000-000000000004" />
     </inducement>
-    <roleType>no-inducements-add-delete-via-expression</roleType>
+    <subtype>no-inducements-add-delete-via-expression</subtype>
 </role>

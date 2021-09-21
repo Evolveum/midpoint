@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -465,7 +467,24 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         AuditEventRecord auditRecordRequest = createAuditEventRecordRaw(AuditEventStage.REQUEST, requestIdentifier,
                 targetRef, ObjectDeltaOperation.cloneDeltaCollection(deltas));
         // we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
-        auditHelper.audit(auditRecordRequest, null, task, result);
+
+        ExpressionType eventRecordingExpression = null;
+
+        PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(result);
+        if (config != null && config.asObjectable() != null && config.asObjectable().getAudit() != null
+                && config.asObjectable().getAudit().getEventRecording() != null) {
+            SystemConfigurationAuditEventRecordingType eventRecording = config.asObjectable().getAudit().getEventRecording();
+            eventRecordingExpression = eventRecording.getExpression();
+        }
+
+        if (eventRecordingExpression != null) {
+            // MID-6839
+            auditRecordRequest = auditHelper.evaluateRecordingExpression(eventRecordingExpression,
+                    auditRecordRequest, null, null, task, result);
+        }
+        if (auditRecordRequest != null) {
+            auditHelper.audit(auditRecordRequest, null, task, result);
+        }
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
         try {
@@ -481,7 +500,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             AuditEventRecord auditRecordExecution = createAuditEventRecordRaw(AuditEventStage.EXECUTION, requestIdentifier, targetRef, executedDeltas);
             auditRecordExecution.setTimestamp(System.currentTimeMillis());
             auditRecordExecution.setOutcome(result.getStatus());
-            auditHelper.audit(auditRecordExecution, null, task, result);
+            if (eventRecordingExpression != null) {
+                // MID-6839
+                auditRecordExecution = auditHelper.evaluateRecordingExpression(eventRecordingExpression,
+                        auditRecordExecution, null, null, task, result);
+            }
+            if (auditRecordExecution != null) {
+                auditHelper.audit(auditRecordExecution, null, task, result);
+            }
         }
     }
 
@@ -589,7 +615,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         try {
             PrismObject<? extends ObjectType> existingObject;
             try {
-                existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+                existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), createReadOnlyCollection(), result1);
                 objectToDetermineDetailsForAudit = existingObject;
             } catch (Throwable t) {
                 if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result1)) {
@@ -634,7 +660,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
         PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit;
         try {
-            PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+            PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), createReadOnlyCollection(), result1);
             objectToDetermineDetailsForAudit = existingObject;
             if (!preAuthorized) {
                 AuthorizationParameters autzParams = AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta);
@@ -697,7 +723,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     private <T extends ObjectType> void reevaluateSearchFilters(Class<T> objectTypeClass, String oid, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "reevaluateSearchFilters");
         try {
-            PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, null, result);
+            PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, createReadOnlyCollection(), result);
             PrismObject<T> updatedObject = storedObject.clone();
             ModelImplUtils.resolveReferences(updatedObject, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, prismContext, result);
             ObjectDelta<T> delta = storedObject.diff(updatedObject);
@@ -730,14 +756,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         try {
 
             ModelImplUtils.clearRequestee(task);
+            // Not using read-only for now
+            //noinspection unchecked
             PrismObject<F> focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
 
             LOGGER.debug("Recomputing {}", focus);
 
             LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDump());
-            }
+            LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDumpLazily());
             clockwork.run(lensContext, task, result);
 
             result.computeStatus();
@@ -1411,7 +1437,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         // Fetch resource definition from the repo/provisioning
         ResourceType resource;
         try {
-            resource = getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
+            resource = getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result).asObjectable();
 
             if (resource.getSynchronization() == null || resource.getSynchronization().getObjectSynchronization().isEmpty()) {
                 OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE + ".check");
@@ -1990,7 +2016,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         for (String identifier : identifiers) {
             PrismObject<NodeType> existingObject;
             ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, prismContext, identifier);
-            List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, null, parentResult);
+            List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, createReadOnlyCollection(), parentResult);
             if (nodes.isEmpty()) {
                 throw new ObjectNotFoundException("Node with identifier '" + identifier + "' couldn't be found.");
             } else if (nodes.size() > 1) {
@@ -2005,7 +2031,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         List<PrismObject<TaskType>> taskRefs = new ArrayList<>(taskOids.size());
 
         for (String taskOid : taskOids) {
-            PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), parentResult);
+            var options = SchemaService.get().getOperationOptionsBuilder()
+                    .raw() // why?
+                    .readOnly()
+                    .build();
+            PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, options, parentResult);
             taskRefs.add(task);
         }
         return taskRefs;
@@ -2382,7 +2412,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             ConfigurationException, ExpressionEvaluationException {
         String oid = change.getOldShadowOid();
         if (oid != null) {
-            return getObject(ShadowType.class, oid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+            return getObject(ShadowType.class, oid, GetOperationOptions.createNoFetchReadOnlyCollection(), task, result);
         } else {
             return null;
         }

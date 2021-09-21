@@ -36,6 +36,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 /**
  * Cache for system object such as SystemConfigurationType. This is a global cache,
  * independent of the request. It will store the system configuration in memory.
@@ -135,9 +137,8 @@ public class SystemObjectCache implements Cache {
     }
 
     private void loadSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-        systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                options, result);
+        systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(), createReadOnlyCollection(), result);
         expressionProfiles = null;
         systemConfigurationCheckTimestamp = System.currentTimeMillis();
         if (systemConfiguration != null && systemConfiguration.getVersion() == null) {
@@ -205,8 +206,7 @@ public class SystemObjectCache implements Cache {
     }
 
     private void loadSecurityPolicy(OperationResult result, String oid) throws ObjectNotFoundException, SchemaException {
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-        securityPolicy = cacheRepositoryService.getObject(SecurityPolicyType.class, oid, options, result);
+        securityPolicy = cacheRepositoryService.getObject(SecurityPolicyType.class, oid, createReadOnlyCollection(), result);
         expressionProfiles = null;
         securityPolicyCheckTimestamp = System.currentTimeMillis();
         if (securityPolicy != null && securityPolicy.getVersion() == null) {
@@ -223,13 +223,11 @@ public class SystemObjectCache implements Cache {
 
     @SuppressWarnings("WeakerAccess")
     public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        // TODO: make this efficient (use cache)
-        return cacheRepositoryService.getObject(ArchetypeType.class, oid, null, result);
+        return cacheRepositoryService.getObject(ArchetypeType.class, oid, createReadOnlyCollection(), result);
     }
 
     public SearchResultList<PrismObject<ArchetypeType>> getAllArchetypes(OperationResult result) throws SchemaException {
-        // TODO: make this efficient (use cache)
-        return cacheRepositoryService.searchObjects(ArchetypeType.class, null, null, result);
+        return cacheRepositoryService.searchObjects(ArchetypeType.class, null, createReadOnlyCollection(), result);
     }
 
     public ExpressionProfile getExpressionProfile(String identifier, OperationResult result) throws SchemaException {

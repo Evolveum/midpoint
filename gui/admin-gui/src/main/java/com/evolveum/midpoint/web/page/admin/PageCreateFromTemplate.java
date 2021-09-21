@@ -15,8 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,8 +43,6 @@ import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @PageDescriptor(
@@ -108,7 +105,7 @@ public class PageCreateFromTemplate extends PageAdmin {
             protected MultiFunctinalButtonDto load() {
                 List<CompositedIconButtonDto> additionalButtons = new ArrayList<>();
 
-                Collection<CompiledObjectCollectionView> compiledObjectCollectionViews = getCompiledGuiProfile().findAllApplicableArchetypeViews(getType());
+                Collection<CompiledObjectCollectionView> compiledObjectCollectionViews = getCompiledGuiProfile().findAllApplicableArchetypeViews(getType(), OperationTypeType.ADD);
 
                 if (CollectionUtils.isNotEmpty(compiledObjectCollectionViews)) {
                     compiledObjectCollectionViews.forEach(collection -> {

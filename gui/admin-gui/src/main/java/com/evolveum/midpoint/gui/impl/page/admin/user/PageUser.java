@@ -9,20 +9,25 @@ package com.evolveum.midpoint.gui.impl.page.admin.user;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,7 +43,9 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(
@@ -87,31 +94,73 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     @Override
-    protected void executeModifyDelta(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly,
-            ExecuteChangeOptionsDto executeChangeOptionsDto, Task task, OperationResult result, AjaxRequestTarget target) {
-        boolean delegationChangesExist = processDeputyAssignments(previewOnly);
-        if (deltas.isEmpty() && !executeChangeOptionsDto.isReconcile()) {
-            progressPanel.clearProgressPanel();
-            if (!previewOnly) {
-                if (!delegationChangesExist) {
-                    result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
-                    showResult(result);
+    protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
+
+        if (ItemStatus.NOT_CHANGED == getObjectDetailsModels().getObjectStatus()) {
+            boolean delegationChangesExist = processDeputyAssignments(previewOnly);
+
+            if (deltas.isEmpty() && !options.isReconcile()) {
+                if (!previewOnly) {
+                    if (!delegationChangesExist) {
+                        result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
+                        showResult(result);
+                    }
+                    redirectBack();
+                } else {
+                    if (!delegationChangesExist) {
+                        warn(getString("PageAdminObjectDetails.noChangesPreview"));
+                        target.add(getFeedbackPanel());
+                    }
                 }
-                redirectBack();
-            } else {
-                if (!delegationChangesExist) {
-                    warn(getString("PageAdminObjectDetails.noChangesPreview"));
-                    target.add(getFeedbackPanel());
+                return null;
+            }
+        }
+
+        return super.executeChanges(deltas, previewOnly, options, task, result, target);
+    }
+
+    @Override
+    protected void collectObjectsForPreview(Map<PrismObject<UserType>, ModelContext<? extends ObjectType>> prismObjectModelContextMap) {
+        super.collectObjectsForPreview(prismObjectModelContextMap);
+        processAdditionalFocalObjectsForPreview(prismObjectModelContextMap);
+    }
+
+    /**
+     * for now used only for delegation changes
+     * @param modelContextMap preview changes deltas
+     */
+    protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<UserType>, ModelContext<? extends ObjectType>> modelContextMap){
+        for (AssignmentEditorDto dto : getObjectDetailsModels().getDelegationsModelObject()) {
+            if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
+                UserType user = dto.getDelegationOwner();
+
+                OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
+                Task task = createSimpleTask(OPERATION_PREVIEW_CHANGES);
+                try {
+
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = prepareDelegationDelta(user.asPrismObject(), dto);
+
+                    ModelContext<UserType> modelContext = getModelInteractionService().previewChanges(deltas, getDelegationPreviewOptions(), task, result);
+                    modelContextMap.put(user.asPrismObject(), modelContext);
+                } catch (Exception e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Could not save delegation ", e);
+                    error("Could not save delegation. Reason: " + e);
+                } finally {
+                    result.recomputeStatus();
                 }
             }
-            return;
         }
-        super.executeModifyDelta(deltas, previewOnly, executeChangeOptionsDto, task, result, target);
+    }
+
+    private ModelExecuteOptions getDelegationPreviewOptions() {
+        ModelExecuteOptions options = getExecuteChangesOptionsDto().createOptions(getPrismContext());
+        options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
+        return options;
     }
 
     private boolean processDeputyAssignments(boolean previewOnly) {
         boolean isAnythingChanged = false;
-        for (AssignmentEditorDto dto : ((UserDetailsModel)getObjectDetailsModels()).getDelegationsModel().getObject()) {
+        for (AssignmentEditorDto dto : getObjectDetailsModels().getDelegationsModelObject()) {
             if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
                 if (!previewOnly) {
                     UserType user = dto.getDelegationOwner();
@@ -149,17 +198,17 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
         userAssignmentsDtos.add(dto);
 
         deltas.add(delta);
-        PrismContainerDefinition<?> def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+        PrismContainerDefinition<AssignmentType> def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
         handleDelegationAssignmentDeltas(delta, userAssignmentsDtos, def);
         return deltas;
     }
 
     protected void handleDelegationAssignmentDeltas(ObjectDelta<UserType> focusDelta,
-            List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
-        ContainerDelta assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
+            List<AssignmentEditorDto> assignments, PrismContainerDefinition<AssignmentType> def) throws SchemaException {
+        ContainerDelta<AssignmentType> assDelta = def.createEmptyDelta(def.getItemName());
 
         for (AssignmentEditorDto assDto : assignments) {
-            PrismContainerValue newValue = assDto.getNewValue(getPrismContext());
+            PrismContainerValue<AssignmentType> newValue = assDto.getNewValue(getPrismContext());
 
             switch (assDto.getStatus()) {
                 case ADD:
@@ -167,12 +216,8 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
                     assDelta.addValueToAdd(newValue.clone());
                     break;
                 case DELETE:
-                    PrismContainerValue oldValue = assDto.getOldValue();
-                    if (true) {
-                        oldValue.applyDefinition(def, false);
-                    } else {
-                        oldValue.applyDefinition(def);
-                    }
+                    PrismContainerValue<AssignmentType> oldValue = assDto.getOldValue();
+                    oldValue.applyDefinition(def, false);
                     assDelta.addValueToDelete(oldValue.clone());
                     break;
                 case MODIFY:
@@ -189,12 +234,12 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
         }
 
         if (!assDelta.isEmpty()) {
-            assDelta = focusDelta.addModification(assDelta);
+            focusDelta.addModification(assDelta);
         }
     }
 
     private void handleModifyAssignmentDelta(AssignmentEditorDto assDto,
-            PrismContainerDefinition assignmentDef, PrismContainerValue newValue, ObjectDelta<UserType> focusDelta)
+            PrismContainerDefinition<AssignmentType> assignmentDef, PrismContainerValue<AssignmentType> newValue, ObjectDelta<UserType> focusDelta)
             throws SchemaException {
         LOGGER.debug("Handling modified assignment '{}', computing delta.", assDto.getName());
 

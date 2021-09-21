@@ -8,7 +8,7 @@ objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
 l: Caribbean
-employeeType: governor
+subtype: governor
 title: Governor
 businessCategory: state
 mail: discovery@deep.in.the.caribbean.com

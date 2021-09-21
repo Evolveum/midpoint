@@ -57,14 +57,14 @@ public class TestMappingDomain extends AbstractUnitTest
         // GIVEN
 
         PrismObject<UserType> userOld = evaluator.getUserOld();
-        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        List<String> employeeTypeOld = userOld.asObjectable().getSubtype();
         employeeTypeOld.clear();
         employeeTypeOld.add("1234567890");
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         UserType.F_ADDITIONAL_NAME, "Jackie");
-        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "321");
+        delta.addModificationReplaceProperty(UserType.F_SUBTYPE, "321");
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(MAPPING_DOMAIN_FILENAME, getTestNameShort(), "organization", delta, userOld);
@@ -93,7 +93,7 @@ public class TestMappingDomain extends AbstractUnitTest
     public void testControlReplaceMultiValue() throws Exception {
         // GIVEN
         PrismObject<UserType> userOld = evaluator.getUserOld();
-        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        List<String> employeeTypeOld = userOld.asObjectable().getSubtype();
         employeeTypeOld.clear();
         employeeTypeOld.add("001");
         employeeTypeOld.add("002");
@@ -102,7 +102,7 @@ public class TestMappingDomain extends AbstractUnitTest
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         UserType.F_ADDITIONAL_NAME, "Jackie");
-        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "991", "992");
+        delta.addModificationReplaceProperty(UserType.F_SUBTYPE, "991", "992");
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(MAPPING_DOMAIN_FILENAME, getTestNameShort(), "organization", delta, userOld);
@@ -128,7 +128,7 @@ public class TestMappingDomain extends AbstractUnitTest
         // GIVEN
 
         PrismObject<UserType> userOld = evaluator.getUserOld();
-        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        List<String> employeeTypeOld = userOld.asObjectable().getSubtype();
         employeeTypeOld.clear();
         employeeTypeOld.add("001");
         employeeTypeOld.add("A02");
@@ -138,7 +138,7 @@ public class TestMappingDomain extends AbstractUnitTest
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         UserType.F_ADDITIONAL_NAME, "Jackie");
-        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
+        delta.addModificationReplaceProperty(UserType.F_SUBTYPE, "X91", "992", "Y93", "994");
 
         String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
@@ -171,7 +171,7 @@ public class TestMappingDomain extends AbstractUnitTest
 
         PrismObject<UserType> userOld = evaluator.getUserOld();
         userOld.asObjectable().setAdditionalName(PrismTestUtil.createPolyStringType("Jackie"));
-        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        List<String> employeeTypeOld = userOld.asObjectable().getSubtype();
         employeeTypeOld.clear();
         employeeTypeOld.add("001");
         employeeTypeOld.add("A02");
@@ -180,7 +180,7 @@ public class TestMappingDomain extends AbstractUnitTest
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationAddProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
-                        UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
+                        UserType.F_SUBTYPE, "X91", "992", "Y93", "994");
 
         String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
@@ -213,7 +213,7 @@ public class TestMappingDomain extends AbstractUnitTest
 
         PrismObject<UserType> userOld = evaluator.getUserOld();
         userOld.asObjectable().setAdditionalName(PrismTestUtil.createPolyStringType("Jackie"));
-        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        List<String> employeeTypeOld = userOld.asObjectable().getSubtype();
         employeeTypeOld.clear();
         employeeTypeOld.add("001");
         employeeTypeOld.add("A02");
@@ -225,7 +225,7 @@ public class TestMappingDomain extends AbstractUnitTest
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationDeleteProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
-                        UserType.F_EMPLOYEE_TYPE, "005", "C06", "007");
+                        UserType.F_SUBTYPE, "005", "C06", "007");
 
         String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(

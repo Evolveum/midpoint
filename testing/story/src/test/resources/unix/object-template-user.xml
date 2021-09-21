@@ -20,7 +20,7 @@
             This mapping is especially designed to make the projector crash on cue.
         </description>
         <source>
-            <path>$user/employeeType</path>
+            <path>$user/subtype</path>
         </source>
         <expression>
             <script>
@@ -34,7 +34,7 @@
         </target>
         <condition>
              <script>
-                <code>employeeType == "troublemaker"</code>
+                <code>subtype == "troublemaker"</code>
             </script>
         </condition>
         <!-- We want it to die quite late -->

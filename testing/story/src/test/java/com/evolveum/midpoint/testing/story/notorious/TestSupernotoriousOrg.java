@@ -74,7 +74,7 @@ public class TestSupernotoriousOrg extends TestNotoriousOrg {
     @Test
     public void test010LevelBRolesSanity() throws Exception {
         ObjectQuery query = queryFor(RoleType.class)
-                .item(RoleType.F_ROLE_TYPE).eq(ROLE_LEVEL_B_ROLETYPE)
+                .item(RoleType.F_SUBTYPE).eq(ROLE_LEVEL_B_ROLETYPE)
                 .build();
         searchObjectsIterative(RoleType.class, query,
                 role -> assertRoleMembershipRef(role, getNotoriousOid()), NUMBER_OF_LEVEL_B_ROLES);

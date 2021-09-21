@@ -199,7 +199,7 @@ class SuspendAndDeleteHelper {
                 task.getSchedulingState() == TaskSchedulingStateType.WAITING) {
             try {
                 List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStateType.SUSPENDED)
+                        .item(TaskType.F_EXECUTION_STATE).replace(TaskExecutionStateType.SUSPENDED)
                         .item(TaskType.F_SCHEDULING_STATE).replace(TaskSchedulingStateType.SUSPENDED)
                         .item(TaskType.F_STATE_BEFORE_SUSPEND).replace(task.getExecutionState())
                         .item(TaskType.F_SCHEDULING_STATE_BEFORE_SUSPEND).replace(task.getSchedulingState())
@@ -271,10 +271,10 @@ class SuspendAndDeleteHelper {
         try {
             repositoryService.modifyObjectDynamically(TaskType.class, taskOid, null,
                     task -> {
-                        TaskExecutionStateType state = task.getExecutionStatus();
+                        TaskExecutionStateType state = task.getExecutionState();
                         if (state == TaskExecutionStateType.CLOSED) {
                             return prismContext.deltaFor(TaskType.class)
-                                    .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStateType.SUSPENDED)
+                                    .item(TaskType.F_EXECUTION_STATE).replace(TaskExecutionStateType.SUSPENDED)
                                     .item(TaskType.F_SCHEDULING_STATE).replace(TaskSchedulingStateType.SUSPENDED)
                                     .item(TaskType.F_STATE_BEFORE_SUSPEND).replace(TaskExecutionStateType.RUNNABLE)
                                     .item(TaskType.F_SCHEDULING_STATE_BEFORE_SUSPEND).replace(TaskSchedulingStateType.READY)

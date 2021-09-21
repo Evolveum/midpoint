@@ -359,8 +359,8 @@ public class ColumnUtils {
         });
 
         List<ColumnTypeDto<String>> columnsDefs = Collections.singletonList(
-                new ColumnTypeDto<>("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
-                        SelectableBeanImpl.F_VALUE + ".executionStatus", false));
+                new ColumnTypeDto<>("TaskType.executionState", TaskType.F_EXECUTION_STATE.getLocalPart(),
+                        SelectableBeanImpl.F_VALUE + ".executionState", false));
         columns.addAll(ColumnUtils.createColumns(columnsDefs));
 
         return columns;

@@ -5129,11 +5129,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertTaskClosed(PrismObject<TaskType> task) {
-        assertEquals("Wrong executionStatus in " + task, TaskExecutionStateType.CLOSED, task.asObjectable().getExecutionStatus());
+        assertEquals("Wrong executionState in " + task, TaskExecutionStateType.CLOSED, task.asObjectable().getExecutionState());
     }
 
     protected void assertTaskClosed(Task task) {
-        assertEquals("Wrong executionStatus in " + task, TaskExecutionStateType.CLOSED, task.getExecutionState());
+        assertEquals("Wrong executionState in " + task, TaskExecutionStateType.CLOSED, task.getExecutionState());
     }
 
     protected List<AuditEventRecordType> getAllAuditRecords(Task task, OperationResult result)
