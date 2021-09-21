@@ -8,10 +8,9 @@ package com.evolveum.midpoint.gui;
 
 import static org.testng.Assert.assertNotNull;
 
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
 
-import org.apache.wicket.Page;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,11 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
 
-    private static final String MAIN_FORM = "mainPanel:mainForm";
-//    private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
-    private static final String PATH_FORM_NAME = "tabPanel:panel:main:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:0:property:values:0:value:valueForm:valueContainer:input:originValueContainer:origValueWithButton:origValue:input";
-    private static final String FORM_SAVE = "save";
-
     private static final String NEW_ORG_NAME = "A-newOrg";                  // starts with "A" to be alphabetically first
     private static final String NEW_ORG_CHILD_NAME = "newOrgChild";
 
@@ -55,8 +49,8 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test001testPageOrgUnit() {
-        renderPage(PageOrgUnit.class);
+    public void test001testPageOrg() {
+        renderPage(PageOrg.class);
     }
 
     @Test
@@ -65,8 +59,13 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test003testAddNewOrg() throws Exception {
-        renderPage(PageOrgUnit.class);
+    public void test003testPageOrgList() {
+        renderPage(PageOrgs.class);
+    }
+
+    @Test
+    public void test004testAddNewOrg() throws Exception {
+        renderPage(PageOrg.class);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         formTester.setValue(PATH_FORM_NAME, NEW_ORG_NAME);
@@ -80,10 +79,13 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test004testCreateChild() throws Exception {
+    public void test005testCreateChild() throws Exception {
         renderPage(PageOrgTree.class);
-        tester.clickLink("orgPanel:tabs:panel:treePanel:treeContainer:tree:subtree:branches:1:node:content:menu:inlineMenuPanel:dropDownMenu:menuItem:8:menuItemBody:menuItemLink");
-        tester.assertRenderedPage(PageOrgUnit.class);
+        tester.clickLink(
+                "orgPanel:tabs:panel:treePanel:treeContainer:tree:subtree:branches:1:node:content:menu:inlineMenuPanel:"
+                        + "dropDownMenu:menuItem:8:menuItemBody:menuItemLink"
+        );
+        tester.assertRenderedPage(PageOrg.class);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         formTester.setValue(PATH_FORM_NAME, NEW_ORG_CHILD_NAME);
@@ -97,16 +99,26 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
         assertAssignedOrg(newOrgChild, newOrg.getOid());
     }
 
-    @Test
-    public void test005testPageOrgList() {
-        renderPage(PageOrgs.class);
+    @Test //TODO old test remove after removing old gui pages
+    public void test006testPageOrgUnit() {
+        renderPage(PageOrgUnit.class);
     }
 
-    private void renderPage(Class<? extends Page> expectedRenderedPageClass) {
-        logger.info("render page system configuration");
-        PageParameters params = new PageParameters();
-        tester.startPage(expectedRenderedPageClass, params);
+    @Test //TODO old test remove after removing old gui pages
+    public void test007testAddNewOrgUnit() throws Exception {
+        renderPage(PageOrgUnit.class);
 
-        tester.assertRenderedPage(expectedRenderedPageClass);
+        FormTester formTester = tester.newFormTester(MAIN_FORM_OLD, false);
+        formTester.setValue(
+                PATH_FORM_NAME_OLD,
+                NEW_ORG_NAME + "Unit"
+        );
+        formTester.submit(FORM_SAVE_OLD);
+
+        Thread.sleep(5000);
+
+        PrismObject<OrgType> newOrg = findObjectByName(OrgType.class, NEW_ORG_NAME + "Unit");
+        assertNotNull(newOrg, "New org not created.");
+        logger.info("created org: {}", newOrg.debugDump());
     }
 }

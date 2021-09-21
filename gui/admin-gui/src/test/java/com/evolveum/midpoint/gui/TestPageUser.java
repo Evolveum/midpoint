@@ -12,12 +12,18 @@ import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
 
 import java.io.File;
 
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment.AllAssignmentsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.component.*;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.gui.impl.page.admin.user.component.DelegatedToMePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserDelegationsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.user.component.UserPersonasPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.objectdetails.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -33,8 +39,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -47,23 +51,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
+    private static final String MAIN_PANEL = "detailsView:mainForm:mainPanel";
+
     private static final String TAB_MAIN = "mainPanel:mainForm:tabPanel:panel:main";
     private static final String TAB_ACTIVATION = "mainPanel:mainForm:tabPanel:panel:activation";
     private static final String TAB_PASSWORD = "mainPanel:mainForm:tabPanel:panel:password";
-    private static final String MAIN_FORM = "mainPanel:mainForm";
 
-    private static final String PATH_FORM_NAME = "tabPanel:panel:main:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:originValueContainer:origValueWithButton:origValue:input";
-    private static final String PATH_FORM_ADMINISTRATIVE_STATUS = "tabPanel:panel:activation:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:input";
-    private static final String PATH_PASSWORD_NEW = "tabPanel:panel:password:values:0:value:propertiesLabel:properties:0:property:values:0:passwordPanel:inputContainer:password1";
-    private static final String PATH_PASSWORD_NEW_REPEAT = "tabPanel:panel:password:values:0:value:propertiesLabel:properties:0:property:values:0:passwordPanel:inputContainer:password2";
-    private static final String FORM_SAVE = "save";
-
-    public static final File USER_EMPTY_WITH_FAKE_PROJECTION_FILE = new File(COMMON_DIR, "user-empty-with-fake-projection.xml");
-    public static final String USER_EMPTY_WITH_FAKE_PROJECTION_OID = "50053534-36dc-11e6-86f7-035182a6f689";
-
-    public static final File CONNECTOR_CSV_FILE = new File(COMMON_DIR, "connector-csv.xml");
-    public static final File RESOURCE_CSV_FAKE_FILE = new File(COMMON_DIR, "resource-csv-fake.xml");
-    public static final File SHADOW_RESOURCE_CSV_FAKE_FILE = new File(COMMON_DIR, "shadow-resource-csv-fake.xml");
+    private static final String PATH_FORM_SHIP = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:"
+            + "input:propertiesLabel:properties:142:property:values:0:value:valueForm:valueContainer:input:originValueContainer:"
+            + "origValueWithButton:origValue:input";
+    private static final String PATH_FORM_SHIP_OLD = "tabPanel:panel:main:values:0:value:valueForm:valueContainer:input:"
+            + "propertiesLabel:properties:142:property:values:0:value:valueForm:valueContainer:input:input";
+    private static final String PATH_FORM_ADMINISTRATIVE_STATUS = "tabPanel:panel:activation:values:0:value:valueForm:"
+            + "valueContainer:input:propertiesLabel:properties:0:property:values:0:value:valueForm:valueContainer:input:input";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -75,37 +75,25 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test000testPageUserNew() {
-        renderPage();
+    public void test001testPageUser() {
+        renderPage(PageUser.class);
     }
 
     @Test
-    public void test001testBasicTab() {
-        PageUser pageUser = renderPage();
+    public void test002testBasicTab() {
+        renderPage(PageUser.class);
 
-        tester.assertComponent(TAB_MAIN, PrismContainerPanel.class);
-
-        tester.assertComponent(TAB_ACTIVATION, PrismContainerPanel.class);
-
-        tester.assertComponent(TAB_PASSWORD, PrismContainerPanel.class);
-
+        tester.assertComponent(MAIN_PANEL, AssignmentHolderBasicPanel.class);
     }
 
-    @Test(enabled = false)
-    public void test002testAddDelta() throws Exception {
-        PageUser pageUser = renderPage();
-
-//        pageUser.
+    @Test
+    public void test003testAddDelta() throws Exception {
+        renderPage(PageUser.class);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
-//        formTester.setValue(PATH_FORM_NAME, "newUser");
-//        String value = formTester.getTextComponentValue(PATH_FORM_NAME);
-//        assertEquals(value, "newUser");
-        formTester.select(PATH_FORM_ADMINISTRATIVE_STATUS, 2);//index 2 is ActivationStatusType.ENABLED
-        formTester.setValue(PATH_PASSWORD_NEW, "n3wP4ss"); //TODO uncomment when save with password will be OK
-        formTester.setValue(PATH_PASSWORD_NEW_REPEAT, "n3wP4ss");
+        formTester.setValue(PATH_FORM_NAME, "newUser");
 
-        formTester = formTester.submit(FORM_SAVE);
+        formTester.submit(FORM_SAVE);
 
         Thread.sleep(5000);
 
@@ -116,8 +104,126 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test010renderAssignmentsTab() {
-        renderPage(USER_ADMINISTRATOR_OID);
+    public void test004renderAssignmentsTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(2);
+        String submenu = "detailsView:mainForm:navigation:menu:2:navLinkStyle:subNavigation:menu:0:navLinkStyle:navItemLink";
+        tester.clickLink(submenu);
+        tester.assertComponent(MAIN_PANEL, AllAssignmentsPanel.class);
+    }
+
+    @Test
+    public void test011renderProjectionsTab() {
+        renderPage(PageUser.class, USER_JACK_OID);
+
+        clickOnDetailsMenu(1);
+        tester.assertComponent(MAIN_PANEL, FocusProjectionsPanel.class);
+    }
+
+    @Test
+    public void test012renderActivationTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(3);
+        tester.assertComponent(MAIN_PANEL, FocusActivationPanel.class);
+    }
+
+    @Test
+    public void test013renderCredentialsTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(4);
+        tester.assertComponent(MAIN_PANEL, FocusPasswordPanel.class);
+    }
+
+    @Test
+    public void test014renderHistoryTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(5);
+        tester.assertComponent(MAIN_PANEL, FocusHistoryPanel.class);
+    }
+
+    @Test
+    public void test015renderCasesTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(6);
+        tester.assertComponent(MAIN_PANEL, FocusCasesPanel.class);
+    }
+
+    @Test
+    public void test016renderPersonasTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(7);
+        tester.assertComponent(MAIN_PANEL, UserPersonasPanel.class);
+    }
+
+    @Test
+    public void test017renderDelegationsTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(8);
+        tester.assertComponent(MAIN_PANEL, UserDelegationsPanel.class);
+    }
+
+    @Test
+    public void test018renderDelegatedToMeTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(9);
+        tester.assertComponent(MAIN_PANEL, DelegatedToMePanel.class);
+    }
+
+    @Test
+    public void test019renderTriggersTab() {
+        renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
+
+        clickOnDetailsMenu(10);
+        tester.assertComponent(MAIN_PANEL, FocusTriggersPanel.class);
+    }
+
+    @Test //TODO old test remove after removing old gui pages
+    public void test101testPageUserOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class);
+    }
+
+    @Test //TODO old test remove after removing old gui pages
+    public void test102testBasicTabOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class);
+
+        tester.assertComponent(TAB_MAIN, PrismContainerPanel.class);
+
+        tester.assertComponent(TAB_ACTIVATION, PrismContainerPanel.class);
+
+        tester.assertComponent(TAB_PASSWORD, PrismContainerPanel.class);
+
+    }
+
+    @Test //TODO old test remove after removing old gui pages
+    public void test103testCreateUserOld() throws Exception {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class);
+
+        FormTester formTester = tester.newFormTester(MAIN_FORM_OLD, false);
+        formTester.setValue(PATH_FORM_NAME_OLD, "newUserOld");
+        formTester.setValue(PATH_FORM_SHIP_OLD, "ship");
+        formTester.select(PATH_FORM_ADMINISTRATIVE_STATUS, 2);//index 2 is ActivationStatusType.ENABLED
+
+        formTester.submit(FORM_SAVE_OLD);
+
+        Thread.sleep(5000);
+
+        PrismObject<UserType> newUser = findObjectByName(UserType.class, "newUserOld");
+        assertNotNull(newUser, "New user not created.");
+        logger.info("created user: {}", newUser.debugDump());
+
+    }
+
+    @Test //TODO old test remove after removing old gui pages
+    public void test110renderAssignmentsTabOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
 
         clickOnTab(2);
         String assignmentTable = "mainPanel:mainForm:tabPanel:panel:assignmentsContainer:assignmentsPanel:assignmentsPanel:assignments";
@@ -129,9 +235,9 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
         tester.assertComponent(assignmentTableDetails, MultivalueContainerDetailsPanel.class);
     }
 
-    @Test
-    public void test011renderProjectionsTab() {
-        renderPage(USER_JACK_OID);
+    @Test //TODO old test remove after removing old gui pages
+    public void test111renderProjectionsTabOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_JACK_OID);
 
         clickOnTab(1);
         String projectionTable = "mainPanel:mainForm:tabPanel:panel:shadowTable";
@@ -143,53 +249,53 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
         tester.assertComponent(projectionTableDetails, MultivalueContainerDetailsPanel.class);
     }
 
-    @Test
-    public void test012renderHistoryTab() {
-        renderPage(USER_ADMINISTRATOR_OID);
+    @Test //TODO old test remove after removing old gui pages
+    public void test112renderHistoryTabOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
 
         clickOnTab(3);
         String historyPanel = "mainPanel:mainForm:tabPanel:panel";
         tester.assertComponent(historyPanel, ObjectHistoryTabPanel.class);
     }
 
-    @Test
-    public void test013renderCasesTab() {
-        renderPage();
+    @Test //TODO old test remove after removing old gui pages
+    public void test113renderCasesTabOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class);
 
         String tabPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:4:link";
         tester.assertInvisible(tabPath);
     }
 
-    @Test
-    public void test014renderPersonasTab() {
-        renderPage(USER_ADMINISTRATOR_OID);
+    @Test //TODO old test remove after removing old gui pages
+    public void test114renderPersonasTabOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
 
         clickOnTab(6);
         String panel = "mainPanel:mainForm:tabPanel:panel";
         tester.assertComponent(panel, FocusPersonasTabPanel.class);
     }
 
-    @Test
-    public void test015renderDelegationsTab() {
-        renderPage(USER_ADMINISTRATOR_OID);
+    @Test //TODO old test remove after removing old gui pages
+    public void test115renderDelegationsTabOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
 
         clickOnTab(7);
         String panel = "mainPanel:mainForm:tabPanel:panel";
         tester.assertComponent(panel, UserDelegationsTabPanel.class);
     }
 
-    @Test
-    public void test016renderDelegatedToMeTab() {
-        renderPage(SystemObjectsType.USER_ADMINISTRATOR.value());
+    @Test //TODO old test remove after removing old gui pages
+    public void test116renderDelegatedToMeTabOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
 
         clickOnTab(8);
         String panel = "mainPanel:mainForm:tabPanel:panel";
         tester.assertComponent(panel, AssignmentTablePanel.class);
     }
 
-    @Test
-    public void test017renderTriggersTab() {
-        renderPage(SystemObjectsType.USER_ADMINISTRATOR.value());
+    @Test //TODO old test remove after removing old gui pages
+    public void test117renderTriggersTabOld() {
+        renderPage(com.evolveum.midpoint.web.page.admin.users.PageUser.class, USER_ADMINISTRATOR_OID);
 
         clickOnTab(5);
         String panel = "mainPanel:mainForm:tabPanel:panel";
@@ -197,29 +303,10 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     }
 
     private void clickOnTab(int order) {
-        clickOnTab(order, PageUser.class);
+        clickOnTab(order, com.evolveum.midpoint.web.page.admin.users.PageUser.class);
     }
 
-    private PageUser renderPage() {
-        return renderPageWithParams(null);
+    private void clickOnDetailsMenu(int order) {
+        clickOnDetailsMenu(order, PageUser.class);
     }
-
-    private PageUser renderPage(String userOid) {
-        PageParameters params = new PageParameters();
-        params.add(OnePageParameterEncoder.PARAMETER, userOid);
-        return renderPageWithParams(params);
-    }
-
-    private PageUser renderPageWithParams(PageParameters params) {
-        logger.info("render page user");
-        if (params == null) {
-            params = new PageParameters();
-        }
-        PageUser pageUser = tester.startPage(PageUser.class, params);
-
-        tester.assertRenderedPage(PageUser.class);
-
-        return pageUser;
-    }
-
 }
