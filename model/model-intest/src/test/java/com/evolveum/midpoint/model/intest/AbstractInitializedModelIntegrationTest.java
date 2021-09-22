@@ -224,6 +224,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         userTypeWill = repoAddObjectFromFile(USER_WILL_FILE, UserType.class, true, initResult).asObjectable();
 
         // Roles
+        repoAdd(METAROLE_RECOMPUTE_MEMBERS, initResult);
+
         repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);
         repoAddObjectFromFile(ROLE_PIRATE_GREEN_FILE, initResult);
         repoAddObjectFromFile(ROLE_PIRATE_RELATIVE_FILE, initResult);

@@ -2298,19 +2298,14 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, true, getDefaultOptions(), task);
+        modifyRoleDeleteInducementAndRecomputeMembers(ROLE_JUDGE_OID, 1111L, getDefaultOptions(), task);
 
         // THEN
         then();
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
-        assertTrue("task is not persistent", task.isPersistent());
-
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, result);
-
-        waitForTaskFinish(task.getOid(), true);
-
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     }
 
@@ -2327,18 +2322,14 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, true, getDefaultOptions());
+        modifyRoleAddInducementTargetAndRecomputeMembers(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, getDefaultOptions());
 
         // THEN
         then();
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
-        assertTrue("task is not persistent", task.isPersistent());
-
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, result);
-
-        waitForTaskFinish(task.getOid(), true);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable");
@@ -2442,19 +2433,14 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        modifyRoleAddInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, true, getDefaultOptions());
+        modifyRoleAddInducementTargetAndRecomputeMembers(ROLE_EMPTY_OID, ROLE_PIRATE_OID, getDefaultOptions());
 
         // THEN
         then();
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
-        assertTrue("task is not persistent", task.isPersistent());
-
         assertAssignedRole(USER_JACK_OID, ROLE_EMPTY_OID, result);
-
-        waitForTaskFinish(task.getOid(), true);
-
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
@@ -4272,7 +4258,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        modifyRoleDeleteInducement(ROLE_META_FOOL_OID, 10002L, false, getDefaultOptions(), task);
+        modifyRoleDeleteInducement(ROLE_META_FOOL_OID, 10002L, getDefaultOptions(), task);
 
         // THEN
         then();
