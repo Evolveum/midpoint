@@ -726,7 +726,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
         LensProjectionContext projCtx = projCtxResult.context;
         if (projCtx.getOid() != null && shadow.getOid() != null && !projCtx.getOid().equals(shadow.getOid())) {
-            assert projCtxResult.created;
+            assert !projCtxResult.created;
             return treatProjectionContextConflict(shadow, rsd, projCtx, result);
         } else {
             if (projCtx.getOid() == null) {
