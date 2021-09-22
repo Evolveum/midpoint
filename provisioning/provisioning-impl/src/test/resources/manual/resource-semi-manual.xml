@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017 Evolveum and contributors
+  ~ Copyright (C) 2017-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -8,8 +8,6 @@
 
 <resource oid="8a8e19de-1a14-11e7-965f-6f995b457a8b"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
         xmlns:csvconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
@@ -75,9 +73,9 @@
     </consistency>
 
     <business>
-        <operatorRef oid="operators-organization" type="OrgType"/>
-        <operatorRef oid="operators-role" type="RoleType"/>
-        <operatorRef oid="operator-user" type="UserType"/>
+        <operatorRef oid="6f706572-6174-6f72-732d-6f7267616e69" type="OrgType"/>
+        <operatorRef oid="6f706572-6174-6f72-2d72-6f6c65000000" type="RoleType"/>
+        <operatorRef oid="6f706572-6174-6f72-2d75-736572000000" type="UserType"/>
     </business>
 
 </resource>

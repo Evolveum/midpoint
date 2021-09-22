@@ -184,10 +184,10 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         assertNotNull("No configuration container", configurationContainer);
         PrismContainerDefinition confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
-        PrismContainer confingurationPropertiesContainer =
+        PrismContainer configurationPropertiesContainer =
                 configurationContainer.findContainer(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-        assertNotNull("No configuration properties container", confingurationPropertiesContainer);
-        PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();
+        assertNotNull("No configuration properties container", configurationPropertiesContainer);
+        PrismContainerDefinition confPropDef = configurationPropertiesContainer.getDefinition();
         assertNotNull("No configuration properties container definition", confPropDef);
 
     }

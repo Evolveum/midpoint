@@ -23,7 +23,9 @@ public class MTask extends MObject {
     public String category;
     public Instant completionTimestamp;
     public TaskExecutionStateType executionState;
+    // Logically fullResult and resultStatus are related, managed by Task manager.
     public byte[] fullResult;
+    public OperationResultStatusType resultStatus;
     public Integer handlerUriId;
     public Instant lastRunStartTimestamp;
     public Instant lastRunFinishTimestamp;
@@ -36,7 +38,6 @@ public class MTask extends MObject {
     public Integer ownerRefRelationId;
     public String parent;
     public TaskRecurrenceType recurrence;
-    public OperationResultStatusType resultStatus;
     public TaskSchedulingStateType schedulingState;
     public TaskAutoScalingModeType autoScalingMode; // autoScaling/mode
     public ThreadStopActionType threadStopAction;

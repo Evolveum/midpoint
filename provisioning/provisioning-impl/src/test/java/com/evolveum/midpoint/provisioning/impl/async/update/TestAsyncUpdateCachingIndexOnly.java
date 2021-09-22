@@ -12,6 +12,7 @@ import java.io.File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -22,8 +23,8 @@ public class TestAsyncUpdateCachingIndexOnly extends TestAsyncUpdateCaching {
             new File(TEST_DIR, "resource-async-caching-index-only.xml");
 
     @Autowired
-    @Qualifier("repositoryService") // we're downcasting here to known subtype
-    private SqlRepositoryServiceImpl sqlRepositoryService;
+    @Qualifier("repositoryService") // we want repo implementation, not cache
+    private RepositoryService repositoryService;
 
     @Override
     protected File getResourceFile() {
@@ -32,11 +33,16 @@ public class TestAsyncUpdateCachingIndexOnly extends TestAsyncUpdateCaching {
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        // These are experimental features, so they need to be explicitly enabled. This will be eliminated later,
-        // when we make them enabled by default.
-        sqlRepositoryService.sqlConfiguration().setEnableIndexOnlyItems(true);
-        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
-        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
+        if (repositoryService instanceof SqlRepositoryServiceImpl) {
+            // These are experimental features, so they need to be explicitly enabled.
+            // This will be eliminated later, when we make them enabled by default.
+            SqlRepositoryServiceImpl sqlRepositoryService = (SqlRepositoryServiceImpl) repositoryService;
+            sqlRepositoryService.sqlConfiguration().setEnableIndexOnlyItems(true);
+            sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
+            sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
+        } else {
+            // It's Sqale repo and it has no explicit switch for index only.
+        }
 
         super.initSystem(initTask, initResult);
     }

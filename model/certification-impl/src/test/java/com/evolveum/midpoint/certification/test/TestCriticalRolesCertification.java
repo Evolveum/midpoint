@@ -1191,7 +1191,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("campaign in stage 2", campaign);
         assertSanityAfterStageOpen(campaign, certificationDefinition, 2, 2, 5); // stage 1 in iteration 2 was skipped
 
-        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+        List<AccessCertificationCaseType> caseList = new ArrayList<>(queryHelper.searchCases(campaignOid, null, null, result));
         caseList.removeIf(c -> norm(c.getIteration()) != 2);
         assertEquals("Wrong number of certification cases", 3, caseList.size());
         AccessCertificationCaseType administratorCeoCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID);

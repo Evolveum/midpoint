@@ -242,8 +242,14 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         LOGGER.trace("returning from saveOrPreviewPerformed");
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
-//        result.computeStatusIfUnknown();
-//        showResult(result);
+
+        result.computeStatusIfUnknown();
+        showResult(result);
+        if (!previewOnly && result.isSuccess()) {
+            redirectBack();
+        } else {
+            target.add(getFeedbackPanel());
+        }
         return executedDeltas;
     }
 

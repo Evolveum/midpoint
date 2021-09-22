@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Set;
 import javax.annotation.PostConstruct;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
@@ -33,9 +35,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -186,5 +191,19 @@ public class SqaleRepoContext extends SqlRepoContext {
             Collection<? extends ItemDelta<?, ?>> modifications, PrismObject<S> prismObject) {
         return FullTextSearchUtil.isObjectTextInfoRecomputationNeeded(
                 fullTextSearchConfig, prismObject.getCompileTimeClass(), modifications);
+    }
+
+    public byte[] createFullResult(OperationResultType operationResult) {
+        try {
+            // Note that escaping invalid characters and using toString for unsupported types
+            // is safe in the context of operation result serialization.
+            return createStringSerializer()
+                    .options(SerializationOptions.createEscapeInvalidCharacters()
+                            .serializeUnsupportedTypesAsString(true))
+                    .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT)
+                    .getBytes(StandardCharsets.UTF_8);
+        } catch (SchemaException e) {
+            throw new SystemException("Unexpected schema exception", e);
+        }
     }
 }
