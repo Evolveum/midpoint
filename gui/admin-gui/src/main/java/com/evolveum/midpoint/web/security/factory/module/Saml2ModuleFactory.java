@@ -97,10 +97,10 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
     public ModuleAuthentication createEmptyModuleAuthentication(SamlModuleWebSecurityConfiguration configuration) {
         Saml2ModuleAuthentication moduleAuthentication = new Saml2ModuleAuthentication();
         List<IdentityProvider> providers = new ArrayList<>();
-        ((Iterable<RelyingPartyRegistration>)configuration.getRelyingPartyRegistrationRepository()).forEach(
+        configuration.getRelyingPartyRegistrationRepository().forEach(
                 p -> {
                     String authRequestPrefixUrl = "/midpoint" + configuration.getPrefix() + SamlModuleWebSecurityConfiguration.REQUEST_PROCESSING_URL_SUFFIX;
-                    SamlMidpointAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getAssertingPartyDetails().getEntityId());
+                    SamlMidpointAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getRegistrationId());
                     IdentityProvider mp = new IdentityProvider()
                                 .setLinkText(config.getLinkText())
                                 .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", p.getRegistrationId()));

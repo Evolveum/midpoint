@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ import java.util.Map;
  * @author skublik
  */
 
-public class Saml2ModuleAuthentication extends ModuleAuthentication {
+public class Saml2ModuleAuthentication extends ModuleAuthentication implements Serializable {
 
     private List<IdentityProvider> providers = new ArrayList<IdentityProvider>();
     private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration;

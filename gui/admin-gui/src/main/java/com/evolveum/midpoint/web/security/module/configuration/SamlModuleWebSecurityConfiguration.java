@@ -57,7 +57,8 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfiguration.class);
 
-    public static final String RESPONSE_PROCESSING_URL_SUFFIX = "/SSO/alias/{registrationId}";
+    public static final String SSO_LOCATION_URL_SUFFIX = "/SSO/alias/{registrationId}";
+    public static final String LOGOUT_LOCATION_URL_SUFFIX = "/logout/alias/{registrationId}";
     public static final String REQUEST_PROCESSING_URL_SUFFIX = "/authenticate/{registrationId}";
 
     private static Protector protector;
@@ -81,141 +82,145 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         return configuration;
     }
 
-    private static SamlModuleWebSecurityConfiguration buildInternal(Saml2AuthenticationModuleType modelType, String prefixOfSequence, String publicHttpUrlPattern,
-            ServletRequest request) {
+    private static SamlModuleWebSecurityConfiguration buildInternal(Saml2AuthenticationModuleType modelType, String prefixOfSequence,
+            String publicHttpUrlPattern, ServletRequest request) {
         SamlModuleWebSecurityConfiguration configuration = new SamlModuleWebSecurityConfiguration();
         build(configuration, modelType, prefixOfSequence);
 
-        Saml2ServiceProviderAuthenticationModuleType serviceProviderType = modelType.getServiceProvider();
-        Saml2KeyAuthenticationModuleType keysType = serviceProviderType.getKeys();
-
-        List<Saml2ProviderAuthenticationModuleType> providersType = serviceProviderType.getProvider();
+        List<Saml2ServiceProviderAuthenticationModuleType> serviceProviders = modelType.getServiceProvider();
         List<RelyingPartyRegistration> registrations = new ArrayList<>();
-        for (Saml2ProviderAuthenticationModuleType providerType : providersType) {
-            String linkText = providerType.getLinkText() == null ?
-                    (providerType.getAlias() == null ? providerType.getEntityId() : providerType.getAlias())
-                    : providerType.getLinkText();
-            SamlMidpointAdditionalConfiguration.Builder additionalConfigBuilder =
-                    SamlMidpointAdditionalConfiguration.builder()
-                    .nameOfUsernameAttribute(providerType.getNameOfUsernameAttribute())
-                    .linkText(linkText);
-            String registrationId = StringUtils.isNotEmpty(providerType.getAliasForPath()) ? providerType.getAliasForPath() :
-                    (StringUtils.isNotEmpty(providerType.getAlias()) ? providerType.getAlias() : providerType.getEntityId());
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
-                    StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
-            builder.pathSegment(SecurityUtils.stripSlashes(configuration.getPrefix()) + RESPONSE_PROCESSING_URL_SUFFIX);
-            RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata())
-                    .registrationId(registrationId)
-                    .entityId(serviceProviderType.getEntityId())
-                    .assertionConsumerServiceLocation(builder.build().toUriString())
-                    .assertingPartyDetails(party -> {
-                        party.entityId(providerType.getEntityId())
-                                .singleSignOnServiceBinding(Saml2MessageBinding.from(providerType.getAuthenticationRequestBinding()));
-                        if (serviceProviderType.isSignRequests() != null) {
-                            party.wantAuthnRequestsSigned(Boolean.TRUE.equals(serviceProviderType.isSignRequests()));
-                        }
-                        if (providerType.getVerificationKeys() != null && !providerType.getVerificationKeys().isEmpty()) {
-                            party.verificationX509Credentials(c -> {
-                                providerType.getVerificationKeys().forEach(verKey -> {
-                                    byte[] certbytes = new byte[0];
-                                    try {
-                                        certbytes = protector.decryptString(verKey).getBytes();
-                                    } catch (EncryptionException e) {
-                                        LOGGER.error("Couldn't obtain clear string for provider verification key");
-                                    }
-                                    try {
-                                        X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certbytes));
-                                        c.add(new Saml2X509Credential(certificate, Saml2X509Credential.Saml2X509CredentialType.VERIFICATION));
-                                    } catch (CertificateException e) {
-                                        LOGGER.error("Couldn't obtain certificate from " + verKey);
-                                    }
-                                });
-                            });
-                        }
-                    });
-            Saml2X509Credential activeCredential = null;
-            ModuleSaml2SimpleKeyType simpleKeyType = keysType.getActiveSimpleKey();
-            if (simpleKeyType != null) {
-                activeCredential = getSaml2Credential(simpleKeyType, true);
-            }
-            ModuleSaml2KeyStoreKeyType storeKeyType = keysType.getActiveKeyStoreKey();
-            if (storeKeyType != null) {
-                activeCredential = getSaml2Credential(storeKeyType, true);
-            }
+        serviceProviders.forEach(serviceProviderType -> {
+            Saml2KeyAuthenticationModuleType keysType = serviceProviderType.getKeys();
 
-            List<Saml2X509Credential> credentials = new ArrayList<>();
-            if (activeCredential != null) {
-                credentials.add(activeCredential);
-            }
+            if (serviceProviderType.getIdentityProvider() == null) {
+                List<Saml2ProviderAuthenticationModuleType> providersType = serviceProviderType.getProvider();
+                providersType.forEach(providerType -> {
 
-            if (keysType.getStandBySimpleKey() != null && !keysType.getStandBySimpleKey().isEmpty()) {
-                for (ModuleSaml2SimpleKeyType standByKey : keysType.getStandBySimpleKey()) {
-                    Saml2X509Credential credential = getSaml2Credential(standByKey, false);
-                    if (credential != null) {
-                        credentials.add(credential);
-                    }
-                }
-            }
-            if (keysType.getStandByKeyStoreKey() != null && !keysType.getStandByKeyStoreKey().isEmpty()) {
-                for (ModuleSaml2KeyStoreKeyType standByKey : keysType.getStandByKeyStoreKey()) {
-                    Saml2X509Credential credential = getSaml2Credential(standByKey, false);
-                    if (credential != null) {
-                        credentials.add(credential);
-                    }
-                }
-            }
-
-            if (!credentials.isEmpty()) {
-                registrationBuilder.decryptionX509Credentials(c -> {
-                    credentials.forEach(cred -> {
-                        if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.DECRYPTION)) {
-                            c.add(cred);
-                        }
-                    });
                 });
-                registrationBuilder.signingX509Credentials(c -> {
-                    credentials.forEach(cred -> {
-                        if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.SIGNING)) {
-                            c.add(cred);
-                        }
-                    });
-                });
+            } else {
+                Saml2ProviderAuthenticationModuleType providerType = serviceProviderType.getIdentityProvider();
+                RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata());
+                SamlMidpointAdditionalConfiguration.Builder additionalConfigBuilder = SamlMidpointAdditionalConfiguration.builder();
+                createRelyingPartyRegistration(registrationBuilder,
+                        additionalConfigBuilder,
+                        providerType,
+                        publicHttpUrlPattern,
+                        configuration,
+                        keysType,
+                        serviceProviderType,
+                        request);
+                RelyingPartyRegistration registration = registrationBuilder.build();
+                registrations.add(registration);
+                configuration.additionalConfiguration.put(registration.getRegistrationId(), additionalConfigBuilder.build());
             }
-            registrations.add(registrationBuilder.build());
-
-//            ExternalIdentityProviderConfiguration provider = new ExternalIdentityProviderConfiguration();
-//            provider.setAlias(providerType.getAlias())
-//                    .setSkipSslValidation(Boolean.TRUE.equals(providerType.isSkipSslValidation()))
-//                    .setMetadataTrustCheck(Boolean.TRUE.equals(providerType.isMetadataTrustCheck()))
-//                    .setAuthenticationRequestBinding(URI.create(providerType.getAuthenticationRequestBinding()));
-//            if (StringUtils.isNotBlank(providerType.getLinkText())) {
-//                provider.setLinktext(providerType.getLinkText());
-//            }
-//            List<String> verificationKeys = new ArrayList<String>();
-//            for (ProtectedStringType verificationKeyProtected : providerType.getVerificationKeys()) {
-//                try {
-//                    String verificationKey = protector.decryptString(verificationKeyProtected);
-//                    verificationKeys.add(verificationKey);
-//                } catch (EncryptionException e) {
-//                    LOGGER.error("Couldn't obtain clear string for provider verification key");
-//                }
-//            }
-//            if (verificationKeys != null && !verificationKeys.isEmpty()) {
-//                provider.setVerificationKeys(verificationKeys);
-//            }
-//            try {
-//                provider.setMetadata(createMetadata(providerType.getMetadata(), true));
-//            } catch (Exception e) {
-//                LOGGER.error("Couldn't obtain metadata as string from " + providerType.getMetadata());
-//            }
-//            providers.add(provider);
-
-            configuration.additionalConfiguration.put(providerType.getEntityId(), additionalConfigBuilder.build());
-        }
+        });
 
         InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository = new InMemoryRelyingPartyRegistrationRepository(registrations);
         configuration.setRelyingPartyRegistrationRepository(relyingPartyRegistrationRepository);
         return configuration;
+    }
+
+    private static void createRelyingPartyRegistration(RelyingPartyRegistration.Builder registrationBuilder,
+            SamlMidpointAdditionalConfiguration.Builder additionalConfigBuilder, Saml2ProviderAuthenticationModuleType providerType,
+            String publicHttpUrlPattern, SamlModuleWebSecurityConfiguration configuration, Saml2KeyAuthenticationModuleType keysType,
+            Saml2ServiceProviderAuthenticationModuleType serviceProviderType, ServletRequest request) {
+
+        String linkText = providerType.getLinkText() == null ?
+                (providerType.getAlias() == null ? providerType.getEntityId() : providerType.getAlias())
+                : providerType.getLinkText();
+        additionalConfigBuilder.nameOfUsernameAttribute(providerType.getNameOfUsernameAttribute())
+                .linkText(linkText);
+        String registrationId;
+        if (serviceProviderType.getIdentityProvider() != null || serviceProviderType.getProvider().size() == 1) {
+            registrationId = StringUtils.isNotEmpty(serviceProviderType.getAliasForPath()) ? serviceProviderType.getAliasForPath() :
+                    (StringUtils.isNotEmpty(serviceProviderType.getAlias()) ? serviceProviderType.getAlias() : serviceProviderType.getEntityId());
+        } else {
+            registrationId = StringUtils.isNotEmpty(providerType.getAlias()) ? providerType.getAlias() : providerType.getEntityId();
+        }
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
+                StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
+        UriComponentsBuilder ssoBuilder = builder.cloneBuilder();
+        ssoBuilder.pathSegment(SecurityUtils.stripSlashes(configuration.getPrefix()) + SSO_LOCATION_URL_SUFFIX);
+        UriComponentsBuilder logoutBuilder = builder.cloneBuilder();
+        logoutBuilder.pathSegment(SecurityUtils.stripSlashes(configuration.getPrefix()) + LOGOUT_LOCATION_URL_SUFFIX);
+        registrationBuilder = registrationBuilder
+                .registrationId(registrationId)
+                .entityId(serviceProviderType.getEntityId())
+                .assertionConsumerServiceLocation(ssoBuilder.build().toUriString())
+                .singleLogoutServiceLocation(logoutBuilder.build().toUriString())
+                .assertingPartyDetails(party -> {
+                    party.entityId(providerType.getEntityId())
+                            .singleSignOnServiceBinding(Saml2MessageBinding.from(providerType.getAuthenticationRequestBinding()));
+                    if (serviceProviderType.isSignRequests() != null) {
+                        party.wantAuthnRequestsSigned(Boolean.TRUE.equals(serviceProviderType.isSignRequests()));
+                    }
+                    if (providerType.getVerificationKeys() != null && !providerType.getVerificationKeys().isEmpty()) {
+                        party.verificationX509Credentials(c -> {
+                            providerType.getVerificationKeys().forEach(verKey -> {
+                                byte[] certbytes = new byte[0];
+                                try {
+                                    certbytes = protector.decryptString(verKey).getBytes();
+                                } catch (EncryptionException e) {
+                                    LOGGER.error("Couldn't obtain clear string for provider verification key");
+                                }
+                                try {
+                                    X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certbytes));
+                                    c.add(new Saml2X509Credential(certificate, Saml2X509Credential.Saml2X509CredentialType.VERIFICATION));
+                                } catch (CertificateException e) {
+                                    LOGGER.error("Couldn't obtain certificate from " + verKey);
+                                }
+                            });
+                        });
+                    }
+                });
+        Saml2X509Credential activeCredential = null;
+        ModuleSaml2SimpleKeyType simpleKeyType = keysType.getActiveSimpleKey();
+        if (simpleKeyType != null) {
+            activeCredential = getSaml2Credential(simpleKeyType, true);
+        }
+        ModuleSaml2KeyStoreKeyType storeKeyType = keysType.getActiveKeyStoreKey();
+        if (storeKeyType != null) {
+            activeCredential = getSaml2Credential(storeKeyType, true);
+        }
+
+        List<Saml2X509Credential> credentials = new ArrayList<>();
+        if (activeCredential != null) {
+            credentials.add(activeCredential);
+        }
+
+        if (keysType.getStandBySimpleKey() != null && !keysType.getStandBySimpleKey().isEmpty()) {
+            for (ModuleSaml2SimpleKeyType standByKey : keysType.getStandBySimpleKey()) {
+                Saml2X509Credential credential = getSaml2Credential(standByKey, false);
+                if (credential != null) {
+                    credentials.add(credential);
+                }
+            }
+        }
+        if (keysType.getStandByKeyStoreKey() != null && !keysType.getStandByKeyStoreKey().isEmpty()) {
+            for (ModuleSaml2KeyStoreKeyType standByKey : keysType.getStandByKeyStoreKey()) {
+                Saml2X509Credential credential = getSaml2Credential(standByKey, false);
+                if (credential != null) {
+                    credentials.add(credential);
+                }
+            }
+        }
+
+        if (!credentials.isEmpty()) {
+            registrationBuilder.decryptionX509Credentials(c -> {
+                credentials.forEach(cred -> {
+                    if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.DECRYPTION)) {
+                        c.add(cred);
+                    }
+                });
+            });
+            registrationBuilder.signingX509Credentials(c -> {
+                credentials.forEach(cred -> {
+                    if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.SIGNING)) {
+                        c.add(cred);
+                    }
+                });
+            });
+        }
     }
 
     private static RelyingPartyRegistration.Builder getRelyingPartyFromMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata) {
@@ -233,8 +238,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             if (metadata.getMetadataUrl() != null) {
                 try (InputStream source = RESOURCE_LOADER.getResource(metadata.getMetadataUrl()).getInputStream()) {
                     builder = ASSERTING_PARTY_METADATA_CONVERTER.convert(source);
-                }
-                catch (IOException ex) {
+                } catch (IOException ex) {
                     if (ex.getCause() instanceof Saml2Exception) {
                         throw (Saml2Exception) ex.getCause();
                     }

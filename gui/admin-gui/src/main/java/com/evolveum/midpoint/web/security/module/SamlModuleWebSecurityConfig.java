@@ -94,7 +94,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
         MidpointSaml2LoginConfigurer configurer = new MidpointSaml2LoginConfigurer(auditProvider);
         configurer.relyingPartyRegistrationRepository(relyingPartyRegistrations())
-                .loginProcessingUrl(getConfiguration().getPrefix() + SamlModuleWebSecurityConfiguration.RESPONSE_PROCESSING_URL_SUFFIX)
+                .loginProcessingUrl(getConfiguration().getPrefix() + SamlModuleWebSecurityConfiguration.SSO_LOCATION_URL_SUFFIX)
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(getConfiguration().getPrefix())))
                 .failureHandler(new MidpointAuthenticationFailureHandler());
@@ -116,7 +116,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
         Saml2MetadataFilter filter = new Saml2MetadataFilter(new MidpointMetadataRelyingPartyRegistrationResolver(relyingPartyRegistrations()),
                 new OpenSamlMetadataResolver());
-        filter.setRequestMatcher(new AntPathRequestMatcher( getConfiguration().getPrefix() + "/metadata"));
+        filter.setRequestMatcher(new AntPathRequestMatcher( getConfiguration().getPrefix() + "/metadata/*"));
         http.addFilterAfter(filter, Saml2WebSsoAuthenticationFilter.class);
     }
 

@@ -491,10 +491,11 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.5</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="serviceProvider" type="tns:Saml2ServiceProviderAuthenticationModuleType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="serviceProvider" type="tns:Saml2ServiceProviderAuthenticationModuleType" minOccurs="1" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -539,9 +540,13 @@
                     <xsd:documentation>
                         Unique alias used to identify the selected local service provider based on used URL.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="aliasForPath" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Alias used for AssertionConsumerServiceURL.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="defaultSigningAlgorithm" type="tns:Saml2SigningAlgorithmAuthenticationModuleType" minOccurs="0" maxOccurs="1">
@@ -558,6 +563,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.5</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -575,6 +581,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.5</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -585,6 +592,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.5</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -598,6 +606,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.5</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -613,6 +622,17 @@
                     <xsd:documentation>
                         Possible identity providers for this service provider.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.5</a:plannedRemoval>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identityProvider" type="tns:Saml2ProviderAuthenticationModuleType" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Possible identity providers for this service provider.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="metadata" type="tns:Saml2ProviderMetadataAuthenticationModuleType" minOccurs="0" maxOccurs="1">
@@ -622,6 +642,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.5</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -634,6 +655,8 @@
                 Possible NameId.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+                <a:plannedRemoval>4.5</a:plannedRemoval>
                 <jaxb:typesafeEnumClass/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -682,6 +705,8 @@
                 Possible digest method.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+                <a:plannedRemoval>4.5</a:plannedRemoval>
                 <jaxb:typesafeEnumClass/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -920,13 +945,10 @@
                     <xsd:documentation>
                         Unique alias used to identify the selected local service provider based on used URL.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="aliasForPath" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Alias used for AssertionConsumerServiceURL.
-                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.5</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="metadata" type="tns:Saml2ProviderMetadataAuthenticationModuleType" minOccurs="1" maxOccurs="1">
@@ -940,6 +962,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.5</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -950,6 +973,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.5</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

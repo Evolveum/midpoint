@@ -120,7 +120,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
                 samlAuthenticationToken.setDetails(principal);
                 Map<String, List<Object>> attributes = principal.getAttributes();
                 String enteredUsername = "";
-                SamlMidpointAdditionalConfiguration config = samlModule.getAdditionalConfiguration().get(samlAuthenticationToken.getRelyingPartyRegistration().getAssertingPartyDetails().getEntityId());
+                SamlMidpointAdditionalConfiguration config = samlModule.getAdditionalConfiguration().get(samlAuthenticationToken.getRelyingPartyRegistration().getRegistrationId());
                 String nameOfSamlAttribute = config.getNameOfUsernameAttribute();
                 if (!attributes.containsKey(nameOfSamlAttribute)){
                     LOGGER.error("Couldn't find attribute for username in saml response");
