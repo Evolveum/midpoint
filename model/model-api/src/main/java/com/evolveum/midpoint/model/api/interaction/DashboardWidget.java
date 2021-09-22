@@ -10,9 +10,6 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
-import org.springframework.cglib.core.Local;
-
-import java.io.Serializable;
 import java.util.Locale;
 
 /**
