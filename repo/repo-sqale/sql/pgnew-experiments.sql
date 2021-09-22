@@ -394,7 +394,7 @@ select t.oid as table_oid,
 from pg_class t
          left join pg_class tt on t.reltoastrelid = tt.oid and tt.relkind = 't'
 where t.relkind = 'r' and t.relnamespace = (select oid from pg_namespace where nspname = 'public')
-order by total_size desc;
+order by pg_relation_size(t.oid) + coalesce(pg_relation_size(tt.oid), 0) desc;
 
 -- find sequence name for serial column (e.g. to alter its value later)
 select pg_get_serial_sequence('m_qname', 'id');

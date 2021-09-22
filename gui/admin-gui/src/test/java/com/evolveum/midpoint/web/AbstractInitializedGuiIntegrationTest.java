@@ -10,6 +10,10 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
+import org.apache.wicket.Page;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -26,6 +30,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author semancik
  */
 public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiIntegrationTest {
+
+    protected static final String MAIN_FORM_OLD = "mainPanel:mainForm";
+    protected static final String PATH_FORM_NAME_OLD = "tabPanel:panel:main:values:0:value:valueForm:valueContainer:input:"
+            + "propertiesLabel:properties:0:property:values:0:value:valueForm:valueContainer:input:originValueContainer:"
+            + "origValueWithButton:origValue:input";
+    protected static final String FORM_SAVE_OLD = "save";
+
+    protected static final String MAIN_FORM = "detailsView:mainForm";
+    protected static final String PATH_FORM_NAME = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:"
+            + "input:propertiesLabel:properties:0:property:values:0:value:valueForm:valueContainer:input:originValueContainer:"
+            + "origValueWithButton:origValue:input";
+    protected static final String FORM_SAVE = "buttons:buttons:1:";
 
     protected DummyResource dummyResource;
     protected DummyResourceContoller dummyResourceCtl;
@@ -81,5 +97,22 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         display("User after change execution", userJack);
         assertUserJack(userJack);
         accountJackOid = getSingleLinkOid(userJack);
+    }
+
+    protected Page renderPage(Class<? extends Page> expectedRenderedPageClass) {
+        return renderPage(expectedRenderedPageClass, null);
+    }
+
+    protected Page renderPage(Class<? extends Page> expectedRenderedPageClass, String oid) {
+        logger.info("render page " + expectedRenderedPageClass.getSimpleName());
+        PageParameters params = new PageParameters();
+        if (oid != null) {
+            params.add(OnePageParameterEncoder.PARAMETER, oid);
+        }
+        Page pageRole = tester.startPage(expectedRenderedPageClass, params);
+
+        tester.assertRenderedPage(expectedRenderedPageClass);
+
+        return pageRole;
     }
 }

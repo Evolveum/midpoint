@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -30,11 +31,13 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.querydsl.core.Tuple;
 
 /**
  * Mapping between {@link QAccessCertificationWorkItem} and {@link AccessCertificationWorkItemType}.
@@ -129,6 +132,7 @@ public class QAccessCertificationWorkItemMapping
     }
 
     // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
+    @Override
     @SuppressWarnings("DuplicatedCode")
     public MAccessCertificationWorkItem insert(
             AccessCertificationWorkItemType workItem,
@@ -176,16 +180,23 @@ public class QAccessCertificationWorkItemMapping
             // FIXME: Should we load cases we need, instead of all cases?
             options = SchemaService.get().getOperationOptionsBuilder().retrieve().build();
             if (owner == null) {
-                owner = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext).loadObject(jdbcSession, AccessCertificationCampaignType.class, ownerOid, options);
+                owner = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext).loadObject(jdbcSession, AccessCertificationCampaignType.class, ownerOid, Collections.emptyList());
                 cache.put(ownerOid, owner);
             }
-            PrismContainer<AccessCertificationCaseType> caseContainer = owner.findContainer(AccessCertificationCampaignType.F_CASE);
-            if (caseContainer == null) {
-                throw new SystemException("Campaign" + owner + " has no cases even if it should have " + tuple);
+            PrismContainer<AccessCertificationCaseType> caseContainer;
+            try {
+                caseContainer = owner.findOrCreateContainer(AccessCertificationCampaignType.F_CASE);
+            } catch (SchemaException e) {
+                throw new SystemException("Should not happened", e);
             }
             PrismContainerValue<AccessCertificationCaseType> aCase = caseContainer.findValue(row.accessCertCaseCid);
             if (aCase == null) {
-                throw new SystemException("Campaign " + owner + " has no cases with ID " + row.accessCertCaseCid);
+                aCase = loadCase(jdbcSession, ownerOid, row.accessCertCaseCid);
+                try {
+                    caseContainer.addIgnoringEquivalents(aCase);
+                } catch (SchemaException e) {
+                    throw new SystemException(e);
+                }
             }
             PrismContainer<AccessCertificationWorkItemType> container = aCase.findContainer(AccessCertificationCaseType.F_WORK_ITEM);
             if (container == null) {
@@ -197,5 +208,24 @@ public class QAccessCertificationWorkItemMapping
             }
             return value.asContainerable();
         };
+    }
+
+    private PrismContainerValue<AccessCertificationCaseType> loadCase(JdbcSession jdbcSession, UUID ownerOid, Long accessCertCaseCid) {
+        QAccessCertificationCaseMapping mapping = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping();
+        QAccessCertificationCase root = mapping.defaultAlias();
+        Tuple result = jdbcSession.newQuery()
+                .from(root)
+                .select(mapping.selectExpressions(root, Collections.emptyList()))
+                .where(root.ownerOid.eq(ownerOid).and(root.cid.eq(accessCertCaseCid)))
+                .fetchOne();
+        if (result == null) {
+            throw new SystemException("Case owner:" + ownerOid + " cid: " +  accessCertCaseCid + "does not exists.");
+        }
+        try {
+            return mapping.toSchemaObject(result, root, Collections.emptyList()).asPrismContainerValue();
+        } catch (SchemaException e) {
+            throw new SystemException(e);
+        }
+
     }
 }

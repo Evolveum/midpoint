@@ -8,13 +8,6 @@ package com.evolveum.midpoint.web.security.module.configuration;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.authentication.AuthenticationProvider;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 
 /**
  * @author skublik

@@ -100,7 +100,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
                 } else {
                     token = createNewAuthenticationToken(token, token.getAuthorities());
                 }
-                writeAutentication(processingAuthentication, mpAuthentication, moduleAuthentication, token);
+                writeAuthentication(processingAuthentication, mpAuthentication, moduleAuthentication, token);
 
                 return mpAuthentication;
             }
@@ -115,7 +115,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         }
     }
 
-    protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, ModuleAuthentication moduleAuthentication, Authentication token) {
+    protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, ModuleAuthentication moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
         if (principal != null && principal instanceof MidPointPrincipal) {
             mpAuthentication.setPrincipal(principal);

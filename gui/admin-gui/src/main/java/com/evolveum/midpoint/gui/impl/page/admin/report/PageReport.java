@@ -128,7 +128,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         reportTable.setOutputMarkupId(true);
 
         WebMarkupContainer tableBox = new WebMarkupContainer(ID_TABLE_BOX);
-        tableBox.add(new VisibleBehaviour(() -> getOperationalButtonsPanel().isShowingPreview() && reportTable.hasView()));
+        tableBox.add(new VisibleBehaviour(() -> getOperationalButtonsPanel() != null && getOperationalButtonsPanel().isShowingPreview() && reportTable.hasView()));
         tableBox.setOutputMarkupId(true);
         tableContainer.add(tableBox);
 

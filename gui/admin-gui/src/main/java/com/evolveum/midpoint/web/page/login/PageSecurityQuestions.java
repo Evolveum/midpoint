@@ -51,8 +51,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
-
 /**
  * @author lskublik
  */
@@ -379,7 +377,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null && moduleAuthentication instanceof SecurityQuestionFormModuleAuthentication){
                 String prefix = ((SecurityQuestionFormModuleAuthentication) moduleAuthentication).getPrefix();
-                return stripSlashes(prefix) + "/spring_security_login";
+                return SecurityUtils.stripSlashes(prefix) + "/spring_security_login";
             }
         }
 

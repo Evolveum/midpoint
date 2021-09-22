@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017 Evolveum and contributors
+  ~ Copyright (C) 2017-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,17 +9,18 @@
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-        oid="operator-org-member">
+        oid="6f706572-6174-6f72-2d6f-72672d6d656d">
+
     <name>operator-org-member</name>
-    <parentOrgRef oid="operators-organization" relation="org:default" type="c:OrgType">
+    <parentOrgRef oid="6f706572-6174-6f72-732d-6f7267616e69" relation="org:default" type="c:OrgType">
         <!-- Operators organization -->
     </parentOrgRef>
     <assignment>
-        <targetRef oid="operators-organization" relation="org:default" type="c:OrgType">
+        <targetRef oid="6f706572-6174-6f72-732d-6f7267616e69" relation="org:default" type="c:OrgType">
             <!-- Operators organization -->
         </targetRef>
     </assignment>
-    <roleMembershipRef oid="operators-organization" relation="org:default" type="c:OrgType">
+    <roleMembershipRef oid="6f706572-6174-6f72-732d-6f7267616e69" relation="org:default" type="c:OrgType">
         <!-- Operators organization -->
     </roleMembershipRef>
 </user>

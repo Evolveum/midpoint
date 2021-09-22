@@ -35,7 +35,6 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -128,6 +127,11 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
     /**
      * Inserts audit event record aggregate root without any subentities.
+     * Traditional Sqale "insert root first, then insert children" is not optimal here,
+     * because to insert root we need to collect some information from children anyway.
+     * So we prepare the subentities in collections, gather the needed information
+     * (e.g. changed item paths) and then insert root entity.
+     * Subentities are inserted later out of this method.
      *
      * @return inserted row with transient deltas prepared for insertion
      */
@@ -195,16 +199,12 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
             OperationResult executionResult = deltaOperation.getExecutionResult();
             if (executionResult != null) {
-                OperationResultType jaxb = executionResult.createOperationResultType();
-                if (jaxb != null) {
-                    deltaRow.status = jaxb.getStatus();
+                OperationResultType operationResult = executionResult.createOperationResultType();
+                if (operationResult != null) {
+                    deltaRow.status = operationResult.getStatus();
                     // Note that escaping invalid characters and using toString for unsupported types is safe in the
                     // context of operation result serialization.
-                    deltaRow.fullResult = sqlRepoContext.createStringSerializer()
-                            .options(SerializationOptions.createEscapeInvalidCharacters()
-                                    .serializeUnsupportedTypesAsString(true))
-                            .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT)
-                            .getBytes(StandardCharsets.UTF_8);
+                    deltaRow.fullResult = sqlRepoContext.createFullResult(operationResult);
                 }
             }
             deltaRow.resourceOid = SqaleUtils.oidToUUid(deltaOperation.getResourceOid());

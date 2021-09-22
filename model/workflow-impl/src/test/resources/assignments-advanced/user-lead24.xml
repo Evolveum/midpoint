@@ -5,7 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<user oid="00000001-d34d-b33f-f00d-L00000000024">
+<user oid="00000001-d34d-b33f-f00d-f00000000024">
     <name>lead24</name>
     <assignment> <!-- approver -->
         <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>

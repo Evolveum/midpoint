@@ -29,6 +29,6 @@ public class UriItemDeltaProcessor
 
     @Override
     public @Nullable Integer convertRealValue(Object realValue) {
-        return context.repositoryContext().processCacheableUri((String) realValue);
+        return context.repositoryContext().processCacheableUri(realValue);
     }
 }

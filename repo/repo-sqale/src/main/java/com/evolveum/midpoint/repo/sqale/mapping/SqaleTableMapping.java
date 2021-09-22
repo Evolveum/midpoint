@@ -506,7 +506,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected Collection<? extends QName> fullObjectItemsToSkip() {
-        // TODO extend later, things like FocusType.F_JPEG_PHOTO, see ObjectUpdater#updateFullObject
         return Collections.emptyList();
     }
 

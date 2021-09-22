@@ -270,7 +270,8 @@ class ItemProcessingGatekeeper<I> {
                     .outcome(processingResult.outcome)
                     .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(startInfo.getStartTimeMillis()))
                     .endTimestamp(XmlTypeConverter.createXMLGregorianCalendar(operation.getEndTimeMillis()))
-                    .duration(operation.getDurationRounded());
+                    .duration(operation.getDurationRounded())
+                    .errorMessage(processingResult.getMessage());
             activityExecution.getItemsReport().recordItemProcessed(record, workerTask, result);
         }
     }

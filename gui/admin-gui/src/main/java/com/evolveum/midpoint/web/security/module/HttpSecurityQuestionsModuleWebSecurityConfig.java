@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.security.module;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
@@ -17,13 +18,12 @@ import com.evolveum.midpoint.web.security.HttpSecurityQuestionsAuthenticationEnt
 import com.evolveum.midpoint.web.security.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.web.security.filter.HttpSecurityQuestionsAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-
-import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
 
 /**
  * @author skublik
@@ -52,7 +52,7 @@ public class HttpSecurityQuestionsModuleWebSecurityConfig<C extends ModuleWebSec
 
         super.configure(http);
         HttpAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationEntryPoint());
-        http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
+        http.antMatcher(SecurityUtils.stripEndingSlashes(getPrefix()) + "/**");
 
         http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
 
