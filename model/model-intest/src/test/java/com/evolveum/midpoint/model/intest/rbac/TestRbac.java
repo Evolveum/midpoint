@@ -2431,6 +2431,9 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
+        // By default, empty role is really empty. If we want to recompute members, it has to have the following metarole.
+        assignRole(RoleType.class, ROLE_EMPTY_OID, METAROLE_RECOMPUTE_MEMBERS.oid, task, result);
+
         // WHEN
         when();
         modifyRoleAddInducementTargetAndRecomputeMembers(ROLE_EMPTY_OID, ROLE_PIRATE_OID, getDefaultOptions());
@@ -2444,6 +2447,9 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
+
+        // Let's clean up things.
+        unassignRole(RoleType.class, ROLE_EMPTY_OID, METAROLE_RECOMPUTE_MEMBERS.oid, task, result);
     }
 
     @Test

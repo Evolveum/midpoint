@@ -55,7 +55,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
     private static final int NUM_PROJECT_ORGS = 3;
 
     private static final int NUMBER_OF_IMPORTED_USERS = 5;
-    private static final int NUMBER_OF_IMPORTED_ROLES = 15;
+    private static final int NUMBER_OF_IMPORTED_ROLES = 16;
 
     @Autowired protected MappingFactory mappingFactory;
     @Autowired protected Clockwork clockwork;
