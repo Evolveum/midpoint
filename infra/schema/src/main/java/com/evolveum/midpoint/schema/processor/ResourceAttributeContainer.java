@@ -43,7 +43,8 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
                 }
                 ResourceAttribute attribute = new ResourceAttributeImpl(attributeName, attributeDefinition , property.getPrismContext());
                 for(PrismPropertyValue pval: property.getValues()) {
-                    attribute.add(pval.clone());
+                    // MID-5833 This is manual copy process, could we could assume original property is correctly constructed
+                    attribute.addIgnoringEquivalents(pval.clone());
                 }
                 attributesContainer.add(attribute);
                 attribute.applyDefinition(attributeDefinition);
