@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,19 @@
 
 package com.evolveum.midpoint.wf.impl.objects;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -24,17 +36,6 @@ import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Tests role lifecycle with global policy rules.
@@ -170,10 +171,10 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         ObjectDelta<RoleType> judgeDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT)
-                        .add(createAssignmentTo("oid1", ObjectTypes.ROLE, prismContext),
-                                createAssignmentTo("oid2", ObjectTypes.ROLE, prismContext))
+                .add(createAssignmentTo("oid1", ObjectTypes.ROLE, prismContext),
+                        createAssignmentTo("oid2", ObjectTypes.ROLE, prismContext))
                 .item(RoleType.F_DESCRIPTION)
-                        .replace("hi")
+                .replace("hi")
                 .asObjectDeltaCast(roleJudgeOid);
 
         executeTest(new TestDetails() {
@@ -429,7 +430,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         ObjectDelta<RoleType> captainDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT)
-                        .delete(cloneCollectionMembers(captainBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
+                .delete(cloneCollectionMembers(captainBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
                 .asObjectDeltaCast(roleCaptainOid);
 
         executeTest(new TestDetails() {
