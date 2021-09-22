@@ -78,7 +78,8 @@ public class PageReports extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<ReportType> table = new MainObjectListPanel<ReportType>(ID_TABLE, ReportType.class) {
-            
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.PAGE_REPORTS;
@@ -97,6 +98,11 @@ public class PageReports extends PageAdmin {
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 return PageReports.this.createInlineMenu();
+            }
+
+            @Override
+            protected boolean isGenericNewButtonVisible() {
+                return false;
             }
         };
         table.setOutputMarkupId(true);

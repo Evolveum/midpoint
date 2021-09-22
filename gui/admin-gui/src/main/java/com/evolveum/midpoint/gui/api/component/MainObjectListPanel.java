@@ -239,7 +239,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     });
                 }
 
-                if (!(isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()) && getNewObjectGenericButtonVisibility()) {
+                if (!(isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget())
+                        && getNewObjectGenericButtonVisibility() && isGenericNewButtonVisible()) {
                     CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
                     DisplayType defaultButtonDisplayType = getNewObjectButtonSpecialDisplayType();
                     defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
@@ -259,6 +260,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
 
+    }
+
+    protected boolean isGenericNewButtonVisible() {
+        return true;
     }
 
     @Override
