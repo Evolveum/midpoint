@@ -745,18 +745,17 @@ public class ModelImplUtils {
     }
 
     public static PrismReferenceValue determineAuditTargetDeltaOps(
-            Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps,
-            PrismContext prismContext) {
+            Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps) {
         if (deltaOps == null || deltaOps.isEmpty()) {
             return null;
         }
         if (deltaOps.size() == 1) {
             ObjectDeltaOperation<? extends ObjectType> deltaOp = deltaOps.iterator().next();
-            return getAuditTarget(deltaOp.getObjectDelta(), prismContext);
+            return getAuditTarget(deltaOp.getObjectDelta(), PrismContext.get());
         }
         for (ObjectDeltaOperation<? extends ObjectType> deltaOp: deltaOps) {
             if (!ShadowType.class.isAssignableFrom(deltaOp.getObjectDelta().getObjectTypeClass())) {
-                return getAuditTarget(deltaOp.getObjectDelta(), prismContext);
+                return getAuditTarget(deltaOp.getObjectDelta(), PrismContext.get());
             }
         }
         // Several raw operations, all on shadows, no focus ... this should not happen

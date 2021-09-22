@@ -14,6 +14,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
@@ -26,7 +28,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @FunctionalInterface
 public interface ProcessorMethodRef<X extends ObjectType> {
 
-    void run(LensContext<X> lensContext, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
+    void run(@NotNull LensContext<X> lensContext, @NotNull String activityDescription,
+            @NotNull XMLGregorianCalendar now, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException;
 

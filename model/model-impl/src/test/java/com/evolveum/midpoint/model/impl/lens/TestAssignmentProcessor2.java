@@ -534,7 +534,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .targetRef(USER_GUYBRUSH_OID, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY);
         jackGuybrushAssignment.beginLimitTargetContent().allowTransitive(true);
         jack.asObjectable().getAssignment().add(jackGuybrushAssignment);
-        LensContext<UserType> context = new LensContextPlaceholder<>(jack, prismContext);
+        LensContext<UserType> context = new LensContextPlaceholder<>(jack);
 
         AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator.Builder<UserType>()
                 .referenceResolver(referenceResolver)

@@ -1163,7 +1163,7 @@ public class ExpressionUtil {
             ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory,
             String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(expressionFactory.getPrismContext()), expressionProfile, shortDesc, task, result);
+        return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(), expressionProfile, shortDesc, task, result);
     }
 
     public static Function<Object, Object> createRefConvertor(QName defaultType) {
@@ -1187,8 +1187,9 @@ public class ExpressionUtil {
         };
     }
 
-    public static PrismPropertyDefinition<Boolean> createConditionOutputDefinition(PrismContext prismContext) {
-        return prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
+    public static PrismPropertyDefinition<Boolean> createConditionOutputDefinition() {
+        return PrismContext.get().definitionFactory()
+                .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
     }
 
     /**

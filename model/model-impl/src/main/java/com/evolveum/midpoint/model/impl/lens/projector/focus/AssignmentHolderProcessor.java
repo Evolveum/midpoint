@@ -91,7 +91,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
         while (true) {
 
-            ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+            ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicy();
             LensUtil.applyObjectPolicyConstraints(focusContext, archetypePolicy, prismContext);
 
             iterationHelper.onIterationStart(task, result);

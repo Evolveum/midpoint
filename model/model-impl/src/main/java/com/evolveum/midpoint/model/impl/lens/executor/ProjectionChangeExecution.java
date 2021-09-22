@@ -242,7 +242,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
     private void recordProjectionExecutionException(Throwable e, OperationResult result) {
         result.recordFatalError(e);
         LOGGER.error("Error executing changes for {}: {}", projCtx.toHumanReadableString(), e.getMessage(), e);
-        projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+        projCtx.setBroken();
     }
 
     private boolean shouldExecute() {

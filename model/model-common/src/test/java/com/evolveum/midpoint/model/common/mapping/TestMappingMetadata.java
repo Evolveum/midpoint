@@ -1166,11 +1166,6 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public PrismContext getPrismContext() {
-                return evaluator.getPrismContext();
-            }
-
-            @Override
             public ObjectTemplateType getFocusTemplate() {
                 return TEMPLATE_PROVENANCE.getObjectable();
             }

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorComponentTraceType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.model.api.util.ClockworkInspector;
 import com.evolveum.midpoint.model.api.util.DiagnosticContextManager;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.util.ProfilingModelInspector;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -105,12 +105,12 @@ public class ClockworkMedic {
         this.diagnosticContextManager = diagnosticContextManager;
     }
 
-    public ClockworkInspector getClockworkInspector() {
+    ClockworkInspector getClockworkInspector() {
         return DiagnosticContextHolder.get(ClockworkInspector.class);
     }
 
 
-    public <F extends ObjectType> void clockworkStart(LensContext<F> context) {
+    <F extends ObjectType> void clockworkStart(LensContext<F> context) {
         ClockworkInspector clockworkInspector = getClockworkInspector();
         if (clockworkInspector != null) {
             clockworkInspector.clockworkStart(context);
@@ -174,7 +174,7 @@ public class ClockworkMedic {
     @SuppressWarnings("rawtypes")
     public boolean partialExecute(String componentName, ProjectorProcessor processor,
             ProcessorMethodRef method, Supplier<PartialProcessingTypeType> optionSupplier,
-            Class<?> executingClass, LensContext<?> context, String activityDescription,
+            Class<?> executingClass, LensContext<?> context, @NotNull String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {

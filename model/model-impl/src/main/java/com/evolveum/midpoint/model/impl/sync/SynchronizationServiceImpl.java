@@ -698,7 +698,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         ResourceType resource = change.getResource().asObjectable();
         if (ModelExecuteOptions.isLimitPropagation(options)) {
-            context.setTriggeredResource(resource);
+            context.setTriggeringResourceOid(resource);
         }
 
         context.rememberResource(resource);

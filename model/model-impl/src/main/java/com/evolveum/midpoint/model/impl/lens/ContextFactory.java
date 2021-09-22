@@ -101,7 +101,7 @@ public class ContextFactory {
         if (focusClass == null) {
             focusClass = determineFocusClass();
         }
-        LensContext<F> context = new LensContext<>(focusClass, prismContext, provisioningService);
+        LensContext<F> context = new LensContext<>(focusClass);
         context.setChannel(task.getChannel());
         context.setOptions(options);
         context.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
@@ -169,8 +169,7 @@ public class ContextFactory {
 
     public <F extends ObjectType> LensContext<F> createRecomputeFocusContext(
             Class<F> focusType, PrismObject<F> focus, ModelExecuteOptions options, Task task, OperationResult result) {
-        LensContext<F> lensContext = new LensContext<>(focusType,
-            prismContext, provisioningService);
+        LensContext<F> lensContext = new LensContext<>(focusType);
         LensFocusContext<F> focusContext = lensContext.createFocusContext();
         focusContext.setLoadedObject(focus);
         focusContext.setOid(focus.getOid());
@@ -182,7 +181,7 @@ public class ContextFactory {
     public <F extends ObjectType> LensContext<F> createRecomputeProjectionContext(
             PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         provisioningService.applyDefinition(shadow, task, result);
-        LensContext<F> lensContext = new LensContext<>(null, prismContext, provisioningService);
+        LensContext<F> lensContext = new LensContext<>(null);
         LensProjectionContext projectionContext = lensContext.createProjectionContext();
         projectionContext.setLoadedObject(shadow);
         projectionContext.setOid(shadow.getOid());
@@ -195,7 +194,7 @@ public class ContextFactory {
      * Creates empty lens context for synchronization purposes, filling in only the very basic metadata (such as channel).
      */
     public <F extends ObjectType> LensContext<F> createSyncContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change) {
-        LensContext<F> context = new LensContext<>(focusClass, prismContext, provisioningService);
+        LensContext<F> context = new LensContext<>(focusClass);
         context.setChannel(change.getSourceChannel());
         return context;
     }

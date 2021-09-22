@@ -425,15 +425,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         var.put(ExpressionConstants.VAR_USER, object, object.getDefinition());
         var.put(ExpressionConstants.VAR_FOCUS, object, object.getDefinition());
         var.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
+        PrismContext prismContext = PrismContext.get();
         if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-            PrismContext prismContext = rctx.lensContext.getPrismContext();
             AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
             var.put(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget(), actx.evaluatedAssignment.getTarget().getDefinition());
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
             AssignmentType assignment = actx.evaluatedAssignment.getAssignment(actx.state == ObjectState.BEFORE);
             var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, getAssignmentDefinition(assignment, prismContext));
         } else if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
-            PrismContext prismContext = rctx.lensContext.getPrismContext();
             PrismObjectDefinition<ObjectType> targetDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
             var.put(ExpressionConstants.VAR_TARGET, null, targetDef);
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null, EvaluatedAssignment.class);

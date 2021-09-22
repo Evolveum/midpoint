@@ -176,11 +176,11 @@ public class ArchetypeManager implements Cache {
             return null;
         }
 
-        ArchetypePolicyType archetypePolicyType = computeArchetypePolicy(object, result);
+        ArchetypePolicyType archetypePolicy = computeArchetypePolicy(object, result);
         // Try to find appropriate system configuration section for this object.
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
 
-        return merge(archetypePolicyType, objectPolicy);
+        return merge(archetypePolicy, objectPolicy);
     }
 
     private <O extends ObjectType> ArchetypePolicyType computeArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException {
@@ -612,7 +612,8 @@ public class ArchetypeManager implements Cache {
         return resultPolicy;
     }
 
-    private <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+    private <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object,
+            OperationResult result) throws SchemaException, ConfigurationException {
         if (object == null) {
             return null;
         }
@@ -635,7 +636,8 @@ public class ArchetypeManager implements Cache {
     /**
      * This has to remain static due to use from LensContext. Hopefully it will get refactored later.
      */
-    private static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
+    private static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object,
+            SystemConfigurationType systemConfigurationType) throws ConfigurationException {
         List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
         return determineObjectPolicyConfiguration(object.getCompileTimeClass(), subTypes, systemConfigurationType);
     }
