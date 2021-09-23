@@ -70,9 +70,10 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
         return retval;
     }
 
-    public static LensObjectDeltaOperation fromLensObjectDeltaOperationType(LensObjectDeltaOperationType jaxb, PrismContext prismContext) throws SchemaException {
+    static LensObjectDeltaOperation fromLensObjectDeltaOperationType(LensObjectDeltaOperationType jaxb)
+            throws SchemaException {
 
-        ObjectDeltaOperation odo = DeltaConvertor.createObjectDeltaOperation(jaxb.getObjectDeltaOperation(), prismContext);
+        ObjectDeltaOperation odo = DeltaConvertor.createObjectDeltaOperation(jaxb.getObjectDeltaOperation(), PrismContext.get());
         LensObjectDeltaOperation retval = new LensObjectDeltaOperation();
         retval.setObjectDelta(odo.getObjectDelta());
         retval.setExecutionResult(odo.getExecutionResult());

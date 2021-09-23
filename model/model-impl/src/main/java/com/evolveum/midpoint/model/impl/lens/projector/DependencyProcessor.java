@@ -482,7 +482,7 @@ public class DependencyProcessor {
                         // Let's just mark the projection as broken and skip it.
                         LOGGER.warn("Unsatisfied dependency of account "+projContext.getResourceShadowDiscriminator()+
                                 " dependent on "+refRat+": Account not provisioned in dependency check (execution wave "+context.getExecutionWave()+", account wave "+projContext.getWave() + ", dependency account wave "+dependencyAccountContext.getWave()+")");
-                        projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                        projContext.setBroken();
                         return false;
                     }
                 } else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {

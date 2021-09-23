@@ -39,13 +39,11 @@ public class AddFocusAction implements Action {
     public <F extends FocusType> void handle(@NotNull LensContext<F> context, SynchronizationSituation<F> situation,
             Map<QName, Object> parameters, Task task, OperationResult parentResult) throws SchemaException {
 
-        PrismContext prismContext = context.getPrismContext();
-
         LensFocusContext<F> focusContext = context.createFocusContext();
         Class<F> focusClass = focusContext.getObjectTypeClass();
         LOGGER.trace("addFocus action: add delta for {}", focusClass);
         PrismObjectDefinition<F> focusDefinition =
-                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
+                PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
         PrismObject<F> emptyFocus = focusDefinition.instantiate();
         ObjectDelta<F> delta = emptyFocus.createAddDelta();
         delta.setObjectToAdd(emptyFocus);

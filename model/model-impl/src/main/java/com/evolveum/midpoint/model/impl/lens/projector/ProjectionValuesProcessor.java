@@ -369,7 +369,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             context.addConflictingProjectionContext(conflictingAccountContext);
         }
 
-        projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+        projContext.setBroken();
         result.recordFatalError("Could not add account " + projContext.getObjectNew() + ", because the account with the same identifier already exists on the resource. ");
         LOGGER.error("Could not add account {}, because the account with the same identifier already exists on the resource. ", projContext.getObjectNew());
 

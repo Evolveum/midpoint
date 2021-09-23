@@ -282,7 +282,7 @@ public class FocusChangeExecution<O extends ObjectType> {
     }
 
     private void applyArchetypePolicyToAddedObject() {
-        ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+        ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicy();
         if (archetypePolicy == null) {
             return;
         }

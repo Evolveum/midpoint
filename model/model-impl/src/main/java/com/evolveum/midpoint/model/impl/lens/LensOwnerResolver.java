@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -100,7 +101,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                 return null;
             }
 
-            ObjectQuery query = context.getPrismContext().queryFor(UserType.class)
+            ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                     .item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
             List<PrismObject<UserType>> owners = new ArrayList<>();
             try {

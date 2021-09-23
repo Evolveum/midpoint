@@ -432,11 +432,11 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
                         processOnlyExistingProjContexts = false;
                         if (ModelExecuteOptions.isLimitPropagation(context.getOptions())) {
-                            if (context.getTriggeredResourceOid() != null
-                                    && !rsd.getResourceOid().equals(context.getTriggeredResourceOid())) {
+                            if (context.getTriggeringResourceOid() != null
+                                    && !rsd.getResourceOid().equals(context.getTriggeringResourceOid())) {
                                 LOGGER.trace(
                                         "Skipping processing construction for shadow identified by {} because of limitation to propagate changes only for resource {}",
-                                        rsd, context.getTriggeredResourceOid());
+                                        rsd, context.getTriggeringResourceOid());
                                 return false;
                             }
 
@@ -521,7 +521,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                             LensProjectionContext projectionContext = context.findProjectionContext(rsd);
                             if (projectionContext == null) {
                                 if (processOnlyExistingProjContexts) {
-                                    LOGGER.trace("Projection {} skip: unassigned, processOnlyExistingProjCxts", desc);
+                                    LOGGER.trace("Projection {} skip: unassigned, processOnlyExistingProjContexts", desc);
                                     return;
                                 }
                                 projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd).context;
@@ -601,7 +601,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         ShadowKindType kind = evaluatedConstruction.getKind();
         String tag = evaluatedConstruction.getTag();
         ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
-        intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
+        intent = LensUtil.refineProjectionIntent(kind, intent, resource);
         return new ResourceShadowDiscriminator(resourceOid, kind, intent, tag, false);
     }
 
@@ -671,7 +671,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                         null, false);
                 LensProjectionContext accCtx = context.findProjectionContext(rad);
                 if (accCtx != null) {
-                    accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                    accCtx.setBroken();
                 }
             }
         }

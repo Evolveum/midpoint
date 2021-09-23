@@ -469,7 +469,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     ChangeType.ADD, context.getChannel(), t);
             if (objectBeanToAdd instanceof ShadowType) {
                 handleProvisioningError(resource, t, task, result);
-                ((LensProjectionContext) elementContext).setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                ((LensProjectionContext) elementContext).setBroken();
                 objectAfterModification = null;
             }
             throw t;
@@ -531,7 +531,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             b.securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.EXECUTION,
                     AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta), ownerResolver, task, result);
 
-            if (shouldApplyModifyMetadata(objectClass, context.getSystemConfigurationType())) {
+            if (shouldApplyModifyMetadata(objectClass, context.getSystemConfigurationBean())) {
                 b.metadataManager.applyMetadataModify(delta, objectClass, elementContext,
                         b.clock.currentTimeXMLGregorianCalendar(), task, context);
             }

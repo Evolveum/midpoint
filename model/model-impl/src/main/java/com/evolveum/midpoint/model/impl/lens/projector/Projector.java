@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -75,8 +76,8 @@ public class Projector {
     /**
      * Runs one projection wave, starting at current execution wave.
      */
-    public <F extends ObjectType> void project(LensContext<F> context, String activityDescription, Task task,
-            OperationResult parentResult)
+    public <F extends ObjectType> void project(@NotNull LensContext<F> context, @NotNull String activityDescription,
+            @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
             ConflictDetectedException {
@@ -116,17 +117,14 @@ public class Projector {
         }
     }
 
-    private <F extends ObjectType> void projectInternal(LensContext<F> context, String activityDescription,
-            boolean fromStart, Task task, OperationResult parentResult)
+    private <F extends ObjectType> void projectInternal(@NotNull LensContext<F> context, @NotNull String activityDescription,
+            boolean fromStart, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
             ConflictDetectedException {
 
         context.checkAbortRequested();
-
-        if (context.getInspector() != null) {
-            context.getInspector().projectorStart(context);
-        }
+        context.inspectProjectorStart();
 
         InternalMonitor.recordCount(InternalCounters.PROJECTOR_RUN_COUNT);
 
@@ -169,8 +167,6 @@ public class Projector {
                         partialProcessingOptions::getLoad,
                         Projector.class, context, activityDescription, now, task, result);
             }
-
-            //consolidationProcessor.consolidateFocusPrimaryDelta(context, now, task, result);
 
             LOGGER.trace("WAVE {} (executionWave={})", context.getProjectionWave(), context.getExecutionWave());
 
@@ -239,9 +235,7 @@ public class Projector {
                 trace.setOutputLensContextText(context.debugDump());
                 trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
             }
-            if (context.getInspector() != null) {
-                context.getInspector().projectorFinish(context);
-            }
+            context.inspectProjectorFinish();
             context.reportProgress(new ProgressInformation(PROJECTOR, result));
         }
     }
@@ -295,7 +289,8 @@ public class Projector {
             LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 
             // Some projections may not be loaded at this point, e.g. high-order dependency projections
-            contextLoader.makeSureProjectionIsLoaded(context, projectionContext, task, result);
+            //noinspection unchecked
+            contextLoader.updateProjectionContext(context, projectionContext, task, result);
 
             context.checkConsistenceIfNeeded();
 
@@ -346,7 +341,7 @@ public class Projector {
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException
                 | PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | RuntimeException | Error e) {
 
-            projectionContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+            projectionContext.setBroken();
             ModelImplUtils.handleConnectorErrorCriticality(projectionContext.getResource(), e, result);
         }
     }

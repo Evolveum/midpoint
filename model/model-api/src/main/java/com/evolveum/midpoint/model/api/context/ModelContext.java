@@ -69,8 +69,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     @NotNull
     Collection<? extends EvaluatedAssignment<?>> getAllEvaluatedAssignments();
 
-    PrismContext getPrismContext();       // use with care
-
     ObjectTemplateType getFocusTemplate();
 
     PrismObject<SystemConfigurationType> getSystemConfiguration();  // beware, may be null - use only as a performance optimization
