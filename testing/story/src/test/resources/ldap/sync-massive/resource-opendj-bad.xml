@@ -203,7 +203,7 @@
                     <expression>
                         <path>
                             declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
                             $c:account/c:attributes/dj:uid
                         </path>
                     </expression>
