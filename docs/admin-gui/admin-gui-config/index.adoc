@@ -9,7 +9,7 @@
 :page-upkeep-status: yellow
 :page-toc: top
 
-Admin GUI configuration is a specialized data structure that is present in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the wiki:UserType[user objects]. The admin GUI configuration structure influences how to user interface is displayed.
+Admin GUI configuration is a specialized data structure that is present in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services), in the wiki:UserType[user objects] and partially also in archetype objects. The admin GUI configuration structure influences how to user interface is displayed.
 Despite its name it applies both to the self-service part and administration part of the user interface.
 
 
@@ -17,30 +17,31 @@ Despite its name it applies both to the self-service part and administration par
 
 The admin GUI configuration structure contains:
 
-* *`objectForms`*: User interface displays forms that use for editing various aspects of the objects.
-There is form that display basic properties, assignments, projections, history and so on.
-These are usually displayed as tabs on object detail pages in the user interface.
-The objectForms part of the admin GUI configuration controls which of these forms/tabs are displayed and which are not.
-
-* `*userDashboard*`: (since midPoint 3.6) This setting controls which widgets are displayed on user dashboard (home screen).
-
-* *`defaultTimezone`*: Defines the timezone that will be used by the user interface to display date and time information.
-
-* `*preferredDataLanguage*`: (since midPoint 3.6) Defines the data language that will use used by the user interface to display content of objects (XML, JSON or YAML)
-
 * `*additionalMenuLink*`: Links that will be displayed as an additional items in the user interface menu.
 It can be used to point the user to other services in your deployment.
 
-* *`userDashboardLink`*: Application or shortcut links placed on end-user dashboard.
+* `*userDashboardLink*`: Application or shortcut links placed on end-user dashboard.
 Note: this configuration will be most likely placed inside the `userDashborad` in the future.
 However the compatibility will be maintained and this setting will also remain here.
 
-* *`feedbackMessagesHook`*: Script hook configuration which can be used to modify operation results shown in GUI.
+* `*objectCollectionViews*`: Specifies the set of pages that are used for displaying lists of objects such as Users, Roles, Orgs, ... Influences a list of links in sidebar menu for particular object. E.g. defining objectCollection for _Employees_ will create new link in sidebar menu under the _Users_, after clicking on the link, filtered list of the _Employees_ is shown
 
+* `*objectDetails*`: Specifies the look and feel of the pages for displaying object details and editing of objects such as User, Role, Org,...
+
+* `*userDashboard*`: (since midPoint 3.6) This setting controls which widgets are displayed on user dashboard (home screen).
+
+* `*defaultTimezone*`: Defines the timezone that will be used by the user interface to display date and time information.
+
+* `*preferredDataLanguage*`: (since midPoint 3.6) Defines the data language that will use used by the user interface to display content of objects (XML, JSON or YAML)
+
+* `*feedbackMessagesHook*`: Script hook configuration which can be used to modify operation results shown in GUI.
+
+
+Since midPoint 4.4, the look and feel of GUI has been significantly changed. The aim was to provide better user experience and more configuration options. The old look is still available in midPoint for preview. It can be turned on in adminGuiConfiguration setting `useNewDesign` property to _false_. However, bugs and improvements will be fixed and implemented only for the new look and the old look will be completely removed in release 4.5. Old look is no more supported in 4.4. Please, migrate your configuration as soon as possible.
 
 == How It Works
 
-The same admin GUI configuration structure may be specified in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the wiki:UserType[user objects] (starting from midPoint v 4.1: in all AssignmentHolderType objects).
+The same admin GUI configuration structure may be specified in wiki:System+Configuration+Object[system configuration object], in all the role-like objects (roles, orgs, services) and also in the wiki:UserType[user objects] (starting from midPoint v 4.1: in all AssignmentHolderType objects). Some parts of admin GUI configuration, such as `*objectDetails*` can be specified also in archetypes.
 When a specific user logs in, midPoint will process all of user's roles to check for applicable authorizations.
 At the same time midPoint also compiles the effective admin GUI configuration.
 Following algorithm is used:
@@ -55,180 +56,600 @@ Therefore the role setting completely overrides the system global setting.
 If several roles specify conflicting values then the behavior is unpredictable.
 It is a responsibility of midPoint administrator to ensure the consistency.
 
-** Complex configuration structures such as objectForms and dashboard definitions are merged.
+** Complex configuration structures such as objectDetails and dashboard definitions are merged.
 The system global definition is merged with the definition from all the roles.
 
 
 
 * Admin GUI config provided in the wiki:UserType[user object] is applied last (if present).
 
-The resulting merged configuration is used to display the user interface for a particular user.
+
+The resulting merged configuration is used to display the user interface for a particular user. If the object to be displayed contains archetype definition (it has archetype assigned) then the admin GUI configuration from archetype is applied at the moment the object is going to be displayed.
 
 This mechanism provides a very flexible customization of user interface.
 And the customization is inherently role-based.
 This mechanism can be used to display different object detail forms to different users.
-E.g. auditors will see the object history tab, but other user will not see it.
-Each role can have unique combination of the tabs.
-And as we have a merging algorithm in place, if a user has many roles he will see all the tabs specified by all the roles.
+E.g. auditors will see the object history panel, but other user will not see it.
+Each role can have unique combination of the panels.
+And as we have a merging algorithm in place, if a user has many roles he will see all the panels specified by all the roles.
 Similar approach can be used to pre-define time zones and languages.
 If users are placed to organizational units according to their physical location then a time zone can be easily defined in that organizational unit admin GUI configuration.
 
-The last step that applies admin GUI configuration from the user object is meant to store and re-apply user's own preferences about user interface look and feel.
-At the time of this writing (midPoint 3.6) it is only partially implemented.
+The step that applies admin GUI configuration from the user object is meant to store and re-apply user's own preferences about user interface look and feel.
+It is only partially implemented.
 
-The merged configurations (forms, widgets) have one quite specific characteristic.
-If no configuration is present at all, then a default configuration will be used (all default tabs, all default widgets).
-However if only a single form or widget is defined then the default configuration is not applied.
-All forms/widgets need to be explicitly defined.
-The forms have additional setting that includes all the default forms (`includeDefaultForms`) if that is needed.
-However, there is no such setting for widgets.
-Any number of forms can be combined together as each form is in a separate tab.
-But there is only a limited number of widgets and they all are built to have their fixed place.
+=== Widgets
+The merged configurations for widgets have one quite specific characteristic.
+If no configuration is present at all, then a default configuration will be used (all default widgets).
+However, if only a single widget is defined then the default configuration is not applied.
+All widgets need to be explicitly defined.
+There is a limited number of widgets and they all are built to have their fixed place.
 This may change in the future and the dashboards may become more flexible.
 But they are not that flexible yet.
 Therefore all the widgets need to be explicitly defined in order to appear in a customized dashboard.
 
-The default (built-in) forms has their URIs that can be used to refer to them (see an example below).
-These are the URIs:
+=== Object details
+Object details configuration influences the look and feel of the pages for creating and editing object. MidPoint comes with default panels and default pre-defined configuration for each object available to edit and create in GUI. It is basic configuration which might be adjusted according to customer's needs. Custom configuration defined by customer is merged with default pre-defined configuration according to the rules described in _How it works_.
+
+Comparing the behavior before 4.4, there is a change in merging mechanism. Before 4.4 if any customization was made, it meant that the default configuration wasn't taken into the account while displaying the corresponding page. Since 4.4 this behavior was changed, so any custom configuration is additional to one coming with midPoint by default. If the behavior or settings of the default panel needs to be changed, it is done with adjusting such configuration. To be able to adjust and override default configuration the `identifier` have to be specified and correctly used.
+
+Every configurable feature containing `identifier` requires to have the identifier filled in. According to the identifier, configurations for same feature are merged. There are system defined default identifiers used for default panels which can be used to override behavior of default panels, e.g. visibility, virtual sections, etc.
+
+Basis structure for object details configuration is:
+
+* `*type*`: Defines for which type is the configuration used.
+
+* `*summaryPanel*`: Specify the look and feel of the summary panel. Currently it is supported only partially.
+
+* `*saveMethod*` : Specifies the method how page save/preview buttons are shown and processed. Only few options are supported and might be changed in the future.
+
+* `*panel*` : Definition of individual panels which will be used on details page. According to the panel definition, also link in the detail menu to corresponding panel is generated. One panel can be nested to another. In such a case, link in the detail navigation menu will be show as a submenu under the link of the parent panel.
+
+==== Panel configuration
+
+`Panel` configuration contains information about two things:
+
+* How to generate the menu on the details page, such as label, icon, hierarchy.
+
+* Which panel will be shown after navigating to it using menu on the details page. Some panels are built-in and may be used as is, they might be customized directly in `panel` configuration, or the whole new custom panel can be implemented and used.
+
+Following tables described basic configuration options for panels:
+[%autowidth]
+|===
+| Property | Mandatory | Type | Description
+
+| identifier
+| YES
+| String
+| Must be defined. Identifiers are used by merging algorithm. According to them, the configuration from different places (different roles, system configuration, archetypes) are merged together. Without identifier defined, it is not possible to merge the configurations correctly. Default panels have system defined identifiers stated in the table bellow.(TODO pointer to table)
+
+| description
+| NO
+| String
+| Free-form description (comment) intended for system administrator. Description will NOT be displayed as any part of the UI feature. The purpose is to explain the purpose or configuration details.
+
+| display
+| Yes
+| DisplayType
+| It is used to display the link in the menu. Currently, only `label` and `icon/cssClass` are used.
+
+| visibility
+| NO
+| UserInterfaceElementVisibilityType
+| Defines if the panel, and thus link in the menu on details page will be visible. Default value is automatic. If the panel should not be accessible, the value has to be set to `hidden`,
+
+| displayOrder
+| NO
+| Integer
+| It is used to specify order of the links in menu on details page. If there is a need to change the order of the link in the menu on details page, the `displayOrder` has to be set. E.g. on user details page, `Projections` are displayed as a second link in the menu. If they should be displayed later, ut has to be configured.
+
+| applicableForOperation
+| NO
+| OperationTypeType
+| Used to distinguish in which situation the panel will be visible.
+If nothing specified, configuration will be applicable for both add and modify operations.
+E.g. there might be panels applicable only when modifying user.
+In such a case, `applicableForOperation` must be set to `modify`.
+
+| container
+| NO
+| VirtualContainersSpeficiationType
+| Used to specify custom grouping of the attributes.
+According to it, virtual containers/sections are then generated in GUI.
+As an example, the user might need to reorganize attributes to some logic block such as personal info, basic info, additional info.
+Each of this section should have only attributes which belong to it, e.g. given name, family name, date of the birth are attributes corresponding to the personal info.
+Basic info section will contain attributes describing organizationalUnit, emailAddress or job position and additional info will contain attributes about user's nickname and so on.
+
+| panelType
+| NO
+| String
+| Unique identifier pointing to the panel which will be shown. There are build-in panels in midPoint mostly mentioned in the table (TODO ref to table), but also custom panel can be implemented and used here.
+
+| listView
+| NO
+| GuiObjectListViewType
+| This is experimental and only partially supported. It can be used with table panels to specify object collection that will be used to select object in the view and to specify columns which will the showing table have.
+
+| panel
+| NO
+| ContainerPanelConfigurationType
+| Sub-panel definition. If defined, it will be placed as a submenu of parent panel configuration in the menu on details page.
+
+| default
+| NO
+| Boolean
+| If the panel is set to default = true, that after navigating to object details, this panel will be shown by default.
+Only one panel can be default. In midPoint, each object type has its default panel defined. If there is a wish to change it, make sure there is only one panel set to default = true at the end.
+|===
+
+It is very important to be aware of difference between `identifier` and `panelType`. The attribute `identifier` points to the concrete instance of the panel idenfied by the `identifier`. This `identifier` is used to identify the same panel across different places where is might be configured and according to the `identifier` all related configurations are merged. The attribute `panelType` represents the type of the panel which will be instantiated and used to represent data. There might be different `panel` configurations with different `identifier` for the same `panelType`. In such a case, different menu links on details page will be generated and each will display instantiated `panelType` with the corresponding configuration in `panel`.
+
+MidPoint itself comes with default panels with the identifiers specified. Those are stated in the tables bellow divided by the types for which they applies.
+
+Panels applicable for all AssignmentHolderType object (except ResourceType):
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order | Panel type
+
+| Basic
+| `basic`
+| Panel displaying default properties, such as name, fullName, ...
+| 10
+| basic
+|===
+
+Panels applicable for all FocusType objects:
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Projections
+| `projections`
+| Table with listed projections and possibility to show projection details.
+| 20
+
+| Assignments
+| `assignments`
+| No panel at all, just to group different types of assignments under one details navigation
+| 30
+
+| All assignments
+| `allAssignments`
+| Panel for all assignments. In details menu present as a submenu of `assignments`
+| 10
+
+| Construction assignments
+| `constructionAssignments`
+| Panel for resource assignments. In details menu present as a submenu of `assignments`
+| 50
+
+| Indirect assignments
+| `indirectAssignments`
+| Panel showing direct and also indirect assignemnts. In details menu present as a submenu of `assignments`
+|
+
+| Data protection assignments
+| `dataProtectionAssignments`
+| Experimental, showing data protection assignments. In details menu present as a submenu of `assignments`
+|
+
+| Org assignments
+| `orgAssignments`
+| Panel for org assignments. In details menu present as a submenu of `assignments`
+| 30
+
+| Role assignments
+| `roleAssignments`
+| Panel for role assignments. In details menu present as a submenu of `assignments`
+| 20
+
+| Service assignments
+| `serviceAssignments`
+| Panel for service assignments. In details menu present as a submenu of `assignments`
+| 40
+
+| Password
+| `password`
+| Password panel, might be grouped under credentials in the future
+| 50
+
+| Activation
+| `activation`
+|
+| 40
+
+| Cases
+| `focusCases`
+| Table of cases related to the object. E.g. waiting approval cases for user, etc.
+| 70
+
+| History
+| `history`
+| History panel for object.
+| 60
+
+| Triggers
+| `focusTriggers`
+| Table of triggers related to the object.
+| 110
+|===
+
+Panel applicable for all AbstractRoleType objects:
 
 [%autowidth]
 |===
-| Form (tab) | URI | Description
+| Panel | Identifier | Description | Default order
 
-| Basic
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabBasic`
+| Applicable policies
+| `applicablePolicies`
 |
+| 60
 
-| Projections
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabProjections`
+| Inducements
+| `inducements`
+| No panel at all, just to group different types of inducements under one details navigation
+| 70
+
+| Policy rule assignments
+| `policyRuleAssignments`
+| Policy ryle related assignemnts.In details menu present as a submenu of `assignments`.
+| 60
+
+| Focus mappings assignments
+| `focusMappingsAssignments`
+| Focus mappings assignments. In details menu present as a submenu of `assignments`.
+| 70
+
+| All inducements
+| `allInducements`
 |
+| 10
 
-| Assignments
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabAssignments`
+| Construction inducements
+| `constructionInducements`
+|
+| 50
+
+| Focus mappings inducements
+| `focusMappingsInducements`
+|
+| 80
+
+| Induced entitlements
+| `inducedEntitlements`
+|
+| 70
+
+| Org inducements
+| `orgInducements`
+|
+| 30
+
+| Policy rule inducements
+| `policyRuleInducements`
+|
+| 60
+
+| Role inducements
+| `roleInducements`
+|
+| 20
+
+| Service inducements
+| `serviceInducements`
+|
+| 40
+|===
+
+Panels applicable only for users:
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Consent assignments
+| `gdprAssignments`
+| Experimental, consent related assignments. In details menu present as a submenu of `assignments`.
 |
 
 | Personas
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabPersonas`
+| `personas`
 |
-
-| Tasks
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabTasks`
-|
-
-| Request a role
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabRequestRole`
-|
-
-| History
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabObjectHistory`
-|
-
-| Inducements
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabInducements`
-|
-
-| Governance
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabGovernance`
-|
+| 80
 
 | Delegations
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabDelegations`
+| `userDelegations`
 |
+| 90
 
 | Delegated to me
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabDelegatedToMe`
+| `delegatedToMe`
 |
+| 100
+|===
 
-| Policy constraints
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabPolicyConstraints`
+Panels applicable only for roles:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Role members
+| `roleMembers`
 |
+| 80
 
-| Policy rules
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabPolicyRules`
+| Role governance
+| `roleGovernance`
 |
+| 90
+|===
 
-| `Applicable policies`
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabApplicablePolicies`
+Panels applicable only for services:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Service members
+| `serviceMembers`
 |
+| 80
 
-| `Consents`
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabConsents`
+| Service governance
+| `serviceGovernance`
 |
+| 90
 
-| Members
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabMembers`
+|===
+
+Panels applicable onlu for archetypes:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+
+| Archetype members
+| `archetypeMembers`
 |
+| 80
 
-3+| *Form (tab) authorizations for Task objects*
-
-| Basic
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabBasic`
-| a separate Basic tab authorization for Task object is introduced not to confuse midPoint users by the name of #focusTabBasic authorization
-
-
-| Schedule
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabSchedule`
+| Archetype governance
+| `archetypeGovernance`
 |
-
-| Work management
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabWorkManagement`
-|
-
-| Cleanup policies
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabCleanupPolicies`
-|
-
-| Subtasks
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabSubtasks`
-|
-
-| Operation statistics
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabOperationStatistics`
-|
-
-| Environmental performance
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabEnvironmentalPerformance`
-|
-
-| Operation
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabOperation`
-|
-
-| Internal performance
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabInternalPerformance`
-|
-
-| Result
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabResult`
-|
-
-| Errors
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#taskTabErrors`
-|
-
-
-3+| *Form (tab) authorizations for Archetype objects*
-
+| 90
 
 | Archetype policy
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#archetypeTabArchetypePolicy`
+| `archetypePolicy`
+|
+| 140
+|===
+
+Panels applicable only for organizations:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Org members
+| `orgMembers`
+|
+| 60
+
+| Org governance
+| `orgGovernance`
+|
+| 70
+|===
+
+Panels applicable only for cases:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description
+
+| Approval case
+| `approvalCase`
 |
 
-3+| *Form (tab) authorizations for Case objects*
-
-
-| Workitems
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#caseTabWorkitems`
+| Case work item
+| `caseWorkItems`
 |
 
 | Child cases
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#caseTabChildCases`
+| `childCases`
 |
 
-| Approval
-| `http://midpoint.evolveum.com/xml/ns/public/gui/component-3#caseTabApproval`
+| Manual case
+| `manualCase`
 |
 
+| Operation request case
+| `operationRequestCase`
+|
+|===
+
+Panels applicable only for object collections:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Base collection
+| `baseCollection`
+|
+| 40
+
+| Default view
+| `defaultView`
+|
+| 50
+
+| Domain
+| `domain`
+|
+| 60
+
+| Collection options
+| `objectCollectionOptions`
+|
+| 70
+|===
+
+Panels applicable only for object templates:
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Object template items
+| `objectTemplateItems`
+|
+| 30
+
+| Iteration specification
+| `iterationSpecification`
+|
+| 20
+
+| Object template mappings
+| `objectTemplateMappings`
+|
+| 40
+|===
+
+Panels applicable only for reports:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Collection parameter
+| `reportCollectionParameter`
+|
+| 90
+
+| Collection subreport
+| `reportCollectionSubreport`
+|
+| 100
+
+| Collection view
+| `reportCollectionView`
+|
+| 80
+|===
+
+Panels applicable only for resources:
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Resource accounts
+| `resourceAccounts`
+|
+| 30
+
+| Connector
+| `resourceConnector`
+|
+| 70
+
+| Resource details
+| `resourceDetails`
+|
+| 10
+
+| Resource entitlements
+| `resourceEntitlement`
+|
+| 40
+
+| Resource generics
+| `resourceGenerics`
+|
+| 50
+
+| Resource tasks
+| `resourceTasks`
+|
+| 20
+|===
+
+Panels applicable only for tasks:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Statistics
+| `statistics`
+|
+| 50
+
+| Activity
+| `activity`
+|
+| 15
+
+| Control flow
+| `controlFlow`
+| Show under `Activity` details menu
+| 20
+
+| Distribution
+| `distribution`
+| Show under `Activity` details menu
+| 20
+
+| Environmental performance
+| `environmentalPerformance`
+| Shown under `Performance` details menu
+| 50
+
+| Task errors
+| `taskErrors`
+|
+| 50
+
+| Internal performance
+| `internalPerformance`
+| Shown under `Performance` details menu
+| 50
+
+| Operations
+| `operation`
+|
+| 60
+
+| Performance
+| `performance`
+| No panel at all, used only to group different types od statistics
+| 50
+
+| Reporting
+| `reporting`
+| Show under `Activity` details menu
+| 50
+
+| Results
+| `results`
+|
+| 70
+
+| Schedule
+| `schedule`
+|
+| 15
+
+| Subtasks and worker threads
+| `subtasks`
+|
+| 50
+
+| Work
+| `work`
+| Specific work definition configured in archetype is displayed.
+| 10
 |===
 
 
@@ -237,64 +658,368 @@ These are the URIs:
 
 === Show Only Some Default Forms
 
-Suppose you want to show only "Basic" and "Assignment" tabs in the user details page.
-The you can define a role like this:
+Suppose you want to show only "Basic", "Password", "Activation" and "Assignment" panels in the user details page.
+Then you can define a role like this:
 
 [source,xml]
 ----
 <role>
      ...
      <adminGuiConfiguration>
-        <objectForms>
-            <objectForm>
-                <type>c:UserType</type>
-                <formSpecification>
-                    <panelUri>http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabBasic</panelUri>
-                </formSpecification>
-            </objectForm>
-            <objectForm>
-                <type>c:UserType</type>
-                <formSpecification>
-                    <panelUri>http://midpoint.evolveum.com/xml/ns/public/gui/component-3#focusTabAssignments</panelUri>
-                </formSpecification>
-            </objectForm>
-        </objectForms>
+        <objectDetails>
+            <objectDetailsPage>
+              <type>c:UserType</type>
+              <panel>
+                <identifier>projections</identifier>
+                <visibility>hidden</visibility>
+              </panel>
+              <panel>
+                <identifier>focusCases</identifier>
+                <visibility>hidden</visibility>
+              </panel>
+              <panel>
+                <identifier>history</identifier>
+                <visibility>hidden</visibility>
+              </panel>
+              <panel>
+                <identifier>focusTriggers</identifier>
+                <visibility>hidden</visibility>
+              </panel>
+              <panel>
+                <identifier>personas</identifier>
+                <visibility>hidden</visibility>
+              </panel>
+              <panel>
+                <identifier>userDelegations</identifier>
+                <visibility>hidden</visibility>
+              </panel>
+              <panel>
+                <identifier>delegatedToMe</identifier>
+                <visibility>hidden</visibility>
+              </panel>
+            </objectDetailsPage>
+        </objectDetails>
     </adminGuiConfiguration>
 </role>
 ----
 
-If user has this role the he will see only basic tab and assignments.
-The projections, history and other tabs will be hidden.
-Of course, if the user has more roles that gives access to more tabs that he will see these tabs as well.
+If user has this role then he will see only basic, password, activation and assignments menu links.
+The projections, history and other menu links will be hidden.
+Of course, if the user has more roles that gives access to more panels than he will see these tabs as well.
 
+=== Customize assignments views
+
+With new configuration there are several options how to cutomize assignemnts views. E.g.:
+
+. Hiding "All assignments" panel.
++
+[source,xml]
+----
+<adminGuiConfiguration>
+    <objectDetails>
+        <objectDetailsPage>
+          <type>c:UserType</type>
+          <panel>
+              <identifier>assignments</identifier>
+              <panel>
+                  <identifier>allAssignments</identifier>
+                  <visibility>hidden</visibility>
+              </panel>
+            </panel>
+        </objectDetailsPage>
+    </objectDetails>
+</adminGuiConfiguration>
+----
+
+. Change display name and icon for "Service assignments".
++
+[source,xml]
+----
+<adminGuiConfiguration>
+  <objectDetails>
+    <objectDetailsPage>
+      <type>c:UserType</type>
+      <panel>
+          <identifier>assignments</identifier>
+          <panel>
+              <identifier>serviceAssignments</identifier>
+              <display>
+                <label>Applications</label>
+                <icon>
+                  <cssClass>fa fa-gamepad</cssClass>
+                </icon>
+              </display>
+          </panel>
+        </panel>
+    </objectDetailsPage>
+  </objectDetails>
+</adminGuiConfiguration>
+----
+
+. Define custom collection for role assignments with default role panel.
++
+[source,xml]
+----
+<adminGuiConfiguration>
+  <objectDetails>
+    <objectDetailsPage>
+      <type>c:UserType</type>
+      <panel>
+          <identifier>assignments</identifier>
+          <panel>
+              <identifier>custom-role-assignments</identifier>
+              <display>
+                  <label>My own role assignments</label>
+                  <tooltip>Custom assignments table requests</tooltip>
+              </display>
+              <panelType>roleAssignments</panelType>
+              <listView>
+                  <identifier>role-assignmnets-view</identifier>
+                  <collection>
+                      <collectionRef oid="e97b857f-3228-4df5-a920-67157b77d736" relation="org:default" type="c:ObjectCollectionType">
+                          <!-- Custom collection definigion (mainly filtering) -->
+                      </collectionRef>
+                  </collection>
+              </listView>
+            </panel>
+        </panel>
+    </objectDetailsPage>
+  </objectDetails>
+</adminGuiConfiguration>
+----
+
+. Customize role assignment details by creating virtual sections.
++
+[source,xml]
+----
+<adminGuiConfiguration>
+  <objectDetails>
+    <objectDetailsPage>
+      <type>c:UserType</type>
+      <panel>
+          <identifier>assignments</identifier>
+          <panel>
+              <identifier>roleAssignments</identifier>
+              <container>
+                  <identifier>basicAssignmentAttributes</identifier>
+                  <display>
+                      <label>Description attributes</label>
+                  </display>
+                  <item>
+                      <path>assignment/documentation</path>
+                  </item>
+                  <item>
+                      <path>assignment/description</path>
+                  </item>
+              </container>
+              <panelType>roleAssignments</panelType>
+          </panel>
+        </panel>
+    </objectDetailsPage>
+  </objectDetails>
+</adminGuiConfiguration>
+----
+
+. Customize assignment menu - show only role and org assignments on top level.
++
+[source,xml]
+----
+<adminGuiConfiguration>
+  <objectDetails>
+    <objectDetailsPage>
+      <type>c:UserType</type>
+      <panel>
+          <identifier>assignments</identifier>
+          <visibility>hidden</visibility>
+      </panel>
+      <panel>
+          <identifier>top-role-assignments</identifier>
+          <display>
+            <label>Roles</label>
+            <icon>
+              <cssClass>fe fe-role</cssClass>
+            </icon>
+          </display>
+          <panelType>roleAssignments</panelType>
+      </panel>
+      <panel>
+          <identifier>top-org-assignments</identifier>
+          <display>
+            <label>Orgs</label>
+            <icon>
+              <cssClass>fa fa-building</cssClass>
+            </icon>
+          </display>
+          <panelType>orgAssignments</panelType>
+      </panel>
+    </objectDetailsPage>
+  </objectDetails>
+</adminGuiConfiguration>
+----
+
+=== Virtual sections for different panel
+
+Suppose you need to somehow re-arrange basic properties for object or you have a lot of extension attributes which need to be divided to different sections. Since midPoint 4.4 it is possible to use _virtual sections_ for different panels. Bellow are some examples:
+
+. Virtual sections for user basic panel.
++
+[source,xml]
+----
+<adminGuiConfiguration>
+  <objectDetails>
+    <objectDetailsPage>
+      <type>c:UserType</type>
+      <panel>
+          <identifier>basic</identifier>
+          <container>
+              <identifier>basicAttributes</identifier>
+              <display>
+                  <label>Basic attributes</label>
+              </display>
+              <item>
+                  <path>familyName</path>
+              </item>
+              <item>
+                  <path>givenName</path>
+              </item>
+              <item>
+                  <path>fullName</path>
+              </item>
+          </container>
+          <container>
+              <identifier>contactAttributes</identifier>
+              <display>
+                  <label>Contact attributes</label>
+              </display>
+              <item>
+                  <path>emailAddress</path>
+              </item>
+              <item>
+                  <path>telephoneNumber</path>
+              </item>
+              <item>
+                  <path>employeeNumber</path>
+              </item>
+          </container>
+          <panelType>basic</panelType>
+      </panel>
+    </objectDetailsPage>
+  </objectDetails>
+</adminGuiConfiguration>
+----
+
+. Custom panel with multi-value extension attribute
++
+[source,xml]
+----
+<adminGuiConfiguration>
+  <objectDetails>
+    <objectDetailsPage>
+      <type>c:UserType</type>
+      <panel>
+          <identifier>address-panel</identifier>
+          <description>Custom panel for multivalue extension attribute address</description>
+          <display>
+              <label>Address</label>
+              <icon>
+                  <cssClass>fa fa-map-o</cssClass>
+              </icon>
+          </display>
+          <container>
+              <identifier>address</identifier>
+              <display>
+                  <label>Address</label>
+              </display>
+              <path xmlns:ext="http://example.com/midpoint">c:extension/ext:address</path>
+          </container>
+          <panelType>formPanel</panelType>
+      </panel>
+    </objectDetailsPage>
+  </objectDetails>
+</adminGuiConfiguration>
+----
+
+. Virtual section on role assignment details panel
++
+[source,xml]
+----
+<adminGuiConfiguration>
+  <objectDetails>
+    <objectDetailsPage>
+      <type>c:UserType</type>
+      <panel>
+          <identifier>assignments</identifier>
+          <panel>
+              <identifier>roleAssignments</identifier>
+              <container>
+                  <identifier>basicAssignmentAttributes</identifier>
+                  <display>
+                      <label>Description attributes</label>
+                  </display>
+                  <item>
+                      <path>assignment/documentation</path>
+                  </item>
+                  <item>
+                      <path>assignment/description</path>
+                  </item>
+              </container>
+              <panelType>roleAssignments</panelType>
+          </panel>
+        </panel>
+    </objectDetailsPage>
+  </objectDetails>
+</adminGuiConfiguration>
+----
+
+=== Change order in menu link
+
+Change ordering of the menu links in details panel.
+
+[source,xml]
+----
+<adminGuiConfiguration>
+  <objectDetails>
+    <objectDetailsPage>
+      <type>c:UserType</type>
+      <panel>
+          <identifier>password</identifier>
+          <displayOrder>11</displayOrder>
+      </panel>
+      <panel>
+          <identifier>activation</identifier>
+          <displayOrder>12</displayOrder>
+      </panel>
+    </objectDetailsPage>
+  </objectDetails>
+</adminGuiConfiguration>
+----
+
+=== Change default panel
+
+Set another panel as `basic` panel to be shown as a default panel after opening user details page.
+
+[source,xml]
+----
+<adminGuiConfiguration>
+  <objectDetails>
+    <objectDetailsPage>
+      <type>c:UserType</type>
+      <panel>
+          <identifier>password</identifier>
+          <default>true</default>
+      </panel>
+      <panel>
+          <identifier>basic</identifier>
+          <default>false</default>
+      </panel>
+    </objectDetailsPage>
+  </objectDetails>
+</adminGuiConfiguration>
+----
 
 === New Custom Form in a Role
 
-The following example adds a completely custom user form (Java class).
-The form will appear as a new tab in the user details page.
-This definition is set in a role, therefore only the users that have this role will see the form.
-
-[source,xml]
-----
-<role>
-     ...
-     <adminGuiConfiguration>
-        <objectForms>
-            <objectForm>
-                <type>c:UserType</type>
-                <formSpecification>
-                    <panelClass>com.piracy.form.PirateUserPanel</panelClass>
-                </formSpecification>
-            </objectForm>
-        </objectForms>
-    </adminGuiConfiguration>
-</role>
-----
-
-The form implemented in the `com.piracy.form.PirateUserPanel` will be used to display user details for all the users that have this role.
-There is no `includeDefaultForms` setting.
-Therefore the default forms will not be displayed in this case.
-User that have just this one role will see just this one custom tab.
+TODO:
 
 
 === Hiding User Dashboard Widgets
@@ -351,6 +1076,8 @@ Possible visibility values are:
 
 [%autowidth]
 |===
+| Value | Description
+
 | automatic
 | The element will be visible if the authorisations of the current user allows to see (at least a part) of the content that the element displays.
 
@@ -362,16 +1089,14 @@ Possible visibility values are:
 | vacant
 | The element will not be visible.
 Not even if the authorizations allow to see its content.
-But if any other role specifies the element as visible +
-or automatic then it will be visible.
+But if any other role specifies the element as visible or automatic then it will be visible.
 This setting is easily overridden.
 
 
 | hidden
 | The element is never visible.
 Even if any other role specifies the element as visible then the element will still remain invisible.
-This setting cannot be +
-overridden
+This setting cannot be overridden
 
 
 |===
@@ -380,6 +1105,8 @@ Possible widget identifiers on the self dashboard page:
 
 [%autowidth]
 |===
+| Identifier | Widget
+
 | `http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#search`
 | Search widget
 
@@ -416,26 +1143,26 @@ To customize columns in the object list table, please, see use the following exa
 <!-- configuring custom columns for the RoleType objects table -->
 
 <adminGuiConfiguration>
-   <objectLists>
-      <objectList>
+   <objectCollectionViews>
+      <objectCollectionView>
          <type>c:RoleType</type>
          <column>
             <name>nameColumn</name>
             <path>name</path>
             <display>
-               <label>Custom Name Column</label>>
+               <label>Custom Name Column</label>
             </display>
          </column>
          <column>
             <name>displayNameColumn</name>
             <path>displayName</path>
             <display>
-               <label>Custom Display Name Column</label>>
+               <label>Custom Display Name Column</label>
             </display>
             <previousColumn>nameColumn</previousColumn>
          </column>
-      </objectList>
-   </objectLists>
+      </objectCollectionView>
+   </objectCollectionViews>
 </adminGuiConfiguration>
 ----
 
@@ -449,52 +1176,50 @@ Column can be configured with the following attributes
 | Attribute | Description
 
 | `name`
-| `Column name (identifier).
+| Column name (identifier).
 This element is not displayed to the user.
-It is used +
-for identification of the column and referencing (e.g. previous column).
-The column definitions +
-that have the same name in different layers (global, role, user) will be merged together.`
+It is used for identification of the column and referencing (e.g. previous column).
+The column definitions that have the same name in different layers (global, role, user) will be merged together.
 
 
 | `description`
-| `Free-form description.
+| Free-form description.
 It is not displayed to the user.
-It is supposed to be used by system +
-administrators to explain the purpose of the configuration.`
+It is supposed to be used by system administrators to explain the purpose of the configuration.
 
 
 | `path`
-| `Path of the item (property) that this form display or that is taken +
-as an primary input for the expression (planned for future). +
-Even if expression is used to display the column value, we need some reference +
-field that will be used to sort the table when sorting by this column is selected. +
-We cannot sort by the output of the expression as that is not stored in the repo.`
+| Path of the item (property) that this form display or that is taken as an primary input for the expression (planned for future).
+Even if expression is used to display the column value, we need some reference field that will be used to sort the table when sorting by this column is selected.
+We cannot sort by the output of the expression as that is not stored in the repo.
 
 
 | `display`
-| `Specification of column display properties.
-This can be used to override the default column +
-label or presentation style.`display attribute can contain:`label ``tooltip (not implemented yet)``help (not implemented yet)``cssStyle (not implemented yet)``cssClass (not implemented yet) `
+| Specification of column display properties.
+This can be used to override the default column label or presentation style. `display` attribute can contain:
+
+* `label`
+
+* `tooltip` (not implemented yet)
+
+* `help` (not implemented yet)
+
+* `cssStyle` (not implemented yet)
+
+* `cssClass` (not implemented yet)
 
 
 | `visibility`
-| `Defines, whether this column will be visible or it will be hidden. +
-If not specified then it defaults to automatic visibility.`
+| Defines, whether this column will be visible or it will be hidden. +
+If not specified then it defaults to automatic visibility.
 
 
 | `previousColumn`
-| `Name of the column that has to be displayed before this column.
-This value +
-defines ordering in which the columns should be displayed.
- +
-The first column has no value in this element. +
-If there are multiple columns that specify the same preceding columns then +
-the implementation may choose any ordering of such columns.
-However, the +
-algorithm should be deterministic: the same ordring should be used every +
-time (alphabeting ordering based on "path" or displayOrder from the schema +
-are good candidates for deterministic ordering).`
+| Name of the column that has to be displayed before this column.
+This value defines ordering in which the columns should be displayed.
+The first column has no value in this element.
+If there are multiple columns that specify the same preceding columns then the implementation may choose any ordering of such columns.
+However, the algorithm should be deterministic: the same ordring should be used every time (alphabeting ordering based on "path" or displayOrder from the schema are good candidates for deterministic ordering).
 
 |===
 
