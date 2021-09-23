@@ -31,7 +31,7 @@ It should be eventually possible to reconstruct a partial historical state of th
 | Event Identifier
 | `eid`
 | Unique identification of an audit event.
-It is a wiki:Lightweight+Identifier[Lightweight Identifier].
+It is a link:/midpoint/architecture/concepts/lightweight-identifier/[Lightweight Identifier].
 
 
 | Event Type
@@ -55,12 +55,12 @@ For security reason this is different than the content of the session cookie.
 | Task Identifier
 | `tid`
 | Unique identification of a task that this event is a part.
-It is a wiki:Lightweight+Identifier[Lightweight Identifier].
+It is a link:/midpoint/architecture/concepts/lightweight-identifier/[Lightweight Identifier].
 
 
 | Task OID
 | `toid`
-| wiki:Object+ID[OID] of a task that this event is part of (if the task is persistent).
+| link:/midpoint/devel/prism/concepts/object-identifier/[OID] of a task that this event is part of (if the task is persistent).
 Since 4.3 the OID of the task tree root is used, if applicable.
 
 
@@ -106,7 +106,7 @@ Deltas contain detailed information about the operation.
 
 | Channel
 | `ch`
-| The wiki:Channels[channel] that was the source of the operation that this record describes
+| The link:/midpoint/reference/concepts/channel/[channel] that was the source of the operation that this record describes
 
 
 | Outcome
@@ -115,7 +115,6 @@ Deltas contain detailed information about the operation.
 
 
 |===
-
 
 === Event Types
 
@@ -165,13 +164,13 @@ This type should only be present in `REQUEST` stage, the `EXECUTION` stage of th
 | `WORK_ITEM`
 | 8
 | Creation or completion of a work item (e.g. a request to approve particular assignment).
-See wiki:Workflow+Auditing[Workflow Auditing].
+See link:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
 
 
 | `WORKFLOW_PROCESS_INSTANCE`
 | 9
 | Creation or completion of a workflow process instance (may include 0, 1 or many work items).
-See wiki:Workflow+Auditing[Workflow Auditing].
+See link:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-auditing/[Workflow Auditing].
 
 
 | `RECONCILIATION`
@@ -183,12 +182,11 @@ See wiki:Workflow+Auditing[Workflow Auditing].
 
 Other event types may be added in the future (including custom event types).
 
-
 === Event Stages
 
 Operations in midPoint may be subject to quite complex processing before they get executed.
-This may include processing wiki:Advanced+Hybrid+RBAC[RBAC], expressions, workflows or other "plugin" hooks.
-Therefore the details of the operation may considerably differ at the beginning of the operation and at the end.
+This may include processing link:/midpoint/reference/roles-policies/rbac/[RBAC], expressions, workflows or other "plugin" hooks.
+Therefore, the details of the operation may considerably differ at the beginning of the operation and at the end.
 Event stages are defined to denote this difference and to record events at various stages through the operation lifecycle.
 
 [%autowidth]
@@ -213,16 +211,15 @@ Other stages may be added in the future (e.g. stage for approvals or workflow st
 
 There is usually one request and one execution record for each operation.
 E.g. the request record contains the delta that assigns role to a user.
-The execution record will also contain that delta but it may additional deltas, e.g. deltas for adding new accounts implied by the role.
+The execution record will also contain that delta but it may contain additional deltas, e.g. deltas for adding new accounts implied by the role.
 In some cases there may be several execution records for a single request record.
 This happens if the execution happens in several waves.
 E.g. a role is assigned to a user.
-Some of the accounts implied by the role may be created immediately and others needs to wait for an approval.
-Therefore the accounts that can be created immediately will be audited in a first execution audit record.
+Some accounts implied by the role may be created immediately and others needs to wait for an approval.
+Therefore, the accounts that can be created immediately will be audited in a first execution audit record.
 The second batch of accounts will be audited when they are later approved and created.
 This goes to the second audit record.
 This situation may also happen even if there are no approvals, e.g. in case of resource dependencies or even complex inbound-outbound-template interactions.
-
 
 === Event Outcomes
 
@@ -242,15 +239,15 @@ The operation is completed and the result is final.
 | `WARNING`
 | 1
 | Used when operation finish successfully, but minor problem occurred.
-For example operation code recovered  +
-from some error and after that operation finished successfully.
+For example operation code recovered from some error and after that operation finished successfully.
 The operation is completed and the result is final.
 
 
 | `PARTIAL_ERROR`
 | 2
-| Used when operation contains at least one operation witch status SUCCESS/WARNING and at least one  +
-operation with status FATAL\_ERROR.     The operation is completed and the result is final.
+| Used when operation contains at least one operation witch status `SUCCESS`/`WARNING`
+and at least one operation with status `FATAL_ERROR`.
+The operation is completed and the result is final.
 
 
 | `FATAL_ERROR`
@@ -262,47 +259,40 @@ The operation is completed and the result is final.
 | `NOT_APPLICABLE`
 | 4
 | Result does not make any sense for the operation.
-This is useful in cases that the operation is not supported  +
-(e.g. an optional part of the interface).
-This is different than UNKNOWN, as in this case we really know that it  +
-result is not applicable.
-In UNKNOWN case we know nothing.
+This is useful in cases that the operation is not supported (e.g. an optional part of the interface).
+This is different from `UNKNOWN`, as in this case we really know that its result is not applicable.
+In `UNKNOWN` case we know nothing.
 The operation is completed and the result is final.
 
 
 | `IN_PROGRESS`
 | 5
 | The operation is being executed.
-This is set for operations that are executed asynchronously or take a significant  +
-amount of time.
-Short synchronous operations do not need to set this status, they may go well with the default  +
-UNKNOWN status.
+This is set for operations that are executed asynchronously or take a significant amount of time.
+Short synchronous operations do not need to set this status, they may go well with the default `UNKNOWN` status.
 The operation is in progress and the final result is not yet known.
 
 
 | `UNKNOWN`
 | 6
 | No information about operation is present.
-Presence of this status usually means programming bug, e.g. someone +
-forgot to set or compute appropriate operation result.
+Presence of this status usually means programming bug, e.g. someone forgot to set or compute appropriate operation result.
 
 
 | `HANDLED_ERROR`
 | 7
 | The operation didn't finish correctly but that was expected and handled.
-It is equivalent to success for all practical +
-cases except for displaying the result.
+It is equivalent to success for all practical cases except for displaying the result.
 But using success status for this situation might be misleading.
-The operation  +
-is completed and the result is final.
+The operation is completed and the result is final.
 
 
 |===
 
-
 === Initiator and Attorney
 
-MidPoint 3.7 introduced a concept of wiki:Power+of+Attorney[attorney]. Therefore there is possibility that one user acts on behalf of another user.
+MidPoint 3.7 introduced a concept of link:/midpoint/features/planned/power-of-attorney/[attorney].
+Therefore, there is possibility that one user acts on behalf of another user.
 Both users are recorded in the audit logs.
 The meaning is as follows:
 
@@ -317,7 +307,6 @@ This is the user that have logged-in to the user interface.
 This is the user that pressed the button to execute the action.
 This is always identity of a user and it will always be a user.
 It cannot be a company or any other virtual entity.
-
 
 == Audit Trails
 
@@ -340,17 +329,16 @@ com.evolveum.midpoint.audit.log
 
 This logger can be directed to a specific appender to a separate audit log file using the normal logging configuration mechanism.
 
-
 === Database Table Auditing
+
+// TODO mention new repository audit
 
 When using database table auditing, audit logs are stored in five tables whose structure is described in code block below (part of DB script for H2 database).
 You can find table structures for different DB vendors in out link:https://github.com/Evolveum/midpoint/tree/master/config/sql/midpoint/3.1[git], or in distribution packages in folder `config/sql/midpoint/<version>`.
 
 * `id` column in `m_audit_event` table is now generated by default (auto increment).
 
-* Columns `delta` and `fullResult` in `m_audit_delta` table are compressed using GZIP +
- +
-
+* Columns `delta` and `fullResult` in `m_audit_delta` table are optionally compressed using GZIP.
 
 .Audit tables in H2 database
 [source,sql]
@@ -424,7 +412,6 @@ CREATE TABLE m_audit_ref_value (
 );
 ----
 
-
 == XDAS
 
 Auditing implementation in midPoint was inspired by XDAS and it is conceptually compatible with XDAS.
@@ -434,11 +421,10 @@ link:http://www.opengroup.org/security/das/[XDAS] is a specification of distribu
 
 The XDAS specification asks for a common audit log format and a common taxonomy of audit log events.
 
-The XDAS system is composed from several components.
+The XDAS system is composed of several components.
 The components can be placed inside a single system or distributed across an organization.
 
 Good introduction to link:http://openxdas.sourceforge.net/architecture.html[XDAS architecture] is provided by the link:http://openxdas.sourceforge.net/[OpenXDAS Project]
-
 
 == Determining Remote Host Address
 
@@ -461,31 +447,29 @@ If there's no such header, network-level client address is used.
 
 If the header contains more values (separated by commas), the first i.e. leftmost one is used.
 
-
 == Resource oid column
 
 [WARNING]
 .EXPERIMENTAL
 ====
-This feature is *wiki:Experimental+Functionality[experimental]*. It means that it is not intended for production use.
+This feature is *link:/midpoint/versioning/experimental/[experimental]*.
+It means that it is not intended for production use.
 The feature is not finished.
 It is not stable.
 The implementation may contain bugs, the configuration may change at any moment without any warning and it may not work at all.
 Use at your own risk.
 This feature is not covered by midPoint support.
-In case that you are interested in wiki:Subscriptions+and+Sponsoring[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
-
+In case that you are interested in link:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
 
 [TIP]
 .MidPoint 4.2 and later
 ====
 This feature is available only in midPoint 4.2 and later.
-
 ====
 
 If we need work with resource oid in reporting, we can allow store resource oid for audit record to database.
-For it we need add next snippet of code to system configuration xml.
+For that we need to add the next snippet of code to the system configuration xml.
 
 [source,xml]
 ----
@@ -511,44 +495,37 @@ CREATE TABLE m_audit_resource (
 );
 ----
 
-
 == Custom column
 
 [WARNING]
 .EXPERIMENTAL
 ====
-This feature is *wiki:Experimental+Functionality[experimental]*. It means that it is not intended for production use.
+This feature is *link:/midpoint/versioning/experimental/[experimental]*.
+It means that it is not intended for production use.
 The feature is not finished.
 It is not stable.
 The implementation may contain bugs, the configuration may change at any moment without any warning and it may not work at all.
 Use at your own risk.
 This feature is not covered by midPoint support.
-In case that you are interested in wiki:Subscriptions+and+Sponsoring[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
-
+In case that you are interested in link:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
-
- +
-
 
 [TIP]
 .MidPoint 4.2 and later
 ====
 This feature is available only in midPoint 4.2 and later.
-
 ====
 
-When we need some other information in audit table, then we can adding custom column to table in database.
-We can use new column for tag some special audit records for reporting.
-
+When we need some other information in the audit table, we can add custom columns to the table in the database.
+We can use new column to tag some special audit records for reporting.
 
 Custom column have three parts of configuration:
 
-. Creating column of m\_audit\_event table in database by sql command.
+. Creating column of `m_audit_event` table in database using SQL command.
 
-. Adding of configuration for every custom column to config.xml file in Midpoint home directory.
+. Adding of configuration for every custom column to `config.xml` file in Midpoint home directory.
 
 . Adding of configuration of details how an audit event record property is created to system configuration file.
-
 
 .1.Creating column of m_audit_event (H2 database)
 [source,sql]
@@ -562,7 +539,6 @@ CREATE INDEX iAuditEventCustFoo
 When we want search by our column, we add index for it.
 Please for name of our new column use 'custXXX' where XXX represents your name.
 It is important in order to we obviate conflict with already exist columns.
-
 
 .2. Adding of configuration for every custom column to config.xml file
 [source]
@@ -589,7 +565,6 @@ It is important in order to we obviate conflict with already exist columns.
 
 After adding of this configuration is needed restart of midpoint.
 
-
 .3. Details how an audit event record property is created
 [source,xml]
 ----
@@ -614,7 +589,6 @@ In script we can use variable '_target_' , which represent target object of audi
 
 Next example about custom column you can see on link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit].
 
-
 == Auditing of create/termination session event for channels rest and actuator
 
 [TIP]
@@ -627,7 +601,6 @@ From version 4.1 Midpoint support flexible authentication, so we can configure d
 
 From version 4.2 channels for _rest _and_ actuator_ default don't create audit records about session creation or termination. You can turn on it via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
 
-
 == Separate repository configuration for audit
 
 [TIP]
@@ -637,5 +610,5 @@ This feature is available only in midPoint 4.2 and later.
 ====
 
 By default audit uses the same data source like the main repository.
-From version 4.2 it is possible to setup separate repository.
-For more and examples see: wiki:Audit+configuration[Audit configuration]
+From version 4.2 it is possible to set up audit in different database.
+For more and examples see: link:/midpoint/reference/security/audit/configuration/[Audit configuration]
