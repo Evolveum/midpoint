@@ -22,8 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author mederly
  * @author semancik
  */
-@PanelType(name = "tasks")
-@PanelInstance(identifier = "tasks",
+@PanelType(name = "focusCases")
+@PanelInstance(identifier = "focusCases",
         applicableForOperation = OperationTypeType.MODIFY,
         applicableForType = FocusType.class,
         display = @PanelDisplay(label = "pageAdminFocus.cases", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON, order = 70))

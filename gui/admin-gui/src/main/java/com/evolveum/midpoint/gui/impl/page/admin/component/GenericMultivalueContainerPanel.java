@@ -34,7 +34,7 @@ import javax.xml.namespace.QName;
 import java.util.Collections;
 import java.util.List;
 
-@PanelType(name = "genericMultiValue")
+@PanelType(name = "tablePanel")
 public class GenericMultivalueContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
