@@ -113,7 +113,7 @@ public class ExecutionHelper {
         } else {
             ObjectQuery query = prismContext.queryFor(TaskType.class)
                     .item(TaskType.F_OBJECT_REF).ref(openOids.toArray(new String[0]))
-                    .and().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING)
+                    .and().item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.WAITING)
                     .build();
             SearchResultList<PrismObject<TaskType>> waitingTasks = repositoryService
                     .searchObjects(TaskType.class, query, null, result);

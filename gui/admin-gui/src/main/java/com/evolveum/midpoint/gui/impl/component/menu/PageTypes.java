@@ -50,7 +50,7 @@ public enum PageTypes {
     ARCHETYPE("archetypes", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class, PageArchetype.class, com.evolveum.midpoint.web.page.admin.archetype.PageArchetype.class, ArchetypeType.COMPLEX_TYPE),
     OBJECT_COLLECTION("objectCollections", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class, PageObjectCollection.class, com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection.class, ObjectCollectionType.COMPLEX_TYPE),
     OBJECT_TEMPLATE("objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON, PageObjectTemplates.class, PageObjectTemplate.class, com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate.class, ObjectTemplateType.COMPLEX_TYPE),
-    REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports .class, PageReport.class, com.evolveum.midpoint.web.page.admin.reports.PageReport.class, ReportType.COMPLEX_TYPE);
+    REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class, PageReport.class, com.evolveum.midpoint.web.page.admin.reports.PageReport.class, ReportType.COMPLEX_TYPE);
 
     private String identifier;
     private String icon;

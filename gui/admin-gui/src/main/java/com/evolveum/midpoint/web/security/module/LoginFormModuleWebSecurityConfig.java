@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.web.security.filter.MidpointUsernamePasswordAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
@@ -14,6 +15,8 @@ import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.web.security.AuditedLogoutHandler;
 import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.web.security.module.configuration.LoginFormModuleWebSecurityConfiguration;
+
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -24,8 +27,6 @@ import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.preauth.RequestAttributeAuthenticationFilter;
 
 import java.util.Arrays;
-
-import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
 
 /**
  * @author skublik
@@ -66,10 +67,10 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
+        http.antMatcher(SecurityUtils.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, getMidpointFormLoginConfiguration())
                 .loginPage("/login")
-                .loginProcessingUrl(stripEndingSlases(getPrefix()) + "/spring_security_login")
+                .loginProcessingUrl(SecurityUtils.stripEndingSlashes(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();

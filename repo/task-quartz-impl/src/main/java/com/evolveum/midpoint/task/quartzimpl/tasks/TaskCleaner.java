@@ -61,7 +61,7 @@ public class TaskCleaner {
                 timeBoundary.getPositiveDuration());
 
         ObjectQuery obsoleteTasksQuery = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.CLOSED)
+                .item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.CLOSED)
                 .and().item(TaskType.F_COMPLETION_TIMESTAMP).le(deleteTasksClosedUpTo)
                 .and().item(TaskType.F_PARENT).isNull()
                 .build();

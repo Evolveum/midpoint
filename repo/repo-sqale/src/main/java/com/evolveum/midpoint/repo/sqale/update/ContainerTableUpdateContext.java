@@ -50,6 +50,7 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
                         .and(path.cid.eq(row.cid)));
     }
 
+    @Override
     public Q entityPath() {
         return path;
     }
@@ -63,6 +64,7 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
         return update;
     }
 
+    @Override
     public <P extends Path<T>, T> void set(P path, T value) {
         update.set(path, value);
     }
@@ -80,8 +82,8 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
     /** Executes updates if applicable, nothing is done if set methods were not used. */
     @Override
     protected void finishExecutionOwn() throws SchemaException {
+        mapping.afterModify(this);
         if (!update.isEmpty()) {
-            mapping.afterModify(this);
             update.execute();
         }
     }

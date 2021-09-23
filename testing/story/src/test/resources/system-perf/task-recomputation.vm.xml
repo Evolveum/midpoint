@@ -13,29 +13,41 @@ Parameters:
 
 <task oid="f5920848-6c8f-4eda-ae26-2b961d6dae1b"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <name>task-recomputation</name>
-
-    <extension>
-        <mext:objectType>UserType</mext:objectType>
-        <mext:objectQuery>
-            <q:filter>
-                <q:substring>
-                    <q:path>name</q:path>
-                    <q:value>u-</q:value>
-                    <q:anchorStart>true</q:anchorStart>
-                </q:substring>
-            </q:filter>
-        </mext:objectQuery>
-        <mext:workerThreads>$workerThreads</mext:workerThreads>
-    </extension>
-
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
-
-    <recurrence>single</recurrence>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:substring>
+                                <q:path>name</q:path>
+                                <q:value>u-</q:value>
+                                <q:anchorStart>true</q:anchorStart>
+                            </q:substring>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+        <distribution>
+            <workerThreads>$workerThreads</workerThreads>
+        </distribution>
+        <reporting>
+            <tracing>
+                <interval>1</interval>
+                <tracingProfile>
+                    <fileNamePattern>trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>
+                    <tracingTypeProfile>
+                        <level>off</level>
+                    </tracingTypeProfile>
+                </tracingProfile>
+            </tracing>
+        </reporting>
+    </activity>
 </task>

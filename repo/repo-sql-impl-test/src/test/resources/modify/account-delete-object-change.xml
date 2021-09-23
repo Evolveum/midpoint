@@ -25,10 +25,10 @@
          <t:modificationType>add</t:modificationType>
          <t:path xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd"
                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">c:attributes/ri:employeeNumber</t:path>
+                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">c:attributes/ri:employeeNumber</t:path>
          <t:value>emp4321
-<!--             <ri:employeeNumber xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
-<!--                                xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--             <ri:employeeNumber xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" -->
+<!--                                xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" -->
 <!--                                xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd" -->
 <!--                                xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
 <!--                                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
@@ -39,10 +39,10 @@
          <t:modificationType>replace</t:modificationType>
          <t:path xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd"
                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">c:attributes/ri:givenName</t:path>
+                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">c:attributes/ri:givenName</t:path>
          <t:value>Jackkk
-<!--             <ri:givenName xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
-<!--                           xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--             <ri:givenName xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" -->
+<!--                           xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" -->
 <!--                           xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd" -->
 <!--                           xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
 <!--                           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
@@ -50,7 +50,7 @@
          </t:value>
       </t:itemDelta>
    </objectChange>
-    <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
+    <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
     <kind>account</kind>
     <attributes>
         <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen664="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>

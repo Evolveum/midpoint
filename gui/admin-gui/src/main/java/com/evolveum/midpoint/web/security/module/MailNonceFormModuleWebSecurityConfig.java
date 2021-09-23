@@ -7,15 +7,16 @@
 package com.evolveum.midpoint.web.security.module;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.web.security.filter.MailNonceAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointFormLoginConfigurer;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
-import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 /**
  * @author skublik
@@ -38,7 +39,7 @@ public class MailNonceFormModuleWebSecurityConfig<C extends ModuleWebSecurityCon
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
+        http.antMatcher(SecurityUtils.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, new MidpointFormLoginConfigurer(new MailNonceAuthenticationFilter()))
                 .loginPage(getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl())
                 .failureHandler(new MidpointAuthenticationFailureHandler())

@@ -12,7 +12,7 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>task-120</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <activity>
         <work>
             <extension>

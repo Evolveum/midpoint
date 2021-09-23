@@ -10,7 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-single-recomputation</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <recurrence>single</recurrence>
 
     <activity>

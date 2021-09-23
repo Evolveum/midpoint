@@ -41,6 +41,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 @Component
 public class ModelObjectResolver implements ObjectResolver {
 
@@ -192,17 +194,11 @@ public class ModelObjectResolver implements ObjectResolver {
         }
     }
 
-    public PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
+    public @NotNull PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
-
-        if (LOGGER.isTraceEnabled()) {
-            if (config == null) {
-                LOGGER.warn("No system configuration object");
-            } else {
-                LOGGER.trace("System configuration version read from repo: " + config.getVersion());
-            }
-        }
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(), createReadOnlyCollection(), result);
+        LOGGER.trace("System configuration version read from repo: {}", config.getVersion());
         return config;
     }
 

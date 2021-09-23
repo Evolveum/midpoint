@@ -18,6 +18,8 @@ JAVA_def_trustStoreType="jceks"
 
 USE_NOHUP="true"
 
+ENV_MAP_PREFIX="MP_SET_"
+
 ######################
 
 set -eu
@@ -76,10 +78,12 @@ fi
 [ "${MP_MEM_MAX:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Xmx[^[:space:]]*//") -Xmx${MP_MEM_MAX}"
 [ "${MP_MEM_INIT:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Xms[^[:space:]]*//") -Xms${MP_MEM_INIT}"
 
+###### Backward compatibility for ENV variables ####
+
 [ "${REPO_PORT:-}" != "" ] && db_port=${REPO_PORT}
 if [ "${REPO_DATABASE_TYPE:-}" != "" ]
 then
-	JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.database=[^[:space:]]*//") -Dmidpoint.repository.database=${REPO_DATABASE_TYPE}"
+	export ${ENV_MAP_PREFIX}midpoint_repository_database="${REPO_DATABASE_TYPE}"
 	[ "${db_port:-}" == "default" ] && db_port=""
 	case ${REPO_DATABASE_TYPE} in
 		h2)
@@ -120,32 +124,42 @@ then
 			fi
 			;;
 	esac
-	if [ "${REPO_URL:-}" != "" ]
-	then
-		JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.jdbcUrl=[^[:space:]]*//") -Dmidpoint.repository.jdbcUrl=${REPO_URL}"
-	else
-		JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.jdbcUrl=[^[:space:]]*//") -Dmidpoint.repository.jdbcUrl=${db_prefix}${REPO_HOST:-localhost}:${db_port}${db_path}"
-	fi
+	[ "${REPO_URL:-}" = "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUrl="${db_prefix}${REPO_HOST:-localhost}:${db_port}${db_path}"
 fi
-[ "${REPO_USER:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.jdbcUsername=[^[:space:]]*//") -Dmidpoint.repository.jdbcUsername=${REPO_USER}"
-[ "${REPO_PASSWORD_FILE:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.jdbcPassword_FILE=[^[:space:]]*//") -Dmidpoint.repository.jdbcPassword_FILE=${REPO_PASSWORD_FILE}"
-[ "${REPO_MISSING_SCHEMA_ACTION:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.missingSchemaAction=[^[:space:]]*//") -Dmidpoint.repository.missingSchemaAction=${REPO_MISSING_SCHEMA_ACTION}"
-[ "${REPO_UPGRADEABLE_SCHEMA_ACTION:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.upgradeableSchemaAction=[^[:space:]]*//") -Dmidpoint.repository.upgradeableSchemaAction=${REPO_UPGRADEABLE_SCHEMA_ACTION}"
-[ "${REPO_SCHEMA_VARIANT:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.schemaVariant=[^[:space:]]*//") -Dmidpoint.repository.schemaVariant=${REPO_SCHEMA_VARIANT}"
-[ "${REPO_SCHEMA_VERSION_IF_MISSING:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.schemaVersionIfMissing=[^[:space:]]*//") -Dmidpoint.repository.schemaVersionIfMissing=${REPO_SCHEMA_VERSION_IF_MISSING}"
 
-[ "${MP_KEYSTORE_PASSWORD_FILE:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.keystore.keyStorePassword_FILE=[^[:space:]]*//") -Dmidpoint.keystore.keyStorePassword_FILE=${MP_KEYSTORE_PASSWORD_FILE}"
+[ "${REPO_URL:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUrl="${REPO_URL}"
+[ "${REPO_USER:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUsername="${REPO_USER}"
+[ "${REPO_PASSWORD_FILE:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcPassword_FILE="${REPO_PASSWORD_FILE}"
+[ "${REPO_MISSING_SCHEMA_ACTION:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_missingSchemaAction="${REPO_MISSING_SCHEMA_ACTION}"
+[ "${REPO_UPGRADEABLE_SCHEMA_ACTION:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_upgradeableSchemaAction="${REPO_UPGRADEABLE_SCHEMA_ACTION}"
+[ "${REPO_SCHEMA_VARIANT:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_schemaVariant="${REPO_SCHEMA_VARIANT}"
+[ "${REPO_SCHEMA_VERSION_IF_MISSING:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_schemaVersionIfMissing="${REPO_SCHEMA_VERSION_IF_MISSING}"
 
-if [ -e /.dockerenv ]
-then
-	JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.repository.hibernateHbm2ddl=none"
-	JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.repository.initializationFailTimeout=60000"
-
-	JAVA_OPTS="${JAVA_OPTS:-} -Dfile.encoding=UTF8"
-	JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.logging.alt.enabled=true"
-fi
+[ "${MP_KEYSTORE_PASSWORD_FILE:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_keystore_keyStorePassword_FILE="${MP_KEYSTORE_PASSWORD_FILE}"
 
 #############################
+
+###### ENV Variables mapping ######
+
+while read line
+do
+	_to_process="${line:${#ENV_MAP_PREFIX}}"
+        _key="$(echo -n "${_to_process}" | cut -d = -f 1 | sed "s/_/./g")"
+        _val="$(echo -n "${_to_process}" | cut -d = -f 2-)"
+
+	### exception for *_FILE key name ###
+	[ "${_key: -5}" = ".FILE" ] && _key="${_key::$(( ${#_key} - 5 ))}_FILE"
+	###
+
+        if [ "${_key:0:1}" = "." ]
+	then
+		JAVA_OPTS="${JAVA_OPTS:-} -D${_key:1}=${_val}"
+	else
+		JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-D${_key}=[^[:space:]]*//") -D${_key}=${_val}"
+	fi
+done < <(env | grep "^${ENV_MAP_PREFIX}")
+
+###################################
 
 # Check for the default JAVA_OPTS values. In case the specific key is already set the value is kept untouched.
 # To prevent Xms to be set pass the --Xms to JAVA_OPTS (double dash).

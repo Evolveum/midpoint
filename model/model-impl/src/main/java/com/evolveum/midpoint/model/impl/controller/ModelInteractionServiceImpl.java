@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -20,7 +22,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -96,7 +97,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -223,7 +223,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, task, result);
+        return LensContext.fromLensContextBean(wrappedContext, task, result);
     }
 
     @Override
@@ -235,7 +235,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             // the object from method parameters may be already processed by the security code
             // and properties needed to evaluate authorizations may not be there
             // MID-3126, see also MID-3435
-            PrismObject<O> fullObject = getFullObject(object, result);
+            PrismObject<O> fullObject = getFullObjectReadWrite(object, result);
 
             // TODO: maybe we need to expose owner resolver in the interface?
             ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(fullObject, null, task, result);
@@ -268,10 +268,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         PrismObject<ShadowType> shadow = (PrismObject<ShadowType>) object;
         String resourceOid = ShadowUtil.getResourceOid(shadow);
         if (resourceOid != null) {
-            Collection<SelectorOptions<GetOperationOptions>> options = createCollection(GetOperationOptions.createReadOnly());
             PrismObject<ResourceType> resource;
             try {
-                resource = provisioning.getObject(ResourceType.class, resourceOid, options, task, result);
+                resource = provisioning.getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result);
             } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
                 throw new ConfigurationException(e.getMessage(), e);
             }
@@ -296,7 +295,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
                 ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
                 if (objectTemplateRef != null) {
-                    PrismObject<ObjectTemplateType> objectTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
+                    PrismObject<ObjectTemplateType> objectTemplate = cacheRepositoryService.getObject(
+                            ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), result);
                     schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplate.asObjectable(), result);
                 }
 
@@ -392,7 +392,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException {
 
-        PrismObject<O> fullObject = getFullObject(object, result);
+        PrismObject<O> fullObject = getFullObjectReadOnly(object, result);
         ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(fullObject, result);
         ObjectReferenceType templateRef = archetypePolicy != null ? archetypePolicy.getObjectTemplateRef() : null;
         MetadataItemProcessingSpecImpl processingSpec = new MetadataItemProcessingSpecImpl(metadataItemPath);
@@ -410,9 +410,19 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return processingSpec;
     }
 
-    private @NotNull <O extends ObjectType> PrismObject<O> getFullObject(PrismObject<O> object, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private @NotNull <O extends ObjectType> PrismObject<O> getFullObjectReadWrite(PrismObject<O> object, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         if (object.getOid() != null) {
             return cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
+        } else {
+            return object;
+        }
+    }
+
+    private @NotNull <O extends ObjectType> PrismObject<O> getFullObjectReadOnly(PrismObject<O> object, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        if (object.getOid() != null) {
+            return cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), createReadOnlyCollection(), result);
         } else {
             return object;
         }
@@ -570,7 +580,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         PrismObject<O> object = null;
         if (objectOid != null) {
-            object = (PrismObject<O>) objectResolver.getObject(objectType, objectOid, null, task, result).asPrismObject();
+            object = (PrismObject<O>) objectResolver.getObject(objectType, objectOid, createReadOnlyCollection(), task, result).asPrismObject();
         }
         return securityEnforcer.canSearch(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, null, resultType, object, includeSpecial, query.getFilter(), task, result);
     }
@@ -1398,7 +1408,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 .item(UserType.F_DELEGATED_REF).ref(assigneeReferencesToQuery)
                 .build();
         SearchResultList<PrismObject<UserType>> potentialDeputies = cacheRepositoryService
-                .searchObjects(UserType.class, query, null, result);
+                .searchObjects(UserType.class, query, null, result); // TODO consider read-only here
         for (PrismObject<UserType> potentialDeputy : potentialDeputies) {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
@@ -1418,7 +1428,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 .item(UserType.F_DELEGATED_REF).ref(assigneeReferenceToQuery)
                 .build();
         SearchResultList<PrismObject<UserType>> potentialDeputies = cacheRepositoryService
-                .searchObjects(UserType.class, query, null, result);
+                .searchObjects(UserType.class, query, null, result); // TODO consider read-only here
         for (PrismObject<UserType> potentialDeputy : potentialDeputies) {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
@@ -1450,7 +1460,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                         .loginMode(true)
                         // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
                         // will need something to push on the stack. So give them context placeholder.
-                        .lensContext(new LensContextPlaceholder<>(potentialDeputy, prismContext));
+                        .lensContext(new LensContextPlaceholder<>(potentialDeputy));
         AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
         for (AssignmentType assignmentType : potentialDeputy.asObjectable().getAssignment()) {
@@ -1677,7 +1687,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             newTask.setOid(null);
             newTask.setTaskIdentifier(null);
             newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
-            newTask.setExecutionStatus(RUNNABLE);
+            newTask.setExecutionState(RUNNABLE);
             newTask.setSchedulingState(READY);
             for (Item<?, ?> extensionItem : extensionItems) {
                 newTask.asPrismObject().getExtension().add(extensionItem.clone());

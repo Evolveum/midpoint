@@ -6,8 +6,7 @@
   -->
 <role oid="12345111-1111-2222-1111-121212111111"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Judge</name>
     <description>Role with role exclusions</description>
     <assignment>
@@ -37,6 +36,9 @@
             </policyActions>
         </policyRule>
     </assignment>
+    <assignment>
+        <targetRef oid="5e9b9363-9b99-4716-9e97-5b7e5c6d272f" type="RoleType"/> <!-- recompute-members -->
+    </assignment>
     <inducement id="1111">
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
@@ -59,8 +61,8 @@
             </attribute>
         </construction>
     </inducement>
-    <idempotence>conservative</idempotence>
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/test/authorization#punish</action>
     </authorization>
+    <idempotence>conservative</idempotence>
 </role>

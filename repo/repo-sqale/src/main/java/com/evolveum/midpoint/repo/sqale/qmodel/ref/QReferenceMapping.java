@@ -88,12 +88,12 @@ public class QReferenceMapping<
      * All the other columns are based on a single schema type, so there is no variation.
      */
     @Override
-    public R insert(Referencable schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+    public R insert(Referencable reference, OR ownerRow, JdbcSession jdbcSession) {
         R row = newRowObject(ownerRow);
         // row.referenceType is DB generated, must be kept NULL, but it will match referenceType
-        row.relationId = processCacheableRelation(schemaObject.getRelation());
-        row.targetOid = UUID.fromString(schemaObject.getOid());
-        row.targetType = schemaTypeToObjectType(schemaObject.getType());
+        row.relationId = processCacheableRelation(reference.getRelation());
+        row.targetOid = UUID.fromString(reference.getOid());
+        row.targetType = schemaTypeToObjectType(reference.getType());
 
         insert(row, jdbcSession);
         return row;

@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -203,9 +204,12 @@ public class DependencyProcessor {
     private String getResourceNameFromRef(ResourceShadowDiscriminator refDiscr) {
         try {
             Task task = taskManager.createTaskInstance("Load resource");
-            GetOperationOptions rootOpts = GetOperationOptions.createNoFetch();
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOpts);
-            PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, refDiscr.getResourceOid(), options, task, task.getResult());
+            var options = SchemaService.get().getOperationOptionsBuilder()
+                    .noFetch()
+                    .readOnly()
+                    .build();
+            PrismObject<ResourceType> resource = provisioningService.getObject(
+                    ResourceType.class, refDiscr.getResourceOid(), options, task, task.getResult());
             return resource.getName().getOrig();
         } catch (Exception e) {
             //ignoring exception and return null
@@ -478,7 +482,7 @@ public class DependencyProcessor {
                         // Let's just mark the projection as broken and skip it.
                         LOGGER.warn("Unsatisfied dependency of account "+projContext.getResourceShadowDiscriminator()+
                                 " dependent on "+refRat+": Account not provisioned in dependency check (execution wave "+context.getExecutionWave()+", account wave "+projContext.getWave() + ", dependency account wave "+dependencyAccountContext.getWave()+")");
-                        projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                        projContext.setBroken();
                         return false;
                     }
                 } else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {

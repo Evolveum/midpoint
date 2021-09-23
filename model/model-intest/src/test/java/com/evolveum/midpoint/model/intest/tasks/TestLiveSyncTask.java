@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -197,7 +199,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
             throws java.io.IOException, CommonException {
         File taskFile = applyLegacyFlag(testResource.file);
         PrismObject<TaskType> task = addObject(taskFile, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
-        if (task.asObjectable().getRecurrence() != TaskRecurrenceType.RECURRING) {
+        if (!TaskTypeUtil.isTaskRecurring(task.asObjectable())) {
             waitForTaskFinish(testResource.oid, false);
         } else {
             rerunTask(testResource.oid, initResult);

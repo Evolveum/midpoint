@@ -21,13 +21,10 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -137,7 +134,7 @@ public class ClockworkAuditHelper {
         List<SystemConfigurationAuditEventRecordingPropertyType> propertiesToRecord;
         ExpressionType eventRecordingExpression = null;
 
-        SystemConfigurationType config = context.getSystemConfigurationType();
+        SystemConfigurationType config = context.getSystemConfigurationBean();
         if (config != null && config.getAudit() != null && config.getAudit().getEventRecording() != null) {
             SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
             recordResourceOids = Boolean.TRUE.equals(eventRecording.isRecordResourceOids());
@@ -182,7 +179,7 @@ public class ClockworkAuditHelper {
             checkNamesArePresent(clonedDeltas, primaryObject);
             auditRecord.addDeltas(clonedDeltas);
             if (auditRecord.getTargetRef() == null) {
-                auditRecord.setTargetRef(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas, context.getPrismContext()));
+                auditRecord.setTargetRef(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas));
             }
         } else if (stage == AuditEventStage.EXECUTION) {
             auditRecord.setOutcome(clone.getStatus());

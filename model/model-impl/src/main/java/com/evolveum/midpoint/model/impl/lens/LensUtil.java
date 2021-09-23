@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentIm
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -61,10 +63,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -76,6 +76,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
 import static java.util.Collections.emptySet;
 
@@ -89,14 +90,15 @@ public class LensUtil {
     private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
     public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context,
-                                                                  String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         ResourceType resourceType = context.getResource(resourceOid);
         if (resourceType == null) {
             // Fetching from provisioning to take advantage of caching and
             // pre-parsed schema
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-            resourceType = provisioningService.getObject(ResourceType.class, resourceOid, options, task, result)
+            resourceType = provisioningService
+                    .getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result)
                     .asObjectable();
             context.rememberResource(resourceType);
         }
@@ -111,15 +113,15 @@ public class LensUtil {
         if (resourceFromContext != null) {
             return resourceFromContext;
         } else {
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-            ResourceType resourceFetched = objectResolver.getObject(ResourceType.class, resourceOid, options, task, result);
+            ResourceType resourceFetched = objectResolver.getObject(ResourceType.class, resourceOid, createReadOnlyCollection(),
+                    task, result);
             context.rememberResource(resourceFetched);
             return resourceFetched;
         }
     }
 
-    public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+    public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource) throws SchemaException {
+        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, PrismContext.get());
         RefinedObjectClassDefinition rObjClassDef = refinedSchema.getRefinedDefinition(kind, intent);
         if (rObjClassDef == null) {
             LOGGER.error("No projection definition for kind={}, intent={} in {}", kind, intent, resource);
@@ -147,7 +149,7 @@ public class LensUtil {
                                                                                    Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ResourceType resource = getResourceReadOnly(context, resourceOid, provisioningService, task, result);
-        String refinedIntent = refineProjectionIntent(kind, intent, resource, prismContext);
+        String refinedIntent = refineProjectionIntent(kind, intent, resource);
         ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, tag, false);
         return context.findProjectionContext(rsd);
     }
@@ -160,6 +162,14 @@ public class LensUtil {
         private GetOrCreateProjectionContextResult(LensProjectionContext context, boolean created) {
             this.context = context;
             this.created = created;
+        }
+
+        @Override
+        public String toString() {
+            return "GetOrCreateProjectionContextResult{" +
+                    "context=" + context +
+                    ", created=" + created +
+                    '}';
         }
     }
 
@@ -285,8 +295,8 @@ public class LensUtil {
         if (iterationOld == null) {
             return accCtx.getIteration();
         }
-        PrismPropertyDefinition<Integer> propDef = accCtx.getPrismContext().definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME,
-                DOMUtil.XSD_INT);
+        PrismPropertyDefinition<Integer> propDef = PrismContext.get().definitionFactory()
+                .createPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME, DOMUtil.XSD_INT);
         PrismProperty<Integer> propOld = propDef.instantiate();
         propOld.setRealValue(iterationOld);
         PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION_QNAME);
@@ -306,8 +316,8 @@ public class LensUtil {
         if (iterationTokenOld == null) {
             return accCtx.getIterationToken();
         }
-        PrismPropertyDefinition<String> propDef = accCtx.getPrismContext().definitionFactory().createPropertyDefinition(
-                ExpressionConstants.VAR_ITERATION_TOKEN_QNAME, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> propDef = PrismContext.get().definitionFactory()
+                .createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME, DOMUtil.XSD_STRING);
         PrismProperty<String> propOld = propDef.instantiate();
         propOld.setRealValue(iterationTokenOld);
         PropertyDelta<String> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME);
@@ -463,7 +473,7 @@ public class LensUtil {
             return null;
         }
         Class<F> typeClass = focusContext.getObjectTypeClass();
-        return context.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(typeClass);
+        return PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(typeClass);
     }
 
     public static IterationSpecificationType getIterationSpecification(ObjectTemplateType objectTemplate) {
@@ -486,7 +496,7 @@ public class LensUtil {
         if (tokenExpressionType == null) {
             return formatIterationTokenDefault(iteration);
         }
-        PrismContext prismContext = context.getPrismContext();
+        PrismContext prismContext = PrismContext.get();
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
                 DOMUtil.XSD_STRING);
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
@@ -546,7 +556,7 @@ public class LensUtil {
             return true;
         }
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
-                expressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()), MiscSchemaUtil.getExpressionProfile(),
+                expressionType, ExpressionUtil.createConditionOutputDefinition(), MiscSchemaUtil.getExpressionProfile(),
                 desc, task, result);
 
         variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
@@ -606,7 +616,8 @@ public class LensUtil {
             };
 
             objectResolver.searchIterative(virtualAssignmentSpecification.getType(),
-                   prismContext.queryFactory().createQuery(virtualAssignmentSpecification.getFilter()), null, handler, task, result);
+                   prismContext.queryFactory().createQuery(virtualAssignmentSpecification.getFilter()),
+                    createReadOnlyCollection(), handler, task, result);
         }
         return forcedAssignments;
     }
@@ -760,7 +771,7 @@ public class LensUtil {
                 if (namePolyType == null) {
                     throw new SchemaException("Focus "+focusObjectNew+" does not have a name after "+activityDescription);
                 }
-                ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+                ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicy();
                 checkArchetypePolicy(focusContext, archetypePolicy);
             }
         }
@@ -907,7 +918,7 @@ public class LensUtil {
                     if (name == null) {
                         LOGGER.debug("No name for shadow:\n{}", object.debugDump());
                     } else if (name.getNorm() == null) {
-                        name.recompute(objectContext.getPrismContext().getDefaultPolyStringNormalizer());
+                        name.recompute(PrismContext.get().getDefaultPolyStringNormalizer());
                     }
                 } catch (SchemaException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine name for shadow -- continuing with no name; shadow:\n{}", e, object.debugDump());
@@ -1164,44 +1175,30 @@ public class LensUtil {
         return focusDelta != null ? focusDelta.findItemDelta(itemPath) : null;
     }
 
-    public static <O extends ObjectType> String determineExplicitArchetypeOid(PrismObject<O> object) {
-        String explicitArchetypeOid = null;
-        // Used in cases where archetype assignment haven't had the change to be processed yet.
-        // E.g. in case that we are creating a new object with archetype assignment
-        if (object != null && object.canRepresent(AssignmentHolderType.class)) {
-            AssignmentHolderType assignmentHolderType = (AssignmentHolderType)object.asObjectable();
-            List<ObjectReferenceType> archetypeRefs = assignmentHolderType.getArchetypeRef();
-            if (archetypeRefs.isEmpty()) {
-                explicitArchetypeOid = determineExplicitArchetypeOidFromAssignments(object);
-            }
-        }
-        return explicitArchetypeOid;
+    @NotNull
+    static <O extends ObjectType> Set<String> determineExplicitArchetypeOidsFromAssignments(AssignmentHolderType object) {
+        return object.getAssignment().stream()
+                .map(AssignmentType::getTargetRef)
+                .filter(Objects::nonNull)
+                .filter(ref -> QNameUtil.match(ArchetypeType.COMPLEX_TYPE, ref.getType()))
+                .map(ObjectReferenceType::getOid)
+                .collect(Collectors.toSet());
     }
 
-    public static <O extends ObjectType> String determineExplicitArchetypeOidFromAssignments(PrismObject<O> object) {
-        String explicitArchetypeOid = null;
-        if (object.canRepresent(AssignmentHolderType.class)) {
-            for (AssignmentType assignment : ((AssignmentHolderType)object.asObjectable()).getAssignment()) {
-                ObjectReferenceType targetRef = assignment.getTargetRef();
-                if (targetRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
-                    explicitArchetypeOid = targetRef.getOid();
-                }
-            }
-        }
-        return explicitArchetypeOid;
-    }
-
-    public static void setMappingTarget(MappingType mapping, ItemPathType path) {
+    public static <M extends MappingType> M setMappingTarget(M mapping, ItemPathType path) {
         VariableBindingDefinitionType target = mapping.getTarget();
         if (target == null) {
             target = new VariableBindingDefinitionType();
             target.setPath(path);
+            mapping = CloneUtil.cloneIfImmutable(mapping);
             mapping.setTarget(target);
         } else if (target.getPath() == null) {
             target = target.clone();
             target.setPath(path);
+            mapping = CloneUtil.cloneIfImmutable(mapping);
             mapping.setTarget(target);
         }
+        return mapping;
     }
 
     public static void rejectNonTolerantSettingIfPresent(ObjectTemplateItemDefinitionType templateItemDefinition,

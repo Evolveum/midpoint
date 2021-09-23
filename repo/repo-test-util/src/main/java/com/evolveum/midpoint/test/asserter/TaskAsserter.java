@@ -260,19 +260,19 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<RA> assertClosed() {
-        assertExecutionStatus(TaskExecutionStateType.CLOSED);
+        assertExecutionState(TaskExecutionStateType.CLOSED);
         assertSchedulingState(TaskSchedulingStateType.CLOSED);
         return this;
     }
 
     public TaskAsserter<RA> assertSuspended() {
-        assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+        assertExecutionState(TaskExecutionStateType.SUSPENDED);
         assertSchedulingState(TaskSchedulingStateType.SUSPENDED);
         return this;
     }
 
-    public TaskAsserter<RA> assertExecutionStatus(TaskExecutionStateType status) {
-        assertEquals("Wrong execution status", status, getTaskBean().getExecutionStatus());
+    public TaskAsserter<RA> assertExecutionState(TaskExecutionStateType status) {
+        assertEquals("Wrong execution status", status, getTaskBean().getExecutionState());
         return this;
     }
 

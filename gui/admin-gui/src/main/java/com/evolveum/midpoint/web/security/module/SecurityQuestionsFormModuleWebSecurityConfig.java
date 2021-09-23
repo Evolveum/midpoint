@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
@@ -13,9 +14,9 @@ import com.evolveum.midpoint.web.security.filter.SecurityQuestionsAuthentication
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointFormLoginConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.LoginFormModuleWebSecurityConfiguration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
-import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 /**
  * @author skublik
@@ -38,10 +39,10 @@ public class SecurityQuestionsFormModuleWebSecurityConfig<C extends LoginFormMod
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
+        http.antMatcher(SecurityUtils.stripEndingSlashes(getPrefix()) + "/**");
         getOrApply(http, new MidpointFormLoginConfigurer(new SecurityQuestionsAuthenticationFilter()))
                 .loginPage("/securityquestions")
-                .loginProcessingUrl(stripEndingSlases(getPrefix()) + "/spring_security_login")
+                .loginProcessingUrl(SecurityUtils.stripEndingSlashes(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();

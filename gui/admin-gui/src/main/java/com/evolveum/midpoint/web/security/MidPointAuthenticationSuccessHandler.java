@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.web.security;
 
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
-
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
@@ -39,7 +39,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
     private String prefix = "";
 
     public MidPointAuthenticationSuccessHandler setPrefix(String prefix) {
-        this.prefix = "/" + stripSlashes(prefix) + "/";
+        this.prefix = "/" + SecurityUtils.stripSlashes(prefix) + "/";
         return this;
     }
 

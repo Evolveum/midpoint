@@ -12,7 +12,7 @@
     <name>Honorable Wannabe</name>
     <description>Included from Wannabe role</description>
     <inducement id="1111">
-        <construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+        <construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
             <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
             <kind>account</kind>
             <attribute>

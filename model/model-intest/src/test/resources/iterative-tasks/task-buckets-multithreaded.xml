@@ -41,7 +41,7 @@
     </extension>
     <taskIdentifier>4ccd0cde-c506-49eb-9718-f85ba3438515</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <category>BulkActions</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
     <workManagement>

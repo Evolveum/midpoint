@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -1646,8 +1647,10 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .binding(TaskBindingType.LOOSE)
                 .category("category")
                 .completionTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
-                .executionStatus(TaskExecutionStateType.RUNNABLE)
-                // TODO full result?
+                .executionState(TaskExecutionStateType.RUNNABLE)
+                .result(new OperationResultType()
+                        .message("result message")
+                        .status(OperationResultStatusType.FATAL_ERROR))
                 .handlerUri("handler-uri")
                 .lastRunStartTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
                 .lastRunFinishTimestamp(MiscUtil.asXMLGregorianCalendar(2L))
@@ -1655,7 +1658,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .objectRef(objectRefOid.toString(), OrgType.COMPLEX_TYPE, relationUri)
                 .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, relationUri)
                 .parent("parent")
-                .recurrence(TaskRecurrenceType.RECURRING)
+                .schedule(new ScheduleType(prismContext)
+                        .recurrence(TaskRecurrenceType.RECURRING))
                 .resultStatus(OperationResultStatusType.UNKNOWN)
                 .schedulingState(TaskSchedulingStateType.READY)
                 .autoScaling(new TaskAutoScalingType(prismContext)
@@ -1676,7 +1680,9 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.binding).isEqualTo(TaskBindingType.LOOSE);
         assertThat(row.category).isEqualTo("category");
         assertThat(row.completionTimestamp).isEqualTo(Instant.ofEpochMilli(1));
-        assertThat(row.executionStatus).isEqualTo(TaskExecutionStateType.RUNNABLE);
+        assertThat(row.executionState).isEqualTo(TaskExecutionStateType.RUNNABLE);
+        assertThat(row.fullResult).isNotNull();
+        assertThat(row.resultStatus).isEqualTo(OperationResultStatusType.UNKNOWN);
         assertCachedUri(row.handlerUriId, "handler-uri");
         assertThat(row.lastRunStartTimestamp).isEqualTo(Instant.ofEpochMilli(1));
         assertThat(row.lastRunFinishTimestamp).isEqualTo(Instant.ofEpochMilli(2));
@@ -1689,13 +1695,16 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(row.ownerRefRelationId, relationUri);
         assertThat(row.parent).isEqualTo("parent");
         assertThat(row.recurrence).isEqualTo(TaskRecurrenceType.RECURRING);
-        assertThat(row.resultStatus).isEqualTo(OperationResultStatusType.UNKNOWN);
         assertThat(row.schedulingState).isEqualTo(TaskSchedulingStateType.READY);
         assertThat(row.autoScalingMode).isEqualTo(TaskAutoScalingModeType.DEFAULT);
         assertThat(row.threadStopAction).isEqualTo(ThreadStopActionType.RESCHEDULE);
         assertThat(row.waitingReason).isEqualTo(TaskWaitingReasonType.OTHER_TASKS);
         assertThat(row.dependentTaskIdentifiers)
                 .containsExactlyInAnyOrder("dep-task-1", "dep-task-2");
+
+        and("stored full object does not contain operation result");
+        TaskType parsedTask = parseFullObject(row.fullObject);
+        assertThat(parsedTask.getResult()).isNull();
     }
 
     @Test

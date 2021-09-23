@@ -77,11 +77,11 @@ public class TestParseTask extends AbstractSchemaTest {
         assertPropertyValue(task, "taskIdentifier", "44444444-4444-4444-4444-000000001111");
         assertPropertyDefinition(task, "taskIdentifier", DOMUtil.XSD_STRING, 0, 1);
 
-        assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStateType.class), 0, 1);
-        PrismProperty<TaskExecutionStateType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
-        PrismPropertyValue<TaskExecutionStateType> executionStatusValue = executionStatusProperty.getValue();
-        TaskExecutionStateType executionStatus = executionStatusValue.getValue();
-        assertEquals("Wrong execution status", TaskExecutionStateType.RUNNABLE, executionStatus);
+        assertPropertyDefinition(task, "executionState", JAXBUtil.getTypeQName(TaskExecutionStateType.class), 0, 1);
+        PrismProperty<TaskExecutionStateType> executionStateProperty = task.findProperty(TaskType.F_EXECUTION_STATE);
+        PrismPropertyValue<TaskExecutionStateType> executionStatusValue = executionStateProperty.getValue();
+        TaskExecutionStateType executionState = executionStatusValue.getValue();
+        assertEquals("Wrong execution state", TaskExecutionStateType.RUNNABLE, executionState);
 
         // TODO: more tests
 

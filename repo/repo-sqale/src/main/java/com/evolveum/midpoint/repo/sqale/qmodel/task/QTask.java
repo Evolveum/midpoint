@@ -35,10 +35,12 @@ public class QTask extends QAssignmentHolder<MTask> {
             ColumnMetadata.named("category").ofType(Types.VARCHAR);
     public static final ColumnMetadata COMPLETION_TIMESTAMP =
             ColumnMetadata.named("completionTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata EXECUTION_STATUS =
-            ColumnMetadata.named("executionStatus").ofType(Types.OTHER);
+    public static final ColumnMetadata EXECUTION_STATE =
+            ColumnMetadata.named("executionState").ofType(Types.OTHER);
     public static final ColumnMetadata FULL_RESULT =
             ColumnMetadata.named("fullResult").ofType(Types.BINARY);
+    public static final ColumnMetadata RESULT_STATUS =
+            ColumnMetadata.named("resultStatus").ofType(Types.OTHER);
     public static final ColumnMetadata HANDLER_URI_ID =
             ColumnMetadata.named("handlerUriId").ofType(Types.INTEGER);
     public static final ColumnMetadata LAST_RUN_START_TIMESTAMP =
@@ -63,8 +65,6 @@ public class QTask extends QAssignmentHolder<MTask> {
             ColumnMetadata.named("parent").ofType(Types.VARCHAR);
     public static final ColumnMetadata RECURRENCE =
             ColumnMetadata.named("recurrence").ofType(Types.OTHER);
-    public static final ColumnMetadata RESULT_STATUS =
-            ColumnMetadata.named("resultStatus").ofType(Types.OTHER);
     public static final ColumnMetadata SCHEDULING_STATE =
             ColumnMetadata.named("schedulingState").ofType(Types.OTHER);
     public static final ColumnMetadata AUTO_SCALING_MODE =
@@ -83,9 +83,11 @@ public class QTask extends QAssignmentHolder<MTask> {
     public final StringPath category = createString("category", CATEGORY);
     public final DateTimePath<Instant> completionTimestamp =
             createInstant("completionTimestamp", COMPLETION_TIMESTAMP);
-    public final EnumPath<TaskExecutionStateType> executionStatus =
-            createEnum("executionStatus", TaskExecutionStateType.class, EXECUTION_STATUS);
+    public final EnumPath<TaskExecutionStateType> executionState =
+            createEnum("executionState", TaskExecutionStateType.class, EXECUTION_STATE);
     public final ArrayPath<byte[], Byte> fullResult = createByteArray("fullResult", FULL_RESULT);
+    public final EnumPath<OperationResultStatusType> resultStatus =
+            createEnum("resultStatus", OperationResultStatusType.class, RESULT_STATUS);
     public final NumberPath<Integer> handlerUriId = createInteger("handlerUriId", HANDLER_URI_ID);
     public final DateTimePath<Instant> lastRunStartTimestamp =
             createInstant("lastRunStartTimestamp", LAST_RUN_START_TIMESTAMP);
@@ -106,8 +108,6 @@ public class QTask extends QAssignmentHolder<MTask> {
     public final StringPath parent = createString("parent", PARENT);
     public final EnumPath<TaskRecurrenceType> recurrence =
             createEnum("recurrence", TaskRecurrenceType.class, RECURRENCE);
-    public final EnumPath<OperationResultStatusType> resultStatus =
-            createEnum("resultStatus", OperationResultStatusType.class, RESULT_STATUS);
     public final EnumPath<TaskSchedulingStateType> schedulingState =
             createEnum("schedulingState", TaskSchedulingStateType.class, SCHEDULING_STATE);
     public final EnumPath<TaskAutoScalingModeType> autoScalingMode =

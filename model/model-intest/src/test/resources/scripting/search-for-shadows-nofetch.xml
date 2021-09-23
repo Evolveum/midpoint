@@ -18,7 +18,7 @@
             </ref>
             <equal>
                 <path>c:objectClass</path>
-                <value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:AccountObjectClass</value>
+                <value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</value>
             </equal>
         </and>
     </s:searchFilter>

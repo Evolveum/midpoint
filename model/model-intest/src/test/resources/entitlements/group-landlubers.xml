@@ -10,7 +10,7 @@
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>landlubers</name>
     <resourceRef oid="10000000-0000-0000-0000-000000000004" />
     <objectClass>ri:GroupObjectClass</objectClass>

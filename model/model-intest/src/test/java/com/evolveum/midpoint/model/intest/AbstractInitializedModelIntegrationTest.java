@@ -55,7 +55,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
     private static final int NUM_PROJECT_ORGS = 3;
 
     private static final int NUMBER_OF_IMPORTED_USERS = 5;
-    private static final int NUMBER_OF_IMPORTED_ROLES = 15;
+    private static final int NUMBER_OF_IMPORTED_ROLES = 16;
 
     @Autowired protected MappingFactory mappingFactory;
     @Autowired protected Clockwork clockwork;
@@ -224,6 +224,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         userTypeWill = repoAddObjectFromFile(USER_WILL_FILE, UserType.class, true, initResult).asObjectable();
 
         // Roles
+        repoAdd(METAROLE_RECOMPUTE_MEMBERS, initResult);
+
         repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);
         repoAddObjectFromFile(ROLE_PIRATE_GREEN_FILE, initResult);
         repoAddObjectFromFile(ROLE_PIRATE_RELATIVE_FILE, initResult);

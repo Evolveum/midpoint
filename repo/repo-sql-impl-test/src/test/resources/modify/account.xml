@@ -15,7 +15,7 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>1234</name>
     <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
-    <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
+    <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
     <attributes>
         <icfs:uid xsi:type="xsd:string">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
         <ri:foo xsi:type="xsd:string">FOO</ri:foo>

@@ -45,8 +45,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
         LOGGER.debug("Script engine for '{}' initialized in {} ms.",
                 engineName, System.currentTimeMillis() - initStartMs);
         if (scriptEngine == null) {
-            SystemException e = new SystemException("The JSR-223 scripting engine for '" + engineName + "' was not found");
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.warn("The JSR-223 scripting engine for '" + engineName + "' was not found");
         }
     }
 

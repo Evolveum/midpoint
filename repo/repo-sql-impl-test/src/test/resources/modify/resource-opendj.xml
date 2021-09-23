@@ -23,7 +23,7 @@ object.
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
         xmlns:my="http://whatever.com/my"
@@ -57,10 +57,6 @@ object.
             </q:equal>
         </filter>
     </connectorRef>
-
-    <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-
-    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
 
     <!-- Configuration section contains configuration of the connector,
          such as hostnames and passwords -->
@@ -125,7 +121,7 @@ object.
         </cachingMetadata>
         <definition>
             <xsd:schema elementFormDefault="qualified"
-                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -30,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 /**
  * Resolves construction resource reference.
@@ -133,27 +136,23 @@ class ConstructionResourceResolver {
                     "The OID is null and filter could not be evaluated in assignment targetRef in " + construction.source);
         }
 
-        final Collection<PrismObject<ResourceType>> results = new ArrayList<>();
-        ResultHandler<ResourceType> handler = (object, parentResult) -> {
-            LOGGER.debug("Found object {}", object);
-            return results.add(object);
-        };
-        ModelBeans.get().modelObjectResolver.searchIterative(ResourceType.class,
-                PrismContext.get().queryFactory().createQuery(evaluatedFilter),
-                null, handler, task, result);
+        ObjectQuery query = PrismContext.get().queryFactory().createQuery(evaluatedFilter);
+
+        Collection<PrismObject<ResourceType>> matchingResources =
+                ModelBeans.get().modelObjectResolver.searchObjects(
+                        ResourceType.class, query, createReadOnlyCollection(), task, result);
 
         // TODO consider referential integrity settings
-        if (CollectionUtils.isEmpty(results)) {
+        if (CollectionUtils.isEmpty(matchingResources)) {
             throw new ObjectNotFoundException("Got no target from repository, filter:" + evaluatedFilter
                     + ", class:" + ResourceType.class + " in " + sourceDescription);
         }
 
-        if (results.size() > 1) {
+        if (matchingResources.size() > 1) {
             throw new IllegalArgumentException("Got more than one target from repository, filter:"
                     + evaluatedFilter + ", class:" + ResourceType.class + " in " + sourceDescription);
         }
 
-        PrismObject<ResourceType> target = results.iterator().next();
-        return target.asObjectable();
+        return matchingResources.iterator().next().asObjectable();
     }
 }

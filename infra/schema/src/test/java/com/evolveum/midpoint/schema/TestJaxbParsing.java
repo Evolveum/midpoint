@@ -93,7 +93,7 @@ public class TestJaxbParsing extends AbstractSchemaTest {
         account.checkConsistence();
         assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
         assertPropertyValue(account, ShadowType.F_OBJECT_CLASS,
-                new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", "AccountObjectClass"));
+                new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", "AccountObjectClass"));
         assertPropertyValue(account, ShadowType.F_INTENT, "default");
 
         // TODO: more asserts

@@ -10,9 +10,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
@@ -206,7 +204,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     protected List<IColumn<SelectableBean<TaskType>, String>> initCustomTaskColumns() {
         List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
 
-        columns.add(createTaskExecutionStatusColumn());
+        columns.add(createTaskExecutionStateColumn());
 
         columns.add(createNodesColumn()); // TODO reconsider
         columns.add(createProgressColumn());
@@ -217,14 +215,14 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     }
 
-    private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStatusColumn() {
+    private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStateColumn() {
         return new AbstractExportableColumn<>(createStringResource("pageTasks.task.execution")) {
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
                     TaskType task = rowModel.getObject().getValue();
-                    TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+                    TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionState(task.getExecutionState(), task.getNodeAsObserved() != null);
                     if (status != null) {
                         return getPageBase().createStringResource(status);
                     }

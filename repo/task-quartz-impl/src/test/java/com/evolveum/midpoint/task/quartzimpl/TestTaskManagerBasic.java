@@ -631,7 +631,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
         when();
 
-        ObjectFilter filter1 = prismContext.queryFor(TaskType.class).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.WAITING).buildFilter();
+        ObjectFilter filter1 = prismContext.queryFor(TaskType.class).item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.WAITING).buildFilter();
         ObjectFilter filter2 = prismContext.queryFor(TaskType.class).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();
         ObjectFilter filter3 = prismContext.queryFactory().createAnd(filter1, filter2);
 
@@ -656,10 +656,10 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         PrismObject<TaskType> childTask1Prism = add(TASK_TREE_CHILD_1, result); // suspended
         PrismObject<TaskType> childTask2Prism = add(TASK_TREE_CHILD_2, result); // suspended
 
-        assertEquals(TaskExecutionStateType.RUNNING, parentTaskPrism.asObjectable().getExecutionStatus());
+        assertEquals(TaskExecutionStateType.RUNNING, parentTaskPrism.asObjectable().getExecutionState());
         assertEquals(TaskSchedulingStateType.WAITING, parentTaskPrism.asObjectable().getSchedulingState());
-        assertEquals(TaskExecutionStateType.SUSPENDED, childTask1Prism.asObjectable().getExecutionStatus());
-        assertEquals(TaskExecutionStateType.SUSPENDED, childTask2Prism.asObjectable().getExecutionStatus());
+        assertEquals(TaskExecutionStateType.SUSPENDED, childTask1Prism.asObjectable().getExecutionState());
+        assertEquals(TaskExecutionStateType.SUSPENDED, childTask2Prism.asObjectable().getExecutionState());
 
         Task parentTask = taskManager.createTaskInstance(parentTaskPrism, result);
         Task childTask1 = taskManager.createTaskInstance(childTask1Prism, result);
@@ -827,7 +827,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
             System.out.println((System.currentTimeMillis() - start) + ": subtasks: " + task.getSubtaskRef().size() +
                     ", progress = " + task.getProgress());
             if (task.getSchedulingState() != TaskSchedulingStateType.READY) {
-                System.out.println("Done. Status = " + task.getExecutionStatus());
+                System.out.println("Done. Status = " + task.getExecutionState());
                 break;
             }
             //noinspection BusyWait

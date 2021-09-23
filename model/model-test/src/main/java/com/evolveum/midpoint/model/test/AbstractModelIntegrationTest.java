@@ -168,6 +168,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
 
+    protected static final String NS_LINKED = "http://midpoint.evolveum.com/xml/ns/samples/linked";
+    public static final ItemName RECOMPUTE_MEMBERS_NAME = new ItemName(NS_LINKED, "recomputeMembers");
+
     protected static final String LOG_PREFIX_FAIL = "SSSSS=X ";
     protected static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
     protected static final String LOG_PREFIX_DENY = "SSSSS=- ";
@@ -4637,11 +4640,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
     }
 
-    protected void modifyRoleAddInducementTarget(
-            String roleOid, String targetOid, boolean reconcileAffected, ModelExecuteOptions defaultOptions)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException,
-            ObjectAlreadyExistsException, PolicyViolationException {
+    protected void modifyRoleAddInducementTarget(String roleOid, String targetOid, ModelExecuteOptions defaultOptions)
+            throws CommonException {
+        modifyRoleAddInducementTarget(roleOid, targetOid, false, defaultOptions);
+    }
+
+    protected void modifyRoleAddInducementTargetAndRecomputeMembers(
+            String roleOid, String targetOid, ModelExecuteOptions defaultOptions)
+            throws CommonException {
+        modifyRoleAddInducementTarget(roleOid, targetOid, true, defaultOptions);
+    }
+
+    protected void modifyRoleAddInducementTarget(String roleOid, String targetOid, boolean recomputeMembers,
+            ModelExecuteOptions defaultOptions)
+            throws CommonException {
         OperationResult result = createSubresult("modifyRoleAddInducementTarget");
         AssignmentType inducement = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
@@ -4650,11 +4662,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object()
                 .createModificationAddContainer(RoleType.class, roleOid,
                         RoleType.F_INDUCEMENT, inducement);
-        ModelExecuteOptions options = nullToEmpty(defaultOptions);
-        options.reconcileAffected(reconcileAffected);
+
+        ModelExecuteOptions options = setRecomputeMembers(defaultOptions, recomputeMembers);
         executeChanges(roleDelta, options, getTestTask(), result);
+
         result.computeStatus();
-        if (reconcileAffected) {
+        if (recomputeMembers) {
             TestUtil.assertInProgressOrSuccess(result);
         } else {
             TestUtil.assertSuccess(result);
@@ -4698,34 +4711,34 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected PolicyRuleType createExclusionPolicyRule(String excludedRoleOid) {
         PolicyRuleType policyRule = new PolicyRuleType();
-        PolicyConstraintsType policyContraints = new PolicyConstraintsType();
+        PolicyConstraintsType policyConstraints = new PolicyConstraintsType();
         ExclusionPolicyConstraintType exclusionConstraint = new ExclusionPolicyConstraintType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
         targetRef.setOid(excludedRoleOid);
         targetRef.setType(RoleType.COMPLEX_TYPE);
         exclusionConstraint.setTargetRef(targetRef);
-        policyContraints.getExclusion().add(exclusionConstraint);
-        policyRule.setPolicyConstraints(policyContraints);
+        policyConstraints.getExclusion().add(exclusionConstraint);
+        policyRule.setPolicyConstraints(policyConstraints);
         return policyRule;
     }
 
     protected PolicyRuleType createMinAssigneePolicyRule(int minAssignees) {
         PolicyRuleType policyRule = new PolicyRuleType();
-        PolicyConstraintsType policyContraints = new PolicyConstraintsType();
+        PolicyConstraintsType policyConstraints = new PolicyConstraintsType();
         MultiplicityPolicyConstraintType minAssigneeConstraint = new MultiplicityPolicyConstraintType();
         minAssigneeConstraint.setMultiplicity(Integer.toString(minAssignees));
-        policyContraints.getMinAssignees().add(minAssigneeConstraint);
-        policyRule.setPolicyConstraints(policyContraints);
+        policyConstraints.getMinAssignees().add(minAssigneeConstraint);
+        policyRule.setPolicyConstraints(policyConstraints);
         return policyRule;
     }
 
     protected PolicyRuleType createMaxAssigneePolicyRule(int maxAssignees) {
         PolicyRuleType policyRule = new PolicyRuleType();
-        PolicyConstraintsType policyContraints = new PolicyConstraintsType();
+        PolicyConstraintsType policyConstraints = new PolicyConstraintsType();
         MultiplicityPolicyConstraintType maxAssigneeConstraint = new MultiplicityPolicyConstraintType();
         maxAssigneeConstraint.setMultiplicity(Integer.toString(maxAssignees));
-        policyContraints.getMaxAssignees().add(maxAssigneeConstraint);
-        policyRule.setPolicyConstraints(policyContraints);
+        policyConstraints.getMaxAssignees().add(maxAssigneeConstraint);
+        policyRule.setPolicyConstraints(policyConstraints);
         return policyRule;
     }
 
@@ -4803,8 +4816,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
     }
 
-    protected void modifyRoleDeleteInducement(String roleOid, long inducementId, boolean reconcileAffected,
-            ModelExecuteOptions defaultOptions, Task task) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected void modifyRoleDeleteInducement(String roleOid, long inducementId, ModelExecuteOptions options, Task task)
+            throws CommonException {
+        modifyRoleDeleteInducement(roleOid, inducementId, false, options, task);
+    }
+
+    protected void modifyRoleDeleteInducementAndRecomputeMembers(String roleOid, long inducementId,
+            ModelExecuteOptions options, Task task) throws CommonException {
+        modifyRoleDeleteInducement(roleOid, inducementId, true, options, task);
+    }
+
+    protected void modifyRoleDeleteInducement(String roleOid, long inducementId, boolean recomputeMembers,
+            ModelExecuteOptions defaultOptions, Task task) throws CommonException {
         OperationResult result = task.getResult();
 
         AssignmentType inducement = new AssignmentType();
@@ -4812,19 +4835,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object()
                 .createModificationDeleteContainer(RoleType.class, roleOid,
                         RoleType.F_INDUCEMENT, inducement);
-        ModelExecuteOptions options = nullToEmpty(defaultOptions);
-        options.reconcileAffected(reconcileAffected);
+
+        ModelExecuteOptions options = setRecomputeMembers(defaultOptions, recomputeMembers);
+
         executeChanges(roleDelta, options, task, result);
         result.computeStatus();
-        if (reconcileAffected) {
+        if (recomputeMembers) {
             TestUtil.assertInProgressOrSuccess(result);
         } else {
             TestUtil.assertSuccess(result);
         }
     }
 
-    @NotNull
-    protected ModelExecuteOptions nullToEmpty(ModelExecuteOptions options) {
+    private ModelExecuteOptions setRecomputeMembers(ModelExecuteOptions defaultOptions, boolean recomputeMembers)
+            throws SchemaException {
+        if (recomputeMembers) {
+            return nullToEmpty(defaultOptions)
+                    .setExtensionPropertyRealValues(PrismContext.get(), RECOMPUTE_MEMBERS_NAME, true);
+        } else {
+            return defaultOptions;
+        }
+    }
+
+    private @NotNull ModelExecuteOptions nullToEmpty(ModelExecuteOptions options) {
         return options != null ? options : executeOptions();
     }
 
@@ -5129,11 +5162,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertTaskClosed(PrismObject<TaskType> task) {
-        assertEquals("Wrong executionStatus in " + task, TaskExecutionStateType.CLOSED, task.asObjectable().getExecutionStatus());
+        assertEquals("Wrong executionState in " + task, TaskExecutionStateType.CLOSED, task.asObjectable().getExecutionState());
     }
 
     protected void assertTaskClosed(Task task) {
-        assertEquals("Wrong executionStatus in " + task, TaskExecutionStateType.CLOSED, task.getExecutionState());
+        assertEquals("Wrong executionState in " + task, TaskExecutionStateType.CLOSED, task.getExecutionState());
     }
 
     protected List<AuditEventRecordType> getAllAuditRecords(Task task, OperationResult result)

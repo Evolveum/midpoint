@@ -28,9 +28,10 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Helps AssignmentHolderProcessor with iteration-related activities.
- * 1. keeps iteration state
- * 2. evaluates pre/post and uniqueness conditions (including name presence)
- * 3. manages fetching and storing of iteration information from/to lens context
+ *
+ * 1. Keeps iteration state.
+ * 2. Evaluates pre/post and uniqueness conditions (including name presence).
+ * 3. Manages fetching and storing of iteration information from/to lens context.
  *
  * And nothing more.
  */

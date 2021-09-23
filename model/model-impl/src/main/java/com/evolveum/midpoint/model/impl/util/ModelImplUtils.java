@@ -80,6 +80,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 public class ModelImplUtils {
 
     private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName() + ".resolveReference";
@@ -335,7 +337,8 @@ public class ModelImplUtils {
             // Nothing to resolve, but let's check if the OID exists
             PrismObject<? extends ObjectType> object = null;
             try {
-                object = repository.getObject(type, refVal.getOid(), null, result);
+                // Maybe too courageous (we are not sure what clients do with the resolved objects).
+                object = repository.getObject(type, refVal.getOid(), createReadOnlyCollection(), result);
             } catch (ObjectNotFoundException e) {
                 String message = "Reference " + refName + " refers to a non-existing object " + refVal.getOid();
                 if (enforceReferentialIntegrity) {
@@ -410,7 +413,7 @@ public class ModelImplUtils {
 
         try {
             ObjectQuery query = prismContext.queryFactory().createQuery(objFilter);
-            objects = (List)repository.searchObjects(type, query, null, result);
+            objects = (List)repository.searchObjects(type, query, createReadOnlyCollection(), result);
 
         } catch (SchemaException e) {
             // This is unexpected, but may happen. Record fatal error
@@ -742,18 +745,17 @@ public class ModelImplUtils {
     }
 
     public static PrismReferenceValue determineAuditTargetDeltaOps(
-            Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps,
-            PrismContext prismContext) {
+            Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps) {
         if (deltaOps == null || deltaOps.isEmpty()) {
             return null;
         }
         if (deltaOps.size() == 1) {
             ObjectDeltaOperation<? extends ObjectType> deltaOp = deltaOps.iterator().next();
-            return getAuditTarget(deltaOp.getObjectDelta(), prismContext);
+            return getAuditTarget(deltaOp.getObjectDelta(), PrismContext.get());
         }
         for (ObjectDeltaOperation<? extends ObjectType> deltaOp: deltaOps) {
             if (!ShadowType.class.isAssignableFrom(deltaOp.getObjectDelta().getObjectTypeClass())) {
-                return getAuditTarget(deltaOp.getObjectDelta(), prismContext);
+                return getAuditTarget(deltaOp.getObjectDelta(), PrismContext.get());
             }
         }
         // Several raw operations, all on shadows, no focus ... this should not happen

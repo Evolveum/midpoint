@@ -54,8 +54,6 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
 
     public static final File TEST_DIR = new File("src/test/resources/member-recompute");
 
-    private static final String NS_LINKED = "http://midpoint.evolveum.com/xml/ns/samples/linked";
-    private static final ItemName RECOMPUTE_MEMBERS_NAME = new ItemName(NS_LINKED, "recomputeMembers");
     private static final ItemName MEMBER_RECOMPUTATION_WORKER_THREADS_NAME = new ItemName(NS_LINKED, "memberRecomputationWorkerThreads");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");

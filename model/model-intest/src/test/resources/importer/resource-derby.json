@@ -36,7 +36,6 @@
           "port": "11527"
         }
       },
-      "namespace": "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9119011311ab",
       "schema": {},
       "schemaHandling": {}
     }

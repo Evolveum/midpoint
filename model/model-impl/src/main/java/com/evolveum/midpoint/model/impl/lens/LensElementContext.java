@@ -9,8 +9,9 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.*;
@@ -105,7 +106,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     /**
      * Indicates that the objectOld and objectCurrent contain relevant values.
-     * Generally set to true by {@link com.evolveum.midpoint.model.impl.lens.projector.ContextLoader}
+     * Generally set to true by {@link ContextLoader}
      * and reset to false by {@link LensContext#rot(String)} and {@link LensContext#rotIfNeeded()} methods.
      */
     private transient boolean isFresh;
@@ -137,7 +138,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      *
      * Set by the client (see {@link com.evolveum.midpoint.model.impl.sync.action.UnlinkAction}
      * and {@link com.evolveum.midpoint.model.impl.sync.action.DeleteShadowAction}) or automatically
-     * determined from linkRef delete delta by {@link com.evolveum.midpoint.model.impl.lens.projector.ContextLoader}.
+     * determined from linkRef delete delta by {@link ContextLoader}.
      */
     private SynchronizationIntent synchronizationIntent;
 
@@ -169,7 +170,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     /**
      * Link to the parent context.
      */
-    private final LensContext<? extends ObjectType> lensContext;
+    @NotNull protected final LensContext<? extends ObjectType> lensContext;
 
     public LensElementContext(@NotNull Class<O> objectTypeClass, @NotNull LensContext<? extends ObjectType> lensContext) {
         Validate.notNull(objectTypeClass, "Object class is null");
@@ -202,7 +203,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         this.synchronizationIntent = synchronizationIntent;
     }
 
-    public LensContext<? extends ObjectType> getLensContext() {
+    public @NotNull LensContext<? extends ObjectType> getLensContext() {
         return lensContext;
     }
 
@@ -214,14 +215,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     public boolean represents(Class<?> type) {
         return type.isAssignableFrom(objectTypeClass);
-    }
-
-    public PrismContext getPrismContext() {
-        return lensContext.getPrismContext();
-    }
-
-    PrismContext getNotNullPrismContext() {
-        return lensContext.getNotNullPrismContext();
     }
 
     @Override
@@ -325,7 +318,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         modifyOrCreatePrimaryDelta(
                 delta -> delta.swallow(itemDelta),
                 () -> {
-                    ObjectDelta<O> newPrimaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
+                    ObjectDelta<O> newPrimaryDelta = PrismContext.get().deltaFactory().object()
+                            .create(getObjectTypeClass(), ChangeType.MODIFY);
                     newPrimaryDelta.setOid(oid);
                     newPrimaryDelta.addModification(itemDelta);
                     return newPrimaryDelta;
@@ -394,7 +388,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         LensUtil.setDeltaOldValue(this, itemDelta);
 
         if (secondaryDelta == null) {
-            secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
+            secondaryDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
             secondaryDelta.setOid(getOid());
         }
         secondaryDelta.swallow(itemDelta);
@@ -477,6 +471,15 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     @Override
     public ObjectDelta<O> getCurrentDelta() {
+        long start = System.nanoTime();
+        try {
+            return getCurrentDeltaInternal();
+        } finally {
+            lensContext.recordDeltaAggregationTime(System.nanoTime() - start);
+        }
+    }
+
+    private ObjectDelta<O> getCurrentDeltaInternal() {
         if (doesPrimaryDeltaApply()) {
             try {
                 //noinspection unchecked
@@ -562,7 +565,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             } else if (objectNew != null) {
                 objectDefinition = objectNew.getDefinition();
             } else {
-                objectDefinition = getNotNullPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
+                objectDefinition = PrismContext.get().getSchemaRegistry()
+                        .findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
             }
         }
         return objectDefinition;
@@ -682,15 +686,16 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public abstract void cleanup();
 
     public void normalize() {
-        if (objectNew != null) {
-            objectNew.normalize();
-        }
-        if (objectOld != null) {
-            objectOld.normalize();
-        }
-        if (objectCurrent != null) {
-            objectCurrent.normalize();
-        }
+        // This does nothing. Should be removed eventually.
+//        if (objectNew != null) {
+//            objectNew.normalize();
+//        }
+//        if (objectOld != null) {
+//            objectOld.normalize();
+//        }
+//        if (objectCurrent != null) {
+//            objectCurrent.normalize();
+//        }
         if (primaryDelta != null && !primaryDelta.isImmutable()) {
             primaryDelta.normalize();
         }
@@ -751,7 +756,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     void storeIntoLensElementContextType(LensElementContextType lensElementContextType, LensContext.ExportType exportType) throws SchemaException {
         if (objectOld != null && exportType != LensContext.ExportType.MINIMAL) {
             if (exportType == LensContext.ExportType.REDUCED) {
-                lensElementContextType.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld, getPrismContext()));
+                lensElementContextType.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld, PrismContext.get()));
             } else {
                 lensElementContextType.setObjectOld(objectOld.asObjectable().clone());
             }
@@ -761,7 +766,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
         if (objectNew != null && exportType != LensContext.ExportType.MINIMAL) {
             if (exportType == LensContext.ExportType.REDUCED) {
-                lensElementContextType.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew, getPrismContext()));
+                lensElementContextType.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew, PrismContext.get()));
             } else {
                 lensElementContextType.setObjectNew(objectNew.asObjectable().clone());
             }
@@ -796,11 +801,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         ObjectType object = objectTypeNew != null ? objectTypeNew : objectTypeOld;
 
         ObjectDeltaType primaryDeltaType = lensElementContextType.getPrimaryDelta();
-        this.primaryDelta = primaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(primaryDeltaType, lensContext.getPrismContext()) : null;
+        this.primaryDelta = primaryDeltaType != null ?
+                (ObjectDelta) DeltaConvertor.createObjectDelta(primaryDeltaType, PrismContext.get()) :
+                null;
         fixProvisioningTypeInDelta(this.primaryDelta, object, task, result);
 
         for (LensObjectDeltaOperationType eDeltaOperationType : lensElementContextType.getExecutedDeltas()) {
-            LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext());
+            LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType);
             if (objectDeltaOperation.getObjectDelta() != null) {
                 fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), object, task, result);
             }
@@ -925,7 +932,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public S_ItemEntry deltaBuilder() throws SchemaException {
-        return getPrismContext().deltaFor(getObjectTypeClass());
+        return PrismContext.get().deltaFor(getObjectTypeClass());
     }
 
     public void forEachObject(Consumer<PrismObject<O>> consumer) {
@@ -953,6 +960,24 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         if (primaryDelta != null) {
             primaryDelta.normalize();
             primaryDelta.freeze();
+        }
+    }
+
+    public void setPrimaryDeltaOldValue() {
+        if (getPrimaryDelta() != null && getObjectOld() != null && isModify()) {
+            boolean freezeAfterChange;
+            if (getPrimaryDelta().isImmutable()) {
+                setPrimaryDelta(getPrimaryDelta().clone());
+                freezeAfterChange = true;
+            } else {
+                freezeAfterChange = false;
+            }
+            for (ItemDelta<?,?> itemDelta: getPrimaryDelta().getModifications()) {
+                LensUtil.setDeltaOldValue(this, itemDelta);
+            }
+            if (freezeAfterChange) {
+                getPrimaryDelta().freeze();
+            }
         }
     }
 }

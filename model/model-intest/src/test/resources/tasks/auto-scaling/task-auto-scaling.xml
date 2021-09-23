@@ -9,7 +9,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Auto scaling</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionState>runnable</executionState>
     <!-- No recurrence - we'll trigger this task manually -->
     <autoScaling>
         <mode>disabled</mode> <!-- Just to be sure we won't get auto-scaled ourselves! -->

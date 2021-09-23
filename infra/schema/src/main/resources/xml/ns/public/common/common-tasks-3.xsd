@@ -67,6 +67,12 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:executionStatus</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>moved</a:operation>
+                    <a:replacement>tns:executionState</a:replacement>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -103,7 +109,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" />
+                    <xsd:element name="channel" type="xsd:anyURI" minOccurs="0"/>
                     <xsd:element name="parent" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -154,17 +160,15 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="executionStatus" type="tns:TaskExecutionStateType" minOccurs="0">
+                    <xsd:element name="executionState" type="tns:TaskExecutionStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Execution status provides information about the task overall high-level execution state.
+                                Provides information about the task overall high-level execution state.
                                 It tells whether the task is running/runnable, waits for something or is done.
                                 This state is to be displayed to the user.
-
-                                TODO rename to executionState
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TaskType.executionStatus</a:displayName>
+                                <a:displayName>TaskType.executionState</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -265,6 +269,9 @@
                                 handler will
                                 execute reaction to a task lifecycle events such as executing the task, task heartbeat,
                                 etc.
+
+                                Note that activity-based tasks do not need a handler URI. They are executed under
+                                the generic activity execution task handler.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -290,10 +297,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Object that the task is associated with. Tasks may be associated with a particular
-                                objects. For
-                                example a "import from resource" task is associated with the resource definition object
-                                that it imports from. Similarly
-                                for synchronization and reconciliation tasks (cycles).
+                                objects. This is, however, partially obsoleted with the arrival of activities in midPoint 4.4.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.objectRef</a:displayName>
@@ -367,7 +371,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Relative metric of task progress. The meaning of this attribute
-                                is specific to particular task handler.
+                                is specific to particular task handler. Mostly obsoleted by activity execution framework.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.progress</a:displayName>
@@ -377,7 +381,7 @@
                     <xsd:element name="operationStats" type="tns:OperationStatsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Operation statistics/state.
+                                Task-level operation statistics.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -412,10 +416,12 @@
                     <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Whether the task activity is to be executed only once (single-run tasks)
-                                or periodically (recurring tasks). If nothing set explicitly, single-run
-                                task is created.
+                                Moved to schedule/recurrence.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="binding" type="tns:TaskBindingType" minOccurs="0">
@@ -474,6 +480,8 @@
                                 This is NOT a live information: it is a serialized form of a model context.
                                 Currently there is a specialized task handler that takes this context,
                                 unmarshalls and executes it.
+
+                                Note: This item will be moved to an activity definition in the future.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -481,7 +489,13 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Policy rule for the task. E.g notify user 5 days before their account expires.
+
+                                DEPRECATED. Moved to the FocusValidityScanWorkDefinitionType.validityConstraint.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="errorHandlingStrategy" type="tns:TaskErrorHandlingStrategyType" minOccurs="0">
@@ -516,6 +530,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of an activity or activities that should be executed before the main task activity.
+                                Not implemented yet.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.4</a:since>
@@ -538,6 +553,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of an activity or activities that should be executed after the main task activity.
+                                Not implemented yet.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.4</a:since>
@@ -1617,6 +1633,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the task activity is to be executed only once (single-run tasks)
+                        or periodically (recurring tasks). Default value is "recurring" for tasks that have
+                        interval or cronLikePattern set, and "single" otherwise. However, there may be tasks
+                        with explicitly set recurrence=recurring, with neither interval or cronLikePattern set.
+                        Such tasks are to be started manually.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="earliestStartTime" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4567,7 +4594,8 @@
                 <a:schemaMigration>
                     <a:element>tns:operationalStatus</a:element>
                     <a:version>4.4</a:version>
-                    <a:operation>removed</a:operation> <!-- todo "renamed"? -->
+                    <a:operation>moved</a:operation>
+                    <a:replacement>tns:operationalState</a:replacement>
                 </a:schemaMigration>
                 <a:schemaMigration>
                     <a:element>tns:running</a:element>
@@ -8733,6 +8761,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         How many milliseconds did the bucket processing take.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="errorMessage" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Error message related to the processing. May be shortened. May not be accurate. (Very experimental.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

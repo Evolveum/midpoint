@@ -18,7 +18,6 @@ import com.evolveum.midpoint.schema.util.task.*;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.Containerable;
@@ -78,7 +77,7 @@ public class DefaultColumnUtils {
                 .put(TaskType.class, Arrays.asList(
                         new ColumnWrapper(TaskType.F_NAME),
                         new ColumnWrapper(TaskType.F_CATEGORY),
-                        new ColumnWrapper(TaskType.F_EXECUTION_STATUS),
+                        new ColumnWrapper(TaskType.F_EXECUTION_STATE),
                         new ColumnWrapper(TaskType.F_OBJECT_REF),
                         new ColumnWrapper(TaskType.F_NODE_AS_OBSERVED, "pageTasks.task.executingAt"),
                         new ColumnWrapper(TaskType.F_COMPLETION_TIMESTAMP, "TaskType.currentRunTime"),
@@ -239,7 +238,7 @@ public class DefaultColumnUtils {
             TaskType task = (TaskType) object;
             if (itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)) {
                 XMLGregorianCalendar timestamp = task.getCompletionTimestamp();
-                if (timestamp != null && task.getExecutionStatus() == TaskExecutionStateType.CLOSED) {
+                if (timestamp != null && task.getExecutionState() == TaskExecutionStateType.CLOSED) {
                     // Do we want default locale or default locale for FORMAT category?
                     // For latter no .withLocale() would be needed.
                     DateTimeFormatter formatter = DateTimeFormatter

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.util.task;
 
 import java.util.List;
+import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -16,6 +17,7 @@ import org.apache.commons.lang.time.DurationFormatUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.hasStateOverview;
 
@@ -74,9 +76,8 @@ public class TaskTypeUtil {
     public static Long getScheduledToStartAgain(TaskType task) {
         long current = System.currentTimeMillis();
 
-        if (task.getNodeAsObserved() != null && (task.getSchedulingState() != TaskSchedulingStateType.SUSPENDED)) {
-
-            if (TaskRecurrenceType.RECURRING != task.getRecurrence()) {
+        if (task.getNodeAsObserved() != null && task.getSchedulingState() != TaskSchedulingStateType.SUSPENDED) {
+            if (!isTaskRecurring(task)) {
                 return null;
             } else if (TaskBindingType.TIGHT == task.getBinding()) {
                 return RUNS_CONTINUALLY; // runs continually; todo provide some information also in this case
@@ -113,5 +114,44 @@ public class TaskTypeUtil {
                 task.getOid() != null &&
                 task.getActivityState() != null &&
                 task.getActivityState().getLocalRoot() != null;
+    }
+
+    /**
+     * Determines recurrence that is explicitly specified for a task: either "new" or "legacy" variant.
+     */
+    public static @Nullable TaskRecurrenceType getSpecifiedRecurrence(@NotNull TaskType task) {
+        if (task.getSchedule() != null && task.getSchedule().getRecurrence() != null) {
+            return task.getSchedule().getRecurrence();
+        } else if (task.getRecurrence() != null) {
+            return task.getRecurrence();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Determines effective value of task recurrence flag: if set explicitly (either new or legacy variant) we use that one,
+     * otherwise we use schedule.interval/cronLikePattern presence.
+     */
+    public static @NotNull TaskRecurrenceType getEffectiveRecurrence(@NotNull TaskType task) {
+        return Objects.requireNonNullElseGet(
+                getSpecifiedRecurrence(task),
+                () -> getImplicitRecurrence(task));
+    }
+
+    /**
+     * Determines implicit task recurrence - from the schedule.interval/cronLikePattern presence.
+     */
+    private static @NotNull TaskRecurrenceType getImplicitRecurrence(@NotNull TaskType task) {
+        if (task.getSchedule() != null &&
+                    (task.getSchedule().getInterval() != null || task.getSchedule().getCronLikePattern() != null)) {
+            return TaskRecurrenceType.RECURRING;
+        } else {
+            return TaskRecurrenceType.SINGLE;
+        }
+    }
+
+    public static boolean isTaskRecurring(@NotNull TaskType task) {
+        return getEffectiveRecurrence(task) == TaskRecurrenceType.RECURRING;
     }
 }

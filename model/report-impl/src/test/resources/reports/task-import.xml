@@ -10,7 +10,7 @@
     <name>import</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>closed</executionStatus>
+    <executionState>closed</executionState>
 
     <activity>
         <work>

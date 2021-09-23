@@ -78,7 +78,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     private static final String RESOURCE_DERBY_FILE_NAME = "resource-derby";
     private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-9119011311ab";
-    private static final String RESOURCE_DERBY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9119011311ab";
+    private static final String RESOURCE_DERBY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
 
     private static final String RESOURCE_DUMMY_FILE_NAME = "resource-dummy";
     private static final String RESOURCE_DUMMY_RUNTIME_FILE_NAME = "resource-dummy-runtime-resolution";

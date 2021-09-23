@@ -11,7 +11,7 @@
     <name>task-210-c-single</name>
     <taskIdentifier>44444444-2222-2222-2222-210c00000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>waiting</executionStatus>
+    <executionState>waiting</executionState>
     <waitingReason>otherTasks</waitingReason>
     <workManagement>
         <taskKind>coordinator</taskKind>

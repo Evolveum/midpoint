@@ -21,9 +21,8 @@
         <!-- administrator -->
     </ownerRef>
     <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#reconciliation</channel>
-    <executionStatus>closed</executionStatus>
+    <executionState>closed</executionState>
     <category>Reconciliation</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete-not-updated-shadow/handler-3</handlerUri>
     <objectRef oid="10000000-0000-0000-0000-000000000404" type="ResourceType"/>
-    <recurrence>single</recurrence>
 </task>

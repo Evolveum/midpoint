@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRu
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -70,11 +71,12 @@ public class ConstraintEvaluatorHelper {
             AssignmentType assignment = actx.evaluatedAssignment.getAssignment(actx.state == ObjectState.BEFORE);
             var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, AssignmentType.class);
         } else {
-            PrismObjectDefinition<ObjectType> targetDef = rctx.lensContext.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+            SchemaRegistry schemaRegistry = PrismContext.get().getSchemaRegistry();
+            PrismObjectDefinition<ObjectType> targetDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
             var.put(ExpressionConstants.VAR_TARGET, null, targetDef);
             var.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null, LocalizableMessageType.class);
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null, EvaluatedAssignment.class);
-            PrismContainerDefinition<AssignmentType> assignmentDef = rctx.lensContext.getPrismContext().getSchemaRegistry()
+            PrismContainerDefinition<AssignmentType> assignmentDef = schemaRegistry
                     .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
                         .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
             var.put(ExpressionConstants.VAR_ASSIGNMENT, null, assignmentDef);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -52,10 +52,10 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
     static final File TEST_RESOURCE_DIR = new File("src/test/resources/objects");
 
     private static final File USER_PIRATE_OWNER_FILE = new File(TEST_RESOURCE_DIR, "user-pirate-owner.xml");
-    private static final String USER_PIRATE_OWNER_OID = "00000001-d34d-b33f-f00d-POWNER000001";
+    private static final String USER_PIRATE_OWNER_OID = "00000001-d34d-b33f-f00d-504f574e4552";
 
     private static final File USER_JUDGE_OWNER_FILE = new File(TEST_RESOURCE_DIR, "user-judge-owner.xml");
-    static final String USER_JUDGE_OWNER_OID = "00000001-d34d-b33f-f00d-JOWNER000001";
+    static final String USER_JUDGE_OWNER_OID = "00000001-d34d-b33f-f00d-4a4f574e4552";
 
     private static final File USER_JUPITER_FILE = new File(TEST_RESOURCE_DIR, "user-jupiter.xml");
     static final String USER_JUPITER_OID = "9ab1cabd-2455-490e-9844-79dfa3efa849";
@@ -167,7 +167,8 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
             ObjectType object, boolean immediate, boolean approve, String assigneeOid)
             throws Exception {
         //noinspection unchecked
-        ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta((PrismObject) object.asPrismObject());
+        ObjectDelta<RoleType> addObjectDelta =
+                DeltaFactory.Object.createAddDelta((PrismObject<RoleType>) object.asPrismObject());
 
         executeTest(new TestDetails() {
             @Override
@@ -243,11 +244,8 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
             protected void afterFirstClockworkRun(CaseType rootCase,
                     CaseType case0, List<CaseType> subcases,
                     List<CaseWorkItemType> workItems,
-                    Task opTask, OperationResult result) throws Exception {
+                    Task opTask, OperationResult result) {
                 if (!immediate) {
-                    //                    ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
-                    //                    ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
-                    //                    assertDeltasEqual("Wrong delta left as primary focus delta.", expectedDelta0, realDelta0);
                     assertDelta1NotExecuted.run();
                     assertWfContextAfterClockworkRun(rootCase, subcases, workItems,
                             objectDelta.getOid(), expectedTasks, expectedWorkItems);
@@ -301,11 +299,8 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
             protected void afterFirstClockworkRun(CaseType rootCase,
                     CaseType case0, List<CaseType> subcases,
                     List<CaseWorkItemType> workItems,
-                    Task opTask, OperationResult result) throws Exception {
+                    Task opTask, OperationResult result) {
                 if (!immediate) {
-                    //                    ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
-                    //                    ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
-                    //                    assertTrue("Delta0 is not empty: " + realDelta0.debugDump(), realDelta0.isEmpty());
                     assertWfContextAfterClockworkRun(rootCase, subcases, workItems,
                             objectOid, expectedTasks, expectedWorkItems);
                 }

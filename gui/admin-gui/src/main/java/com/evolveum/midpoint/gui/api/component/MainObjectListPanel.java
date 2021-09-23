@@ -133,7 +133,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType));
+                    .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
+                    .setTitle(WebComponentUtil.getTranslatedPolyString(additionalButtonDisplayType.getTooltip()));
 //                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
         return builder.build();
@@ -238,7 +239,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     });
                 }
 
-                if (!(isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()) && getNewObjectGenericButtonVisibility()) {
+                if (!(isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget())
+                        && getNewObjectGenericButtonVisibility() && isGenericNewButtonVisible()) {
                     CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
                     DisplayType defaultButtonDisplayType = getNewObjectButtonSpecialDisplayType();
                     defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
@@ -258,6 +260,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
 
+    }
+
+    protected boolean isGenericNewButtonVisible() {
+        return true;
     }
 
     @Override

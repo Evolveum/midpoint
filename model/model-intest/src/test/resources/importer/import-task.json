@@ -15,7 +15,7 @@
         "oid": "c0c010c0-d34d-b33f-f00d-111111111111",
         "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
       },
-      "executionStatus": "runnable",
+      "executionState": "runnable",
       "recurrence": "single",
       "binding": "tight"
     }

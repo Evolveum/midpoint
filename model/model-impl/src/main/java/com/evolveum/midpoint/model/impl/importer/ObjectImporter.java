@@ -55,6 +55,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 import static org.apache.commons.lang3.BooleanUtils.isNotTrue;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.BooleanUtils.isFalse;
@@ -311,7 +313,7 @@ public class ObjectImporter {
         if (isTrue(options.isKeepOid()) && object.getOid() == null) {
             // Try to check if there is existing object with the same type and name
             ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
-            List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
+            List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, createReadOnlyCollection(), result);
             if (foundObjects.size() == 1) {
                 String oid = foundObjects.iterator().next().getOid();
                 object.setOid(oid);
@@ -330,7 +332,7 @@ public class ObjectImporter {
                 PrismObject<T> foundObject;
                 if (object.getOid() == null) {
                     ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
-                    List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
+                    List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, createReadOnlyCollection(), result);
                     if (foundObjects.size() != 1) {
                         // Cannot locate conflicting object
                         String message = "Conflicting object already exists but it was not possible to precisely locate it, "+foundObjects.size()+" objects with same name exist";
@@ -340,9 +342,9 @@ public class ObjectImporter {
                     foundObject = foundObjects.iterator().next();
                 } else {
                     ObjectQuery queryByName = ObjectQueryUtil.createNameQuery(object);
-                    List<PrismObject<T>> foundObjectsByName = repository.searchObjects(object.getCompileTimeClass(), queryByName, null, result);
+                    List<PrismObject<T>> foundObjectsByName = repository.searchObjects(object.getCompileTimeClass(), queryByName, createReadOnlyCollection(), result);
                     ObjectQuery queryByOid = ObjectQueryUtil.createOidQuery(object);
-                    List<PrismObject<T>> foundObjectsByOid = repository.searchObjects(object.getCompileTimeClass(), queryByOid, null, result);
+                    List<PrismObject<T>> foundObjectsByOid = repository.searchObjects(object.getCompileTimeClass(), queryByOid, createReadOnlyCollection(), result);
                     if (foundObjectsByName.size() == 1 && foundObjectsByOid.isEmpty()) {
                         foundObject = foundObjectsByName.iterator().next();
                     } else if (foundObjectsByName.isEmpty() && foundObjectsByOid.size() == 1) {

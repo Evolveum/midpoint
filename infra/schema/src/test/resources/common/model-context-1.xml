@@ -175,19 +175,19 @@
             </c:name>
             <c:resourceRef oid="10000000-0000-0000-0000-000000000004">
             </c:resourceRef>
-            <c:objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:AccountObjectClass</c:objectClass>
+            <c:objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</c:objectClass>
             <c:intent>default</c:intent>
             <c:iteration>0</c:iteration>
             <c:iterationToken></c:iterationToken>
             <c:attributes>
                 <icfs:uid xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">jack</icfs:uid>
                 <icfs:name xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">jack</icfs:name>
-                <ri:fullname xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">Jack Sparrow</ri:fullname>
-                <ri:location xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">Caribbean</ri:location>
-                <ri:weapon xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">mouth</ri:weapon>
-                <ri:weapon xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">pistol</ri:weapon>
-                <ri:drink xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">rum</ri:drink>
-                <ri:quote xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">Arr!</ri:quote>
+                <ri:fullname xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">Jack Sparrow</ri:fullname>
+                <ri:location xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">Caribbean</ri:location>
+                <ri:weapon xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">mouth</ri:weapon>
+                <ri:weapon xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">pistol</ri:weapon>
+                <ri:drink xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">rum</ri:drink>
+                <ri:quote xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">Arr!</ri:quote>
             </c:attributes>
             <c:activation>
                 <c:administrativeStatus>enabled</c:administrativeStatus>
@@ -221,7 +221,7 @@
                     <t:norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">jack</t:norm>
                 </c:name>
                 <c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-                <c:objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:AccountObjectClass</c:objectClass>
+                <c:objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</c:objectClass>
                 <c:intent>default</c:intent>
                 <c:attributes>
                     <icfs:uid>jack</icfs:uid>
@@ -250,36 +250,36 @@
                 <t:modificationType>replace</t:modificationType>
                 <t:path>c:attributes</t:path>
                 <t:value>
-                    <ri:fullname xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Jack Sparrow</ri:fullname>
+                    <ri:fullname xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Jack Sparrow</ri:fullname>
                 </t:value>
             </t:itemDelta>
             <t:itemDelta>
                 <t:modificationType>replace</t:modificationType>
                 <t:path>c:attributes</t:path>
                 <t:value>
-                    <ri:location xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Caribbean</ri:location>
+                    <ri:location xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Caribbean</ri:location>
                 </t:value>
             </t:itemDelta>
             <t:itemDelta>
                 <t:modificationType>add</t:modificationType>
                 <t:path>c:attributes</t:path>
                 <t:value>
-                    <ri:weapon xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">mouth</ri:weapon>
-                    <ri:weapon xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">pistol</ri:weapon>
+                    <ri:weapon xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">mouth</ri:weapon>
+                    <ri:weapon xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">pistol</ri:weapon>
                 </t:value>
             </t:itemDelta>
             <t:itemDelta>
                 <t:modificationType>add</t:modificationType>
                 <t:path>c:attributes</t:path>
                 <t:value>
-                    <ri:drink xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">rum</ri:drink>
+                    <ri:drink xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">rum</ri:drink>
                 </t:value>
             </t:itemDelta>
             <t:itemDelta>
                 <t:modificationType>add</t:modificationType>
                 <t:path>c:attributes</t:path>
                 <t:value>
-                    <ri:quote xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Arr!</ri:quote>
+                    <ri:quote xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Arr!</ri:quote>
                 </t:value>
             </t:itemDelta>
             <t:itemDelta>

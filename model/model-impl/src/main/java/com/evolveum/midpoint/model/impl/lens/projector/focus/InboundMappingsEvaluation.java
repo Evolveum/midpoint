@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.*;
@@ -126,8 +127,9 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 continue;
             }
             if (!projectionContext.isCanProject()) {
-                LOGGER.trace("Skipping processing of inbound expressions for projection {}: there is a limit to propagate changes only from resource {}",
-                        lazy(projectionContext::getHumanReadableName), context.getTriggeredResourceOid());
+                LOGGER.trace("Skipping processing of inbound expressions for projection {}: "
+                                + "there is a limit to propagate changes only from resource {}",
+                        lazy(projectionContext::getHumanReadableName), context.getTriggeringResourceOid());
                 continue;
             }
 
@@ -463,8 +465,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 shadowRef.getValue().setObject(projectionContext.getEntitlementMap().get(shadowRef.getOid()));
             } else {
                 try {
-                    PrismObject<ShadowType> entitlement = beans.provisioningService.getObject(ShadowType.class, shadowRef.getOid(),
-                            null, env.task, result);
+                    PrismObject<ShadowType> entitlement = beans.provisioningService.getObject(ShadowType.class,
+                            shadowRef.getOid(), createReadOnlyCollection(), env.task, result);
                     projectionContext.getEntitlementMap().put(entitlement.getOid(), entitlement);
                 } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException
                         | SecurityViolationException | ExpressionEvaluationException e) {
@@ -895,7 +897,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 currentProjection = projectionContext.getObjectCurrent();
             } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", projectionContext.getOid(), e.getMessage());
-                projectionContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                projectionContext.setBroken();
             }
         }
 

@@ -55,9 +55,9 @@ public class OperationalDataManager {
      * Stores request metadata in the model context. Because the operation can finish later
      * (if switched to background), we need to have these data recorded at the beginning.
      */
-    public <F extends ObjectType> void setRequestMetadataInContext(LensContext<F> context, XMLGregorianCalendar now, Task task) {
-        MetadataType requestMetadata = collectRequestMetadata(now, task);
-        context.setRequestMetadata(requestMetadata);
+    <F extends ObjectType> void setRequestMetadataInContext(LensContext<F> context, XMLGregorianCalendar now, Task task) {
+        context.setRequestMetadata(
+                collectRequestMetadata(now, task));
     }
 
     private MetadataType collectRequestMetadata(XMLGregorianCalendar now, Task task) {

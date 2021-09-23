@@ -15,6 +15,8 @@ import java.util.Date;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.TestResource;
+
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
@@ -82,7 +84,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
     protected static final File RESOURCE_DUMMY_CACHING_FILE = new File(COMMON_DIR, "resource-dummy-caching.xml");
     protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
-    protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+    protected static final String RESOURCE_DUMMY_NAMESPACE = MidPointConstants.NS_RI;
     protected static final String RESOURCE_DUMMY_DRINK = "rum";
     protected static final String RESOURCE_DUMMY_QUOTE = "Arr!";
     protected static final String RESOURCE_DUMMY_USELESS_STRING = "USEless";
@@ -211,6 +213,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     protected static final File ROLE_THIEF_FILE = new File(COMMON_DIR, "role-thief.xml");
     protected static final String ROLE_THIEF_OID = "b189fcb8-1ff9-11e5-8912-001e8c717e5b";
+
+    protected static final TestResource<RoleType> METAROLE_RECOMPUTE_MEMBERS = new TestResource<>(COMMON_DIR, "metarole-recompute-members.xml", "5e9b9363-9b99-4716-9e97-5b7e5c6d272f");
 
     protected static final File ROLE_EMPTY_FILE = new File(COMMON_DIR, "role-empty.xml");
     protected static final String ROLE_EMPTY_OID = "12345111-1111-2222-1111-121212111112";

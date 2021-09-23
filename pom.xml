@@ -188,7 +188,8 @@
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3e1</logback.version>
-        <spring.security.saml2.version>2.0.0.M31</spring.security.saml2.version>
+        <spring-security.version>5.6.0-M3</spring-security.version>
+        <opensaml.version>4.1.1</opensaml.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
         <testng.version>7.4.0</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -206,7 +207,7 @@
         -->
         <h2.version>1.4.193</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
-        <wicket.version>9.3.0</wicket.version>
+        <wicket.version>9.5.0</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.8 is also default for Spring Boot 2.5.0 -->
         <groovy.version>3.0.8</groovy.version>
@@ -857,6 +858,10 @@
                         <groupId>org.apache.geronimo.javamail</groupId>
                         <artifactId>geronimo-javamail_1.4_mail</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>net.shibboleth.utilities</groupId>
+                        <artifactId>java-support</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -868,6 +873,12 @@
                 <groupId>org.apache.wss4j</groupId>
                 <artifactId>wss4j-ws-security-dom</artifactId>
                 <version>${wss4j.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>net.shibboleth.utilities</groupId>
+                        <artifactId>java-support</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <!-- make this dependency explicit to detect conflicts with older versions -->
@@ -986,51 +997,53 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.springframework.security.extensions</groupId>
-                <artifactId>spring-security-saml2-core</artifactId>
-                <version>${spring.security.saml2.version}</version>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-saml2-service-provider</artifactId>
+                <version>${spring-security.version}</version>
                 <exclusions>
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.bouncycastle</groupId>
-                        <artifactId>bcpkix-jdk15on</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.bouncycastle</groupId>
-                        <artifactId>bcprov-jdk15on</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>jsr305</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.shibboleth.utilities</groupId>
-                        <artifactId>java-support</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.opensaml</groupId>
-                        <artifactId>opensaml-saml-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.opensaml</groupId>
-                        <artifactId>opensaml-soap-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.opensaml</groupId>
-                        <artifactId>opensaml-saml-impl</artifactId>
-                    </exclusion>
                     <exclusion>
                         <groupId>org.opensaml</groupId>
                         <artifactId>opensaml-core</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>javax.xml.bind</groupId>
-                        <artifactId>jaxb-api</artifactId>
+                        <groupId>org.opensaml</groupId>
+                        <artifactId>opensaml-saml-api</artifactId>
                     </exclusion>
+                    <!--<exclusion>-->
+                    <!--    <groupId>org.opensaml</groupId>-->
+                    <!--    <artifactId>opensaml-saml-impl</artifactId>-->
+                    <!--</exclusion>-->
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-core</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-impl</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-security-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-xmlsec-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.shibboleth.utilities</groupId>
+                <artifactId>java-support</artifactId>
+                <version>8.0.0</version>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>
@@ -1070,8 +1083,8 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
-                <artifactId>velocity</artifactId>
-                <version>1.7</version>
+                <artifactId>velocity-engine-core</artifactId>
+                <version>2.3</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.derby</groupId>
@@ -1311,7 +1324,7 @@
             <dependency>
                 <groupId>org.opensaml</groupId>
                 <artifactId>opensaml-security-impl</artifactId>
-                <version>3.4.6</version><!-- same version as in wss4j -->
+                <version>${opensaml.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.bouncycastle</groupId>
@@ -1544,6 +1557,16 @@
             <id>spring-milestone</id>
             <name>Spring Milestone Repository</name>
             <url>https://repo.spring.io/milestone</url>
+        </repository>
+
+        <!--
+        We need this for Opensaml, version 4.1.0+ is not in Maven central repository.
+        So we need Shibboleth's repo too.
+        -->
+        <repository>
+            <id>shibboleth</id>
+            <name>Shibboleth Repository</name>
+            <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
         </repository>
 
         <!--

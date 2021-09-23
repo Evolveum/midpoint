@@ -137,7 +137,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     @NotNull
-    private Collection<AssignmentType> getVirtualAssignments() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private Collection<AssignmentType> getVirtualAssignments() throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Collection<AssignmentType> forcedAssignments =
                 focusContext.isDelete() ?
                         List.of() :
@@ -530,7 +531,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                     null, false);
             LensProjectionContext projCtx = context.findProjectionContext(rad);
             if (projCtx != null) {
-                projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                projCtx.setBroken();
             }
             return null;
         } catch (ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException |

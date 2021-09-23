@@ -11,7 +11,7 @@
     xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:foo="http://foo.com/" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <!-- Query filter example -->
 <q:filter>

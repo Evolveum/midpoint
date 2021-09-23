@@ -108,7 +108,7 @@ class ResumeHelper {
             clearTaskOperationResult(task, result); // see a note on scheduleTaskNow
             if (task.getSchedulingStateBeforeSuspend() == TaskSchedulingStateType.WAITING) {
                 List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                        .item(TaskType.F_EXECUTION_STATUS).replace(MoreObjects.firstNonNull(task.getStateBeforeSuspend(), TaskExecutionStateType.WAITING))
+                        .item(TaskType.F_EXECUTION_STATE).replace(MoreObjects.firstNonNull(task.getStateBeforeSuspend(), TaskExecutionStateType.WAITING))
                         .item(TaskType.F_SCHEDULING_STATE).replace(TaskSchedulingStateType.WAITING)
                         .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
                         .item(TaskType.F_SCHEDULING_STATE_BEFORE_SUSPEND).replace()
@@ -116,7 +116,7 @@ class ResumeHelper {
                 task.applyDeltasImmediate(itemDeltas, result);
             } else {
                 List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStateType.RUNNABLE)
+                        .item(TaskType.F_EXECUTION_STATE).replace(TaskExecutionStateType.RUNNABLE)
                         .item(TaskType.F_SCHEDULING_STATE).replace(TaskSchedulingStateType.READY)
                         .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
                         .item(TaskType.F_SCHEDULING_STATE_BEFORE_SUSPEND).replace()

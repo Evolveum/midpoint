@@ -47,13 +47,20 @@ public class UploadDownloadPanel extends InputPanel {
     private static final String DOWNLOAD_CONTENT_TYPE = "text/plain";
 
     private final String downloadFileName = null;
+    private boolean isReadOnly;
 
     public UploadDownloadPanel(String id, boolean isReadOnly) {
         super(id);
-        initLayout(isReadOnly);
+        this.isReadOnly = isReadOnly;
     }
 
-    private void initLayout(final boolean isReadOnly) {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
         final FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE) {
             private static final long serialVersionUID = 1L;
 

@@ -73,7 +73,7 @@ public class TestClockwork extends AbstractLensTest {
         fillContextWithAddUserDelta(context, bill);
 
         when();
-        clockwork.click(context, task, result);     // one round - compute projections
+        clockwork.click(context, task, result); // one round - compute projections
 
         displayDumpable("Context before serialization", context);
 
@@ -83,8 +83,7 @@ public class TestClockwork extends AbstractLensTest {
         displayValue("Serialized form", xml);
 
         LensContextType unmarshalledContainer = prismContext.parserFor(xml).xml().parseRealValue(LensContextType.class);
-        LensContext<?> context2 = LensContext.fromLensContextType(
-                unmarshalledContainer, context.getPrismContext(), provisioningService, task, result);
+        LensContext<?> context2 = LensContext.fromLensContextBean(unmarshalledContainer, task, result);
 
         displayDumpable("Context after deserialization", context2);
 
@@ -251,8 +250,7 @@ public class TestClockwork extends AbstractLensTest {
 
                 LensContextType unmarshalledContainer =
                         prismContext.parserFor(xml).xml().parseRealValue(LensContextType.class);
-                context = LensContext.fromLensContextType(unmarshalledContainer,
-                        context.getPrismContext(), provisioningService, task, result);
+                context = LensContext.fromLensContextBean(unmarshalledContainer, task, result);
 
                 displayValue("Context after deserialization", context.debugDump());
 

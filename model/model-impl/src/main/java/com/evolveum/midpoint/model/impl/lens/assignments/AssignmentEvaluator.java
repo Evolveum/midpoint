@@ -135,7 +135,6 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
      * @param evaluateOld If true, we take the 'old' value from assignmentIdi. If false, we take the 'new' one.
      * @param source FIXME The role of this parameter is quite unclear. It looks like that it is filled-in using objectNew or objectCurrent
      *                 depending on some strange condition in AssignmentTripleEvaluator
-     *                 (see {@link com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor#determineSource(LensFocusContext)}.
      */
     public EvaluatedAssignmentImpl<AH> evaluate(
             ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
