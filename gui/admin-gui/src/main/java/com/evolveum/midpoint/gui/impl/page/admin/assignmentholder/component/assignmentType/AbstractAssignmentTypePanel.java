@@ -88,13 +88,11 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
 
-    private ContainerPanelConfigurationType config;
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
     public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config) {
-        super(id, AssignmentType.class);
-        this.config = config;
+        super(id, AssignmentType.class, config);
         this.model = model;
     }
 
@@ -500,7 +498,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     private AssignmentListProvider createAssignmentProvider(IModel<Search<AssignmentType>> searchModel, IModel<List<PrismContainerValueWrapper<AssignmentType>>> assignments) {
-        return new AssignmentListProvider(AbstractAssignmentTypePanel.this, searchModel, assignments) {
+        AssignmentListProvider assignmentListProvider = new AssignmentListProvider(AbstractAssignmentTypePanel.this, searchModel, assignments) {
 
             @Override
             protected PageStorage getPageStorage() {
@@ -517,6 +515,8 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 return AbstractAssignmentTypePanel.this.getCustomizeQuery();
             }
         };
+        assignmentListProvider.setCompiledObjectCollectionView(getObjectCollectionView());
+        return assignmentListProvider;
     }
 
     protected abstract String getAssignmentsTabStorageKey();
@@ -543,7 +543,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         } else if (item.getModelObject().isReadOnly()) {
             item.getModelObject().setReadOnly(false, true);
         }
-        return new AssignmentsDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), isEntitlementAssignment(), config);
+        return new AssignmentsDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), isEntitlementAssignment(), getPanelConfiguration());
     }
 
     protected boolean isEntitlementAssignment() {
@@ -572,41 +572,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);
-
-//    @Override
-//    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
-//        super.refreshTable(ajaxRequestTarget);
-//        AbstractAssignmentTypePanel.this.refreshTable(ajaxRequestTarget);
-//    }
-
-    @Override
-    protected boolean isCollectionViewPanel() {
-        return config != null && config.getListView() !=null;
-    }
-
-    @Override
-    protected CompiledObjectCollectionView getObjectCollectionView() {
-        if (config == null) {
-            return super.getObjectCollectionView();
-        }
-        GuiObjectListViewType listView = config.getListView();
-        if (listView == null) {
-            return null;
-        }
-        CollectionRefSpecificationType collectionRefSpecificationType = listView.getCollection();
-        if (collectionRefSpecificationType == null) {
-            return null;
-        }
-        Task task = getPageBase().createSimpleTask("Compile collection");
-        OperationResult result = task.getResult();
-        try {
-            return getPageBase().getModelInteractionService().compileObjectCollectionView(collectionRefSpecificationType, AssignmentType.class, task, result);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
+    
     protected <AH extends AssignmentHolderType> boolean isNewObjectButtonVisible(PrismObject<AH> focusObject) {
         try {
             return getPageBase().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI,

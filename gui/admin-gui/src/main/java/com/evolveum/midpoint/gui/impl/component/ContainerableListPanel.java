@@ -128,6 +128,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private Boolean manualRefreshEnabled;
 
     private CompiledObjectCollectionView dashboardWidgetView;
+    private CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration;
+
+    private ContainerPanelConfigurationType config;
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
@@ -140,6 +143,13 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         super(id);
         this.defaultType = defaultType;
         this.options = options;
+    }
+
+    public ContainerableListPanel(String id, Class<C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType configurationType) {
+        super(id);
+        this.defaultType = defaultType;
+        this.options = options;
+        this.config = configurationType;
     }
 
     @Override
@@ -909,6 +919,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected CompiledObjectCollectionView getObjectCollectionView() {
+        CompiledObjectCollectionView containerPanelCollectionView = getCompiledCollectionViewFromPanelConfiguration();
+        if (containerPanelCollectionView != null) {
+            return containerPanelCollectionView;
+        }
         CompiledObjectCollectionView view = getWidgetCollectionView();
         if (view != null) {
             return view;
@@ -916,6 +930,36 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         String collectionName = getCollectionNameParameterValue().toString();
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView
                 (WebComponentUtil.containerClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
+    }
+
+    private CompiledObjectCollectionView getCompiledCollectionViewFromPanelConfiguration() {
+        if (compiledCollectionViewFromPanelConfiguration != null) {
+            return compiledCollectionViewFromPanelConfiguration;
+        }
+        if (config == null) {
+            return null;
+        }
+        if (config.getListView() == null) {
+            return null;
+        }
+        CollectionRefSpecificationType collectionRefSpecificationType = config.getListView().getCollection();
+
+        if (collectionRefSpecificationType == null) {
+            compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
+            getPageBase().getModelInteractionService().applyView(compiledCollectionViewFromPanelConfiguration, config.getListView());
+            return compiledCollectionViewFromPanelConfiguration;
+        }
+        Task task = getPageBase().createSimpleTask("Compile collection");
+        OperationResult result = task.getResult();
+        try {
+            compiledCollectionViewFromPanelConfiguration = getPageBase().getModelInteractionService().compileObjectCollectionView(collectionRefSpecificationType, AssignmentType.class, task, result);
+        } catch (Throwable e) {
+            LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}", config, e.getMessage(), e);
+            result.recordFatalError("Cannot compile object collection view for panel configuration " + config + ". Reason: " + e.getMessage(), e);
+            getPageBase().showResult(result);
+        }
+        return compiledCollectionViewFromPanelConfiguration;
+
     }
 
     private CompiledObjectCollectionView getWidgetCollectionView() {
@@ -984,7 +1028,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isCollectionViewPanel() {
-        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget() || defaultCollectionExists();
+        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget() || defaultCollectionExists() || getCompiledCollectionViewFromPanelConfiguration() != null;
     }
 
     private boolean defaultCollectionExists() {
@@ -1212,5 +1256,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
             ((SortableDataProvider)provider).setSort(new SortParam(name.getLocalPart(), ascending));
         }
+    }
+
+    public ContainerPanelConfigurationType getPanelConfiguration() {
+        return config;
     }
 }

@@ -45,7 +45,7 @@ public class GenericMultivalueContainerPanel<C extends Containerable, O extends 
 
     @Override
     protected void initLayout() {
-        MultivalueContainerListPanelWithDetailsPanel<C> panel = new MultivalueContainerListPanelWithDetailsPanel<C>(ID_DETAILS, getListTypeClass()) {
+        MultivalueContainerListPanelWithDetailsPanel<C> panel = new MultivalueContainerListPanelWithDetailsPanel<C>(ID_DETAILS, getListTypeClass(), getPanelConfiguration()) {
             @Override
             protected MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item) {
                 return null;
@@ -70,34 +70,7 @@ public class GenericMultivalueContainerPanel<C extends Containerable, O extends 
             protected List<IColumn<PrismContainerValueWrapper<C>, String>> createDefaultColumns() {
                 return Collections.emptyList();
             }
-
-            @Override
-            protected boolean isCollectionViewPanel() {
-                return getPanelConfiguration().getListView() != null;
-            }
-
-            //TODO generalize
-            @Override
-            protected CompiledObjectCollectionView getObjectCollectionView() {
-                GuiObjectListViewType listView = getPanelConfiguration().getListView();
-                if (listView == null) {
-                    return null;
-                }
-                CollectionRefSpecificationType collectionRefSpecificationType = listView.getCollection();
-                if (collectionRefSpecificationType == null) {
-                    return null;
-                }
-                Task task = getPageBase().createSimpleTask("Compile collection");
-                OperationResult result = task.getResult();
-                try {
-                    return getPageBase().getModelInteractionService().compileObjectCollectionView(collectionRefSpecificationType, getListTypeClass(), task, result);
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
         };
-//        SingleContainerPanel<C> panel = new SingleContainerPanel<>(ID_DETAILS, createContainerModel(), getType());
         add(panel);
     }
 
