@@ -103,7 +103,11 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             GuiObjectDetailsPageType compiledPageType = compiledGuiProfile.findObjectDetailsConfiguration(defaultDetailsPage.getType());
             GuiObjectDetailsPageType mergedDetailsPage = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(defaultDetailsPage, compiledPageType);
 
-            compiledGuiProfile.getObjectDetails().getObjectDetailsPage().removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
+            if (compiledGuiProfile.getObjectDetails() == null) {
+                compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType(prismContext));
+            } else {
+                compiledGuiProfile.getObjectDetails().getObjectDetailsPage().removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
+            }
             compiledGuiProfile.getObjectDetails().getObjectDetailsPage().add(mergedDetailsPage.cloneWithoutId());
         }
     }
