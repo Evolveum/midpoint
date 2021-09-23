@@ -1497,13 +1497,20 @@
                     <xsd:element name="additionalPanels" type="tns:GuiObjectListViewAdditionalPanelsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Configuration of additional panels that can be present in some view types.
-                                E.g. configuration of "managers" and "members" panels in orgstruct views.
+                                <p>
+                                    Configuration of additional panels that can be present in some view types.
+                                    E.g. configuration of "managers" and "members" panels in orgstruct views.
+                                </p>
+                                <p>
+                                    DEPRECATED. Use new configuration based on 'panel' (ContainerPanelConfigurationType) configuration.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
                                 <a:displayName>GuiObjectListViewType.additionalPanels</a:displayName>
                                 <a:experimental>true</a:experimental>
+                                <a:deprecated/>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
