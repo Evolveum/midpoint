@@ -816,7 +816,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public ModelContext unwrapModelContext(LensContextType lensContextType)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        return LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, getCurrentTask(),
+        return LensContext.fromLensContextBean(lensContextType, getCurrentTask(),
                 getCurrentResult(MidpointFunctions.class.getName() + "getObject"));
     }
 

@@ -223,7 +223,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, task, result);
+        return LensContext.fromLensContextBean(wrappedContext, task, result);
     }
 
     @Override
@@ -1460,7 +1460,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                         .loginMode(true)
                         // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
                         // will need something to push on the stack. So give them context placeholder.
-                        .lensContext(new LensContextPlaceholder<>(potentialDeputy, prismContext));
+                        .lensContext(new LensContextPlaceholder<>(potentialDeputy));
         AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
         for (AssignmentType assignmentType : potentialDeputy.asObjectable().getAssignment()) {

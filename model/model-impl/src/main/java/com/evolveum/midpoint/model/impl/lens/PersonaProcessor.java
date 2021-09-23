@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.model.impl.lens.projector.focus.TemplateMappingsEvaluation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +116,7 @@ public class PersonaProcessor {
             return HookOperationMode.FOREGROUND;
         }
 
-        DeltaSetTriple<PersonaKey> activePersonaKeyTriple = context.getPrismContext().deltaFactory().createDeltaSetTriple();
+        DeltaSetTriple<PersonaKey> activePersonaKeyTriple = PrismContext.get().deltaFactory().createDeltaSetTriple();
 
         ComplexConstructionConsumer<PersonaKey, EvaluatedPersonaConstructionImpl<F>> consumer =
                 new ComplexConstructionConsumer<>() {

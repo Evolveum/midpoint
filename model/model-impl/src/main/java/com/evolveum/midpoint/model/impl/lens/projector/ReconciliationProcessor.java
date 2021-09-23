@@ -135,11 +135,11 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                     .futurePointInTime()
                     //.readOnly() [not yet]
                     .build();
-            PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class, projCtx.getOid(),
-                    options, task, result);
-            projCtx.determineFullShadowFlag(objectOld);
-            projCtx.setLoadedObject(objectOld);
-            projCtx.setExists(ShadowUtil.isExists(objectOld.asObjectable()));
+            PrismObject<ShadowType> loadedObject =
+                    provisioningService.getObject(ShadowType.class, projCtx.getOid(), options, task, result);
+            projCtx.determineFullShadowFlag(loadedObject);
+            projCtx.setLoadedObject(loadedObject);
+            projCtx.setExists(ShadowUtil.isExists(loadedObject.asObjectable()));
             projCtx.recompute();
         }
 

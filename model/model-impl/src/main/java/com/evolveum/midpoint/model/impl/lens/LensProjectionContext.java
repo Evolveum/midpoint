@@ -538,6 +538,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.synchronizationPolicyDecision = policyDecision;
     }
 
+    public void setBroken() {
+        setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+    }
+
     public SynchronizationSituationType getSynchronizationSituationDetected() {
         return synchronizationSituationDetected;
     }
@@ -649,14 +653,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     private ResourceSchema getResourceSchema() throws SchemaException {
-        return RefinedResourceSchemaImpl.getResourceSchema(resource, getNotNullPrismContext());
+        return RefinedResourceSchemaImpl.getResourceSchema(resource, PrismContext.get());
     }
 
     public RefinedResourceSchema getRefinedResourceSchema() throws SchemaException {
         if (resource == null) {
             return null;
         }
-        return RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, getNotNullPrismContext());
+        return RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, PrismContext.get());
     }
 
     public RefinedObjectClassDefinition getStructuralObjectClassDefinition() throws SchemaException {
@@ -881,7 +885,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             origDelta = getSummaryDelta(); // TODO check this
             if (origDelta == null || origDelta.isModify()) {
                 // We need to convert modify delta to ADD
-                ObjectDelta<ShadowType> addDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
+                ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(),
                     ChangeType.ADD);
                 RefinedObjectClassDefinition rObjectClassDef = getCompositeObjectClassDefinition();
 
@@ -906,7 +910,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 origDelta = getSecondaryDelta();
             }
         } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
-            ObjectDelta<ShadowType> deleteDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
+            ObjectDelta<ShadowType> deleteDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(),
                 ChangeType.DELETE);
             String oid = getOid();
             if (oid == null) {
@@ -1387,8 +1391,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @NotNull
     static LensProjectionContext fromLensProjectionContextType(LensProjectionContextType projectionContextType,
-            LensContext lensContext, Task task, OperationResult result) throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            LensContext lensContext, Task task, OperationResult result) throws SchemaException {
 
         String objectTypeClassString = projectionContextType.getObjectTypeClass();
         if (StringUtils.isEmpty(objectTypeClassString)) {
@@ -1399,15 +1402,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
         LensProjectionContext projectionContext = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
 
+        PrismContext prismContext = PrismContext.get();
         projectionContext.retrieveFromLensElementContextType(projectionContextType, task, result);
         if (projectionContextType.getSyncDelta() != null) {
-            projectionContext.syncDelta = DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), lensContext.getPrismContext());
+            projectionContext.syncDelta = DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), prismContext);
         } else {
             projectionContext.syncDelta = null;
         }
         ObjectDeltaType secondaryDeltaType = projectionContextType.getSecondaryDelta();
         projectionContext.secondaryDelta = secondaryDeltaType != null ?
-                DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
+                DeltaConvertor.createObjectDelta(secondaryDeltaType, prismContext) : null;
         ObjectType object = projectionContextType.getObjectNew() != null ? projectionContextType.getObjectNew() : projectionContextType.getObjectOld();
         projectionContext.fixProvisioningTypeInDelta(projectionContext.secondaryDelta, object, task, result);
 
@@ -1593,5 +1597,81 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public boolean isBroken() {
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN;
+    }
+
+    /**
+     * Updates basic "coordinates": resource shadow discriminator, resource OID (and resource itself), and shadow OID.
+     */
+    public void updateCoordinates(Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        if (!ShadowType.class.isAssignableFrom(getObjectTypeClass())) {
+            return;
+        }
+        String resourceOid = determineResourceOid();
+        boolean tombstone = resourceShadowDiscriminator != null && resourceShadowDiscriminator.isTombstone();
+        ShadowKindType kind = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getKind() : ShadowKindType.ACCOUNT;
+        String intent = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getIntent() : null;
+        String tag = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getTag() : null;
+        int order = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getOrder() : 0;
+
+        // We still may not have resource OID here. E.g. in case of the delete when the account is not loaded yet. It is
+        // perhaps safe to skip this. It will be sorted out later.
+        if (resourceOid != null) {
+            if (intent == null && getObjectNew() != null) {
+                ShadowType shadowNew = getObjectNew().asObjectable();
+                kind = ShadowUtil.getKind(shadowNew);
+                intent = ShadowUtil.getIntent(shadowNew);
+                tag = shadowNew.getTag();
+            }
+            ResourceType resource = getResource();
+            if (resource == null) {
+                resource = LensUtil.getResourceReadOnly(lensContext, resourceOid, lensContext.getProvisioningService(), task, result);
+                setResource(resource);
+            }
+            String refinedIntent = LensUtil.refineProjectionIntent(kind, intent, resource);
+            resourceShadowDiscriminator = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, tag, tombstone);
+            resourceShadowDiscriminator.setOrder(order);
+        }
+        if (getOid() == null && resourceShadowDiscriminator != null && resourceShadowDiscriminator.getOrder() != 0) {
+            // Try to determine OID from lower-order contexts
+            for (LensProjectionContext otherProjCtx: lensContext.getProjectionContexts()) {
+                ResourceShadowDiscriminator otherDiscriminator = otherProjCtx.getResourceShadowDiscriminator();
+                if (resourceShadowDiscriminator.equivalent(otherDiscriminator) && otherProjCtx.getOid() != null) {
+                    setOid(otherProjCtx.getOid());
+                    break;
+                }
+            }
+        }
+    }
+
+    private String determineResourceOid() {
+        if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.getResourceOid() != null) {
+            return resourceShadowDiscriminator.getResourceOid();
+        }
+        if (getObjectCurrent() != null) {
+            String fromObjectCurrent = ShadowUtil.getResourceOid(getObjectCurrent().asObjectable());
+            if (fromObjectCurrent != null) {
+                return fromObjectCurrent;
+            }
+        }
+        if (getObjectNew() != null) {
+            return ShadowUtil.getResourceOid(getObjectNew().asObjectable());
+        }
+        return null;
+    }
+
+    /**
+     * We set reconciliation:=TRUE for volatile accounts.
+     *
+     * This is to ensure that the changes on such resources will be read back to midPoint.
+     * (It is a bit of hack but it looks OK.) See also MID-2436 - volatile objects.
+     */
+    public void setDoReconciliationFlagIfVolatile() {
+        ResourceObjectTypeDefinitionType objectDefinition = getResourceObjectTypeDefinitionType();
+        if (objectDefinition != null && objectDefinition.getVolatility() == ResourceObjectVolatilityType.UNPREDICTABLE && !isDoReconciliation()) {
+            LOGGER.trace("Resource object volatility is UNPREDICTABLE => setting doReconciliation to TRUE for {}", getResourceShadowDiscriminator());
+            setDoReconciliation(true);
+        }
     }
 }

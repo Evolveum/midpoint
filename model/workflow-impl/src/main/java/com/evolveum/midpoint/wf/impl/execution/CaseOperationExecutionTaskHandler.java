@@ -125,8 +125,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 
     private void executeModelContext(LensContext<?> modelContext, CaseType aCase, RunningTask task, OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            ConfigurationException, PreconditionViolationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
         if (!modelContext.hasAnyPrimaryChange()) {
             LOGGER.trace("No primary changes -- nothing to do here");
             return;

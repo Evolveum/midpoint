@@ -152,9 +152,9 @@ public class AssignmentCollector {
     }
 
     private <AH extends AssignmentHolderType> LensContext<AH> createAuthenticationLensContext(PrismObject<AH> user, OperationResult result) throws SchemaException {
-        LensContext<AH> lensContext = new LensContextPlaceholder<>(user, prismContext);
+        LensContext<AH> lensContext = new LensContextPlaceholder<>(user);
         ArchetypePolicyType policyConfigurationType = determineObjectPolicyConfiguration(user, result);
-        lensContext.getFocusContext().setArchetypePolicyType(policyConfigurationType);
+        lensContext.getFocusContext().setArchetypePolicy(policyConfigurationType);
         return lensContext;
     }
 

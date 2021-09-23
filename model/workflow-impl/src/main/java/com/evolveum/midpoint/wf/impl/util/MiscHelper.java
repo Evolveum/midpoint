@@ -116,7 +116,7 @@ public class MiscHelper {
         if (modelContextType == null) {
             return null;
         }
-        return LensContext.fromLensContextType(modelContextType, prismContext, provisioningService, task, result);
+        return LensContext.fromLensContextBean(modelContextType, task, result);
     }
 
     public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {

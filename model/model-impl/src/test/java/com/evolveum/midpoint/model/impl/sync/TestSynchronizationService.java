@@ -119,9 +119,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
                 ActivationStatusType.ENABLED);
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
-        LensProjectionContext accCtx = context.findProjectionContext(rat);
-        assertNotNull("No account sync context for "+rat, accCtx);
+        ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
+        LensProjectionContext accCtx = context.findProjectionContext(rsd);
+        assertNotNull("No projection context for "+rsd, accCtx);
         assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, accCtx.getSynchronizationSituationDetected());
         assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
 

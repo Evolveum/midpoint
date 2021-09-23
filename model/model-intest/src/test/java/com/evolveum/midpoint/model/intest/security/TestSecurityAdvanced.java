@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.test.TestResource;
@@ -22,7 +23,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -3257,11 +3257,13 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         return policyException;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private AssignmentType assertExclusion(PrismObject<RoleType> roleExclusion, String excludedRoleOid) {
-        PrismContainer<AssignmentType> assignmentContainer = roleExclusion.findContainer(RoleType.F_ASSIGNMENT);
-        assertNotNull("No assignment container in " + roleExclusion, assignmentContainer);
-        assertEquals("Wrong size of assignment container in " + roleExclusion, 1, assignmentContainer.size());
-        AssignmentType exclusionAssignment = assignmentContainer.getValue().asContainerable();
+        List<AssignmentType> noTargetAssignments = roleExclusion.asObjectable().getAssignment().stream()
+                .filter(a -> a.getTargetRef() == null)
+                .collect(Collectors.toList());
+        assertEquals("Wrong size of no-target assignments in " + roleExclusion, 1, noTargetAssignments.size());
+        AssignmentType exclusionAssignment = noTargetAssignments.get(0);
         PolicyRuleType exclusionPolicyRule = exclusionAssignment.getPolicyRule();
         assertNotNull("No policy rule in " + roleExclusion, exclusionPolicyRule);
         PolicyConstraintsType exclusionPolicyConstraints = exclusionPolicyRule.getPolicyConstraints();
