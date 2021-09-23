@@ -35,6 +35,7 @@
             <objectDetails>
                 <type>TaskType</type>
                 <container>
+                    <identifier>bulk-action</identifier>
                     <display>
                         <label>SingleBulkActionTask.bulkAction</label>
                     </display>

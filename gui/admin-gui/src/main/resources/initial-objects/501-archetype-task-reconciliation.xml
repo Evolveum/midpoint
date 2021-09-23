@@ -58,7 +58,18 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-reconciliation</identifier>
+                            <path>activity/work/reconciliation</path>
+                        </container>
+                    </panel>
+                </panel>
                 <container>
+                    <identifier>resource-objects</identifier>
                     <display>
                         <label>ReconciliationTask.resourceObjects</label>
                     </display>
@@ -79,6 +90,7 @@
                     </item>
                 </container>
                 <container>
+                    <identifier>reconciliation-options</identifier>
                     <display>
                         <label>ReconciliationTask.reconciliationOptions</label>
                     </display>
@@ -100,19 +112,6 @@
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
     <inducement>
         <focusMappings>
             <mapping>

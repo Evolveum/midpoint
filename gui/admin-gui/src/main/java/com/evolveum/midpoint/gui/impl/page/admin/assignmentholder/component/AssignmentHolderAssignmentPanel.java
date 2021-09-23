@@ -21,8 +21,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 //@PanelType(name = "assignments", defaultContainerPath = "assignment")
 @PanelInstance(identifier = "assignments",
-        applicableForType = AssignmentHolderType.class,
-        notApplicableFor = ObjectCollectionType.class,
+        applicableForType = FocusType.class, // change later to assignmentholder type, probably we will want org assignemnts later
         display = @PanelDisplay(label = "pageAdminFocus.assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 30))
 @Counter(provider = AssignmentCounter.class)
 public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {

@@ -99,6 +99,7 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
             propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
 
             virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), compiledPageType.getContainer());
+            MiscSchemaUtil.sortFeaturesPanels(virtualContainers);
             propertiesPanelConfiguration.getContainer().clear();
             propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
         }
