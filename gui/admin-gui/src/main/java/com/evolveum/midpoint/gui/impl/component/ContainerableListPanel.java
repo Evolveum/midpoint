@@ -21,6 +21,7 @@ import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -402,12 +403,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private List<IColumn<PO, String>> createColumns() {
-        List<IColumn<PO, String>> columns;
-        if (isCustomColumnsListConfigured()) {
-            columns = initViewColumns();
-        } else {
-            columns = initColumns();
-        }
+        List<IColumn<PO, String>> columns = collectColumns();
+
         List<InlineMenuItem> menuItems = createInlineMenu();
         if (menuItems == null) {
             menuItems = new ArrayList<>();
@@ -426,8 +423,25 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return columns;
     }
 
+    private final List<IColumn<PO, String>> collectColumns() {
+        List<IColumn<PO, String>> columns = new ArrayList<>();
+
+        if (!isCustomColumnsListConfigured()) {
+            return initColumns();
+        }
+
+        boolean checkForNameColumn = true;
+        if (shouldIncludeDefaultColumns()) {
+            columns = initColumns();
+            checkForNameColumn = false;
+        }
+
+        columns.addAll(initViewColumns(checkForNameColumn));
+        return columns;
+    }
+
     @NotNull
-    private List<IColumn<PO, String>> initViewColumns() {
+    private List<IColumn<PO, String>> initViewColumns(boolean checkForNameColumn) {
         LOGGER.trace("Start to init custom columns for table of type {}", getType());
         List<IColumn<PO, String>> columns = new ArrayList<>();
         List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
@@ -437,7 +451,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
         addingCheckAndIconColumnIfExists(columns);
 
-        columns.addAll(getViewColumnsTransformed(customColumns));
+        columns.addAll(getViewColumnsTransformed(customColumns, checkForNameColumn));
         LOGGER.trace("Finished to init custom columns, created columns {}", columns);
         return columns;
     }
@@ -455,6 +469,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
+        return getViewColumnsTransformed(customColumns, true);
+    }
+
+    protected List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns, boolean shoudlCheckForNameColumn){
         List<IColumn<PO, String>> columns = new ArrayList<>();
         if (customColumns == null || customColumns.isEmpty()) {
             return columns;
@@ -473,7 +491,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
-                if (customColumns.indexOf(customColumn) == 0) {
+                if (customColumns.indexOf(customColumn) == 0 && shoudlCheckForNameColumn) {
                     // TODO what if a complex path is provided here?
                     column = createNameColumn(columnDisplayModel, customColumn, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), expression);
                 } else {
@@ -1116,6 +1134,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
         List<GuiObjectColumnType> columnList = getGuiObjectColumnTypeList();
         return columnList != null && !columnList.isEmpty();
+    }
+
+    private boolean shouldIncludeDefaultColumns(){
+        if (!isCollectionViewPanel()){
+            return false;
+        }
+        CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
+        return BooleanUtils.isTrue(guiObjectListViewType.isIncludeDefaultColumns());
     }
 
     private String getItemDisplayName(GuiObjectColumnType column){

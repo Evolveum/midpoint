@@ -572,7 +572,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);
-    
+
     protected <AH extends AssignmentHolderType> boolean isNewObjectButtonVisible(PrismObject<AH> focusObject) {
         try {
             return getPageBase().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI,

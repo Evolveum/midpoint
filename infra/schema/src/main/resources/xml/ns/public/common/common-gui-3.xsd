@@ -1357,6 +1357,13 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="includeDefaultColumns" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiObjectListViewType.includeDefaultColumns</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
