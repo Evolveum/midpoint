@@ -12,7 +12,7 @@ import java.io.Serializable;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -61,7 +61,7 @@ public class CertDecisionHelper implements Serializable {
             protected DisplayType getIconDisplayType(IModel<CertCaseOrWorkItemDto> rowModel) {
                 ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(which, rowModel);
                 String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-                return WebDisplayTypeUtil.createDisplayType(icon);
+                return GuiDisplayTypeUtil.createDisplayType(icon);
             }
 
             private ObjectTypeGuiDescriptor getObjectTypeDescriptor(WhichObject which, IModel<CertCaseOrWorkItemDto> rowModel) {
@@ -153,7 +153,7 @@ public class CertDecisionHelper implements Serializable {
 
             @Override
             protected DisplayType getIconDisplayType(final IModel<CertCaseOrWorkItemDto> rowModel) {
-                return WebDisplayTypeUtil.createDisplayType("fa fa-fw fa-info-circle text-info");
+                return GuiDisplayTypeUtil.createDisplayType("fa fa-fw fa-info-circle text-info");
             }
 
             @Override

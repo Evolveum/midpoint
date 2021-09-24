@@ -78,19 +78,23 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
     @Override
     public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, GuiObjectDetailsPageType compiledPageType) {
+        GuiObjectDetailsPageType mergedDetailsPage = defaultPageConfiguration.cloneWithoutId();
+
+        return mergeDetailsPages(defaultPageConfiguration, compiledPageType, mergedDetailsPage);
+    }
+
+    private <DP extends GuiObjectDetailsPageType> DP mergeDetailsPages(DP defaultPageConfiguration, DP compiledPageType, DP mergedDetailsPage) {
         if (compiledPageType == null) {
             //just to be sure that everything is correctly sorted
             return defaultPageConfiguration;
         }
-
-        GuiObjectDetailsPageType mergedDetailsPage = defaultPageConfiguration.cloneWithoutId();
 
         List<ContainerPanelConfigurationType> mergedPanels = mergeContainerPanelConfigurationType(mergedDetailsPage.getPanel(), compiledPageType.getPanel());
 
         //backward compatibility
         Optional<ContainerPanelConfigurationType> optionalPropertiesPanelConfiguration = mergedPanels
                 .stream()
-                    .filter(p -> containsConfigurationForEmptyPath(p)).findFirst();
+                .filter(p -> containsConfigurationForEmptyPath(p)).findFirst();
 
         if (optionalPropertiesPanelConfiguration.isPresent()) {
             ContainerPanelConfigurationType propertiesPanelConfiguration = optionalPropertiesPanelConfiguration.get();
@@ -107,6 +111,12 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         mergedDetailsPage.getPanel().clear();
         mergedDetailsPage.getPanel().addAll(CloneUtil.cloneCollectionMembersWithoutIds(mergedPanels));
         return mergedDetailsPage;
+    }
+
+    @Override
+    public GuiShadowDetailsPageType mergeShadowDetailsPageConfiguration(GuiShadowDetailsPageType defaultPageConfiguration, GuiShadowDetailsPageType compiledPageType) {
+        GuiShadowDetailsPageType mergedDetailsPage = defaultPageConfiguration.cloneWithoutId();
+        return mergeDetailsPages(defaultPageConfiguration, compiledPageType, mergedDetailsPage);
     }
 
     private boolean containsConfigurationForEmptyPath(ContainerPanelConfigurationType panel) {

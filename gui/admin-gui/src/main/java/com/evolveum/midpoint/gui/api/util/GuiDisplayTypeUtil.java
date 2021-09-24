@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -21,9 +27,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.namespace.QName;
 
-public class WebDisplayTypeUtil {
+public class GuiDisplayTypeUtil {
 
-    private static final Trace LOGGER = TraceManager.getTrace(WebDisplayTypeUtil.class);
+    private static final Trace LOGGER = TraceManager.getTrace(GuiDisplayTypeUtil.class);
 
     public static DisplayType createDisplayType(String iconCssClass) {
         return createDisplayType(iconCssClass, "", "");

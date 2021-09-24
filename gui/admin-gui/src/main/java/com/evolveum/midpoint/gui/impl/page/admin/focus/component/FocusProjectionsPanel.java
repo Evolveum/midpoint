@@ -10,15 +10,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.application.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
@@ -195,12 +200,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     protected List<InlineMenuItem> createInlineMenu() {
                         return createShadowMenu();
-//                        columns.add(new InlineMenuButtonColumn(createShadowMenu(), getPageBase()) {
-//                            @Override
-//                            public String getCssClass() {
-//                                return "col-xs-1";
-//                            }
-//                        });
                     }
 
                     @Override
@@ -391,7 +390,8 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                 tabs.add(new PanelTab(createStringResource("ShadowType.basic")) {
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        ShadowPanel shadowPanel = new ShadowPanel(panelId, getParentModel(getModel()));
+                        ContainerPanelConfigurationType config = getBasicShadowPanelConfiguration(getModelObject().getRealValue());
+                        ShadowPanel shadowPanel = new ShadowPanel(panelId, getParentModel(getModel()), config);
                         return shadowPanel;
                     }
                 });
@@ -399,6 +399,29 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             }
         };
         return detailsPanel;
+    }
+
+    private ContainerPanelConfigurationType getBasicShadowPanelConfiguration(ShadowType shadowType) {
+        GuiShadowDetailsPageType detailsPageType = findShadowDetailsPageConfiguration(shadowType);
+        if (detailsPageType == null) {
+            return null;
+        }
+
+        List<ContainerPanelConfigurationType> basicPanelConfig = detailsPageType.getPanel().stream().filter(p -> p.getIdentifier().equals("shadowBasic")).collect(Collectors.toList());
+        if (basicPanelConfig.size() == 1) {
+            return basicPanelConfig.get(0);
+        }
+
+        //TODO at least log unexpected situation
+        return null;
+    }
+
+    private GuiShadowDetailsPageType findShadowDetailsPageConfiguration(ShadowType shadowType) {
+        return getPageBase().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowDiscriminator(shadowType));
+    }
+
+    private ResourceShadowDiscriminator createResourceShadowDiscriminator(ShadowType shadow) {
+        return new ResourceShadowDiscriminator(shadow.getResourceRef().getOid(), shadow.getKind(), shadow.getIntent(), null, false);
     }
 
     private IModel<ShadowWrapper> getParentModel(IModel<PrismContainerValueWrapper<ShadowType>> model) {
@@ -943,6 +966,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         PrismObjectWrapperFactory<ShadowType> factory = getPageBase().findObjectWrapperFactory(projection.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
         context.setCreateIfEmpty(false);
+        context.setDetailsPageTypeConfiguration(findShadowDetailsPageConfiguration(projection.asObjectable()));
         ShadowWrapper wrapper = (ShadowWrapper) factory.createObjectWrapper(projection, ItemStatus.NOT_CHANGED, context);
         wrapper.setProjectionStatus(UserDtoStatus.MODIFY);
         return wrapper;

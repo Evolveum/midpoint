@@ -71,12 +71,13 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
                 .setBasicIcon(GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, IconCssStyle.IN_ROW_STYLE)
                 .appendLayerIcon(iconType, IconCssStyle.BOTTOM_RIGHT_STYLE);
-        AjaxCompositedIconButton changeArchetype = new AjaxCompositedIconButton(repeatingView.newChildId(), iconBuilder.build(), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
+        AjaxIconButton changeArchetype = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 changeArchetypeButtonClicked(target);
             }
         };
+        changeArchetype.showTitleAsLabel(true);
         changeArchetype.add(new VisibleBehaviour(() -> !getModelObject().isReadOnly() && isEditingObject()
                 && getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
         changeArchetype.add(AttributeAppender.append("class", "btn-default btn-sm"));

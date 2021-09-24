@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.component.wf;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -19,7 +19,6 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -68,7 +67,7 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 
             @Override
             protected DisplayType getIconDisplayType(final IModel<DecisionDto> rowModel) {
-                return WebDisplayTypeUtil.createDisplayType(choose(rowModel,
+                return GuiDisplayTypeUtil.createDisplayType(choose(rowModel,
                         ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.FORWARDED.getIcon(),
                         ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon()),
                         "",

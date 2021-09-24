@@ -28,6 +28,8 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
     private IModel<String> title;
     private CompositedIcon icon;
 
+    private boolean titleAsLabel;
+
     public AjaxCompositedIconSubmitButton(String id, CompositedIcon icon, IModel<String> title) {
         super(id);
 
@@ -75,6 +77,12 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
                 sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
             }
             sb.append("></i> ");
+
+            if (titleAsLabel) {
+                sb.append("<span class=\"operationalButtonLabel\">")
+                        .append(title.getObject())
+                        .append("</span>");
+            }
         }
 
         if (icon.hasLayerIcons()) {
@@ -102,5 +110,10 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
         if (tag.isOpenClose()) {
             tag.setType(XmlTag.TagType.OPEN);
         }
+    }
+
+    public AjaxCompositedIconSubmitButton titleAsLabel(boolean titleAsLabel) {
+        this.titleAsLabel = titleAsLabel;
+        return this;
     }
 }

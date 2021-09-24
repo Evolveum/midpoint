@@ -12,7 +12,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
@@ -940,12 +940,12 @@ public class ColumnUtils {
                 if (caseType.getCloseTimestamp() != null) {
                     return;
                 } else {
-                    putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
+                    putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
                 }
             } else if (result) {
-                putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
+                putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
             } else {
-                putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
+                putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
             }
             return;
         }
@@ -953,9 +953,9 @@ public class ColumnUtils {
 
             if (StringUtils.isEmpty(caseType.getOutcome())) {
                 if (caseType.getCloseTimestamp() != null) {
-                    putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                    putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
                 } else {
-                    putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(OperationResultStatusPresentationProperties.IN_PROGRESS));
+                    putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(OperationResultStatusPresentationProperties.IN_PROGRESS));
                 }
             } else {
                 OperationResultStatusType result;
@@ -963,11 +963,11 @@ public class ColumnUtils {
                     result = OperationResultStatusType.fromValue(caseType.getOutcome());
                 } catch (IllegalArgumentException e) {
                     putDisplayTypeToMapWithCount(map, one,
-                            WebDisplayTypeUtil.createDisplayType(WebComponentUtil.caseOutcomeUriToIcon(caseType.getOutcome())));
+                            GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.caseOutcomeUriToIcon(caseType.getOutcome())));
                     return;
                 }
                 OperationResultStatusPresentationProperties resultStatus = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result);
-                putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(resultStatus));
+                putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(resultStatus));
             }
         }
     }

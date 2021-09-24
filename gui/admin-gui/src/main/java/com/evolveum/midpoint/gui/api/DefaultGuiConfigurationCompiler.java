@@ -100,15 +100,52 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         GuiObjectDetailsSetType defaultDetailsPages = compileDefaultGuiObjectDetailsSetType(classes);
         List<GuiObjectDetailsPageType> detailsPages = defaultDetailsPages.getObjectDetailsPage();
         for (GuiObjectDetailsPageType defaultDetailsPage : detailsPages) {
+
+            //objects
             GuiObjectDetailsPageType compiledPageType = compiledGuiProfile.findObjectDetailsConfiguration(defaultDetailsPage.getType());
             GuiObjectDetailsPageType mergedDetailsPage = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(defaultDetailsPage, compiledPageType);
 
             if (compiledGuiProfile.getObjectDetails() == null) {
                 compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType(prismContext));
-            } else {
-                compiledGuiProfile.getObjectDetails().getObjectDetailsPage().removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
             }
+            compiledGuiProfile.getObjectDetails().getObjectDetailsPage().removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
             compiledGuiProfile.getObjectDetails().getObjectDetailsPage().add(mergedDetailsPage.cloneWithoutId());
+        }
+
+        processShadowPanels(classes, compiledGuiProfile);
+
+    }
+
+    private void processShadowPanels(Set<Class<?>> classes, CompiledGuiProfile compiledGuiProfile) {
+        List<ContainerPanelConfigurationType> shadowPanels = new ArrayList<>();
+        for (Class<?> clazz : classes) {
+            PanelInstance instance = clazz.getAnnotation(PanelInstance.class);
+            if (instance == null) {
+                continue;
+            }
+            if (!instance.applicableForType().equals(ShadowType.class)) {
+                continue;
+            }
+
+            if (compiledGuiProfile.getObjectDetails() == null) {
+                compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType());
+            }
+            ContainerPanelConfigurationType shadowPanel = compileContainerPanelConfiguration(clazz, ShadowType.class, classes, instance);
+            shadowPanels.add(shadowPanel);
+        }
+
+        if (compiledGuiProfile.getObjectDetails() == null) {
+            compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType(prismContext));
+        }
+
+        if (compiledGuiProfile.getObjectDetails().getShadowDetailsPage().isEmpty()) {
+            compiledGuiProfile.getObjectDetails().getShadowDetailsPage().add(new GuiShadowDetailsPageType());
+        }
+
+        for (GuiShadowDetailsPageType shadowDetailsPage : compiledGuiProfile.getObjectDetails().getShadowDetailsPage()) {
+            List<ContainerPanelConfigurationType> mergedPanels = adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(shadowPanels, shadowDetailsPage.getPanel());
+            shadowDetailsPage.getPanel().clear();
+            shadowDetailsPage.getPanel().addAll(mergedPanels);
         }
     }
 
@@ -157,6 +194,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         GuiObjectDetailsSetType guiObjectDetailsSetType = new GuiObjectDetailsSetType();
         for (ObjectTypes objectType : ObjectTypes.values()) {
             GuiObjectDetailsPageType detailsPageType = compileDefaultGuiObjectDetailsPage(objectType, scannedClasses);
+            if (QNameUtil.match(detailsPageType.getType(), ShadowType.COMPLEX_TYPE)) {
+                continue;
+            }
             guiObjectDetailsSetType.getObjectDetailsPage().add(detailsPageType);
         }
         return guiObjectDetailsSetType;

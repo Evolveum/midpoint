@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -20,12 +22,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author skublik
@@ -42,6 +38,12 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_PASSWORD = "password";
 
+    private ContainerPanelConfigurationType config;
+
+    public ShadowPanel(String id, IModel<ShadowWrapper> model, ContainerPanelConfigurationType config) {
+        super(id, model);
+        this.config = config;
+    }
 
     public ShadowPanel(String id, IModel<ShadowWrapper> model) {
         super(id, model);
@@ -59,14 +61,23 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
 
         try {
 
-            long attributesStart = System.currentTimeMillis();
-            ItemPanelSettingsBuilder attributesSettingsBuilder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-                Panel attributesPanel = getPageBase().initItemPanel(ID_ATTRIBUTES, ShadowAttributesType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ATTRIBUTES),
-                    attributesSettingsBuilder.build());
-            add(attributesPanel);
-            long attributesEnd = System.currentTimeMillis();
-            LOGGER.trace("Attributes finished in {} ms", attributesEnd - attributesStart);
+            if (config != null) {
+                SingleContainerPanel attributesContainer = new SingleContainerPanel(ID_ATTRIBUTES, getModel(), config) {
+
+                    @Override
+                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+                        return checkShadowContainerVisibility(itemWrapper, ShadowPanel.this.getModel());
+                    }
+                };
+                add(attributesContainer);
+            } else {
+                ItemPanelSettingsBuilder attributesSettingsBuilder = new ItemPanelSettingsBuilder()
+                        .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+                    Panel attributesPanel = getPageBase().initItemPanel(ID_ATTRIBUTES, ShadowAttributesType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ATTRIBUTES),
+                        attributesSettingsBuilder.build());
+                add(attributesPanel);
+            }
+
 
             long associationStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder()

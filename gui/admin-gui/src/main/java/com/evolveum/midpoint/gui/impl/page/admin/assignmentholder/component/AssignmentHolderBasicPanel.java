@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "basic", defaultContainerPath = "empty")
 @PanelInstances(instances = {
         @PanelInstance(identifier = "basic",
-                applicableForType = FocusType.class,
+                applicableForType = AssignmentHolderType.class,
                 excludeTypes = {TaskType.class, ResourceType.class},
                 defaultPanel = true,
                 display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)),

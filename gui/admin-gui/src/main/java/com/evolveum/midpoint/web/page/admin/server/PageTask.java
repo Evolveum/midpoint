@@ -504,20 +504,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             setTaskInitialState(taskWrapper, run);
 
             setupOwner(taskWrapper);
-            setupRecurrence(taskWrapper);
-
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error while finishing task settings.", e);
-            target.add(getFeedbackPanel());
-            return;
-        }
-
-        if (!checkScheduleFilledForReccurentTask(taskWrapper)) {
-            if (run) {
-                getSession().error("Cannot run recurring task without setting scheduling for it.");
-            } else {
-                getSession().warn("Cannot run recurring task without setting scheduling for it.");
-            }
             target.add(getFeedbackPanel());
             return;
         }
@@ -572,24 +560,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
     }
 
-    private void setupRecurrence(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
-        // TODO resolve (MID-7221)
-        PrismPropertyWrapper<TaskRecurrenceType> recurrenceWrapper = taskWrapper.findProperty(ItemPath.create(TaskType.F_RECURRENCE));
-        if (recurrenceWrapper == null) {
-            return;
-        }
-
-        PrismPropertyValueWrapper<TaskRecurrenceType> recurrenceWrapperValue = recurrenceWrapper.getValue();
-        if (recurrenceWrapperValue == null) {
-            return;
-        }
-
-        if (recurrenceWrapperValue.getNewValue() == null || recurrenceWrapperValue.getNewValue().isEmpty()) {
-            recurrenceWrapperValue.setRealValue(TaskRecurrenceType.SINGLE);
-        }
-
-    }
-
     @Override
     public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
         if (isPreviewRequested()) {
@@ -607,27 +577,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             }
         }
         super.finishProcessing(target, executedDeltas, returningFromAsync, result);
-    }
-
-    private boolean checkScheduleFilledForReccurentTask(PrismObjectWrapper<TaskType> taskWrapper) {
-        PrismObject<TaskType> task = taskWrapper.getObject();
-
-        // TODO resolve (MID-7221)
-        PrismProperty<TaskRecurrenceType> recurrenceType = task.findProperty(ItemPath.create(TaskType.F_RECURRENCE));
-        if (recurrenceType == null) {
-            return true;
-        }
-
-        TaskRecurrenceType recurenceValue = recurrenceType.getRealValue();
-        if (recurenceValue == null || TaskRecurrenceType.SINGLE == recurenceValue) {
-            return true;
-        }
-
-        ScheduleType schedule = task.asObjectable().getSchedule();
-        //if schedule is not set and task is recurring, show warning.
-        return schedule.getCronLikePattern() != null || schedule.getEarliestStartTime() != null
-                || schedule.getInterval() != null || schedule.getLatestFinishTime() != null
-                || schedule.getLatestStartTime() != null || schedule.getMisfireAction() != null;
     }
 
     private String createRefreshingLabel() {

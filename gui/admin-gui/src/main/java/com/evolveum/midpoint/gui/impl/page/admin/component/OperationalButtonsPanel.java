@@ -66,13 +66,14 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
         RepeatingView repeatingView = new RepeatingView(ID_BUTTONS);
         add(repeatingView);
+        createBackButton(repeatingView);
         createSaveButton(repeatingView);
-        createDeleteButton(repeatingView);
-        createEditRawButton(repeatingView);
 
         addButtons(repeatingView);
 
-        createBackButton(repeatingView);
+        createDeleteButton(repeatingView);
+        createEditRawButton(repeatingView);
+
 
         RepeatingView stateButtonsView = new RepeatingView(ID_STATE_BUTTONS);
         add(stateButtonsView);
@@ -91,12 +92,13 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
             }
         };
         edit.add(new VisibleBehaviour(()->isEditingObject()));
+        edit.showTitleAsLabel(true);
         edit.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         repeatingView.add(edit);
     }
 
     private void createBackButton(RepeatingView repeatingView) {
-        AjaxIconButton edit = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.ARROW_LEFT),
+        AjaxIconButton back = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.ARROW_LEFT),
                 getPageBase().createStringResource("pageAdminFocus.button.back")) {
             private static final long serialVersionUID = 1L;
 
@@ -105,8 +107,10 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 backPerformed(ajaxRequestTarget);
             }
         };
-        edit.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        repeatingView.add(edit);
+
+        back.showTitleAsLabel(true);
+        back.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(back);
     }
 
     private void createDeleteButton(RepeatingView repeatingView) {
@@ -120,7 +124,8 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
             }
         };
         remove.add(new VisibleBehaviour(()->isEditingObject()));
-        remove.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        remove.showTitleAsLabel(true);
+        remove.add(AttributeAppender.append("class", "btn btn-danger btn-sm"));
         repeatingView.add(remove);
     }
 
@@ -145,8 +150,9 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
             }
         };
 //        save.add(getVisibilityForSaveButton());
+        save.titleAsLabel(true);
         save.setOutputMarkupId(true);
-        save.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
         repeatingView.add(save);
 
         Form form = save.findParent(Form.class);

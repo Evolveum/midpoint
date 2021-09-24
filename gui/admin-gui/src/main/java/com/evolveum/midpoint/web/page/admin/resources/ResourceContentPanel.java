@@ -12,9 +12,11 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
@@ -103,7 +105,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
  * @author katkav
  * @author semancik
  */
-public abstract class ResourceContentPanel extends Panel {
+public abstract class ResourceContentPanel extends BasePanel<PrismObject<ResourceType>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceContentPanel.class);
@@ -124,7 +126,6 @@ public abstract class ResourceContentPanel extends Panel {
     private static final String ID_LIVE_SYNC = "liveSync";
     private static final String ID_TOTALS = "totals";
 
-    private final PageBase pageBase;
     private final ShadowKindType kind;
     private final String intent;
     private final QName objectClass;
@@ -134,20 +135,27 @@ public abstract class ResourceContentPanel extends Panel {
 
     IModel<PrismObject<ResourceType>> resourceModel;
 
+    private ContainerPanelConfigurationType config;
+
     public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel, QName objectClass,
-            ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
+            ShadowKindType kind, String intent, String searchMode, ContainerPanelConfigurationType config) {
         super(id);
-        this.pageBase = pageBase;
         this.kind = kind;
         this.searchMode = searchMode;
         this.resourceModel = resourceModel;
         this.intent = intent;
         this.objectClass = objectClass;
-        initLayout();
+        this.config = config;
     }
 
-    public PageBase getPageBase() {
-        return pageBase;
+    public ContainerPanelConfigurationType getPanelConfiguration() {
+        return config;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
     public ShadowKindType getKind() {
@@ -233,7 +241,7 @@ public abstract class ResourceContentPanel extends Panel {
 
         MainObjectListPanel<ShadowType> shadowListPanel =
                 new MainObjectListPanel<ShadowType>(ID_TABLE,
-                ShadowType.class, createSearchOptions()) {
+                ShadowType.class, createSearchOptions(), getPanelConfiguration()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -279,6 +287,15 @@ public abstract class ResourceContentPanel extends Panel {
                     protected Search createSearch(Class<ShadowType> type) {
                         return ResourceContentPanel.this.createSearch();
                     }
+
+                    @Override
+                    protected CompiledObjectCollectionView getObjectCollectionView() {
+                        CompiledShadowCollectionView compiledView = findContainerPanelConfig();
+                        if (compiledView != null) {
+                            return compiledView;
+                        }
+                        return super.getObjectCollectionView();
+                    }
                 };
         shadowListPanel.setOutputMarkupId(true);
         shadowListPanel.add(new VisibleEnableBehaviour() {
@@ -309,6 +326,11 @@ public abstract class ResourceContentPanel extends Panel {
         initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
 
         initCustomLayout();
+    }
+
+    private CompiledShadowCollectionView findContainerPanelConfig() {
+        PrismObject<ResourceType> resource = getResourceModel().getObject();
+        return getPageBase().getCompiledGuiProfile().findShadowCollectionView(resource.getOid(), getKind(), getIntent());
     }
 
     private ObjectQuery getResourceContentQuery() {
@@ -558,7 +580,7 @@ public abstract class ResourceContentPanel extends Panel {
     }
 
     private StringResourceModel createStringResource(String key) {
-        return pageBase.createStringResource(key);
+        return getPageBase().createStringResource(key);
     }
 
     private List<IColumn<SelectableBean<ShadowType>, String>> initColumns() {
@@ -662,24 +684,25 @@ public abstract class ResourceContentPanel extends Panel {
 
     private void shadowDetailsPerformed(AjaxRequestTarget target, String accountName, String accountOid) {
         if (StringUtils.isEmpty(accountOid)) {
-            error(pageBase.getString("pageContentAccounts.message.cantShowAccountDetails", accountName,
+            error(getPageBase().getString("pageContentAccounts.message.cantShowAccountDetails", accountName,
                     accountOid));
-            target.add(pageBase.getFeedbackPanel());
+            target.add(getPageBase().getFeedbackPanel());
             return;
         }
 
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, accountOid);
-        getPageBase().navigateToNext(PageAccount.class, parameters);
+        WebComponentUtil.dispatchToObjectDetailsPage(ShadowType.class, accountOid, this, false);
+//        PageParameters parameters = new PageParameters();
+//        parameters.add(OnePageParameterEncoder.PARAMETER, accountOid);
+//        getPageBase().navigateToNext(PageAccount.class, parameters);
     }
 
     private <F extends FocusType> F loadShadowOwner(String shadowOid) {
 
-        Task task = pageBase.createSimpleTask(OPERATION_LOAD_SHADOW_OWNER);
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_SHADOW_OWNER);
         OperationResult result = new OperationResult(OPERATION_LOAD_SHADOW_OWNER);
 
         try {
-            PrismObject<? extends FocusType> prismOwner = pageBase.getModelService()
+            PrismObject<? extends FocusType> prismOwner = getPageBase().getModelService()
                     .searchShadowOwner(shadowOid, null, task, result);
 
             if (prismOwner != null) {
@@ -689,7 +712,7 @@ public abstract class ResourceContentPanel extends Panel {
             // owner was not found, it's possible and it's ok on unlinked
             // accounts
         } catch (Exception ex) {
-            result.recordFatalError(pageBase.getString("PageAccounts.message.ownerNotFound", shadowOid), ex);
+            result.recordFatalError(getPageBase().getString("PageAccounts.message.ownerNotFound", shadowOid), ex);
             LoggingUtils.logUnexpectedException(LOGGER,
                     "Could not load owner of account with oid: " + shadowOid, ex);
         } finally {
@@ -697,7 +720,7 @@ public abstract class ResourceContentPanel extends Panel {
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-            pageBase.showResult(result, false);
+            getPageBase().showResult(result, false);
         }
 
         return null;
@@ -833,8 +856,8 @@ public abstract class ResourceContentPanel extends Panel {
                     public void onSubmit(AjaxRequestTarget target) {
                         final SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
                         ObjectBrowserPanel<FocusType> browser = new ObjectBrowserPanel<FocusType>(
-                                pageBase.getMainPopupBodyId(), UserType.class,
-                                WebComponentUtil.createFocusTypeList(), false, pageBase) {
+                                getPageBase().getMainPopupBodyId(), UserType.class,
+                                WebComponentUtil.createFocusTypeList(), false, getPageBase()) {
 
                             @Override
                             protected void onSelectPerformed(AjaxRequestTarget target, FocusType focus) {
@@ -843,7 +866,7 @@ public abstract class ResourceContentPanel extends Panel {
 
                         };
 
-                        pageBase.showMainPopup(browser, target);
+                        getPageBase().showMainPopup(browser, target);
 
                     }
                 };
@@ -874,7 +897,7 @@ public abstract class ResourceContentPanel extends Panel {
         }
 
         OperationResult result = new OperationResult(OPERATION_IMPORT_OBJECT);
-        Task task = pageBase.createSimpleTask(OPERATION_IMPORT_OBJECT);
+        Task task = getPageBase().createSimpleTask(OPERATION_IMPORT_OBJECT);
 
         if (selectedShadows == null || selectedShadows.isEmpty()) {
             result.recordWarning(createStringResource("ResourceContentPanel.message.importResourceObject.warning").getString());
@@ -887,7 +910,7 @@ public abstract class ResourceContentPanel extends Panel {
             try {
                 getPageBase().getModelService().importFromResource(shadow.getOid(), task, result);
             } catch (Exception e) {
-                result.recordPartialError(pageBase.createStringResource("ResourceContentPanel.message.importResourceObject.partialError", shadow).getString(), e);
+                result.recordPartialError(getPageBase().createStringResource("ResourceContentPanel.message.importResourceObject.partialError", shadow).getString(), e);
                 LOGGER.error("Could not import account {} ", shadow, e);
             }
         }
@@ -924,7 +947,7 @@ public abstract class ResourceContentPanel extends Panel {
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, OperationResult result,
             List<ShadowType> selected) {
-        Task task = pageBase.createSimpleTask(OPERATION_DELETE_OBJECT);
+        Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
         ModelExecuteOptions opts = createModelOptions();
 
         for (ShadowType shadow : selected) {
@@ -973,7 +996,7 @@ public abstract class ResourceContentPanel extends Panel {
         List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
 
         OperationResult result = new OperationResult(OPERATION_UPDATE_STATUS);
-        Task task = pageBase.createSimpleTask(OPERATION_UPDATE_STATUS);
+        Task task = getPageBase().createSimpleTask(OPERATION_UPDATE_STATUS);
 
         if (selectedShadow == null || selectedShadow.isEmpty()) {
             result.recordWarning(createStringResource("updateResourceObjectStatusPerformed.warning").getString());
@@ -998,7 +1021,7 @@ public abstract class ResourceContentPanel extends Panel {
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
-                        pageBase.createStringResource(
+                        getPageBase().createStringResource(
                                 "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
                                 .getString(),
                         e);
@@ -1015,18 +1038,18 @@ public abstract class ResourceContentPanel extends Panel {
     }
 
     private PrismObjectDefinition<FocusType> getFocusDefinition() {
-        return pageBase.getPrismContext().getSchemaRegistry()
+        return getPageBase().getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(FocusType.class);
     }
 
     private MainObjectListPanel<ShadowType> getTable() {
-        return (MainObjectListPanel<ShadowType>) get(pageBase.createComponentPath(ID_TABLE));
+        return (MainObjectListPanel<ShadowType>) get(getPageBase().createComponentPath(ID_TABLE));
     }
 
     private void changeOwner(ShadowType selected, AjaxRequestTarget target, FocusType ownerToChange,
             Operation operation) {
 
-        pageBase.hideMainPopup(target);
+        getPageBase().hideMainPopup(target);
 
         List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
 
@@ -1092,15 +1115,15 @@ public abstract class ResourceContentPanel extends Panel {
     private void changeOwnerInternal(String ownerOid, Class<? extends FocusType> ownerType, Collection<? extends ItemDelta> modifications,
             AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
-        Task task = pageBase.createSimpleTask(OPERATION_CHANGE_OWNER);
+        Task task = getPageBase().createSimpleTask(OPERATION_CHANGE_OWNER);
         ObjectDelta<? extends ObjectType> objectDelta =
-                pageBase.getPrismContext().deltaFactory().object()
+                getPageBase().getPrismContext().deltaFactory().object()
                         .createModifyDelta(ownerOid, modifications, ownerType);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         deltas.add(objectDelta);
         try {
             if (!deltas.isEmpty()) {
-                pageBase.getModelService().executeChanges(deltas, null, task, result);
+                getPageBase().getModelService().executeChanges(deltas, null, task, result);
 
             }
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
@@ -1111,8 +1134,8 @@ public abstract class ResourceContentPanel extends Panel {
 
         result.computeStatusIfUnknown();
 
-        pageBase.showResult(result);
-        target.add(pageBase.getFeedbackPanel());
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
         getTable().refreshTable(target);
         target.add(ResourceContentPanel.this);
     }
