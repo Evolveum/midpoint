@@ -300,10 +300,6 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
 
     private ItemMandatoryHandler getItemMandatoryHandler() {
         return itemWrapper -> {
-            // TODO resolve (MID-7221)
-            if (TaskType.F_RECURRENCE.equivalent(itemWrapper.getPath())) {
-                return false;
-            }
             return itemWrapper.isMandatory();
         };
     }
