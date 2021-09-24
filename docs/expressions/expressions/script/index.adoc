@@ -15,14 +15,25 @@
 Script expressions can use a variety of scripting languages.
 Currently supported languages are:
 
-* xref:groovy.adoc[Groovy]
+* xref:groovy.adoc[Groovy] (built-in)
 
-* xref:javascript.adoc[JavaScript (ECMAScript)]
+* xref:javascript.adoc[JavaScript (ECMAScript)] (optional since 4.4, depending on JDK)
 
-* Python
+* xref:python.adoc[Python] (built-in until 4.3, optional since 4.4)
 
 (xref:xpath.adoc[XPath version 2] was supported until midPoint 3.5, but it is not supported any longer)
 
+[NOTE]
+====
+While you can use any of the languages above, using Groovy is your best bet.
+Virtually all examples in our documentation use Groovy, most of the community is used to it
+and it is used by virtually all the deployments.
+Also, Groovy is packaged with the midPoint explicitly, while the JavaScript/ECMAScript support
+depends on it being part of the JDK - which it is not since Java 15.
+Python is made optional too although still easy to enable even on newer JDKs.
+
+Using Groovy is highly recommended.
+====
 
 == Script Expression Structure
 
@@ -92,7 +103,6 @@ Please note that the code is embedded in the XML therefore proper XML escaping i
 
 |===
 
-
 == Variables
 
 The expressions used in midPoint are usually using variables that are set up by midPoint expression engine.
@@ -105,20 +115,21 @@ For example, the following expression will evaluate to the content of the `fullN
 </code>
 ----
 
-See wiki:Expression[Expression] page for more generic information about the use of variables in expressions.
-
+See link:/midpoint/reference/expressions/expressions/[Expression] page for more generic information about the use of variables in expressions.
 
 == Functions
 
-See wiki:MidPoint+Script+Library[MidPoint Script Library] for more details.
-
+See link:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library] for more details.
 
 == Absolute and Relative Script Expressions
 
-MidPoint always works with wiki:Relativity[relative changes]. MidPoint expressions are built for this mode of operation.
+MidPoint always works with link:/midpoint/reference/concepts/relativity/[relative changes].
+MidPoint expressions are built for this mode of operation.
 The expression will receive every individual value on input and it has to transform that to output.
 MidPoint will take care of the logic around it.
-If the value was removed in the input, the result will be wiki:Deltas[delete delta]. If the value was added in the input the result will be wiki:Deltas[add delta]. MidPoint takes care of all that.
+If the value was removed in the input, the result will be link:/midpoint/devel/prism/concepts/deltas/[delete delta].
+If the value was added in the input the result will be link:/midpoint/devel/prism/concepts/deltas/[add delta].
+MidPoint takes care of all that.
 The administrator only needs to specify an expression that transforms one value.
 
 However, in some cases it might be useful to handle all values at once in an absolute way.
@@ -140,10 +151,9 @@ On the other hand, in relative approach, each value in UID attribute would be pr
 
 The input to this script is a list of all input values.
 The output is a list of new values.
-MidPoint always operates in wiki:Relativity[relative mode], therefore at the end of the evaluation midPoint will diff the value to create a wiki:Deltas[delta]. This does not change anything about that.
+MidPoint always operates in link:/midpoint/reference/concepts/relativity/[relative mode], therefore at the end of the evaluation midPoint will diff the value to create a link:/midpoint/devel/prism/concepts/deltas/[delta]. This does not change anything about that.
 However this mode of expression operation can be an advantage if you need to process all values as a group instead of processing every value one by one.
 E.g. in case that you want to choose a particular value or your algorithm depends on other values in some way.
-
 
 == Security of Script Expressions
 
@@ -159,21 +169,17 @@ The sandbox is not enforced from complexity and performance reasons, but it may 
 For the time being, please be very careful who can define expressions in midPoint.
 Do not allow any untrusted user to modify the expressions.
 
-See wiki:Script+Expression+Sandboxing[Script Expression Sandboxing] for more details.
-
+See link:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] for more details.
 
 == Future
 
 The expressions are designed to be extensible and the expression language is not fixed.
 New expression languages may come in the future if there is a demand for them.
 
-
 == See Also
 
-* wiki:Mappings+and+Expressions[Mappings and Expressions]
+* link:/midpoint/reference/expressions/introduction/[Mappings and Expressions]
 
-* wiki:Expression[Expression]
+* link:/midpoint/reference/expressions/expressions/[Expression]
 
-* wiki:Mapping[Mapping]
-
-* wiki:XPath2+Tutorial[XPath2 Tutorial]
+* link:/midpoint/reference/expressions/mappings/[Mapping]
