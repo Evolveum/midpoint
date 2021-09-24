@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -255,7 +256,7 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ValuePolicyType.class, PageValuePolicy.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(CaseType.class, com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ArchetypeType.class, com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype.class);
-        OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageAccount.class);
+        OBJECT_DETAILS_PAGE_MAP_NEW.put(ShadowType.class, PageShadow.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectCollectionType.class, com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection.class);
         OBJECT_DETAILS_PAGE_MAP_NEW.put(ObjectTemplateType.class, com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate.class);
     }
@@ -2570,6 +2571,9 @@ public final class WebComponentUtil {
     }
 
     public static boolean hasDetailsPage(Class<?> clazz) {
+        if (isNewDesignEnabled()) {
+            return OBJECT_DETAILS_PAGE_MAP_NEW.containsKey(clazz);
+        }
         return OBJECT_DETAILS_PAGE_MAP.containsKey(clazz);
     }
 

@@ -68,8 +68,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
 
     public ResourceContentRepositoryPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
-            QName objectClass, ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
-        super(id, resourceModel, objectClass, kind, intent, searchMode, pageBase);
+            QName objectClass, ShadowKindType kind, String intent, String searchMode, ContainerPanelConfigurationType config) {
+        super(id, resourceModel, objectClass, kind, intent, searchMode, config);
 
 
     }

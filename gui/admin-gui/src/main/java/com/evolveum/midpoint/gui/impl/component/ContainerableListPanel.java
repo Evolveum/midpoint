@@ -1046,7 +1046,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isCollectionViewPanel() {
-        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget() || defaultCollectionExists() || getCompiledCollectionViewFromPanelConfiguration() != null;
+        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()
+                || defaultCollectionExists() || getCompiledCollectionViewFromPanelConfiguration() != null
+                || getObjectCollectionView() != null;
     }
 
     private boolean defaultCollectionExists() {
