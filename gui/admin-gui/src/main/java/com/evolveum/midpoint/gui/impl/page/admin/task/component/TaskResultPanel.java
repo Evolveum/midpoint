@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -85,9 +87,9 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
                 PrismObjectWrapper<TaskType> taskWrapper = TaskResultPanel.this.getObjectWrapper();
                 TaskType taskType = taskWrapper.getObject().asObjectable();
                 OperationResult opResult = OperationResult.createOperationResult(taskType.getResult());
-                OperationResultPanel body = new OperationResultPanel(
+                OperationResultPopupPanel body = new OperationResultPopupPanel(
                         getPageBase().getMainPopupBodyId(),
-                        new Model<>(OpResult.getOpResult(getPageBase(), opResult)));
+                        new Model<>(opResult));
                 body.setOutputMarkupId(true);
                 getPageBase().showMainPopup(body, target);
             }
