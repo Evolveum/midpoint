@@ -6,18 +6,27 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <suite name="Suite" parallel="none">
-    <test name="Test" parallel="none">
+    <test name="Fast functional tests" parallel="none">
         <classes>
             <class name="com.evolveum.midpoint.repo.sqale.func.AuditCleanupTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.AuditSearchTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SequenceTestFunctional"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleAuditSearchIterativeTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoAddDeleteObjectTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoLookupTableTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoModifyObjectTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoSearchIterativeTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoSearchTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoSmokeTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleSearchFullTextTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.UriCacheTest"/>
         </classes>
     </test>
+    <test name="Slow functional tests" parallel="none">
+        <classes>
+            <class name="com.evolveum.midpoint.repo.sqale.slow.SequenceTestConcurrency"/>
+        </classes>
+    </test>
+
+    <!-- Perf tests are not here, some of them are only for manual use. -->
 </suite>

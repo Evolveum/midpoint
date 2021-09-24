@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,6 +52,10 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
     public MultivalueContainerListPanelWithDetailsPanel(String id, Class<C> type) {
         super(id, type);
+    }
+
+    public MultivalueContainerListPanelWithDetailsPanel(String id, Class<C> type, ContainerPanelConfigurationType configurationType) {
+        super(id, type, configurationType);
     }
 
     @Override

@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 display = @PanelDisplay(label = "pageRole.members", order = 60)),
         @PanelInstance(identifier = "orgGovernance", applicableForType = OrgType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", order = 60))
+                display = @PanelDisplay(label = "pageRole.governance", order = 70))
 })
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     private static final long serialVersionUID = 1L;

@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.web.component.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -64,6 +66,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     public MultivalueContainerListPanel(String id, Class<C> type) {
         super(id, type);
+    }
+
+    public MultivalueContainerListPanel(String id, Class<C> type, ContainerPanelConfigurationType config) {
+        super(id, type, null, config);
     }
 
     @Override

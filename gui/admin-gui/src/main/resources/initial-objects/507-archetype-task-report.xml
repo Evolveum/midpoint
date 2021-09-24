@@ -43,7 +43,18 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-report-export</identifier>
+                            <path>activity/work/reportExport</path>
+                        </container>
+                    </panel>
+                </panel>
                 <container>
+                    <identifier>report-options</identifier>
                     <display>
                         <label>ReportTask.reportOptions</label>
                     </display>

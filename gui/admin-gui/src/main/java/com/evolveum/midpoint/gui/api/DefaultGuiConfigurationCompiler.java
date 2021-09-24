@@ -11,7 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -19,6 +18,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,7 +103,11 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             GuiObjectDetailsPageType compiledPageType = compiledGuiProfile.findObjectDetailsConfiguration(defaultDetailsPage.getType());
             GuiObjectDetailsPageType mergedDetailsPage = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(defaultDetailsPage, compiledPageType);
 
-            compiledGuiProfile.getObjectDetails().getObjectDetailsPage().removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
+            if (compiledGuiProfile.getObjectDetails() == null) {
+                compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType(prismContext));
+            } else {
+                compiledGuiProfile.getObjectDetails().getObjectDetailsPage().removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
+            }
             compiledGuiProfile.getObjectDetails().getObjectDetailsPage().add(mergedDetailsPage.cloneWithoutId());
         }
     }
@@ -220,8 +224,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             return true;
         }
 
-        if (panelInstance.notApplicableFor() != null && !panelInstance.notApplicableFor().equals(SystemConfigurationType.class)) {
-            return panelInstance.notApplicableFor().isAssignableFrom(objectType);
+        if (panelInstance.excludeTypes() != null && panelInstance.excludeTypes().length > 0) {
+            return Arrays.stream(panelInstance.excludeTypes()).anyMatch(o -> o.equals(objectType));
         }
 
         return !panelInstance.applicableForType().isAssignableFrom(objectType);
@@ -282,6 +286,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             ItemPathType path = prismContext.itemPathParser().asItemPathType(panelType.defaultContainerPath());
             defaultContainer.setPath(path);
         }
+        defaultContainer.setDisplayOrder(10);
         config.getContainer().add(defaultContainer);
     }
 

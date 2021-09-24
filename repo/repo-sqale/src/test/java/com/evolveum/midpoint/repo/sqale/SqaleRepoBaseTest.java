@@ -75,7 +75,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     protected SqlRecorder queryRecorder;
 
     @BeforeClass
-    public void clearDatabase() {
+    public void initDatabase() throws Exception {
         queryRecorder = new SqlRecorder(QUERY_BUFFER_SIZE);
         sqlRepoContext.setQuerydslSqlListener(queryRecorder);
 
@@ -112,7 +112,6 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             cacheTablesCleared = true;
             display("URI cache and Extension item catalog tables cleared");
         }
-        // TODO m_ext_item is not deleted now, do we want it too? session scope like URI cache?
     }
 
     // Called on demand

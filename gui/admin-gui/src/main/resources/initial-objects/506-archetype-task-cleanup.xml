@@ -34,7 +34,18 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-cleanup</identifier>
+                            <path>activity/work/cleanup</path>
+                        </container>
+                    </panel>
+                </panel>
                 <container>
+                    <identifier>cleanup-options</identifier>
                     <display>
                         <label>CleanupTask.cleanupOptions</label>
                     </display>
@@ -50,19 +61,6 @@
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
     <inducement>
         <focusMappings>
             <mapping>
