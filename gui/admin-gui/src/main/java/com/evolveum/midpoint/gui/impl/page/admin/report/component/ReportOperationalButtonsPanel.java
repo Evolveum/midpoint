@@ -73,8 +73,8 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         IconType iconType = new IconType();
         iconType.setCssClass(GuiStyleConstants.CLASS_PLAY);
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
-                .setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, IconCssStyle.IN_ROW_STYLE)
-                .appendLayerIcon(iconType, IconCssStyle.BOTTOM_RIGHT_STYLE);
+                .setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, IconCssStyle.IN_ROW_STYLE);
+//                .appendLayerIcon(iconType, IconCssStyle.BOTTOM_RIGHT_STYLE);
         AjaxCompositedIconSubmitButton saveAndRunButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
                 createStringResource("pageReport.button.saveAndRun")) {
 
@@ -90,10 +90,11 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
+        saveAndRunButton.titleAsLabel(true);
         saveAndRunButton.add(new VisibleBehaviour(() -> !getModelObject().isReadOnly()));
         saveAndRunButton.setOutputMarkupId(true);
         saveAndRunButton.setOutputMarkupPlaceholderTag(true);
-        saveAndRunButton.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        saveAndRunButton.add(AttributeAppender.append("class", "btn-primary btn-sm"));
         repeatingView.add(saveAndRunButton);
     }
 
@@ -157,6 +158,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
+        showPreview.titleAsLabel(true);
         showPreview.add(new VisibleBehaviour(this::isCollectionReport));
         showPreview.add(AttributeAppender.append("class", "btn-default btn-sm"));
         showPreview.setOutputMarkupId(true);
@@ -165,8 +167,8 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         iconType = new IconType();
         iconType.setCssClass("fa fa-window-maximize");
         iconBuilder = new CompositedIconBuilder()
-                .setBasicIcon("fa fa-address-card-o", IconCssStyle.IN_ROW_STYLE)
-                .appendLayerIcon(iconType, IconCssStyle.BOTTOM_RIGHT_STYLE);
+                .setBasicIcon("fa fa-address-card-o", IconCssStyle.IN_ROW_STYLE);
+//                .appendLayerIcon(iconType, IconCssStyle.BOTTOM_RIGHT_STYLE);
         AjaxCompositedIconButton showPreviewInPopup = new AjaxCompositedIconButton(showPreviewInPopupId, iconBuilder.build(),
                 createStringResource("pageCreateCollectionReport.button.showPreviewInPopup")) {
 
@@ -177,6 +179,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
                 target.add(ReportOperationalButtonsPanel.this);
             }
         };
+        showPreviewInPopup.titleAsLabel(true);
         showPreviewInPopup.add(new VisibleBehaviour(() -> isCollectionReport() && !isShowingPreview.getObject()));
         showPreviewInPopup.add(AttributeAppender.append("class", "btn-default btn-sm"));
         showPreviewInPopup.setOutputMarkupId(true);
@@ -192,6 +195,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
                 runReportPerformed(target, getOriginalReport(), getPageBase());
             }
         };
+        runReport.titleAsLabel(true);
         runReport.add(new VisibleBehaviour(() -> isEditObject() && !WebComponentUtil.isImportReport(getOriginalReport())));
         runReport.add(AttributeAppender.append("class", "btn-default btn-sm"));
         runReport.setOutputMarkupId(true);

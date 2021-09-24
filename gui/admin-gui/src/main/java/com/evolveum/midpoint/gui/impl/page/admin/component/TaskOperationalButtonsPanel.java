@@ -108,12 +108,14 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     private void createSuspendButton(RepeatingView repeatingView) {
-        AjaxButton suspend = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.suspend")) {
+        AjaxIconButton suspend = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_SUSPEND_MENU_ITEM), createStringResource("pageTaskEdit.button.suspend")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 suspendPerformed(target, getPrismObject());
             }
         };
+
+        suspend.showTitleAsLabel(true);
         suspend.add(new VisibleBehaviour(() -> WebComponentUtil.canSuspendTask(getObjectType(), getPageBase())));
         suspend.add(AttributeAppender.append("class", "btn-danger"));
         repeatingView.add(suspend);
@@ -145,24 +147,26 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
 
     private void createResumeButton(RepeatingView repeatingView) {
-        AjaxButton resume = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.resume")) {
+        AjaxIconButton resume = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_RESUME_MENU_ITEM), createStringResource("pageTaskEdit.button.resume")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 resumePerformed(target, getPrismObject());
             }
         };
+        resume.showTitleAsLabel(true);
         resume.add(AttributeAppender.append("class", "btn-primary"));
         resume.add(new VisibleBehaviour(() -> WebComponentUtil.canResumeTask(getObjectType(), getPageBase())));
         repeatingView.add(resume);
     }
 
     private void createRunNowButton(RepeatingView repeatingView) {
-        AjaxButton runNow = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.runNow")) {
+        AjaxIconButton runNow = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_PLAY), createStringResource("pageTaskEdit.button.runNow")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 runNowPerformed(target, getPrismObject());
             }
         };
+        runNow.showTitleAsLabel(true);
         runNow.add(AttributeAppender.append("class", "btn-success"));
         runNow.add(new VisibleBehaviour(() -> WebComponentUtil.canRunNowTask(getObjectType(), getPageBase())));
         repeatingView.add(runNow);

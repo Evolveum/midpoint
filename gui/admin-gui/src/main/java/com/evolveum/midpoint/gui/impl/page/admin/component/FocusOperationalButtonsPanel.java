@@ -69,6 +69,7 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
                 previewPerformed(ajaxRequestTarget);
             }
         };
+        preview.showTitleAsLabel(true);
         preview.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         repeatingView.add(preview);
     }

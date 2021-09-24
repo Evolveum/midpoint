@@ -127,6 +127,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_RESOURCE_BROKEN = "fa fa-exclamation";
     public static final String CLASS_ICON_RESOURCE_UNKNOWN = "fa fa-question";
     public static final String CLASS_ICON_RESOURCE_MAINTENANCE = "fa fa-wrench";
+    public static final String CLASS_ICON_RESOURCE_SCHEMA = "fa fa-code";
     public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-bank";
     public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pencil-square-o";
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer";
@@ -242,6 +243,8 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ICON_SAVE = "fa fa-save";
     public static final String CLASS_ICON_PREVIEW = "fa fa-eye";
-    public static final String CLASS_ICON_REMOVE = "fa fa-remove";
+    public static final String CLASS_ICON_REMOVE = "fa fa-trash";
+
+    public static final String CLASS_ICON_WIZARD = "fa fa-magic";
 
 }
