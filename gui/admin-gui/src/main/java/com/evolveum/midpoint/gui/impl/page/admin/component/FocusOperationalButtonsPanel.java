@@ -58,8 +58,8 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
 
     @Override
     protected void addButtons(RepeatingView repeatingView) {
-        super.addButtons(repeatingView);
         createPreviewButton(repeatingView);
+        super.addButtons(repeatingView);
     }
 
     private void createPreviewButton(RepeatingView repeatingView) {
@@ -70,7 +70,7 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
             }
         };
         preview.showTitleAsLabel(true);
-        preview.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        preview.add(AttributeAppender.append("class", "btn btn-info btn-sm"));
         repeatingView.add(preview);
     }
 
