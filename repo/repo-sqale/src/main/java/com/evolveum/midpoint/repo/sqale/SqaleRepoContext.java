@@ -78,7 +78,6 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(NodeOperationalStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationExecutionRecordTypeType.class));
         querydslConfig.register(new EnumAsObjectType<>(OperationResultStatusType.class));
-        querydslConfig.register(new EnumAsObjectType<>(OrientationType.class));
         querydslConfig.register(new EnumAsObjectType<>(ResourceAdministrativeStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(ShadowKindType.class));
         querydslConfig.register(new EnumAsObjectType<>(SynchronizationSituationType.class));

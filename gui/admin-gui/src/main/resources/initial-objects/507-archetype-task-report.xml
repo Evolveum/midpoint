@@ -9,6 +9,7 @@
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3">
     <name>Report task</name>
+    <description>Super archetype for all report archetypes</description>
     <archetypePolicy>
         <display>
             <label>Report task</label>
