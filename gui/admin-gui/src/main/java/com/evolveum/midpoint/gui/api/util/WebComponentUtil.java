@@ -1084,7 +1084,7 @@ public final class WebComponentUtil {
         return () -> {
             PageBase pageBase = getPageBase(component);
             TaskType task = taskModel.getObject().getValue();
-            DisplayType display = WebDisplayTypeUtil.getArchetypePolicyDisplayType(task, pageBase);
+            DisplayType display = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(task, pageBase);
             return getTranslatedLabel(display, component);
         };
     }
@@ -3761,7 +3761,7 @@ public final class WebComponentUtil {
             return createAccountIcon((ShadowType) obj, pageBase, true);
         }
 
-        DisplayType basicIconDisplayType = WebDisplayTypeUtil.getDisplayTypeForObject(obj, result, pageBase);
+        DisplayType basicIconDisplayType = GuiDisplayTypeUtil.getDisplayTypeForObject(obj, result, pageBase);
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
         if (basicIconDisplayType == null) {
             return new CompositedIconBuilder().build();

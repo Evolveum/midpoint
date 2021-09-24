@@ -14,7 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
@@ -375,7 +375,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected DisplayType getNewObjectButtonDisplayType(){
-        return WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
+        return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
     }
 
     public BoxedTablePanel<PO> getTable() {

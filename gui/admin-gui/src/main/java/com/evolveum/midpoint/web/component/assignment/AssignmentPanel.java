@@ -14,7 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -480,10 +480,10 @@ public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<
         LOGGER.trace("Create icon for AssignmentType: " + assignment);
         PrismObject<? extends FocusType> object = loadTargetObject(assignment);
 
-        DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType(object, AssignmentPanel.this.getPageBase());
+        DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(object, AssignmentPanel.this.getPageBase());
 
         if (displayType == null) {
-            displayType = WebDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+            displayType = GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
                     AssignmentsUtil.getTargetType(assignment)));
         }
         String disabledStyle = WebComponentUtil.getIconEnabledDisabled(object);

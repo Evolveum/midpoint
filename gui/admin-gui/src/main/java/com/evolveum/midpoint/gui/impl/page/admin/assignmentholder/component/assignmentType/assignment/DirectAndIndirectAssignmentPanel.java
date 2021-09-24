@@ -12,7 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -118,7 +118,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                             DirectAndIndirectAssignmentPanel.this.getPageBase());
                     if (CollectionUtils.isNotEmpty(targetObjectList) && targetObjectList.size() == 1) {
                         ObjectType targetObject = targetObjectList.get(0);
-                        DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType(targetObject.asPrismObject(), DirectAndIndirectAssignmentPanel.this.getPageBase());
+                        DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(targetObject.asPrismObject(), DirectAndIndirectAssignmentPanel.this.getPageBase());
                         if (displayType != null) {
                             String disabledStyle;
                             if (targetObject instanceof FocusType) {
@@ -133,7 +133,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                         }
                     }
                 }
-                return WebDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
                         AssignmentsUtil.getTargetType(rowModel.getObject().getRealValue())));
             }
 

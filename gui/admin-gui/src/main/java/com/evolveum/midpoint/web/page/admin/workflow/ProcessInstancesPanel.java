@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -195,7 +195,7 @@ public class ProcessInstancesPanel extends BasePanel {
 
             @Override
             protected DisplayType getIconDisplayType(IModel<ProcessInstanceDto> rowModel) {
-                return WebDisplayTypeUtil.createDisplayType(choose(rowModel, null, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(),
+                return GuiDisplayTypeUtil.createDisplayType(choose(rowModel, null, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(),
                         ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon()),
                         "", choose(rowModel,
                                 null,
@@ -266,11 +266,11 @@ public class ProcessInstancesPanel extends BasePanel {
             @Override
             protected DisplayType getIconDisplayType(IModel<ProcessInstanceDto> rowModel) {
                 if (getObjectType(rowModel) == null) {
-                    return WebDisplayTypeUtil.createDisplayType("");
+                    return GuiDisplayTypeUtil.createDisplayType("");
                 }
                 ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
                 String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-                return WebDisplayTypeUtil.createDisplayType(icon);
+                return GuiDisplayTypeUtil.createDisplayType(icon);
             }
 
             private ObjectTypeGuiDescriptor getObjectTypeDescriptor(IModel<ProcessInstanceDto> rowModel) {
