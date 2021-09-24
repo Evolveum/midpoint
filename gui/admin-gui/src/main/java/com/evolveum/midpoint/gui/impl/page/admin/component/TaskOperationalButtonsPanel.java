@@ -14,8 +14,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -66,7 +68,9 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String OPERATION_LOAD_REPORT_OUTPUT = DOT_CLASS + "loadReport";
 
     private static final String ID_TASK_BUTTONS = "taskButtons";
+    private static final String ID_TASK_BUTTONS_CONTAINER = "taskButtonsContainer";
     private static final String ID_REFRESHING_BUTTONS = "refreshingButtons";
+    private static final String ID_REFRESHING_BUTTONS_CONTAINER = "refreshingButtonsContainer";
 
     private Boolean refreshEnabled;
 
@@ -81,8 +85,13 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     private void initLayout() {
+        WebMarkupContainer taskButtonsContainer = new WebMarkupContainer(ID_TASK_BUTTONS_CONTAINER);
+        taskButtonsContainer.add(new VisibleBehaviour(() -> isEditingObject()));
+        taskButtonsContainer.setOutputMarkupId(true);
+        add(taskButtonsContainer);
+
         RepeatingView taskButtons = new RepeatingView(ID_TASK_BUTTONS);
-        add(taskButtons);
+        taskButtonsContainer.add(taskButtons);
 
         createSuspendButton(taskButtons);
         createResumeButton(taskButtons);
@@ -93,9 +102,14 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         createCleanupPerformanceButton(taskButtons);
         createCleanupResultsButton(taskButtons);
 
+        WebMarkupContainer refreshingButtonsContainer = new WebMarkupContainer(ID_REFRESHING_BUTTONS_CONTAINER);
+        refreshingButtonsContainer.add(new VisibleBehaviour(() -> isEditingObject()));
+        refreshingButtonsContainer.setOutputMarkupId(true);
+        add(refreshingButtonsContainer);
+
         RepeatingView refreshingButtons = new RepeatingView(ID_REFRESHING_BUTTONS);
         initRefreshingButtons(refreshingButtons);
-        add(refreshingButtons);
+        refreshingButtonsContainer.add(refreshingButtons);
 
     }
 

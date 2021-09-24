@@ -12,38 +12,25 @@ import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
 import com.evolveum.midpoint.gui.api.component.FocusTypeAssignmentPopupTabPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -60,7 +47,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolderType> extends OperationalButtonsPanel<AH> {
 
@@ -75,11 +61,11 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
 
     @Override
     protected void addButtons(RepeatingView repeatingView) {
-        createChnageArchetypeButton(repeatingView);
+        createChangeArchetypeButton(repeatingView);
     }
 
     //TODO move to focus??
-    private void createChnageArchetypeButton(RepeatingView repeatingView) {
+    private void createChangeArchetypeButton(RepeatingView repeatingView) {
         IconType iconType = new IconType();
         iconType.setCssClass(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
@@ -91,7 +77,8 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
                 changeArchetypeButtonClicked(target);
             }
         };
-        changeArchetype.add(new VisibleBehaviour(() -> !getModelObject().isReadOnly() && getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
+        changeArchetype.add(new VisibleBehaviour(() -> !getModelObject().isReadOnly() && isEditingObject()
+                && getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
         changeArchetype.add(AttributeAppender.append("class", "btn-default btn-sm"));
         repeatingView.add(changeArchetype);
     }
