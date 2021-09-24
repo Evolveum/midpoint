@@ -843,6 +843,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         // WHEN
         when();
+        lensContext.setStarted();
         projector.project(lensContext, "test", task, result);
 
         // THEN
@@ -905,9 +906,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     protected AssignmentEvaluator<UserType> createAssignmentEvaluator(ObjectDeltaObject<UserType> focusOdo) {
         LensContext<UserType> lensContext = createLensContext(UserType.class);
         LensFocusContext<UserType> focusContext = lensContext.getOrCreateFocusContext();
-        focusContext.setObjectOld(focusOdo.getOldObject());
+        focusContext.setInitialObject(focusOdo.getOldObject());
         focusContext.setPrimaryDelta(focusOdo.getObjectDelta());
-        focusContext.setObjectCurrent(focusOdo.getOldObject());
 
         return new AssignmentEvaluator.Builder<UserType>()
                 .referenceResolver(referenceResolver)

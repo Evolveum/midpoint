@@ -99,7 +99,7 @@ public class ContextLoadOperation<F extends ObjectType> {
                 }
 
                 focusContext.deleteEmptyPrimaryDelta();
-                focusContext.setPrimaryDeltaOldValue();
+                focusContext.setEstimatedOldValuesInPrimaryDelta();
 
             } else {
 

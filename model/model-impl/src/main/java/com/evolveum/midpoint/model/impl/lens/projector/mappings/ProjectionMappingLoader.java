@@ -32,13 +32,10 @@ public class ProjectionMappingLoader<F extends ObjectType> implements MappingLoa
 
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionMappingLoader.class);
 
-    private LensProjectionContext projectionContext;
-    private ContextLoader contextLoader;
-    private LensContext<F> context;
+    private final LensProjectionContext projectionContext;
+    private final ContextLoader contextLoader;
 
-    public ProjectionMappingLoader(LensContext<F> context, LensProjectionContext projectionContext, ContextLoader contextLoader) {
-        super();
-        this.context = context;
+    public ProjectionMappingLoader(LensProjectionContext projectionContext, ContextLoader contextLoader) {
         this.projectionContext = projectionContext;
         this.contextLoader = contextLoader;
     }
@@ -49,8 +46,10 @@ public class ProjectionMappingLoader<F extends ObjectType> implements MappingLoa
     }
 
     @Override
-    public PrismObject<ShadowType> load(String loadReason, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        contextLoader.loadFullShadow(context, projectionContext, loadReason, task, result);
+    public PrismObject<ShadowType> load(String loadReason, Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        contextLoader.loadFullShadow(projectionContext, loadReason, task, result);
         if (SynchronizationPolicyDecision.BROKEN.equals(projectionContext.getSynchronizationPolicyDecision())) {
             LOGGER.debug("Attempt to load full object for {} failed, projection context is broken", projectionContext.getHumanReadableName());
             throw new ObjectNotFoundException("Projection loading failed, projection broken");

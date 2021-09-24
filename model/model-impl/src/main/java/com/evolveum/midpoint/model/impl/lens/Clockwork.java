@@ -133,6 +133,7 @@ public class Clockwork {
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+        context.setStarted();
         context.updateSystemConfiguration(result);
 
         LOGGER.trace("Running clockwork for context {}", context);

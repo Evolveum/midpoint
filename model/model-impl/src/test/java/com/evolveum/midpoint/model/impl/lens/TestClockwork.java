@@ -71,6 +71,7 @@ public class TestClockwork extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         PrismObject<UserType> bill = prismContext.parseObject(USER_BARBOSSA_FILE);
         fillContextWithAddUserDelta(context, bill);
+        context.setState(ModelState.INITIAL);
 
         when();
         clockwork.click(context, task, result); // one round - compute projections
@@ -89,15 +90,15 @@ public class TestClockwork extends AbstractLensTest {
 
         then();
         assertEquals("Secondary deltas are not preserved - their number differs",
-                context.getFocusContext().getSecondaryDeltas().size(),
-                context2.getFocusContext().getSecondaryDeltas().size());
-        for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
+                context.getFocusContext().getArchivedSecondaryDeltas().size(),
+                context2.getFocusContext().getArchivedSecondaryDeltas().size());
+        for (int i = 0; i < context.getFocusContext().getArchivedSecondaryDeltas().size(); i++) {
             assertEquals(
                     "Secondary delta #" + i + " is not preserved correctly, "
-                            + "expected:\n" + context.getFocusContext().getSecondaryDeltas().get(i).debugDump()
-                            + "but was\n" + context2.getFocusContext().getSecondaryDeltas().get(i).debugDump(),
-                    context2.getFocusContext().getSecondaryDeltas().get(i),
-                    context.getFocusContext().getSecondaryDeltas().get(i));
+                            + "expected:\n" + context.getFocusContext().getArchivedSecondaryDeltas().get(i).debugDump()
+                            + "but was\n" + context2.getFocusContext().getArchivedSecondaryDeltas().get(i).debugDump(),
+                    context2.getFocusContext().getArchivedSecondaryDeltas().get(i),
+                    context.getFocusContext().getArchivedSecondaryDeltas().get(i));
         }
     }
 
@@ -228,6 +229,7 @@ public class TestClockwork extends AbstractLensTest {
 
         // WHEN
         when();
+        context.setStarted();
         while (context.getState() != ModelState.FINAL) {
             display("CLICK START: " + context.getState());
             HookOperationMode mode = clockwork.click(context, task, result);

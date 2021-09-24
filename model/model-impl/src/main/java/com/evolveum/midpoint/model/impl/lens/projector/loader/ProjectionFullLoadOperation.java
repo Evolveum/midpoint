@@ -48,7 +48,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
     // Backwards-compatible name
     private static final String OP_LOAD_FULL_SHADOW = ContextLoader.class.getName() + "." + "loadFullShadow";
 
-    @NotNull private final LensContext<? extends ObjectType> context;
+    @NotNull private final LensContext<F> context;
     @NotNull private final LensProjectionContext projCtx;
     @NotNull private final String reason;
     @NotNull private final Task task;
@@ -107,8 +107,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
                 if (trace != null) {
                     trace.setShadowLoadedRef(ObjectTypeUtil.createObjectRefWithFullObject(objectCurrent, beans.prismContext));
                 }
-                // TODO: use setLoadedObject() instead?
-                projCtx.setObjectCurrent(objectCurrent);
+                projCtx.setCurrentObject(objectCurrent);
                 projCtx.determineFullShadowFlag(objectCurrent);
                 if (ShadowUtil.isExists(objectCurrent.asObjectable()) || isInMaintenance(projCtx.getResource())) {
                     result.addReturn(DEFAULT, "found");

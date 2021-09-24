@@ -109,7 +109,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                                 Projector.class, context, activityDescription, now, task, result);
 
                 if (inboundRun && !focusContext.isDelete() && iterationHelper.didIterationSpecificationChange()) {
-                    iterationHelper.cleanupContext();
+                    iterationHelper.restoreContext();
                     continue;
                 }
 
@@ -196,7 +196,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                 // Processing done, check for success
 
                 if (iterationHelper.didResetOnRenameOccur()) {
-                    iterationHelper.cleanupContext();
+                    iterationHelper.restoreContext();
                     continue;
                 }
 
@@ -211,13 +211,13 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                 }
 
                 if (iterationHelper.shouldResetOnConflict()) {
-                    iterationHelper.cleanupContext();
+                    iterationHelper.restoreContext();
                     continue;
                 }
             }
 
             iterationHelper.incrementIterationCounter();
-            iterationHelper.cleanupContext();
+            iterationHelper.restoreContext();
         }
 
         iterationHelper.createIterationTokenDeltas();

@@ -27,6 +27,8 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+
 /**
  * Test multiple accounts with the same resource+kind+intent.
  *
@@ -205,7 +207,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 .singleLink()
                 .resolveTarget()
                     .assertKind(ShadowKindType.ACCOUNT)
-                    .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                    .assertIntent(INTENT_DEFAULT)
                     .assertTagIsOid()
                     .getOid();
         // @formatter:on
@@ -250,7 +252,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .assertTag(accountPaulOid)
                             .end()
                         .end()
@@ -258,7 +260,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .assertTagIsOid()
                             .getOid();
         // @formatter:on
@@ -294,7 +296,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .assertTag(accountPaulOid)
                             .end()
                         .end()
@@ -302,7 +304,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .assertTagIsOid()
                             .getOid();
         // @formatter:on
@@ -351,7 +353,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .assertTag(accountPaulOid)
                         .end()
                     .end()
@@ -359,7 +361,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .assertTag(accountMuaddibOid)
                         .end()
                     .end()
@@ -414,7 +416,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .assertTag(accountPaulOid)
                             .end()
                         .end()
@@ -422,7 +424,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                         .resolveTarget()
                             .display()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .assertTag(accountMuaddibOid)
                             .end()
                         .end()
@@ -465,7 +467,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        assignAccountToUser(userIdahoOid, RESOURCE_DUMMY_MULTI_OUTBOUND_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        assignAccountToUser(userIdahoOid, RESOURCE_DUMMY_MULTI_OUTBOUND_OID, INTENT_DEFAULT, task, result);
 
         // THEN
         then();
@@ -477,7 +479,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                     .target()
                         .assertResource(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
                         .assertKind(ShadowKindType.ACCOUNT)
-                        .assertIntent(SchemaConstants.INTENT_DEFAULT);
+                        .assertIntent(INTENT_DEFAULT);
                         //.assertTagIsOid();
         // @formatter:on
 
@@ -705,7 +707,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 .singleLink()
                     .resolveTarget()
                         .assertKind(ShadowKindType.ACCOUNT)
-                        .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                        .assertIntent(INTENT_DEFAULT)
                         .assertTag(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE);
 
         assertUsers(getNumberOfUsers() + 3);
@@ -758,7 +760,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                     .find()
                         .resolveTarget()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .end()
                         .end()
                     .by()
@@ -766,7 +768,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                     .find()
                         .resolveTarget()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .end()
                         .end();
 
@@ -821,7 +823,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                     .find()
                         .resolveTarget()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .end()
                         .end()
                     .by()
@@ -829,7 +831,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                     .find()
                         .resolveTarget()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .end()
                         .end()
                 .by()
@@ -837,7 +839,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                     .find()
                         .resolveTarget()
                             .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .assertIntent(INTENT_DEFAULT)
                             .end()
                         .end();
 
@@ -861,7 +863,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        assignAccountToUser(user.getOid(), RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        traced(() -> assignAccountToUser(user.getOid(), RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID, INTENT_DEFAULT, task, result));
 
         then();
 
@@ -881,12 +883,12 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 .assertLiveLinks(planets.length + 1)
                 .by()
                     .resourceOid(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
-                    .intent(SchemaConstants.INTENT_DEFAULT)
+                    .intent(INTENT_DEFAULT)
                 .find()
                     .target()
                         .assertResource(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
                         .assertKind(ShadowKindType.ACCOUNT)
-                        .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                        .assertIntent(INTENT_DEFAULT)
                     .end()
                 .end()
             .end();

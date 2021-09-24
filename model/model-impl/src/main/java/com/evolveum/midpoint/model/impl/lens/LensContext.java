@@ -59,6 +59,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * @author semancik
  */
@@ -85,7 +87,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Experimental // maybe will be removed later
     private String itemProcessingIdentifier;
 
-    private ModelState state = ModelState.INITIAL;
+    /**
+     * Current state of the clockwork. Null means that the clockwork has not started yet.
+     */
+    private ModelState state;
 
     private transient ConflictWatcher focusConflictWatcher;
 
@@ -142,7 +147,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @NotNull private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
     private transient ObjectTemplateType focusTemplate;
-    private boolean focusTemplateExternallySet;       // todo serialize this
+    private boolean focusTemplateExternallySet; // todo serialize this
     private transient ProjectionPolicyType accountSynchronizationSettings;
 
     /**
@@ -537,7 +542,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Force recompute for the next execution wave. Recompute only those contexts that were changed.
      * This is more intelligent than rot()
      */
-    void rotIfNeeded() throws SchemaException {
+    private void rotAfterExecution() throws SchemaException {
         Holder<Boolean> rotHolder = new Holder<>(false);
         rotProjectionContextsIfNeeded(rotHolder);
         rotFocusContextIfNeeded(rotHolder);
@@ -885,8 +890,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             focusContext.checkConsistence();
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
-            projectionContext.checkConsistence(this.toString(), isFresh,
-                    ModelExecuteOptions.isForce(options));
+            projectionContext.checkConsistence(this.toString(), isFresh, ModelExecuteOptions.isForce(options));
         }
     }
 
@@ -912,9 +916,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public LensProjectionContext createProjectionContext(ResourceShadowDiscriminator rsd) {
-        LensProjectionContext projCtx = new LensProjectionContext(this, rsd);
+        LensProjectionContext projCtx = createDetachedProjectionContext(rsd);
         addProjectionContext(projCtx);
         return projCtx;
+    }
+
+    public LensProjectionContext createDetachedProjectionContext(ResourceShadowDiscriminator rsd) {
+        return new LensProjectionContext(this, rsd);
     }
 
     private Map<String, ResourceType> getResourceCache() {
@@ -1377,7 +1385,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 .fromLensFocusContextType(bean.getFocusContext(), lensContext, task, result));
         for (LensProjectionContextType lensProjectionContextType : bean.getProjectionContext()) {
             lensContext.addProjectionContext(LensProjectionContext
-                    .fromLensProjectionContextType(lensProjectionContextType, lensContext, task, result));
+                    .fromLensProjectionContextBean(lensProjectionContextType, lensContext, task, result));
         }
         lensContext.setDoReconciliationForAllProjections(
                 bean.isDoReconciliationForAllProjections() != null
@@ -1629,10 +1637,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /**
      * Finish all building activities and prepare context for regular use.
      * This should lock all values that should not be changed during recompute,
-     * such as primary deltas.
+     * such as primary deltas. (This is questionable, though: we modify primary delta
+     * e.g. when determining estimated old values or when deleting linkRefs.)
      * This method is invoked by context factories when context build is finished.
      */
-    public void finishBuild() {
+    void finishBuild() {
         if (focusContext != null) {
             focusContext.finishBuild();
         }
@@ -1728,9 +1737,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return focusContext != null && focusContext.isOfType(type);
     }
 
-    public void resetDeltasAfterExecution() {
+    void updateAfterExecution() throws SchemaException {
+        rotAfterExecution();
         if (focusContext != null) {
-            focusContext.resetDeltasAfterExecution();
+            focusContext.updateAfterExecution();
         }
         // nothing like this for projections (yet)
     }
@@ -1739,12 +1749,19 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return focusContext != null && focusContext.primaryItemDeltaExists(path);
     }
 
-    public void deleteSecondaryDeltas() {
+    /**
+     * Removes results of any previous computations from the context.
+     * (Expecting that transient values are not present. So deals only with non-transient ones.
+     * Currently this means deletion of secondary deltas.)
+     *
+     * Used e.g. when restarting operation after being approved.
+     */
+    public void deleteNonTransientComputationResults() {
         if (focusContext != null) {
-            focusContext.deleteSecondaryDeltas();
+            focusContext.deleteNonTransientComputationResults();
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
-            projectionContext.deleteSecondaryDeltas();
+            projectionContext.deleteNonTransientComputationResults();
         }
     }
 
@@ -1768,10 +1785,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     /**
      * Checks if there was anything (at least partially) executed.
-     * <p>
+     *
      * Currently we can only look at executed deltas and check whether there is something relevant
      * (i.e. not FATAL_ERROR nor NOT_APPLICABLE).
-     * <p>
+     *
      * Any solution based on operation result status will never be 100% accurate, e.g. because
      * a network timeout could occur just before returning a status value. So please use with care.
      */
@@ -1837,6 +1854,19 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         if (inspector != null) {
             inspector.projectorFinish(this);
         }
+    }
+
+    public boolean hasStarted() {
+        return state != null;
+    }
+
+    public void setStarted() {
+        setState(ModelState.INITIAL);
+    }
+
+    void checkNotStarted(String operation, LensElementContext<?> elementContext) {
+        stateCheck(!hasStarted(),
+                "Trying to %s but the clockwork has already started: %s in %s", operation, elementContext, this);
     }
 
     public enum ExportType {

@@ -81,20 +81,13 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     @NotNull Collection<? extends EvaluatedPolicyRule> getObjectPolicyRules();
 
     /**
-     * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
-     * context.
-     * If set to null then the decision is left to "the engine". Null is also a typical value
-     * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
-     */
-    SynchronizationIntent getSynchronizationIntent();
-
-    /**
-     * @return true if the object (focus or projection) is to be added
+     * Returns true if the object (focus or projection) is to be added.
      */
     boolean isAdd();
 
     /**
-     * @return true if the object (focus or projection) is to be deleted
+     * Returns true if the object (focus or projection) is to be deleted. This is determined
+     * solely by looking at caller's intents (primary delta, sync delta, and/or sync intent).
      */
     boolean isDelete();
 
@@ -104,14 +97,14 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     ObjectDelta<O> getPrimaryDelta();
 
     /**
-     * Sets the primary delta. Not to be publicly used. TODO reconsider this method here.
+     * Sets the primary delta. Must be called before the clockwork starts.
      */
     void setPrimaryDelta(ObjectDelta<O> primaryDelta);
 
     /**
-     * Add a delta to the primary delta. Not to be publicly used. TODO reconsider this method here.
+     * Add a delta to the primary delta. Must be called before the clockwork starts.
      */
-    void addPrimaryDelta(ObjectDelta<O> value) throws SchemaException;
+    void addToPrimaryDelta(ObjectDelta<O> value) throws SchemaException;
 
     /**
      * Returns secondary delta for the current clockwork click.
@@ -136,6 +129,8 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 
     /**
      * Returns all secondary deltas, merged together.
+     *
+     * (Can take some time to compute. So use with care.)
      *
      * The returned object is (kind of) immutable. Changing it may do strange things, but most likely the changes will be lost.
      */

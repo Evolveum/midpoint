@@ -8,11 +8,13 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +48,10 @@ public class ContextFactory {
     @Autowired Protector protector;
 
     public <F extends ObjectType> LensContext<F> createContext(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+
         ObjectDelta<F> focusDelta = null;
         Collection<ObjectDelta<ShadowType>> projectionDeltas = new ArrayList<>(deltas.size());
         ObjectDelta<? extends ObjectType> confDelta = null;
@@ -86,7 +91,7 @@ public class ContextFactory {
                 projectionDeltas.add(projectionDelta);
             } else {
                 if (confDelta != null) {
-                    throw new IllegalArgumentException("More than one configuration delta in a single executeChanges invovation");
+                    throw new IllegalArgumentException("More than one configuration delta in a single executeChanges invocation");
                 }
                 // Make sure we clone request delta here. Clockwork will modify the delta (e.g. normalize it).
                 // And we do not want to touch request delta. It may even be immutable.
@@ -95,6 +100,7 @@ public class ContextFactory {
         }
 
         if (confDelta != null) {
+            //noinspection unchecked
             focusClass = (Class<F>) confDelta.getObjectTypeClass();
         }
 
@@ -108,6 +114,7 @@ public class ContextFactory {
 
         if (confDelta != null) {
             LensFocusContext<F> focusContext = context.createFocusContext();
+            //noinspection unchecked
             focusContext.setPrimaryDelta((ObjectDelta<F>) confDelta);
 
         } else {
@@ -152,13 +159,17 @@ public class ContextFactory {
 
 
     public <F extends ObjectType, O extends ObjectType> LensContext<F> createRecomputeContext(
-            PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Class<O> typeClass = object.getCompileTimeClass();
+            @NotNull PrismObject<O> object, ModelExecuteOptions options, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        Class<O> typeClass = Objects.requireNonNull(object.getCompileTimeClass(), "no object class");
         LensContext<F> context;
         if (AssignmentHolderType.class.isAssignableFrom(typeClass)) {
+            //noinspection unchecked
             context = createRecomputeFocusContext((Class<F>)typeClass, (PrismObject<F>) object, options, task, result);
         } else if (ShadowType.class.isAssignableFrom(typeClass)) {
-            context =  createRecomputeProjectionContext((PrismObject<ShadowType>) object, options, task, result);
+            //noinspection unchecked
+            context = createRecomputeProjectionContext((PrismObject<ShadowType>) object, options, task, result);
         } else {
             throw new IllegalArgumentException("Cannot create recompute context for "+object);
         }
@@ -167,11 +178,11 @@ public class ContextFactory {
         return context;
     }
 
-    public <F extends ObjectType> LensContext<F> createRecomputeFocusContext(
+    private <F extends ObjectType> LensContext<F> createRecomputeFocusContext(
             Class<F> focusType, PrismObject<F> focus, ModelExecuteOptions options, Task task, OperationResult result) {
         LensContext<F> lensContext = new LensContext<>(focusType);
         LensFocusContext<F> focusContext = lensContext.createFocusContext();
-        focusContext.setLoadedObject(focus);
+        focusContext.setInitialObject(focus);
         focusContext.setOid(focus.getOid());
         lensContext.setChannel(SchemaConstants.CHANNEL_RECOMPUTE_URI);
         lensContext.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
@@ -179,11 +190,13 @@ public class ContextFactory {
     }
 
     public <F extends ObjectType> LensContext<F> createRecomputeProjectionContext(
-            PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            @NotNull PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         provisioningService.applyDefinition(shadow, task, result);
         LensContext<F> lensContext = new LensContext<>(null);
         LensProjectionContext projectionContext = lensContext.createProjectionContext();
-        projectionContext.setLoadedObject(shadow);
+        projectionContext.setInitialObject(shadow);
         projectionContext.setOid(shadow.getOid());
         projectionContext.setDoReconciliation(ModelExecuteOptions.isReconcile(options));
         lensContext.setChannel(SchemaConstants.CHANNEL_RECOMPUTE_URI);
@@ -215,11 +228,11 @@ public class ContextFactory {
         }
     }
 
-    public static <T extends ObjectType> boolean isFocalClass(Class<T> aClass) {
+    private static <T extends ObjectType> boolean isFocalClass(Class<T> aClass) {
         return FocusType.class.isAssignableFrom(aClass);
     }
 
-    public boolean isProjectionClass(Class<? extends ObjectType> aClass) {
+    private boolean isProjectionClass(Class<? extends ObjectType> aClass) {
         return ShadowType.class.isAssignableFrom(aClass);
     }
 

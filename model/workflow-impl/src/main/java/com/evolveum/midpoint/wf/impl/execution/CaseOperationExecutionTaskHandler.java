@@ -98,12 +98,12 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
             SecurityViolationException {
         CaseType rootCase = repositoryService.getObject(CaseType.class, subcase.getParentRef().getOid(), null, result)
                 .asObjectable();
-        LensContext<?> modelContext = (LensContext<?>) miscHelper.getModelContext(rootCase, task, result);
+        LensContext<?> modelContext = miscHelper.getModelContext(rootCase, task, result);
         ObjectTreeDeltas<?> deltas = pcpGeneralHelper.retrieveResultingDeltas(subcase);
         if (deltas == null) {
             throw new IllegalStateException("No deltas to be executed in " + subcase);
         }
-        ObjectDelta focusChange = deltas.getFocusChange();
+        ObjectDelta<?> focusChange = deltas.getFocusChange();
         if (focusChange != null) {
             approvalMetadataHelper.addAssignmentApprovalMetadata(focusChange, subcase, task, result);
         }
@@ -130,24 +130,24 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
             LOGGER.trace("No primary changes -- nothing to do here");
             return;
         }
-        modelContext.deleteSecondaryDeltas();
-        LOGGER.trace("Context to be executed = {}", modelContext.debugDumpLazily());
+        modelContext.deleteNonTransientComputationResults();
+        LOGGER.trace("Context to be executed:\n{}", modelContext.debugDumpLazily(1));
 
         modelContext.getOperationApprovedBy().addAll(metadataHelper.getAllApprovers(aCase, result));
         modelContext.getOperationApproverComments().addAll(metadataHelper.getAllApproverComments(aCase, task, result));
 
-        // here we brutally remove all the projection contexts -- because if we are continuing after rejection of a role/resource assignment
-        // that resulted in such projection contexts, we DO NOT want them to appear in the context any more
+        // here we request to brutally remove all the projection contexts except for these with primary/sync deltas -- because
+        // if we are continuing after rejection of a role/resource assignment that resulted in such projection contexts,
+        // we DO NOT want them to appear in the context any more
         modelContext.rot("restart after approvals");
         Iterator<LensProjectionContext> projectionIterator = modelContext.getProjectionContextsIterator();
         while (projectionIterator.hasNext()) {
             LensProjectionContext projectionContext = projectionIterator.next();
-            if (!ObjectDelta.isEmpty(projectionContext.getPrimaryDelta()) || !ObjectDelta.isEmpty(projectionContext.getSyncDelta())) {
+            if (!ObjectDelta.isEmpty(projectionContext.getPrimaryDelta()) ||
+                    !ObjectDelta.isEmpty(projectionContext.getSyncDelta())) {
                 continue; // don't remove client requested or externally triggered actions!
             }
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Removing projection context {}", projectionContext.getHumanReadableName());
-            }
+            LOGGER.trace("Removing projection context {}", projectionContext.getHumanReadableName());
             projectionIterator.remove();
         }
         if (task.getChannel() == null) {

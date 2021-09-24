@@ -507,7 +507,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     protected void loadFullShadow(LensProjectionContext projectionContext, String desc, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        ModelBeans.get().contextLoader.loadFullShadow(getLensContext(), projectionContext, desc, task, result);
+        ModelBeans.get().contextLoader.loadFullShadow(projectionContext, desc, task, result);
     }
     //endregion
 }

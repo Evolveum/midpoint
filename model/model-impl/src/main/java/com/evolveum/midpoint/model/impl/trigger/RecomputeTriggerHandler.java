@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.trigger;
 
 import javax.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,12 +50,14 @@ public class RecomputeTriggerHandler implements SingleTriggerHandler {
     }
 
     @Override
-    public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
+    public <O extends ObjectType> void handle(@NotNull PrismObject<O> object, @NotNull TriggerType trigger,
+            @NotNull RunningTask task, @NotNull OperationResult result) {
         try {
 
             LOGGER.trace("Recomputing {}", object);
             // Reconcile option used for compatibility. TODO: do we need it?
-            LensContext<O> lensContext = contextFactory.createRecomputeContext(object, new ModelExecuteOptions(prismContext).reconcile(), task, result);
+            LensContext<O> lensContext = contextFactory.createRecomputeContext(object,
+                    new ModelExecuteOptions(prismContext).reconcile(), task, result);
             LOGGER.trace("Recomputing of {}: context:\n{}", object, lensContext.debugDumpLazily());
             clockwork.run(lensContext, task, result);
             LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());

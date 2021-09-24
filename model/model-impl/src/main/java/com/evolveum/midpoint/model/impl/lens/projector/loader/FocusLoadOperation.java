@@ -99,15 +99,14 @@ public class FocusLoadOperation<F extends ObjectType> {
             }
 
             if (focusContext.isDeleted()) {
-                focusContext.setObjectCurrent(null);
-                focusContext.setObjectNew(null);
+                focusContext.clearCurrentObject();
                 focusContext.setFresh(true);
                 result.addReturnComment("Not loading as the focus was deleted");
                 return;
             }
 
             PrismObject<F> object = reallyLoadFocus(focusContext, result);
-            focusContext.setLoadedObject(object); // TODO recompute here
+            focusContext.setLoadedObject(object);
             focusContext.setFresh(true);
             LOGGER.trace("Focal object loaded: {}", object);
 

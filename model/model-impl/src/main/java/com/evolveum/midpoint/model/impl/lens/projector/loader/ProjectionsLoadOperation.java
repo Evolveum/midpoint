@@ -56,6 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * Note: full resource objects are not loaded in this class (now). See {@link ProjectionUpdateOperation}
  * (for reconciliation) and {@link ProjectionFullLoadOperation} (for ad-hoc full shadow loading).
+ *
+ * BEWARE: removes linkRef modifications from the primary delta, if there were any
  */
 public class ProjectionsLoadOperation<F extends FocusType> {
 
@@ -274,28 +276,23 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         getOrCreateContextsForValuesToAdd(linkRefDelta.getValuesToAdd(), result);
         getOrCreateContextsForValuesToDelete(linkRefDelta.getValuesToDelete(), result);
 
-        // remove the accountRefs without oid. These will get into the way now.
-        // The accounts
-        // are in the context now and will be linked at the end of the process
-        // (it they survive the policy)
-        // We need to make sure this happens on the real primary focus delta
+        removeLinkRefModifications();
+    }
 
-        ObjectDelta<F> primaryDeltaToUpdate;
-        if (focusPrimaryDelta.isImmutable()) {
-            primaryDeltaToUpdate = focusPrimaryDelta.clone();
-            focusContext.setPrimaryDelta(primaryDeltaToUpdate);
-        } else {
-            primaryDeltaToUpdate = focusPrimaryDelta;
-        }
-
-        if (primaryDeltaToUpdate.getChangeType() == ChangeType.ADD) {
-            primaryDeltaToUpdate.getObjectToAdd().removeReference(FocusType.F_LINK_REF);
-        } else if (primaryDeltaToUpdate.getChangeType() == ChangeType.MODIFY) {
-            primaryDeltaToUpdate.removeReferenceModification(FocusType.F_LINK_REF);
-        }
-        // It is little bit questionable whether we need to make primary delta immutable. It makes some sense, but I am not sure.
-        // Note that (as a side effect) this can make "focus new" immutable as well, in the case of ADD delta.
-        primaryDeltaToUpdate.freeze();
+    /**
+     * Remove the linkRef modifications. These will get into the way now.
+     * The accounts are in the context now and will be linked at the end of the process
+     * (it they survive the policy)
+     * We need to make sure this happens on the real primary focus delta.
+     */
+    private void removeLinkRefModifications() throws SchemaException {
+        focusContext.modifyPrimaryDelta(delta -> {
+            if (delta.getChangeType() == ChangeType.ADD) {
+                delta.getObjectToAdd().removeReference(FocusType.F_LINK_REF);
+            } else if (delta.getChangeType() == ChangeType.MODIFY) {
+                delta.removeReferenceModification(FocusType.F_LINK_REF);
+            }
+        });
     }
 
     private @Nullable ReferenceDelta getLinkRefDelta(ObjectDelta<F> focusPrimaryDelta) {
@@ -398,7 +395,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             projectionContext = createNewProjectionContext(shadow, result);
         }
         // This is a new account that is to be added. So it should go to account primary delta.
-        projectionContext.setPrimaryDelta(shadow.createAddDelta());
+        projectionContext.setPrimaryDeltaAfterStart(shadow.createAddDelta());
         projectionContext.setFullShadow(true);
         projectionContext.setExists(false);
         return projectionContext;
@@ -444,7 +441,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 }
                 // Create account context from embedded object
                 LensProjectionContext projectionContext = createNewProjectionContext(embeddedShadow, result);
-                projectionContext.setPrimaryDelta(embeddedShadow.createAddDelta());
+                projectionContext.setPrimaryDeltaAfterStart(embeddedShadow.createAddDelta());
                 projectionContext.setFullShadow(true);
                 projectionContext.setExists(false);
                 projectionContext.setShadowExistsInRepo(false);
@@ -518,7 +515,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         } else {
             // I.e. this is when we request to delete link containing full object.
             projectionContext.setSynchronizationIntent(SynchronizationIntent.DELETE);
-            projectionContext.setPrimaryDelta(shadow.createDeleteDelta());
+            projectionContext.setPrimaryDeltaAfterStart(shadow.createDeleteDelta());
         }
         projectionContext.setFresh(true);
     }
@@ -567,7 +564,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 } catch (ObjectNotFoundException e) {
                     LOGGER.trace("Loading shadow {} from sync delta failed: not found", oid);
                     projCtx.setExists(false);
-                    projCtx.setObjectCurrent(null);
+                    projCtx.clearCurrentObject();
                     projCtx.setShadowExistsInRepo(false);
                     shadow = null;
                 }
@@ -616,7 +613,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         }
 
         projContext.setFullShadow(false);
-        projContext.setObjectCurrent(null);
+        projContext.clearCurrentObject();
 
         return projContext;
     }

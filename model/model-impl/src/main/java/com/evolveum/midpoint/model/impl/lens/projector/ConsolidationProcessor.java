@@ -74,7 +74,7 @@ public class ConsolidationProcessor {
      * Converts delta set triples to a secondary account deltas.
      */
     <F extends FocusType>
-    void consolidateValues(LensContext<F> context, LensProjectionContext accCtx, Task task,
+    void consolidateValues(LensContext<F> context, LensProjectionContext projCtx, Task task,
             OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
             //todo filter changes which were already in account sync delta
@@ -84,19 +84,18 @@ public class ConsolidationProcessor {
                 .build();
         try {
             //account was deleted, no changes are needed.
-            if (wasProjectionDeleted(accCtx)) {
-                dropAllProjectionDelta(accCtx);
+            if (wasProjectionDeleted(projCtx)) {
                 return;
             }
 
-            SynchronizationPolicyDecision policyDecision = accCtx.getSynchronizationPolicyDecision();
+            SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
 
             context.checkConsistenceIfNeeded();
             if (policyDecision == SynchronizationPolicyDecision.DELETE) {
                 // Nothing to do
             } else {
                 // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
-                consolidateValuesModifyProjection(context, accCtx, task, result);
+                consolidateValuesModifyProjection(context, projCtx, task, result);
                 context.checkConsistenceIfNeeded();
             }
             context.recompute();
@@ -107,11 +106,6 @@ public class ConsolidationProcessor {
         } finally {
             result.computeStatusIfUnknown();
         }
-    }
-
-    private void dropAllProjectionDelta(LensProjectionContext accContext) {
-        accContext.setPrimaryDelta(null);
-        accContext.setSecondaryDelta(null);
     }
 
     private boolean wasProjectionDeleted(LensProjectionContext accContext) {
@@ -127,6 +121,7 @@ public class ConsolidationProcessor {
 
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
+
         ObjectDelta<ShadowType> existingDelta = projCtx.getSummaryDelta(); // TODO check this
         LOGGER.trace("Existing delta:\n{}", existingDelta);
 
@@ -149,7 +144,7 @@ public class ConsolidationProcessor {
             // resource availability. We need to know, if the account was read full
             // or we have only the shadow from the repository. If we have only
             // shadow, the weak mappings may applied even if they should not be.
-            contextLoader.loadFullShadow(context, projCtx, "weak or strong mapping", task, result);
+            contextLoader.loadFullShadow(projCtx, "weak or strong mapping", task, result);
             if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
                 return null;
             }
@@ -162,8 +157,10 @@ public class ConsolidationProcessor {
         }
 
         StrengthSelector strengthSelector = projCtx.isAdd() ? StrengthSelector.ALL : StrengthSelector.ALL_EXCEPT_WEAK;
-        consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
+        consolidateAttributes(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
         consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
+
+        LOGGER.trace("consolidateValuesToModifyDelta result:\n{}", objectDelta.debugDumpLazily());
 
         return objectDelta;
     }
@@ -248,7 +245,7 @@ public class ConsolidationProcessor {
         return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxOcDefs);
     }
 
-    private <F extends FocusType> void consolidateAttributes(LensContext<F> context, LensProjectionContext projCtx,
+    private void consolidateAttributes(LensProjectionContext projCtx,
             boolean addUnchangedValues, RefinedObjectClassDefinition rOcDef, ObjectDelta<ShadowType> objectDelta,
             ObjectDelta<ShadowType> existingDelta, StrengthSelector strengthSelector, OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
@@ -436,10 +433,10 @@ public class ConsolidationProcessor {
             } else {
                 // Also consider a synchronization delta (if it is present). This may filter out some deltas.
                 itemDelta = consolidateItemWithSync(projCtx, itemDelta, valueMatcher);
-                LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",discr, DebugUtil.debugDumpLazily(itemDelta));
+                LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}", discr, DebugUtil.debugDumpLazily(itemDelta));
             }
 
-            if (itemDelta != null && !itemDelta.isEmpty()) {
+            if (!ItemDelta.isEmpty(itemDelta)) {
                 if (!aprioriDeltaIsReplace) {
                     // We cannot simplify if there is already a replace delta. This might result in
                     // two replace deltas and therefore some information may be lost
@@ -568,10 +565,9 @@ public class ConsolidationProcessor {
         boolean addUnchangedValues = accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD;
 
         ObjectDelta<ShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, addUnchangedValues, task, result);
-        if (modifyDelta == null || modifyDelta.isEmpty()) {
-            return;
+        if (!ObjectDelta.isEmpty(modifyDelta)) {
+            accCtx.swallowToSecondaryDelta(modifyDelta.getModifications());
         }
-        accCtx.swallowToSecondaryDelta(modifyDelta.getModifications());
     }
 
     private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItemWithSync(LensProjectionContext accCtx,
@@ -1066,7 +1062,6 @@ public class ConsolidationProcessor {
 
         //account was deleted, no changes are needed.
         if (wasProjectionDeleted(projCtx)) {
-            dropAllProjectionDelta(projCtx);
             return;
         }
 
@@ -1084,15 +1079,15 @@ public class ConsolidationProcessor {
 
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
+
         ObjectDelta<ShadowType> existingDelta = projCtx.getSummaryDelta(); // TODO check this
 
         RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Object class definition for {} post-recon consolidation:\n{}", projCtx.getResourceShadowDiscriminator(), rOcDef.debugDump());
-        }
+        LOGGER.trace("Object class definition for {} post-recon consolidation:\n{}",
+                projCtx.getResourceShadowDiscriminator(), rOcDef.debugDumpLazily());
 
-        consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, result);
+        consolidateAttributes(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, result);
         consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, result);
 
         if (objectDelta.isEmpty()) {
