@@ -109,6 +109,8 @@
                     <xsd:appinfo>
                         <a:since>3.4</a:since>
                         <a:displayName>AdminGuiConfigurationType.objectForms</a:displayName>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.4</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -739,6 +741,8 @@
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
                                 <a:displayName>GuiObjectDetailsPageType.forms</a:displayName>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
+                                <a:deprecated/>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -761,6 +765,10 @@
                                 <p>
                                     Specifies which panels will be show, in which order, ...
                                 </p>
+                                <xsd:appinfo>
+                                    <a:deprecatedSince>4.4</a:deprecatedSince>
+                                    <a:deprecated/>
+                                </xsd:appinfo>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1059,7 +1067,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Used to distinguish for which operations is the configuration applicable (and so visible)
+                            Used to distinguish for which operations are the configuration applicable (and so visible)
                             If nothing specified, configuration will be applicable for both add and modify operations.
                             When there is a need to restrict configuration applicability (and thus visibility) only
                             for e.g. modify object operation, applicableForOperation should be set to 'modify'.
@@ -1349,6 +1357,13 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="includeDefaultColumns" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiObjectListViewType.includeDefaultColumns</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
@@ -1489,13 +1504,20 @@
                     <xsd:element name="additionalPanels" type="tns:GuiObjectListViewAdditionalPanelsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Configuration of additional panels that can be present in some view types.
-                                E.g. configuration of "managers" and "members" panels in orgstruct views.
+                                <p>
+                                    Configuration of additional panels that can be present in some view types.
+                                    E.g. configuration of "managers" and "members" panels in orgstruct views.
+                                </p>
+                                <p>
+                                    DEPRECATED. Use new configuration based on 'panel' (ContainerPanelConfigurationType) configuration.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
                                 <a:displayName>GuiObjectListViewType.additionalPanels</a:displayName>
                                 <a:experimental>true</a:experimental>
+                                <a:deprecated/>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3696,8 +3718,8 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    Generic panel usable for single-valued containers. It can be used to declaratively
-                    define custom panel or override current panels.
+                    Definition for the panel which will be used on details panel. According to this configuration
+                    also link in the detail menu is generated.
                 </p>
             </xsd:documentation>
             <xsd:appinfo>

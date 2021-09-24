@@ -128,7 +128,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         add(label);
 
         MultivalueContainerListPanelWithDetailsPanel<ShadowType> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<ShadowType>(ID_SHADOW_TABLE, ShadowType.class) {
+                new MultivalueContainerListPanelWithDetailsPanel<ShadowType>(ID_SHADOW_TABLE, ShadowType.class, getPanelConfiguration()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -190,6 +190,17 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createDefaultColumns() {
                         return initBasicColumns();
+                    }
+
+                    @Override
+                    protected List<InlineMenuItem> createInlineMenu() {
+                        return createShadowMenu();
+//                        columns.add(new InlineMenuButtonColumn(createShadowMenu(), getPageBase()) {
+//                            @Override
+//                            public String getCssClass() {
+//                                return "col-xs-1";
+//                            }
+//                        });
                     }
 
                     @Override
@@ -455,13 +466,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                 values.forEach(value -> pendingOperations.add(value.getRealValue()));
                 return new PendingOperationPanel(componentId,
                         (IModel<List<PendingOperationType>>) () -> pendingOperations);
-            }
-        });
-
-        columns.add(new InlineMenuButtonColumn(createShadowMenu(), getPageBase()) {
-            @Override
-            public String getCssClass() {
-                return "col-xs-1";
             }
         });
 

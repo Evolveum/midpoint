@@ -98,6 +98,17 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         };
     }
 
+    public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType config) {
+        super(id, type, options, config);
+        executeOptionsModel = new LoadableModel<>(false) {
+
+            @Override
+            protected ExecuteChangeOptionsDto load() {
+                return ExecuteChangeOptionsDto.createFromSystemConfiguration();
+            }
+        };
+    }
+
     @Override
     protected void onInitialize() {
         super.onInitialize();

@@ -41,6 +41,11 @@ public class SearchBoxConfigurationHelper implements Serializable {
         this.searchBoxConfigurationType = additionalPanel == null ? new SearchBoxConfigurationType() : additionalPanel.getSearchBoxConfiguration();
     }
 
+
+    public SearchBoxConfigurationHelper(SearchBoxConfigurationType searchBoxConfigurationType) {
+        this.searchBoxConfigurationType = searchBoxConfigurationType;
+    }
+
     public void setDefaultSupportedRelations(List<QName> defaultSupportedRelations) {
         this.supportedRelations = defaultSupportedRelations;
     }

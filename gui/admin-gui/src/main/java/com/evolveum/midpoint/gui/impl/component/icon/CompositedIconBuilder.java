@@ -160,8 +160,12 @@ public class CompositedIconBuilder {
     }
 
     private String validateInput(String icon, IconCssStyle style, Boolean isBasic) {
-        Validate.notNull(icon, "no icon class");
+//        Validate.notNull(icon, "no icon class");  //TODO: why would we need this to be validated?
         Validate.notNull(style, "no icon style");
+
+        if (icon == null) {
+            return "";
+        }
 
         if (isBasic && icon.equals(GuiStyleConstants.EVO_CROW_ICON) && style instanceof LayeredIconCssStyle) {
             return "font-size-130-per";

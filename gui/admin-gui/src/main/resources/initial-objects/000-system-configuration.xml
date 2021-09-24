@@ -371,11 +371,11 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
-                <identifier>single-bulk-action-tasks-view</identifier>
+                <identifier>import-resource-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000508" relation="org:default" type="c:ArchetypeType"/>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000509" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
@@ -383,7 +383,7 @@
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000509" relation="org:default" type="c:ArchetypeType"/>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000510" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
@@ -437,6 +437,7 @@
             <objectDetailsPage>
                 <type>c:TaskType</type>
                 <container>
+                    <identifier>advanced-options</identifier>
                     <displayOrder>150</displayOrder>
                     <display>
                         <label>Advanced options</label>
@@ -455,6 +456,7 @@
                     </item>
                 </container>
                 <container>
+                    <identifier>operaional-attributes</identifier>
                     <displayOrder>900</displayOrder>
                     <display>
                         <label>Operational attributes (state)</label>
@@ -529,6 +531,7 @@
                 <container>
                     <displayOrder>910</displayOrder>
                     <visibility>hidden</visibility>
+                    <identifier>operation-attributes-progress</identifier>
                     <display>
                         <label>Operational attributes (progress)</label>
                     </display>

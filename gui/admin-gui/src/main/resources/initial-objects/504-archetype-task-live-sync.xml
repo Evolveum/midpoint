@@ -67,7 +67,18 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-live-sync</identifier>
+                            <path>activity/work/liveSynchronization</path>
+                        </container>
+                    </panel>
+                </panel>
                 <container>
+                    <identifier>objects-to-synchronize</identifier>
                     <display>
                         <label>LiveSynchronizationTask.objectsToSynchronize</label>
                     </display>
@@ -85,6 +96,7 @@
                     </item>
                 </container>
                 <container>
+                    <identifier>synchronization-options</identifier>
                     <display>
                         <label>LiveSynchronizationTask.synchronizationOptions</label>
                     </display>
@@ -109,19 +121,6 @@
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
     <inducement>
         <focusMappings>
             <mapping>

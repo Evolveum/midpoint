@@ -131,7 +131,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     protected static final String ID_CONTAINER_MEMBER = "memberContainer";
     protected static final String ID_MEMBER_TABLE = "memberTable";
 
-    private GuiObjectListPanelConfigurationType additionalPanelConfig;
+    private SearchBoxConfigurationType additionalPanelConfig;
 
     private static final Map<QName, Map<String, String>> AUTHORIZATIONS = new HashMap<>();
     private static final Map<QName, UserProfileStorage.TableId> TABLES_ID = new HashMap<>();
@@ -149,6 +149,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         AUTHORIZATIONS.put(OrgType.COMPLEX_TYPE, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
         AUTHORIZATIONS.put(ArchetypeType.COMPLEX_TYPE, GuiAuthorizationConstants.ARCHETYPE_MEMBERS_AUTHORIZATIONS);
     }
+
+    private CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration;
 
     public AbstractRoleMemberPanel(String id, FocusDetailsModels<R> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -175,7 +177,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
         //TODO QName defines a relation value which will be used for new member creation
         MainObjectListPanel<AH> childrenListPanel = new MainObjectListPanel<>(
-                ID_MEMBER_TABLE, getDefaultObjectTypeClass(), getSearchOptions()) {
+                ID_MEMBER_TABLE, getDefaultObjectTypeClass(), getSearchOptions(), getPanelConfiguration()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -224,7 +226,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             protected SelectableBeanObjectDataProvider<AH> createProvider() {
                 SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(() -> getCustomizedQuery(getSearchModel().getObject()), null);
-                provider.setIsMemberPanel(true);
                 provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleMemberPanel.this.getModelObject());
                 return provider;
             }
@@ -258,9 +259,43 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 return loadMultiFunctionalButtonModel(true);
             }
 
+            @Override
+            public ContainerPanelConfigurationType getPanelConfiguration() {
+                return AbstractRoleMemberPanel.this.getPanelConfiguration();
+            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
+    }
+
+    private CompiledObjectCollectionView getCompiledCollectionViewFromPanelConfiguration() {
+        if (compiledCollectionViewFromPanelConfiguration != null) {
+            return compiledCollectionViewFromPanelConfiguration;
+        }
+        if (getPanelConfiguration() == null) {
+            return null;
+        }
+        if (getPanelConfiguration().getListView() == null) {
+            return null;
+        }
+        CollectionRefSpecificationType collectionRefSpecificationType = getPanelConfiguration().getListView().getCollection();
+
+        if (collectionRefSpecificationType == null) {
+            compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
+            getPageBase().getModelInteractionService().applyView(compiledCollectionViewFromPanelConfiguration, getPanelConfiguration().getListView());
+            return null;
+        }
+        Task task = getPageBase().createSimpleTask("Compile collection");
+        OperationResult result = task.getResult();
+        try {
+            compiledCollectionViewFromPanelConfiguration = getPageBase().getModelInteractionService().compileObjectCollectionView(collectionRefSpecificationType, AssignmentType.class, task, result);
+        } catch (Throwable e) {
+            LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}", getPanelConfiguration(), e.getMessage(), e);
+            result.recordFatalError("Cannot compile object collection view for panel configuration " + getPanelConfiguration() + ". Reason: " + e.getMessage(), e);
+            getPageBase().showResult(result);
+        }
+        return compiledCollectionViewFromPanelConfiguration;
+
     }
 
     private <AH extends AssignmentHolderType> Class<AH> getDefaultObjectTypeClass() {
@@ -283,8 +318,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
         search.addCompositedSpecialItem(createMemberSearchPanel(search, memberPanelStorage));
 
-        if (additionalPanelConfig != null && additionalPanelConfig.getSearchBoxConfiguration() != null){
-            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.getSearchBoxConfiguration().isAllowToConfigureSearchItems()));
+        if (additionalPanelConfig != null){
+            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
         }
         return search;
     }
@@ -355,8 +390,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private String createStorageKey() {
         UserProfileStorage.TableId tableId = getTableId(getComplexTypeQName());
-//        GuiObjectListPanelConfigurationType view = getAdditionalPanelConfig();
-        String collectionName = additionalPanelConfig != null ? ("_" + additionalPanelConfig.getIdentifier()) : "";
+        String collectionName = getPanelConfiguration() != null ? ("_" + getPanelConfiguration().getIdentifier()) : "";
         return tableId.name() + "_" + getStorageKeyTabSuffix() + collectionName;
     }
 
@@ -659,12 +693,17 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
 
 
-    protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig() {
+    protected SearchBoxConfigurationType getAdditionalPanelConfig() {
+        CompiledObjectCollectionView collectionViewFromPanelConfig = getCompiledCollectionViewFromPanelConfiguration();
+        if (collectionViewFromPanelConfig != null) {
+            return collectionViewFromPanelConfig.getSearchBoxConfiguration();
+        }
         CompiledObjectCollectionView view = WebComponentUtil.getCollectionViewByObject(getModelObject(), getPageBase());
         if (view != null && view.getAdditionalPanels() != null) {
-            return view.getAdditionalPanels().getMemberPanel();
+            GuiObjectListPanelConfigurationType config = view.getAdditionalPanels().getMemberPanel();
+            return config == null ? new SearchBoxConfigurationType() : config.getSearchBoxConfiguration();
         }
-        return null;
+        return new SearchBoxConfigurationType();
     }
 
     private boolean isAuthorized(String action) {
@@ -1039,15 +1078,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), relations))
                 .build();
     }
-
-//    protected void detailsPerformed(ObjectType object) {
-//        if (WebComponentUtil.hasDetailsPage(object.getClass())) {
-//            WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
-//        } else {
-//            error("Could not find proper response page");
-//            throw new RestartResponseException(getPageBase());
-//        }
-//    }
 
     private Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
         return SelectorOptions.createCollection(GetOperationOptions.createDistinct());

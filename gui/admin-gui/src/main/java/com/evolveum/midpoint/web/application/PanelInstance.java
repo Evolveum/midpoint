@@ -15,6 +15,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Collection;
+import java.util.List;
 
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PanelInstance {
@@ -49,7 +51,7 @@ public @interface PanelInstance {
     boolean defaultPanel() default false;
 
     //probably should be removed
-    Class<? extends ObjectType> notApplicableFor() default SystemConfigurationType.class;
+    Class<? extends ObjectType>[] excludeTypes() default { };
 
     /**
      * Defined display parameters for the panels, such as an icon, label, display oreder...

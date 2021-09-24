@@ -13,16 +13,24 @@ import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelInstances;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "basic", defaultContainerPath = "empty")
-@PanelInstance(identifier = "basic",
-        applicableForType = AssignmentHolderType.class,
-        defaultPanel = true,
-        notApplicableFor = ResourceType.class,
-        display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
+@PanelInstances(instances = {
+        @PanelInstance(identifier = "basic",
+                applicableForType = FocusType.class,
+                excludeTypes = {TaskType.class, ResourceType.class},
+                defaultPanel = true,
+                display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)),
+        @PanelInstance(identifier = "basic",
+                applicableForType = CaseType.class,
+                defaultPanel = true,
+                display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 30))
+}
+)
 public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_MAIN_PANEL = "properties";

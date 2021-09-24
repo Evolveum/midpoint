@@ -99,6 +99,7 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
             propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
 
             virtualContainers = mergeVirtualContainers(propertiesPanelConfiguration.getContainer(), compiledPageType.getContainer());
+            MiscSchemaUtil.sortFeaturesPanels(virtualContainers);
             propertiesPanelConfiguration.getContainer().clear();
             propertiesPanelConfiguration.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(virtualContainers));
         }
@@ -134,6 +135,10 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         DisplayType mergedDisplayType = mergeDisplayType(configuredPanel.getDisplay(), mergedPanel.getDisplay());
         mergedPanel.setDisplay(mergedDisplayType);
 
+        if (configuredPanel.getDisplayOrder() != null) {
+            mergedPanel.setDisplayOrder(configuredPanel.getDisplayOrder());
+        }
+
         if (configuredPanel.getPath() != null) {
             mergedPanel.setPath(configuredPanel.getPath());
         }
@@ -154,6 +159,10 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
         if (configuredPanel.getVisibility() != null) {
             mergedPanel.setVisibility(configuredPanel.getVisibility());
+        }
+
+        if (configuredPanel.isDefault() != null) {
+            mergedPanel.setDefault(configuredPanel.isDefault());
         }
 
         if (!configuredPanel.getPanel().isEmpty()) {
