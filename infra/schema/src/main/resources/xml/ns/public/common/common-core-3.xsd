@@ -20370,37 +20370,21 @@
                     <a:version>4.2</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:reportEngine</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:jasper</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="reportEngine" type="tns:ReportEngineSelectionType" default="jasper" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Selects which report engine should be used to render this report.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.0</a:since>
-                                <a:displayName>ReportType.reportEngine</a:displayName>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="jasper" type="tns:JasperReportEngineConfigurationType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Configuration for jasper-based reports. Only applicable if reportEngine=jasper.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.0</a:since>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
 
                     <xsd:element name="dashboard" type="tns:DashboardReportEngineConfigurationType" minOccurs="0">
                         <xsd:annotation>
