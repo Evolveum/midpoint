@@ -15,9 +15,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.TaskOperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -104,6 +102,11 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
 
             protected int getRefreshInterval() {
                 return PageTask.this.getRefreshInterval();
+            }
+
+            @Override
+            protected void savePerformed(AjaxRequestTarget target) {
+                PageTask.this.savePerformed(target);
             }
         };
     }
