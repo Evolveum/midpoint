@@ -7,6 +7,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -26,7 +27,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 @PanelType(name = "applicablePolicies")
 @PanelInstance(identifier = "applicablePolicies",
         applicableForType = AbstractRoleType.class,
-        display = @PanelDisplay(label = "pageAdminFocus.applicablePolicies", order = 60))
+        display = @PanelDisplay(label = "pageAdminFocus.applicablePolicies", icon = GuiStyleConstants.CLASS_APPLICABLE_POLICY_ICON , order = 60))
 public class FocusApplicablePoliciesPanel<AR extends AbstractRoleType> extends AbstractObjectMainPanel<AR, FocusDetailsModels<AR>> {
     private static final long serialVersionUID = 1L;
 

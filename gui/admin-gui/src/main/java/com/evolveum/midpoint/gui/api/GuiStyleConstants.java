@@ -254,4 +254,10 @@ public class GuiStyleConstants {
     public static final String CLASS_TASK_STATISTICS_ICON = "fa fa-line-chart";
     public static final String CLASS_TASK_ERRORS_ICON = "fa fa-exclamation-circle";
     public static final String CLASS_TASK_ACTIVITY_ICON = "fa fa-cog";
+
+    public static final String CLASS_GROUP_ICON = "fa fa-users";
+    public static final String CLASS_APPLICABLE_POLICY_ICON = "fa fa-share-alt";
+    public static final String CLASS_LIFECYCLE_ICON = "fa fa-recycle";
+    public static final String CLASS_TRIGGER_ICON = "fa fa-calendar-check-o";
+    public static final String CLASS_PASSWORD_ICON = "fa fa-key";
 }

@@ -89,27 +89,27 @@ import java.util.*;
         @PanelInstance(identifier = "roleMembers",
                 applicableForType = RoleType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", order = 80)),
+                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80)),
         @PanelInstance(identifier = "roleGovernance",
                 applicableForType = RoleType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", order = 90)),
+                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90)),
         @PanelInstance(identifier = "serviceMembers",
                 applicableForType = ServiceType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", order = 80)),
+                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80)),
         @PanelInstance(identifier = "serviceGovernance",
                 applicableForType = ServiceType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", order = 90)),
+                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90)),
         @PanelInstance(identifier = "archetypeMembers",
                 applicableForType = ArchetypeType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.members", order = 80)),
+                display = @PanelDisplay(label = "pageRole.members", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 80)),
         @PanelInstance(identifier = "archetypeGovernance",
                 applicableForType = ArchetypeType.class,
                 applicableForOperation = OperationTypeType.MODIFY,
-                display = @PanelDisplay(label = "pageRole.governance", order = 90))
+                display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 90))
 })
 @PanelDisplay(label = "Members", order = 60)
 public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends AbstractObjectMainPanel<R, FocusDetailsModels<R>> {
