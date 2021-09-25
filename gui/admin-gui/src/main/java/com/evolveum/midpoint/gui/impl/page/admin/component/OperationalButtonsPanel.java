@@ -26,10 +26,12 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -89,6 +91,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 editRawPerformed(ajaxRequestTarget);
             }
         };
+        edit.add(new VisibleBehaviour(()->isEditingObject()));
         edit.showTitleAsLabel(true);
         edit.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         repeatingView.add(edit);
@@ -120,6 +123,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 deletePerformed(ajaxRequestTarget);
             }
         };
+        remove.add(new VisibleBehaviour(()->isEditingObject()));
         remove.showTitleAsLabel(true);
         remove.add(AttributeAppender.append("class", "btn btn-danger btn-sm"));
         repeatingView.add(remove);
@@ -259,5 +263,9 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     public O getObjectType() {
         return getPrismObject().asObjectable();
+    }
+
+    protected boolean isEditingObject() {
+        return StringUtils.isNoneEmpty(getModelObject().getOid());
     }
 }

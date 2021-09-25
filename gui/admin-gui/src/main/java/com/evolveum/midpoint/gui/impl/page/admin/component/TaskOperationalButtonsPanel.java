@@ -14,22 +14,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.component.*;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
-
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -37,34 +24,48 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.server.LivesyncTokenEditorPanel;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButtonsPanel<TaskType> {
 
@@ -75,7 +76,9 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String OPERATION_LOAD_REPORT_OUTPUT = DOT_CLASS + "loadReport";
 
     private static final String ID_TASK_BUTTONS = "taskButtons";
+    private static final String ID_TASK_BUTTONS_CONTAINER = "taskButtonsContainer";
     private static final String ID_REFRESHING_BUTTONS = "refreshingButtons";
+    private static final String ID_REFRESHING_BUTTONS_CONTAINER = "refreshingButtonsContainer";
 
     private Boolean refreshEnabled;
 
@@ -183,8 +186,13 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     private void initLayout() {
+        WebMarkupContainer taskButtonsContainer = new WebMarkupContainer(ID_TASK_BUTTONS_CONTAINER);
+        taskButtonsContainer.add(new VisibleBehaviour(() -> isEditingObject()));
+        taskButtonsContainer.setOutputMarkupId(true);
+        add(taskButtonsContainer);
+
         RepeatingView taskButtons = new RepeatingView(ID_TASK_BUTTONS);
-        add(taskButtons);
+        taskButtonsContainer.add(taskButtons);
 
         createSuspendButton(taskButtons);
         createResumeButton(taskButtons);
@@ -195,10 +203,16 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         createCleanupPerformanceButton(taskButtons);
         createCleanupResultsButton(taskButtons);
 
+        WebMarkupContainer refreshingButtonsContainer = new WebMarkupContainer(ID_REFRESHING_BUTTONS_CONTAINER);
+        refreshingButtonsContainer.add(new VisibleBehaviour(() -> isEditingObject()));
+        refreshingButtonsContainer.setOutputMarkupId(true);
+        add(refreshingButtonsContainer);
+
         RepeatingView refreshingButtons = new RepeatingView(ID_REFRESHING_BUTTONS);
         initRefreshingButtons(refreshingButtons);
         add(refreshingButtons);
-        refreshingButtons.add(new VisibleBehaviour(() -> getModelObject().getStatus() == ItemStatus.NOT_CHANGED));
+        refreshingButtonsContainer.add(refreshingButtons);
+
 
     }
 

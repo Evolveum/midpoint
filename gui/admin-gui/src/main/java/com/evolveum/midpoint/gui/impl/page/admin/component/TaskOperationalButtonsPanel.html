@@ -9,12 +9,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <wicket:extend>
-        <fieldset class="objectButtons col-lg-2">
+        <fieldset wicket:id="taskButtonsContainer" class="objectButtons col-lg-2">
             <legend>Task related operations</legend>
             <span class="btn btn-sm btn-margin-right" wicket:id="taskButtons"/>
         </fieldset>
-        <fieldset class="objectButtons col-lg-2">
-            <legend>refreshing buttons</legend>
+        <fieldset wicket:id="refreshingButtonsContainer" class="objectButtons col-lg-2">
+            <legend>Refreshing buttons</legend>
             <span class="btn btn-default btn-sm btn-margin-right" wicket:id="refreshingButtons"/>
         </fieldset>
     </wicket:extend>
