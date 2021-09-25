@@ -1685,4 +1685,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         rot();
         state.clearSecondaryDelta();
     }
+
+    /** Assumes that the resource is loaded. */
+    public boolean isInMaintenance() {
+        return ResourceTypeUtil.isInMaintenance(resource);
+    }
 }

@@ -52,6 +52,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
     @NotNull private final LensProjectionContext projCtx;
     @NotNull private final String reason;
     @NotNull private final Task task;
+    private final boolean noDiscovery;
     @NotNull private final ModelBeans beans;
 
     private FullShadowLoadedTraceType trace;
@@ -60,11 +61,13 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
             @NotNull LensContext<F> context,
             @NotNull LensProjectionContext projCtx,
             @NotNull String reason,
+            boolean noDiscovery,
             @NotNull Task task) {
         this.context = context;
         this.projCtx = projCtx;
         this.reason = reason;
         this.task = task;
+        this.noDiscovery = noDiscovery;
         this.beans = ModelBeans.get();
     }
 
@@ -159,15 +162,19 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
         if (projCtx.isDoReconciliation()) {
             getOptions.setForceRefresh(true);
         }
-        if (SchemaConstants.CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
-            LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops; reason: {}",
-                    projCtx, reason);
-            // Avoid discovery loops
+        String discoveryDescription;
+        if (noDiscovery) {
             getOptions.setDoNotDiscovery(true);
+            discoveryDescription = "no discovery - on caller request";
+        } else if (SchemaConstants.CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
+            getOptions.setDoNotDiscovery(true);
+            discoveryDescription = "no discovery - to avoid loops";
         } else {
-            LOGGER.trace("Loading full resource object {} from provisioning (discovery enabled), reason: {}, channel: {}",
-                    projCtx, reason, context.getChannel());
+            discoveryDescription = "discovery enabled";
         }
+        LOGGER.trace("Loading full resource object {} from provisioning ({}) as requested; reason: {}",
+                projCtx, discoveryDescription, reason);
+
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
         addRetrievePasswordIfNeeded(options);
         return options;

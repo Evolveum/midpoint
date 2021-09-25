@@ -863,7 +863,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        traced(() -> assignAccountToUser(user.getOid(), RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID, INTENT_DEFAULT, task, result));
+        assignAccountToUser(user.getOid(), RESOURCE_DUMMY_MULTI_OUTBOUND_SIMPLE_OID, INTENT_DEFAULT, task, result);
 
         then();
 
