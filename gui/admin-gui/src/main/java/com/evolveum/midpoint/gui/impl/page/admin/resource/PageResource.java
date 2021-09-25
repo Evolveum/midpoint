@@ -70,6 +70,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Assi
 
             @Override
             protected void refreshStatus(AjaxRequestTarget target) {
+                target.add(PageResource.this.get(ID_DETAILS_VIEW));
                 PageResource.this.refresh(target);
 //                target.add(getDetailsPanel());
             }

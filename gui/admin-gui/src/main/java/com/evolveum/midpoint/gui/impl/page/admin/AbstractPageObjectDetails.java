@@ -339,13 +339,23 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
-        //TODO support for second level panel as a default, e.g. assignment -> role
-        Optional<ContainerPanelConfigurationType> basicPanelConfig = getPanelConfigurations().getObject().stream().filter(panel -> BooleanUtils.isTrue(panel.isDefault())).findFirst();
-        if (basicPanelConfig.isPresent()) {
-            return basicPanelConfig.get();
-        }
+        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject());
 
+        if (defaultConfiguration != null) {
+            return defaultConfiguration;
+        }
         return getPanelConfigurations().getObject().stream().findFirst().get();
+    }
+
+    private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
+        List<ContainerPanelConfigurationType> subConfigs = new ArrayList<>();
+        for (ContainerPanelConfigurationType config : configs) {
+            if (BooleanUtils.isTrue(config.isDefault())) {
+                return config;
+            }
+            subConfigs.addAll(config.getPanel());
+        }
+        return findDefaultConfiguration(subConfigs);
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {

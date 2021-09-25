@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @PanelType(name = "taskBasic", defaultContainerPath = "empty")
-@PanelInstance(identifier = "taskBasic", applicableForType = TaskType.class, defaultPanel = true,
+@PanelInstance(identifier = "taskBasic", applicableForType = TaskType.class,
         display = @PanelDisplay(label = "pageAdminFocus.basic", order = 10))
 public class TaskBasicPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
 

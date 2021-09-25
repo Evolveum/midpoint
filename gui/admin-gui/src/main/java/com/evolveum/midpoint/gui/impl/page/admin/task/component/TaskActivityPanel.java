@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
 @PanelType(name = "activity", defaultContainerPath = "activity")
-@PanelInstance(identifier = "activity", applicableForType = TaskType.class, defaultPanel = true,
+@PanelInstance(identifier = "activity", applicableForType = TaskType.class,
         display = @PanelDisplay(label = "TaskType.activity", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 15))
 public class TaskActivityPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 

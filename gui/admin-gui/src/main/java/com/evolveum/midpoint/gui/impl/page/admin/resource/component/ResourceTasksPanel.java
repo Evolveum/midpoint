@@ -68,27 +68,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Ob
 
     public ResourceTasksPanel(String id, final ObjectDetailsModels<ResourceType> resourceModel, ContainerPanelConfigurationType config) {
         super(id, resourceModel, config);
-//        this.resourceModel = resourceModel;
-
-//        ListModel<TaskType> model = createTaskModel();
-//        initLayout();
     }
-
-//    private ListModel<TaskType> createTaskModel() {
-//        OperationResult result = new OperationResult(OPERATION_LOAD_TASKS);
-//        List<PrismObject<TaskType>> tasks = WebModelServiceUtils
-//                .searchObjects(TaskType.class,
-//                        getPageBase().getPrismContext().queryFor(TaskType.class)
-//                                .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
-//                                .build(),
-//                        result, getPageBase());
-//        List<TaskType> tasksType = new ArrayList<>();
-//        for (PrismObject<TaskType> task : tasks) {
-//            tasksType.add(task.asObjectable());
-//        }
-//        return new ListModel<>(tasksType);
-//
-//    }
 
     protected void initLayout() {
         final MainObjectListPanel<TaskType> tasksPanel =
@@ -100,21 +80,10 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Ob
                         return UserProfileStorage.TableId.PAGE_RESOURCE_TASKS_PANEL;
                     }
 
-//                    @Override
-//                    protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
-//                        return new SelectableListDataProvider<>(pageBase, tasks);
-//                    }
-
                     @Override
                     protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
                         return createSelectableBeanObjectDataProvider(() -> createResourceTasksQuery(), null);
                     }
-
-//                    @Override
-//                    protected ObjectQuery getCustomizeContentQuery() {
-//                        return
-//
-//                    }
 
                     @Override
                     protected List<InlineMenuItem> createInlineMenu() {

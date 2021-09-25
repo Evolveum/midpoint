@@ -11,8 +11,8 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -99,22 +99,20 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
     protected void initLayout() {
 
-        PrismObject<ResourceType> resourceObject = getObjectWrapper().getObject();
-        ResourceType resource = resourceObject.asObjectable();
+//        PrismObject<ResourceType> resourceObject = getObjectWrapper().getObject();
+//        ResourceType resource = resourceObject.asObjectable();
 
-        add(createLastAvailabilityStatusInfo(resource));
+        add(createLastAvailabilityStatusInfo());
 
-        add(createSourceTargetInfo(resource));
+        add(createSourceTargetInfo());
 
-        add(createSchemaStatusInfo(resource));
+        add(createSchemaStatusInfo());
 
         CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, capabilitiesModel);
         add(capabilities);
 
-        List<ResourceConfigurationDto> resourceConfigList = createResourceConfigList(resource);
-
         ListDataProvider<ResourceConfigurationDto> resourceConfigProvider = new ListDataProvider<>(
-                ResourceDetailsTabPanel.this, new ListModel<>(resourceConfigList));
+                ResourceDetailsTabPanel.this, createResourceConfigListModel());
 
         List<ColumnTypeDto<String>> columns = Arrays.asList(
                 new ColumnTypeDto<>("ShadowType.kind", "objectTypeDefinition.kind",
@@ -161,54 +159,58 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
     }
 
-    private List<ResourceConfigurationDto> createResourceConfigList(ResourceType resource) {
-        OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
+    private ReadOnlyModel<List<ResourceConfigurationDto>> createResourceConfigListModel() {
+        return new ReadOnlyModel<>(() -> {
 
-        List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
-                getPageBase().getPrismContext().queryFor(TaskType.class)
-                        .item(TaskType.F_OBJECT_REF).ref(resource.getOid())
-                        .and()
-                        .item(TaskType.F_PARENT).isNull()
-                        .build(),
-                result, getPageBase());
+            ResourceType resource = getObjectDetailsModels().getObjectType();
+            OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
 
-        List<ResourceConfigurationDto> configs = new ArrayList<>();
+            List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
+                    getPageBase().getPrismContext().queryFor(TaskType.class)
+                            .item(TaskType.F_OBJECT_REF).ref(resource.getOid())
+                            .and()
+                            .item(TaskType.F_PARENT).isNull()
+                            .build(),
+                    result, getPageBase());
 
-        if (resource.getSchemaHandling() == null) {
-            return configs;
-        }
+            List<ResourceConfigurationDto> configs = new ArrayList<>();
 
-        List<ResourceObjectTypeDefinitionType> objectTypes = resource.getSchemaHandling().getObjectType();
-
-        if (objectTypes == null) {
-            return configs;
-        }
-
-        try {
-            for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
-                ObjectSynchronizationType obejctSynchronization = null;
-                if (resource.getSynchronization() != null
-                        && resource.getSynchronization().getObjectSynchronization() != null) {
-
-                    obejctSynchronization = getSynchronizationFor(objectType,
-                            resource.getSynchronization().getObjectSynchronization(),
-                            resource.asPrismObject());
-
-                }
-                List<TaskType> syncTask = new ArrayList<>();
-                if (obejctSynchronization != null) {
-                    syncTask = getTaskFor(tasks, obejctSynchronization, resource.asPrismObject());
-                }
-
-                ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType,
-                        obejctSynchronization != null, syncTask);
-                configs.add(resourceConfig);
+            if (resource.getSchemaHandling() == null) {
+                return configs;
             }
-        } catch (SchemaException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Could not determine resource configuration", ex);
-        }
 
-        return configs;
+            List<ResourceObjectTypeDefinitionType> objectTypes = resource.getSchemaHandling().getObjectType();
+
+            if (objectTypes == null) {
+                return configs;
+            }
+
+            try {
+                for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
+                    ObjectSynchronizationType obejctSynchronization = null;
+                    if (resource.getSynchronization() != null
+                            && resource.getSynchronization().getObjectSynchronization() != null) {
+
+                        obejctSynchronization = getSynchronizationFor(objectType,
+                                resource.getSynchronization().getObjectSynchronization(),
+                                resource.asPrismObject());
+
+                    }
+                    List<TaskType> syncTask = new ArrayList<>();
+                    if (obejctSynchronization != null) {
+                        syncTask = getTaskFor(tasks, obejctSynchronization, resource.asPrismObject());
+                    }
+
+                    ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType,
+                            obejctSynchronization != null, syncTask);
+                    configs.add(resourceConfig);
+                }
+            } catch (SchemaException ex) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Could not determine resource configuration", ex);
+            }
+
+            return configs;
+        });
     }
 
     private void taskDetailsPerformed(AjaxRequestTarget target, String taskOid) {
@@ -217,103 +219,112 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         ((PageBase) getPage()).navigateToNext(PageTask.class, parameters);
     }
 
-    private BasicInfoBoxPanel createSourceTargetInfo(ResourceType resource) {
-
-        String backgroundColor = "bg-aqua";
-        SourceTarget sourceTarget = determineIfSourceOrTarget(resource);
-
-        String numberKey;
-        switch (sourceTarget) {
-            case SOURCE:
-                numberKey = "PageResource.resource.source";
-                break;
-            case TARGET:
-                numberKey = "PageResource.resource.target";
-                break;
-            case SOURCE_TARGET:
-                numberKey = "PageResource.resource.sourceAndTarget";
-                break;
-
-            default:
-                backgroundColor = "bg-gray";
-                numberKey = "PageResource.resource.noMappings";
-                break;
-        }
-
-        InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(),
-                getPageBase().getString("PageResource.resource.mappings"));
-        infoBoxType.setNumber(getPageBase().getString(numberKey));
-
-        if (isSynchronizationDefined(resource)) {
-            infoBoxType.setDescription(getPageBase().getString("PageResource.resource.sync"));
-        }
-
-        Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
-
-        return new BasicInfoBoxPanel(ID_SOURCE_TARGET, boxModel);
+    private BasicInfoBoxPanel createSourceTargetInfo() {
+        return new BasicInfoBoxPanel(ID_SOURCE_TARGET, createSourceTargetInfoBoxModel());
 
     }
 
-    private InfoBoxPanel createLastAvailabilityStatusInfo(ResourceType resource) {
+    private ReadOnlyModel<InfoBoxType> createSourceTargetInfoBoxModel() {
+        return new ReadOnlyModel<>(() -> {
 
-        String messageKey = "PageResource.resource.availabilityUnknown";
-        String backgroundColor = "bg-gray";
-        String icon = "fa fa-question";
+            ResourceType resource = getObjectDetailsModels().getObjectType();
+            String backgroundColor = "bg-aqua";
+            SourceTarget sourceTarget = determineIfSourceOrTarget(resource);
 
-        OperationalStateType operationalState = resource.getOperationalState();
-        AdministrativeOperationalStateType administrativeOperationalState = resource.getAdministrativeOperationalState();
-        boolean inMaintenance = false;
+            String numberKey;
+            switch (sourceTarget) {
+                case SOURCE:
+                    numberKey = "PageResource.resource.source";
+                    break;
+                case TARGET:
+                    numberKey = "PageResource.resource.target";
+                    break;
+                case SOURCE_TARGET:
+                    numberKey = "PageResource.resource.sourceAndTarget";
+                    break;
 
-        if (administrativeOperationalState != null) {
-            AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
-            if (administrativeAvailabilityStatus == AdministrativeAvailabilityStatusType.MAINTENANCE) {
-                messageKey = "PageResource.resource.maintenance";
-                backgroundColor = "bg-gray";
-                icon = "fa fa-wrench";
-                inMaintenance = true;
+                default:
+                    backgroundColor = "bg-gray";
+                    numberKey = "PageResource.resource.noMappings";
+                    break;
             }
-        }
-        if (operationalState != null && !inMaintenance) {
-            AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
-            if (lastAvailabilityStatus != null) {
-                if (lastAvailabilityStatus == AvailabilityStatusType.UP) {
-                    messageKey = "PageResource.resource.up";
-                    backgroundColor = "bg-green";
-                    icon = "fa fa-power-off";
-                } else if (lastAvailabilityStatus == AvailabilityStatusType.DOWN) {
-                    backgroundColor = "bg-red";
-                    messageKey = "PageResource.resource.down";
-                    icon = "fa fa-ban";
-                } else if (lastAvailabilityStatus == AvailabilityStatusType.BROKEN) {
-                    backgroundColor = "bg-yellow";
-                    messageKey = "PageResource.resource.broken";
-                    icon = "fa fa-warning";
-                }
+
+            InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(),
+                    getPageBase().getString("PageResource.resource.mappings"));
+            infoBoxType.setNumber(getPageBase().getString(numberKey));
+
+            if (isSynchronizationDefined(resource)) {
+                infoBoxType.setDescription(getPageBase().getString("PageResource.resource.sync"));
             }
-        }
 
-        InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, getPageBase().getString(messageKey));
+            return infoBoxType;
+        });
+    }
 
-        ConnectorType connectorType = getConnectorType(resource);
-        if (connectorType == null) {
-            // Connector not found. Probably bad connectorRef reference.
-            infoBoxType.setNumber("--");
-            infoBoxType.setDescription("--");
-        } else {
-            String connectorName = StringUtils.substringAfterLast(
-                    WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), ".");
-            String connectorVersion = connectorType.getConnectorVersion();
-            infoBoxType.setNumber(connectorName);
-            infoBoxType.setDescription(connectorVersion);
-        }
+    private InfoBoxPanel createLastAvailabilityStatusInfo() {
 
-        Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
-
-        InfoBoxPanel lastAvailabilityStatus = new BasicInfoBoxPanel(ID_LAST_AVAILABILITY_STATUS, boxModel);
+        InfoBoxPanel lastAvailabilityStatus = new BasicInfoBoxPanel(ID_LAST_AVAILABILITY_STATUS, createAvailabilityStatusInfoBoxModel());
         lastAvailabilityStatus.setOutputMarkupId(true);
 
         return lastAvailabilityStatus;
 
+    }
+
+    private ReadOnlyModel<InfoBoxType> createAvailabilityStatusInfoBoxModel() {
+        return new ReadOnlyModel<>(() -> {
+            String messageKey = "PageResource.resource.availabilityUnknown";
+            String backgroundColor = "bg-gray";
+            String icon = "fa fa-question";
+
+            ResourceType resource = getObjectDetailsModels().getObjectType();
+            OperationalStateType operationalState = resource.getOperationalState();
+            AdministrativeOperationalStateType administrativeOperationalState = resource.getAdministrativeOperationalState();
+            boolean inMaintenance = false;
+
+            if (administrativeOperationalState != null) {
+                AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
+                if (administrativeAvailabilityStatus == AdministrativeAvailabilityStatusType.MAINTENANCE) {
+                    messageKey = "PageResource.resource.maintenance";
+                    backgroundColor = "bg-gray";
+                    icon = "fa fa-wrench";
+                    inMaintenance = true;
+                }
+            }
+            if (operationalState != null && !inMaintenance) {
+                AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
+                if (lastAvailabilityStatus != null) {
+                    if (lastAvailabilityStatus == AvailabilityStatusType.UP) {
+                        messageKey = "PageResource.resource.up";
+                        backgroundColor = "bg-green";
+                        icon = "fa fa-power-off";
+                    } else if (lastAvailabilityStatus == AvailabilityStatusType.DOWN) {
+                        backgroundColor = "bg-red";
+                        messageKey = "PageResource.resource.down";
+                        icon = "fa fa-ban";
+                    } else if (lastAvailabilityStatus == AvailabilityStatusType.BROKEN) {
+                        backgroundColor = "bg-yellow";
+                        messageKey = "PageResource.resource.broken";
+                        icon = "fa fa-warning";
+                    }
+                }
+            }
+
+            InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, getPageBase().getString(messageKey));
+
+            ConnectorType connectorType = getConnectorType(resource);
+            if (connectorType == null) {
+                // Connector not found. Probably bad connectorRef reference.
+                infoBoxType.setNumber("--");
+                infoBoxType.setDescription("--");
+            } else {
+                String connectorName = StringUtils.substringAfterLast(
+                        WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), ".");
+                String connectorVersion = connectorType.getConnectorVersion();
+                infoBoxType.setNumber(connectorName);
+                infoBoxType.setDescription(connectorVersion);
+            }
+            return infoBoxType;
+        });
     }
 
     private ConnectorType getConnectorType(ResourceType resource) {
@@ -334,56 +345,61 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         return object.asObjectable();
     }
 
-    private InfoBoxPanel createSchemaStatusInfo(ResourceType resource) {
+    private InfoBoxPanel createSchemaStatusInfo() {
 
-        String backgroundColor = "bg-gray";
-        String icon = "fa fa-times";
-        String numberMessage;
-        String description = null;
+        return new BasicInfoBoxPanel(ID_SCHEMA_STATUS, createSchemaStatusInfoBoxModel());
 
-        Integer progress = null;
-        RefinedResourceSchema refinedSchema;
-        try {
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-            if (refinedSchema != null) {
-                backgroundColor = "bg-purple";
-                icon = "fa fa-cubes";
-                int numObjectTypes = 0;
-                List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedSchema
-                        .getRefinedDefinitions();
-                for (RefinedObjectClassDefinition refinedDefinition : refinedDefinitions) {
-                    if (refinedDefinition.getKind() != null) {
-                        numObjectTypes++;
+    }
+
+    private ReadOnlyModel<InfoBoxType> createSchemaStatusInfoBoxModel() {
+        return new ReadOnlyModel<>(() -> {
+            String backgroundColor = "bg-gray";
+            String icon = "fa fa-times";
+            String numberMessage;
+            String description = null;
+
+            ResourceType resource = getObjectDetailsModels().getObjectType();
+            Integer progress = null;
+            RefinedResourceSchema refinedSchema;
+            try {
+                refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+                if (refinedSchema != null) {
+                    backgroundColor = "bg-purple";
+                    icon = "fa fa-cubes";
+                    int numObjectTypes = 0;
+                    List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedSchema
+                            .getRefinedDefinitions();
+                    for (RefinedObjectClassDefinition refinedDefinition : refinedDefinitions) {
+                        if (refinedDefinition.getKind() != null) {
+                            numObjectTypes++;
+                        }
                     }
-                }
-                int numAllDefinitions = refinedDefinitions.size();
-                numberMessage = numObjectTypes + " " + getPageBase().getString("PageResource.resource.objectTypes");
-                if (numAllDefinitions != 0) {
-                    progress = numObjectTypes * 100 / numAllDefinitions;
-                    if (progress > 100) {
-                        progress = 100;
+                    int numAllDefinitions = refinedDefinitions.size();
+                    numberMessage = numObjectTypes + " " + getPageBase().getString("PageResource.resource.objectTypes");
+                    if (numAllDefinitions != 0) {
+                        progress = numObjectTypes * 100 / numAllDefinitions;
+                        if (progress > 100) {
+                            progress = 100;
+                        }
                     }
+                    description = numAllDefinitions + " " + getPageBase().getString("PageResource.resource.schemaDefinitions");
+                } else {
+                    numberMessage = getPageBase().getString("PageResource.resource.noSchema");
                 }
-                description = numAllDefinitions + " " + getPageBase().getString("PageResource.resource.schemaDefinitions");
-            } else {
-                numberMessage = getPageBase().getString("PageResource.resource.noSchema");
+            } catch (SchemaException e) {
+                backgroundColor = "bg-danger";
+                icon = "fa fa-warning";
+                numberMessage = getPageBase().getString("PageResource.resource.schemaError");
             }
-        } catch (SchemaException e) {
-            backgroundColor = "bg-danger";
-            icon = "fa fa-warning";
-            numberMessage = getPageBase().getString("PageResource.resource.schemaError");
-        }
 
-        InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon,
-                getPageBase().getString("PageResource.resource.schema"));
-        infoBoxType.setNumber(numberMessage);
-        infoBoxType.setProgress(progress);
-        infoBoxType.setDescription(description);
+            InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon,
+                    getPageBase().getString("PageResource.resource.schema"));
+            infoBoxType.setNumber(numberMessage);
+            infoBoxType.setProgress(progress);
+            infoBoxType.setDescription(description);
 
-        Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
-
-        return new BasicInfoBoxPanel(ID_SCHEMA_STATUS, boxModel);
-
+            return infoBoxType;
+        });
     }
 
     private ObjectSynchronizationType getSynchronizationFor(

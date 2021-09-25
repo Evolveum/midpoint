@@ -111,7 +111,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 
             @Override
             protected void populateItem(ListItem<InlineMenuItem> item) {
-                initMenuItem(item);
+                populateMenuItem(item);
             }
         };
 
@@ -126,7 +126,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
         return true;
     }
 
-    private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
+    protected void populateMenuItem(ListItem<InlineMenuItem> menuItem) {
         MenuLinkPanel menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel()){
             @Override
             protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
