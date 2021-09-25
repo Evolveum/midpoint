@@ -10,11 +10,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 import static java.util.Collections.singletonList;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -80,6 +82,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String ID_REFRESHING_BUTTONS = "refreshingButtons";
     private static final String ID_REFRESHING_BUTTONS_CONTAINER = "refreshingButtonsContainer";
 
+    private static final int REFRESH_INTERVAL = 2000;
     private Boolean refreshEnabled;
 
     public TaskOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> model) {
@@ -214,6 +217,23 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         refreshingButtonsContainer.add(refreshingButtons);
 
 
+        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(getRefreshInterval())) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                refreshEnabled = null;
+                refresh(target);
+            }
+
+            @Override
+            protected boolean shouldTrigger() {
+                return isRefreshEnabled();
+            }
+        };
+
+        add(behavior);
+
     }
 
     protected void initRefreshingButtons(RepeatingView stateButtonsView) {
@@ -290,10 +310,8 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     protected void afterOperation(AjaxRequestTarget target, OperationResult result) {
-//        taskTabsVisibility = new TaskTabsVisibility();
-//        showResult(result);
-//        getModel().reset();
-//        refresh(target);
+        getPageBase().showResult(result);
+        refresh(target);
     }
 
     private void createManageLivesyncTokenButton(RepeatingView repeatingView) {
@@ -430,7 +448,11 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
     //TODO abstract
     protected boolean isRefreshEnabled() {
-        return false;
+        if (refreshEnabled == null) {
+            return WebComponentUtil.isRunningTask(getObjectType());
+        }
+
+        return refreshEnabled;
     }
 
     protected void refresh(AjaxRequestTarget target) {
@@ -438,7 +460,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     protected int getRefreshInterval() {
-        return 0;
+        return REFRESH_INTERVAL;
     }
 
     private String createRefreshingLabel() {
