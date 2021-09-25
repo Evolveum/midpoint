@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -29,7 +30,7 @@ import java.util.Collections;
  */
 //@PanelType(name = "performance")
 @PanelInstance(identifier = "performance", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageTask.performance.title", order = 50))
+        display = @PanelDisplay(label = "pageTask.performance.title", icon = GuiStyleConstants.CLASS_ICON_PERFORMANCE, order = 50))
 public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

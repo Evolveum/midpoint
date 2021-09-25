@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -53,7 +54,7 @@ import java.util.List;
  */
 @PanelType(name = "subtasks")
 @PanelInstance(identifier = "subtasks", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageTask.subtasks.title", order = 50))
+        display = @PanelDisplay(label = "pageTask.subtasks.title", icon = GuiStyleConstants.CLASS_OBJECT_TASK_ICON, order = 50))
 public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
