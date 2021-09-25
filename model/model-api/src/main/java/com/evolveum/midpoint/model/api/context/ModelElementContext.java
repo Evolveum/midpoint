@@ -86,8 +86,7 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     boolean isAdd();
 
     /**
-     * Returns true if the object (focus or projection) is to be deleted. This is determined
-     * solely by looking at caller's intents (primary delta, sync delta, and/or sync intent).
+     * Returns true if the object (focus or projection) is to be deleted.
      */
     boolean isDelete();
 
