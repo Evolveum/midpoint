@@ -178,6 +178,9 @@ public class ObjectQueryUtil {
 
     public static boolean hasAllDefinitions(ObjectFilter filter) {
         final MutableBoolean hasAllDefinitions = new MutableBoolean(true);
+        if (filter == null) {
+            return hasAllDefinitions.booleanValue();
+        }
         Visitor visitor = f -> {
             if (f instanceof ValueFilter) {
                 ItemDefinition<?> definition = ((ValueFilter<?, ?>) f).getDefinition();
