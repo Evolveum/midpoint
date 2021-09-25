@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -352,9 +353,22 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * Use with care! (This method is 100% safe only when the clockwork has not started.)
      */
     public void addToPrimaryDelta(ObjectDelta<O> delta) throws SchemaException {
-        if (!ObjectDelta.isEmpty(delta)) {
+        if (ObjectDelta.isEmpty(delta)) {
+            // no op
+        } else if (delta.isAdd() || delta.isDelete()) {
+            stateCheck(ObjectDelta.isEmpty(state.getPrimaryDelta()),
+                    "Cannot add ADD or DELETE delta (%s) to existing primary delta (%s)",
+                    delta, state.getPrimaryDelta());
+            state.setPrimaryDelta(delta);
+        } else {
             state.modifyPrimaryDelta(
-                    primaryDelta -> primaryDelta.merge(delta));
+                    primaryDelta -> {
+                        primaryDelta.merge(delta);
+                        // The following should be perhaps included in delta.merge method.
+                        if (primaryDelta.getOid() == null && delta.getOid() != null) {
+                            primaryDelta.setOid(delta.getOid());
+                        }
+                    });
         }
     }
 

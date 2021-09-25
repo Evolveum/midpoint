@@ -63,7 +63,6 @@ public abstract class AbstractTestProjectorPersona extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN

@@ -229,7 +229,7 @@ public class TestClockwork extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
+        context.setStartedIfNotYet();
         while (context.getState() != ModelState.FINAL) {
             display("CLICK START: " + context.getState());
             HookOperationMode mode = clockwork.click(context, task, result);

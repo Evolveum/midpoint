@@ -76,7 +76,6 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -138,7 +137,6 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -169,7 +167,6 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         breakAssignmentDelta(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN

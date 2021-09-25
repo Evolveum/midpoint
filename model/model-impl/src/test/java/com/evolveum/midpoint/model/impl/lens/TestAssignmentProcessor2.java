@@ -301,7 +301,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 a -> a.setActivation(ActivationUtil.createDisabled()), result);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "", task, result);
 
         // THEN

@@ -843,7 +843,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         // WHEN
         when();
-        lensContext.setStarted();
         projector.project(lensContext, "test", task, result);
 
         // THEN

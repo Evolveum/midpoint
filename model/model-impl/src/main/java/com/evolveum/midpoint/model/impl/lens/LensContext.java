@@ -1860,8 +1860,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return state != null;
     }
 
-    public void setStarted() {
-        setState(ModelState.INITIAL);
+    public void setStartedIfNotYet() {
+        if (state == null) {
+            setState(ModelState.INITIAL);
+        }
     }
 
     void checkNotStarted(String operation, LensElementContext<?> elementContext) {

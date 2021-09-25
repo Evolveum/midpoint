@@ -144,7 +144,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -187,7 +186,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -237,7 +235,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -336,7 +333,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
         when();
 
         // cannot run the clockwork as in the secondary state the deltas are no longer considered (!)
-        context.setStarted();
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -376,7 +372,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -435,7 +430,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -482,7 +476,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -523,7 +516,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -609,7 +601,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN

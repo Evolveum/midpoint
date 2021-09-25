@@ -95,7 +95,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -133,7 +132,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -194,7 +192,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -233,7 +230,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -269,7 +265,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -315,7 +310,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -357,7 +351,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -411,7 +404,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -488,7 +480,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -532,7 +523,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -636,7 +626,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN

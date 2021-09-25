@@ -186,7 +186,6 @@ public class TestProjector extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -251,7 +250,6 @@ public class TestProjector extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -283,7 +281,6 @@ public class TestProjector extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -344,7 +341,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -396,7 +392,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -447,7 +442,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -510,7 +504,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -566,7 +559,6 @@ public class TestProjector extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -602,7 +594,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -662,7 +653,6 @@ public class TestProjector extends AbstractLensTest {
         try {
 
             // WHEN
-            context.setStarted();
             projector.project(context, "test", task, result);
 
             // THEN: fail
@@ -697,7 +687,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -751,7 +740,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -791,7 +779,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -840,7 +827,6 @@ public class TestProjector extends AbstractLensTest {
 
         // WHEN
         when();
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -888,7 +874,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -946,7 +931,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -991,7 +975,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -1032,7 +1015,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -1074,7 +1056,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -1133,7 +1114,6 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        context.setStarted();
         projector.project(context, "test", task, result);
 
         // THEN

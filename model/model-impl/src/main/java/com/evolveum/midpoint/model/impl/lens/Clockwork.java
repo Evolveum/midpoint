@@ -29,7 +29,6 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
@@ -133,7 +132,7 @@ public class Clockwork {
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        context.setStarted();
+        context.setStartedIfNotYet();
         context.updateSystemConfiguration(result);
 
         LOGGER.trace("Running clockwork for context {}", context);
