@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -46,7 +47,7 @@ import java.util.List;
 @PanelType(name = "resourceTasks")
 @PanelInstance(identifier = "resourceTasks", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "PageResource.tab.content.tasks", order = 20))
-public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> implements Popupable {
+public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> implements Popupable {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = ResourceTasksPanel.class.getName() + ".";
@@ -66,7 +67,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Ob
             SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value() };
 
 
-    public ResourceTasksPanel(String id, final ObjectDetailsModels<ResourceType> resourceModel, ContainerPanelConfigurationType config) {
+    public ResourceTasksPanel(String id, final ResourceDetailsModel resourceModel, ContainerPanelConfigurationType config) {
         super(id, resourceModel, config);
     }
 

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -66,7 +67,7 @@ import java.util.List;
 @PanelType(name = "resourceDetails")
 @PanelInstance(identifier = "resourceDetails", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY, defaultPanel = true,
         display = @PanelDisplay(label = "PageResource.tab.details", order = 10))
-public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> {
+public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsTabPanel.class);
 
@@ -83,7 +84,7 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
     LoadableModel<CapabilitiesDto> capabilitiesModel;
 
-    public ResourceDetailsTabPanel(String id, final ObjectDetailsModels<ResourceType> model, ContainerPanelConfigurationType config) {
+    public ResourceDetailsTabPanel(String id, final ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
 
         capabilitiesModel = new LoadableModel<CapabilitiesDto>() {

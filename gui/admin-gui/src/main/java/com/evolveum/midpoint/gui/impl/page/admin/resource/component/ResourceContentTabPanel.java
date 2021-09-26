@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 
 import org.apache.wicket.AttributeModifier;
@@ -53,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * @author katkav
  * @author semancik
  */
-public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> {
+public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceContentTabPanel.class);
@@ -82,7 +83,7 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
     private IModel<ResourceContentSearchDto> resourceContentSearch;
 
     public ResourceContentTabPanel(String id, final ShadowKindType kind,
-            final ObjectDetailsModels<ResourceType> model, ContainerPanelConfigurationType config) {
+            final ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
 
         this.kind = kind;
