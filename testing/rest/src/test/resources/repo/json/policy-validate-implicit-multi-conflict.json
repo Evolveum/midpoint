@@ -4,7 +4,7 @@
     "policyItemDefinition": [
       {
         "target": {
-          "path": "employeeType"
+          "path": "subtype"
         },
         "valuePolicyRef": {
           "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType",

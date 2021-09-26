@@ -18,14 +18,12 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -39,7 +37,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -65,7 +62,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -76,7 +72,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -94,9 +89,7 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 /**
  * Implementation classes : ResourceContentResourcePanel,
@@ -321,9 +314,9 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             }
         });
 
-        initButton(ID_IMPORT, "Import", " fa-download", TaskCategory.IMPORTING_ACCOUNTS, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
-        initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", TaskCategory.RECONCILIATION, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
-        initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
+        initButton(ID_IMPORT, "Import", " fa-download", SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
+        initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
+        initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
 
         initCustomLayout();
     }
@@ -343,7 +336,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     protected abstract void initShadowStatistics(WebMarkupContainer totals);
 
-    private void initButton(String id, String label, String icon, String category, String archetypeOid) {
+    private void initButton(String id, String label, String icon, String archetypeOid) {
 
         ObjectQuery existingTasksQuery = getExistingTasksQuery(archetypeOid);
         OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
@@ -381,7 +374,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(category, archetypeOid, target);
+                        newTaskPerformed(archetypeOid, target);
                     }
                 };
             }
@@ -399,40 +392,65 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     }
 
-    private void newTaskPerformed(String category, String archetypeOid, AjaxRequestTarget target) {
+    private void newTaskPerformed(String archetypeOid, AjaxRequestTarget target) {
         TaskType taskType = new TaskType(getPageBase().getPrismContext());
-        PrismProperty<ShadowKindType> pKind;
-        try {
-            pKind = taskType.asPrismObject().findOrCreateProperty(
-                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
-            pKind.setRealValue(getKind());
-        } catch (SchemaException e) {
-            getSession().warn("Could not set kind for new task " + e.getMessage());
+
+        if (SystemObjectsType.ARCHETYPE_IMPORT_TASK.value().equals(archetypeOid)) {
+            createImportTask(taskType);
+        } else if (SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value().equals(archetypeOid)) {
+            createReconciliationTask(taskType);
+        } else if (SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value().equals(archetypeOid)) {
+            createLiveSyncTask(taskType);
         }
 
-        PrismProperty<String> pIntent;
-        try {
-            pIntent = taskType.asPrismObject().findOrCreateProperty(
-                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
-            pIntent.setRealValue(getIntent());
-        } catch (SchemaException e) {
-            getSession().warn("Could not set kind for new task " + e.getMessage());
-        }
-
-        PrismObject<ResourceType> resource = getResourceModel().getObject();
-        taskType.setObjectRef(ObjectTypeUtil.createObjectRef(resource, getPageBase().getPrismContext()));
-
-        taskType.setCategory(category); //todo no need in category here after tasks migration to archetype groups
 
         if (StringUtils.isNotEmpty(archetypeOid)) {
-            AssignmentType archetypeAssignment = new AssignmentType();
-            archetypeAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE));
-            taskType.getAssignment().add(archetypeAssignment);
+            taskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, getPrismContext()));
         }
-
         taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(SecurityUtils.getPrincipalUser().getOid(), ObjectTypes.USER));
 
-        getPageBase().navigateToNext(new PageTask(taskType.asPrismObject(), true));
+        WebComponentUtil.dispatchToObjectDetailsPage(taskType.asPrismObject(), this);
+    }
+
+    private ResourceType getResourceType() {
+        return getResourceModel().getObject().asObjectable();
+    }
+
+    private void createImportTask(TaskType task) {
+        ImportWorkDefinitionType importWorkDefinitionType = new ImportWorkDefinitionType(getPrismContext());
+        importWorkDefinitionType.setResourceObjects(createResourceSet());
+
+        prepareActivityDefinition(task).setImport(importWorkDefinitionType);
+    }
+
+    private void createReconciliationTask(TaskType task) {
+        ReconciliationWorkDefinitionType reconciliationWorkDefinitionType = new ReconciliationWorkDefinitionType(getPrismContext());
+        reconciliationWorkDefinitionType.setResourceObjects(createResourceSet());
+
+        prepareActivityDefinition(task).setReconciliation(reconciliationWorkDefinitionType);
+    }
+
+    private void createLiveSyncTask(TaskType task) {
+        LiveSyncWorkDefinitionType liveSyncWorkDefinitionType = new LiveSyncWorkDefinitionType(getPrismContext());
+        liveSyncWorkDefinitionType.setResourceObjects(createResourceSet());
+
+        prepareActivityDefinition(task).setLiveSynchronization(liveSyncWorkDefinitionType);
+    }
+
+    private WorkDefinitionsType prepareActivityDefinition(TaskType taskType) {
+        ActivityDefinitionType activityDefinitionType = new ActivityDefinitionType(getPrismContext());
+        taskType.setActivity(activityDefinitionType);
+        WorkDefinitionsType workDefinitionsType = new WorkDefinitionsType();
+        activityDefinitionType.setWork(workDefinitionsType);
+        return workDefinitionsType;
+    }
+
+    private ResourceObjectSetType createResourceSet() {
+        ResourceObjectSetType resourceSet = new ResourceObjectSetType(getPrismContext());
+        resourceSet.setResourceRef(ObjectTypeUtil.createObjectRef(getResourceType(), getPrismContext()));
+        resourceSet.setIntent(getIntent());
+        resourceSet.setKind(getKind());
+        return resourceSet;
     }
 
     private ObjectQuery createInTaskOidQuery(List<TaskType> tasksList) {

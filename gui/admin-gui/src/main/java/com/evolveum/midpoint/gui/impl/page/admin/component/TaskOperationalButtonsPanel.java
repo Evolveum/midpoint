@@ -10,12 +10,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 import static java.util.Collections.singletonList;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,22 +26,30 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,6 +57,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -55,9 +65,9 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.server.LivesyncTokenEditorPanel;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButtonsPanel<TaskType> {
 
@@ -72,6 +82,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String ID_REFRESHING_BUTTONS = "refreshingButtons";
     private static final String ID_REFRESHING_BUTTONS_CONTAINER = "refreshingButtonsContainer";
 
+    private static final int REFRESH_INTERVAL = 2000;
     private Boolean refreshEnabled;
 
     public TaskOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> model) {
@@ -82,6 +93,99 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+    }
+
+    @Override
+    protected void addButtons(RepeatingView repeatingView) {
+        createSaveAndRunButton(repeatingView);
+    }
+
+    private void createSaveAndRunButton(RepeatingView repeatingView) {
+        CompositedIconBuilder builder = new CompositedIconBuilder()
+                .setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, IconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton saveButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), builder.build(), createStringResource("TaskMainPanel.button.saveAndRun")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                saveAndRunPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getPageBase().getFeedbackPanel());
+            }
+        };
+        saveButton.titleAsLabel(true);
+        saveButton.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !getModelObject().isReadOnly();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !ItemStatus.NOT_CHANGED.equals(getModelObject().getStatus())
+                        || getModelObject().canModify();
+            }
+        });
+        saveButton.setOutputMarkupId(true);
+        saveButton.setOutputMarkupPlaceholderTag(true);
+        saveButton.add(AttributeAppender.append("class", "btn-primary btn-sm"));
+        repeatingView.add(saveButton);
+    }
+
+    private void saveAndRunPerformed(AjaxRequestTarget target) {
+        PrismObjectWrapper<TaskType> taskWrapper = getModelObject();
+        try {
+            setTaskInitialState(taskWrapper);
+
+            setupOwner(taskWrapper);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error while finishing task settings.", e);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        savePerformed(target);
+    }
+
+    private void setTaskInitialState(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
+        PrismPropertyWrapper<TaskExecutionStateType> executionState = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATE));
+        PrismPropertyWrapper<TaskSchedulingStateType> schedulingState = taskWrapper.findProperty(ItemPath.create(TaskType.F_SCHEDULING_STATE));
+        if (executionState == null || schedulingState == null) {
+            throw new SchemaException("Task cannot be set as running, no execution status or scheduling status present");
+        }
+
+        setTaskInitiallyRunning(executionState, schedulingState);
+    }
+
+    private void setupOwner(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
+        PrismReferenceWrapper<Referencable> taskOwner = taskWrapper.findReference(ItemPath.create(TaskType.F_OWNER_REF));
+        if (taskOwner == null) {
+            return;
+        }
+        PrismReferenceValueWrapperImpl<Referencable> taskOwnerValue = taskOwner.getValue();
+        if (taskOwnerValue == null) {
+            return;
+        }
+
+        if (taskOwnerValue.getNewValue() == null || taskOwnerValue.getNewValue().isEmpty()) {
+            GuiProfiledPrincipal guiPrincipal = SecurityUtils.getPrincipalUser();
+            if (guiPrincipal == null) {
+                //BTW something very strange must happened
+                return;
+            }
+            FocusType focus = guiPrincipal.getFocus();
+            taskOwnerValue.setRealValue(ObjectTypeUtil.createObjectRef(focus, SchemaConstants.ORG_DEFAULT));
+        }
+    }
+
+    private void setTaskInitiallyRunning(PrismPropertyWrapper<TaskExecutionStateType> executionState, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
+        executionState.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
+        schedulingState.getValue().setRealValue(TaskSchedulingStateType.READY);
     }
 
     private void initLayout() {
@@ -109,7 +213,26 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
         RepeatingView refreshingButtons = new RepeatingView(ID_REFRESHING_BUTTONS);
         initRefreshingButtons(refreshingButtons);
+        add(refreshingButtons);
         refreshingButtonsContainer.add(refreshingButtons);
+
+
+        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(getRefreshInterval())) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                refreshEnabled = null;
+                refresh(target);
+            }
+
+            @Override
+            protected boolean shouldTrigger() {
+                return isRefreshEnabled();
+            }
+        };
+
+        add(behavior);
 
     }
 
@@ -187,10 +310,8 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     protected void afterOperation(AjaxRequestTarget target, OperationResult result) {
-//        taskTabsVisibility = new TaskTabsVisibility();
-//        showResult(result);
-//        getModel().reset();
-//        refresh(target);
+        getPageBase().showResult(result);
+        refresh(target);
     }
 
     private void createManageLivesyncTokenButton(RepeatingView repeatingView) {
@@ -327,7 +448,11 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
     //TODO abstract
     protected boolean isRefreshEnabled() {
-        return false;
+        if (refreshEnabled == null) {
+            return WebComponentUtil.isRunningTask(getObjectType());
+        }
+
+        return refreshEnabled;
     }
 
     protected void refresh(AjaxRequestTarget target) {
@@ -335,7 +460,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     protected int getRefreshInterval() {
-        return 0;
+        return REFRESH_INTERVAL;
     }
 
     private String createRefreshingLabel() {

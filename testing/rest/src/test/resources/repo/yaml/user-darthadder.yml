@@ -31,7 +31,7 @@ user:
   fullName: "Darth Adder"
   givenName: "Darth"
   familyName: "Adder"
-  employeeType :
+  subtype :
   - "user"
   - "123user"
   - "employeE"

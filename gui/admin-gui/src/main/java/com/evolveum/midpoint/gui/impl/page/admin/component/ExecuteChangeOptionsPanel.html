@@ -8,21 +8,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-        <a class="btn btn-default btn-sm" wicket:id="forceContainer"/>
-        <a class="btn btn-default btn-sm" wicket:id="reconcileContainer"/>
-        <a class="btn btn-default btn-sm" wicket:id="reconcileAffectedContainer"/>
-        <a class="btn btn-default btn-sm" wicket:id="executeAfterAllApprovalsContainer"/>
-        <a class="btn btn-default btn-sm" wicket:id="keepDisplayingResultsContainer"/>
-        <a class="btn btn-default btn-sm" wicket:id="saveInBackgroundContainer"/>
-        <!-- TODO style -->
-        <div class="option-checkbox" wicket:id="tracingContainer">
-            <div class="checkbox">
-                <i class="helpTextIcon fa fa-fw fa-lightbulb-o text-warning" wicket:message="title:ItemHeaderPanel.experimentalFeature"></i>s
-                <label style="padding-left: 0;" wicket:message="title:ExecuteChangeOptionsPanel.label.trace.help">
-                    <wicket:message key="ExecuteChangeOptionsPanel.label.trace"/>
-                    <select wicket:id="tracing"></select>
-                </label>
-            </div>
-        </div>
+    <div class="pull-left" wicket:id="options"/>
+
+    <div class="pull-left" wicket:id="tracing"/>
+
+    <wicket:fragment wicket:id="tracingContainer">
+        <div wicket:id="tracing" />
+
+        <a wicket:id="resetChoices">
+            <wicket:message key="ExecuteChangesOptionsPanel.reset"/>
+        </a>
+    </wicket:fragment>
 </wicket:panel>
 </html>

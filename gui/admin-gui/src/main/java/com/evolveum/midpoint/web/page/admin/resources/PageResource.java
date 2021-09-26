@@ -16,14 +16,9 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceAccountsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceEntitlementsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceGenericsPanel;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -429,7 +424,7 @@ public class PageResource extends PageAdmin {
                 if (resourceWrapper == null) {
                     return new WebMarkupContainer(panelId);
                 }
-                return new ResourceSchemaHandlingPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(Model.of(resourceWrapper), ResourceType.F_SCHEMA_HANDLING));
+                return new ResourceSchemaHandlingTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(Model.of(resourceWrapper), ResourceType.F_SCHEMA_HANDLING));
             }
         });
 

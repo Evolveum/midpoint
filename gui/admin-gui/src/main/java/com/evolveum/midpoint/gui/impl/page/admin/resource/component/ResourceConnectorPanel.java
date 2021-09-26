@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.apache.wicket.markup.html.basic.Label;
@@ -37,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @PanelType(name = "resourceConnector")
 @PanelInstance(identifier = "resourceConnector", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
         display = @PanelDisplay(label = "PageResource.tab.connector", order = 70))
-public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> {
+public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceConnectorPanel.class);
@@ -58,15 +59,9 @@ public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType
     private static final String ID_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
 
 
-    public ResourceConnectorPanel(String id, ObjectDetailsModels<ResourceType> model, ContainerPanelConfigurationType config) {
+    public ResourceConnectorPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
-
-//    @Override
-//    protected void onInitialize() {
-//        super.onInitialize();
-//        initLayout();
-//    }
 
     protected void initLayout() {
         setOutputMarkupId(true);

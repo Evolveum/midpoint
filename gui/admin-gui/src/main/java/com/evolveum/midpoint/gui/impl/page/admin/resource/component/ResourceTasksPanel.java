@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -46,7 +47,7 @@ import java.util.List;
 @PanelType(name = "resourceTasks")
 @PanelInstance(identifier = "resourceTasks", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "PageResource.tab.content.tasks", order = 20))
-public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> implements Popupable {
+public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> implements Popupable {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = ResourceTasksPanel.class.getName() + ".";
@@ -66,29 +67,9 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Ob
             SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value() };
 
 
-    public ResourceTasksPanel(String id, final ObjectDetailsModels<ResourceType> resourceModel, ContainerPanelConfigurationType config) {
+    public ResourceTasksPanel(String id, final ResourceDetailsModel resourceModel, ContainerPanelConfigurationType config) {
         super(id, resourceModel, config);
-//        this.resourceModel = resourceModel;
-
-//        ListModel<TaskType> model = createTaskModel();
-//        initLayout();
     }
-
-//    private ListModel<TaskType> createTaskModel() {
-//        OperationResult result = new OperationResult(OPERATION_LOAD_TASKS);
-//        List<PrismObject<TaskType>> tasks = WebModelServiceUtils
-//                .searchObjects(TaskType.class,
-//                        getPageBase().getPrismContext().queryFor(TaskType.class)
-//                                .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
-//                                .build(),
-//                        result, getPageBase());
-//        List<TaskType> tasksType = new ArrayList<>();
-//        for (PrismObject<TaskType> task : tasks) {
-//            tasksType.add(task.asObjectable());
-//        }
-//        return new ListModel<>(tasksType);
-//
-//    }
 
     protected void initLayout() {
         final MainObjectListPanel<TaskType> tasksPanel =
@@ -100,21 +81,10 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Ob
                         return UserProfileStorage.TableId.PAGE_RESOURCE_TASKS_PANEL;
                     }
 
-//                    @Override
-//                    protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
-//                        return new SelectableListDataProvider<>(pageBase, tasks);
-//                    }
-
                     @Override
                     protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
                         return createSelectableBeanObjectDataProvider(() -> createResourceTasksQuery(), null);
                     }
-
-//                    @Override
-//                    protected ObjectQuery getCustomizeContentQuery() {
-//                        return
-//
-//                    }
 
                     @Override
                     protected List<InlineMenuItem> createInlineMenu() {

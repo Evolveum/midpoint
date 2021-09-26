@@ -161,23 +161,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private void initButtons(MidpointForm form) {
         OperationalButtonsPanel opButtonPanel = createButtonsPanel(ID_BUTTONS, objectDetailsModels.getObjectWrapperModel());
         opButtonPanel.setOutputMarkupId(true);
-
-        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(getRefreshInterval())) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onPostProcessTarget(AjaxRequestTarget target) {
-                refresh(target);
-            }
-
-            @Override
-            protected boolean shouldTrigger() {
-                return isRefreshEnabled();
-            }
-        };
-
-        opButtonPanel.add(behavior);
-
         form.add(opButtonPanel);
     }
 
@@ -244,6 +227,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
 
         result.computeStatusIfUnknown();
+        postProcessResult(result, executedDeltas);
         showResult(result);
         if (!previewOnly && result.isSuccess()) {
             redirectBack();
@@ -251,6 +235,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             target.add(getFeedbackPanel());
         }
         return executedDeltas;
+    }
+
+    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+
     }
 
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
@@ -303,14 +291,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     }
 
-    public int getRefreshInterval() {
-        return 30;
-    }
-
-    public boolean isRefreshEnabled() {
-        return false;
-    }
-
     public void refresh(AjaxRequestTarget target) {
         refresh(target, true);
     }
@@ -323,6 +303,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         target.add(getSummaryPanel());
         target.add(getOperationalButtonsPanel());
         target.add(getFeedbackPanel());
+        target.add(get(ID_DETAILS_VIEW));
         refreshTitle(target);
 
 //        if (soft) {
@@ -339,13 +320,23 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
-        //TODO support for second level panel as a default, e.g. assignment -> role
-        Optional<ContainerPanelConfigurationType> basicPanelConfig = getPanelConfigurations().getObject().stream().filter(panel -> BooleanUtils.isTrue(panel.isDefault())).findFirst();
-        if (basicPanelConfig.isPresent()) {
-            return basicPanelConfig.get();
-        }
+        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject());
 
+        if (defaultConfiguration != null) {
+            return defaultConfiguration;
+        }
         return getPanelConfigurations().getObject().stream().findFirst().get();
+    }
+
+    private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
+        List<ContainerPanelConfigurationType> subConfigs = new ArrayList<>();
+        for (ContainerPanelConfigurationType config : configs) {
+            if (BooleanUtils.isTrue(config.isDefault())) {
+                return config;
+            }
+            subConfigs.addAll(config.getPanel());
+        }
+        return findDefaultConfiguration(subConfigs);
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {

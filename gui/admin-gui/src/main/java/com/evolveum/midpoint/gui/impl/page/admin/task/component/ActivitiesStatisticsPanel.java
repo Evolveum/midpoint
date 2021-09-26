@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -50,7 +51,7 @@ import java.util.List;
  */
 @PanelType(name = "statistics")
 @PanelInstance(identifier = "statistics", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageTask.operationStats.title", order = 50))
+        display = @PanelDisplay(label = "pageTask.operationStats.title", icon = GuiStyleConstants.CLASS_TASK_STATISTICS_ICON, order = 50))
 public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final String ID_ITEM_PROCESSING = "itemProcessing";
