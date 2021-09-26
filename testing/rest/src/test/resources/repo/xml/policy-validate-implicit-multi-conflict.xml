@@ -14,7 +14,7 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <policyItemDefinition>
         <target>
-            <path>employeeType</path>
+            <path>subtype</path>
         </target>
         <valuePolicyRef oid="00000000-0000-0000-1111-000000000003" type="c:ValuePolicyType"/>
     </policyItemDefinition>
