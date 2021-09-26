@@ -41,7 +41,7 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
     protected static final String PATH_FORM_NAME = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:"
             + "input:propertiesLabel:properties:0:property:values:0:value:valueForm:valueContainer:input:originValueContainer:"
             + "origValueWithButton:origValue:input";
-    protected static final String FORM_SAVE = "buttons:buttons:1:";
+    protected static final String FORM_SAVE = "buttons:buttons:2:";
 
     protected DummyResource dummyResource;
     protected DummyResourceContoller dummyResourceCtl;

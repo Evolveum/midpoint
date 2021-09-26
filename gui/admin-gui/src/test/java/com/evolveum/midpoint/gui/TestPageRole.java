@@ -93,7 +93,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         // Open Role0001 page
         renderPage(PageRole.class, role1Oid);
         // Show Members tab
-        clickOnDetailsMenu(8, PageRole.class);
+        clickOnDetailsMenu(9, PageRole.class);
 
         // THEN
         tester.assertComponent(panel, AbstractRoleMemberPanel.class);
