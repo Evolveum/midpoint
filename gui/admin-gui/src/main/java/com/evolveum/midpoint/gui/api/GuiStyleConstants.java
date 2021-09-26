@@ -260,4 +260,7 @@ public class GuiStyleConstants {
     public static final String CLASS_LIFECYCLE_ICON = "fa fa-recycle";
     public static final String CLASS_TRIGGER_ICON = "fa fa-calendar-check-o";
     public static final String CLASS_PASSWORD_ICON = "fa fa-key";
+
+    public static final String CLASS_OPTIONS_BUTTON_ICON = "fa fa-bars";
+    public static final String CLASS_TRACING_BUTTON_ICON = "fa fa-stethoscope";
 }

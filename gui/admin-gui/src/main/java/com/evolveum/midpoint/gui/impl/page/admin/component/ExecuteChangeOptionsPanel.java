@@ -7,33 +7,36 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.RadioChoice;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.menu.cog.CheckboxMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -43,27 +46,17 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
     private static final Trace LOGGER = TraceManager.getTrace(ExecuteChangeOptionsPanel.class);
 
-    private static final String ID_FORCE_CONTAINER = "forceContainer";
-    private static final String ID_RECONCILE_CONTAINER = "reconcileContainer";
-    private static final String ID_RECONCILE_AFFECTED_CONTAINER = "reconcileAffectedContainer";
-    private static final String ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER = "executeAfterAllApprovalsContainer";
-    private static final String ID_KEEP_DISPLAYING_RESULTS_CONTAINER = "keepDisplayingResultsContainer";
     private static final String ID_TRACING = "tracing";
     private static final String ID_TRACING_CONTAINER = "tracingContainer";
     private static final String ID_SAVE_IN_BACKGROUND_CONTAINER = "saveInBackgroundContainer";
 
     private static final String FORCE_LABEL = "ExecuteChangeOptionsPanel.label.force";
-    private static final String FORCE_HELP = "ExecuteChangeOptionsPanel.label.force.help";
     private static final String RECONCILE_LABEL = "ExecuteChangeOptionsPanel.label.reconcile";
-    private static final String RECONCILE_HELP = "ExecuteChangeOptionsPanel.label.reconcile.help";
-    private static final String RECONCILE_AFFECTED_LABEL = "ExecuteChangeOptionsPanel.label.reconcileAffected";
-    private static final String RECONCILE_AFFECTED_HELP = "ExecuteChangeOptionsPanel.label.reconcileAffected.help";
     private static final String EXECUTE_AFTER_ALL_APPROVALS_LABEL = "ExecuteChangeOptionsPanel.label.executeAfterAllApprovals";
-    private static final String EXECUTE_AFTER_ALL_APPROVALS_HELP = "ExecuteChangeOptionsPanel.label.executeAfterAllApprovals.help";
     private static final String KEEP_DISPLAYING_RESULTS_LABEL = "ExecuteChangeOptionsPanel.label.keepDisplayingResults";
-    private static final String KEEP_DISPLAYING_RESULTS_HELP = "ExecuteChangeOptionsPanel.label.keepDisplayingResults.help";
-    private static final String SAVE_IN_BACKGROUND_LABEL = "ExecuteChangeOptionsPanel.label.saveInBackgroundLabel";
-    private static final String SAVE_IN_BACKGROUND_HELP = "ExecuteChangeOptionsPanel.label.saveInBackground.help";
+
+    private static final String ID_OPTIONS = "options";
+    private static final String ID_RESET_CHOICES = "resetChoices";
 
     private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
@@ -96,53 +89,142 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         return executeOptionsModel.getObject();
     }
 
+    private CheckboxMenuItem createCheckboxMenuItem(String label, String propertyExpression) {
+        return new CheckboxMenuItem(createStringResource(label), new PropertyModel<>(getModel(), propertyExpression));
+    }
+
     private void initLayout() {
         setOutputMarkupId(true);
 
-        createContainer(ID_FORCE_CONTAINER,
-                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_FORCE),
-                FORCE_LABEL,
-                FORCE_HELP);
+        createOptionsDropdownButton(createDropdownMenuItems());
+        createTracingOptionsPanel();
+    }
 
-        createContainer(ID_RECONCILE_CONTAINER,
-                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE),
-                RECONCILE_LABEL,
-                RECONCILE_HELP);
+    private List<InlineMenuItem> createDropdownMenuItems() {
+        List<InlineMenuItem> items = new ArrayList<>();
+        items.add(createCheckboxMenuItem(FORCE_LABEL, ExecuteChangeOptionsDto.F_FORCE));
+        items.add(createCheckboxMenuItem(RECONCILE_LABEL, ExecuteChangeOptionsDto.F_RECONCILE));
+        items.add(createCheckboxMenuItem(EXECUTE_AFTER_ALL_APPROVALS_LABEL, ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS));
+        items.add(createCheckboxMenuItem(KEEP_DISPLAYING_RESULTS_LABEL, ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS));
+        items.add(createCheckboxMenuItem(ID_SAVE_IN_BACKGROUND_CONTAINER, ExecuteChangeOptionsDto.F_SAVE_IN_BACKGROUND));
+        return items;
+    }
 
-        createContainer(ID_RECONCILE_AFFECTED_CONTAINER,
-                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE_AFFECTED),
-                RECONCILE_AFFECTED_LABEL,
-                RECONCILE_AFFECTED_HELP);
+    private void createOptionsDropdownButton(List<InlineMenuItem> items) {
+        DropdownButtonDto model = new DropdownButtonDto(null, GuiStyleConstants.CLASS_OPTIONS_BUTTON_ICON, "Options", items);
+        DropdownButtonPanel dropdownButtonPanel = new DropdownButtonPanel(ID_OPTIONS, model) {
 
-        createContainer(ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER,
-                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS),
-                EXECUTE_AFTER_ALL_APPROVALS_LABEL,
-                EXECUTE_AFTER_ALL_APPROVALS_HELP);
+            @Override
+            protected void populateMenuItem(String componentId, ListItem<InlineMenuItem> menuItem) {
+                InlineMenuItem item = menuItem.getModelObject();
+                if (!(item instanceof CheckboxMenuItem)) {
+                    super.populateMenuItem(componentId, menuItem);
+                    return;
+                }
 
-        createContainer(ID_KEEP_DISPLAYING_RESULTS_CONTAINER,
-                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS),
-                KEEP_DISPLAYING_RESULTS_LABEL,
-                KEEP_DISPLAYING_RESULTS_HELP);
+                CheckboxMenuItem checkboxMenuItem = (CheckboxMenuItem) item;
+                CheckBoxPanel panel = new CheckBoxPanel(componentId, checkboxMenuItem.getCheckBoxModel(), checkboxMenuItem.getLabel(), null) {
 
-        createContainer(ID_SAVE_IN_BACKGROUND_CONTAINER,
-                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_SAVE_IN_BACKGROUND),
-                SAVE_IN_BACKGROUND_LABEL,
-                SAVE_IN_BACKGROUND_HELP);
+                    @Override
+                    public void onUpdate(AjaxRequestTarget target) {
+                        checkboxMenuItem.getCheckBoxModel().setObject(!checkboxMenuItem.getCheckBoxModel().getObject());
+                    }
+                };
+                panel.setOutputMarkupId(true);
+                menuItem.add(panel);
+            }
 
-        boolean canRecordTrace;
-        try {
-            canRecordTrace = getPageBase().isAuthorized(ModelAuthorizationAction.RECORD_TRACE.getUrl());
-        } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check trace recording authorization", t);
-            canRecordTrace = false;
-        }
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn-sm btn-default btn-margin-right";
+            }
 
-        WebMarkupContainer tracingContainer = new WebMarkupContainer(ID_TRACING_CONTAINER);
-        tracingContainer.setVisible(canRecordTrace && WebModelServiceUtils.isEnableExperimentalFeature(getPageBase()));
-        add(tracingContainer);
+            @Override
+            protected String getSpecialDropdownMenuClass() {
+                return "execute-options";
+            }
 
-        DropDownChoice tracing = new DropDownChoice<>(ID_TRACING, PropertyModel.of(getModel(), ExecuteChangeOptionsDto.F_TRACING),
-                PropertyModel.of(getModel(), ExecuteChangeOptionsDto.F_TRACING_CHOICES), new IChoiceRenderer<TracingProfileType>() {
+            @Override
+            protected String getSpecialLabelClass() {
+                return "execute-options-label";
+            }
+        };
+        add(dropdownButtonPanel);
+        dropdownButtonPanel.setOutputMarkupId(true);
+    }
+
+   private void createTracingOptionsPanel() {
+        List<InlineMenuItem> items = new ArrayList<>();
+        items.add(new InlineMenuItem(createStringResource("Tracing")) {
+            @Override
+            public InlineMenuItemAction initAction() {
+                return null;
+            }
+        });
+       DropdownButtonDto model = new DropdownButtonDto(null, GuiStyleConstants.CLASS_TRACING_BUTTON_ICON, "Tracing", items);
+       DropdownButtonPanel dropdownButtonPanel = new DropdownButtonPanel(ID_TRACING, model) {
+
+           @Override
+           protected void populateMenuItem(String componentId, ListItem<InlineMenuItem> menuItem) {
+               menuItem.add(createTracingRadioChoicesFragment(componentId));
+           }
+
+           @Override
+           protected String getSpecialButtonClass() {
+               return "btn-sm btn-default btn-margin-right";
+           }
+
+           @Override
+           protected String getSpecialDropdownMenuClass() {
+               return "execute-options radio";
+           }
+
+           @Override
+           protected String getSpecialLabelClass() {
+               return "execute-options-label";
+           }
+       };
+       add(dropdownButtonPanel);
+       dropdownButtonPanel.setOutputMarkupId(true);
+       dropdownButtonPanel.add(new VisibleBehaviour(this::isTracingEnabled));
+   }
+
+   private Fragment createTracingRadioChoicesFragment(String componentId) {
+        Fragment fragment = new Fragment(componentId, ID_TRACING_CONTAINER, ExecuteChangeOptionsPanel.this);
+
+       RadioChoice<TracingProfileType> tracingProfile = new RadioChoice<>(ID_TRACING, PropertyModel.of(ExecuteChangeOptionsPanel.this.getModel(), ExecuteChangeOptionsDto.F_TRACING),
+               PropertyModel.of(ExecuteChangeOptionsPanel.this.getModel(), ExecuteChangeOptionsDto.F_TRACING_CHOICES), createTracinnChoiceRenderer());
+        fragment.add(tracingProfile);
+
+       AjaxLink<Void> resetChoices = new AjaxLink<>(ID_RESET_CHOICES) {
+
+           @Override
+           public void onClick(AjaxRequestTarget target) {
+                ExecuteChangeOptionsPanel.this.getModelObject().setTracing(null);
+                target.add(ExecuteChangeOptionsPanel.this);
+           }
+       };
+       fragment.add(resetChoices);
+       return fragment;
+   }
+
+   private boolean isTracingEnabled() {
+       boolean canRecordTrace;
+       try {
+           canRecordTrace = getPageBase().isAuthorized(ModelAuthorizationAction.RECORD_TRACE.getUrl());
+       } catch (Throwable t) {
+           LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check trace recording authorization", t);
+           canRecordTrace = false;
+       }
+
+       return canRecordTrace && WebModelServiceUtils.isEnableExperimentalFeature(getPageBase());
+   }
+
+    protected void reloadPanelOnOptionsUpdate(AjaxRequestTarget target) {
+    }
+
+    private IChoiceRenderer<TracingProfileType> createTracinnChoiceRenderer() {
+        return new IChoiceRenderer<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -168,27 +250,6 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
             public TracingProfileType getObject(String id, IModel<? extends List<? extends TracingProfileType>> choices) {
                 return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
-        });
-        tracing.setNullValid(true);
-        tracingContainer.add(tracing);
-    }
-
-    private void createContainer(String containerId, IModel<Boolean> checkboxModel, String labelKey, String helpKey) {
-
-        AjaxButton button = new AjaxButton(containerId, createStringResource(labelKey)) {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                checkboxModel.setObject(!checkboxModel.getObject());
-                ajaxRequestTarget.add(ExecuteChangeOptionsPanel.this);
-            }
         };
-        button.add(AttributeAppender.append("title", createStringResource(helpKey)));
-        button.add(AttributeAppender.append("class", new ReadOnlyModel<>(() -> checkboxModel.getObject() ? " active" : "")));
-        button.setOutputMarkupId(true);
-        add(button);
     }
-
-    protected void reloadPanelOnOptionsUpdate(AjaxRequestTarget target) {
-    }
-
 }
