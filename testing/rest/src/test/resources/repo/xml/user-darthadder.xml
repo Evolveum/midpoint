@@ -27,9 +27,9 @@
     <c:fullName>Darth Adder</c:fullName>
     <c:givenName>Darth</c:givenName>
     <c:familyName>Adder</c:familyName>
-    <c:employeeType>user</c:employeeType>
-    <c:employeeType>123user</c:employeeType>
-    <c:employeeType>employeE</c:employeeType>
+    <c:subtype>user</c:subtype>
+    <c:subtype>123user</c:subtype>
+    <c:subtype>employeE</c:subtype>
     <c:employeeNumber>123456</c:employeeNumber>
     <c:organization>Org1</c:organization>
     <c:organization>Org2</c:organization>
