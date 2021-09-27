@@ -2015,7 +2015,6 @@ th.composited-icon {
     z-index: 1;
     //top: 0;
     right: 0;
-    background-color: @sidebar-light-bg;
     overflow-x: hidden;
     padding-top: 16px;
 
@@ -2253,4 +2252,25 @@ fieldset.objectButtons {
   display: inline;
   margin-left: 5px;
   font-weight: 400;
+}
+
+.details-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background-color: white;
+}
+
+.details-panel-navigation {
+  order: 1;
+  flex-grow: 1;
+  background-color: @sidebar-light-bg;
+
+}
+
+.details-panel-details-form {
+  order: 2;
+  flex-grow: 11;
+  padding-top: 5px;
+  padding-left: 20px;
 }

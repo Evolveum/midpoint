@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,6 +17,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
@@ -90,6 +91,11 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         scriptExpressionfactory.setFunctions(functions);
         localizationService = LocalizationTestUtil.getLocalizationService();
         evaluator = createEvaluator(prismContext, protector);
+        if (!evaluator.isInitialized()) {
+            display("Script engine for " + evaluator.getLanguageName() + " missing, skipping the tests.");
+            throw new SkipException("Script engine not available");
+        }
+
         String languageUrl = evaluator.getLanguageUrl();
         display("Expression test for " + evaluator.getLanguageName() + ": registering " + evaluator + " with URL " + languageUrl);
         scriptExpressionfactory.registerEvaluator(languageUrl, evaluator);
@@ -300,11 +306,9 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         context.setResult(result);
 
         List<PrismPropertyValue<T>> resultValues = scriptExpression.evaluate(context);
-        if (resultValues != null) {
-            for (PrismPropertyValue<T> resultVal : resultValues) {
-                if (resultVal.getParent() != null) {
-                    AssertJUnit.fail("Result value " + resultVal + " from expression " + scriptExpression + " has parent");
-                }
+        for (PrismPropertyValue<T> resultVal : resultValues) {
+            if (resultVal.getParent() != null) {
+                AssertJUnit.fail("Result value " + resultVal + " from expression " + scriptExpression + " has parent");
             }
         }
         return resultValues;
@@ -387,8 +391,8 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         }
     }
 
-    private void evaluateAndAssertStringListExpression(String fileName, String testName,
-            VariablesMap variables, String... expectedValues)
+    private void evaluateAndAssertStringListExpression(
+            String fileName, String testName, VariablesMap variables, String... expectedValues)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         List<PrismPropertyValue<String>> expressionResultList =

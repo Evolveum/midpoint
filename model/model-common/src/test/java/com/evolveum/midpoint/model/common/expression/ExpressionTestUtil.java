@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2020 Evolveum and contributors
+ * Copyright (C) 2013-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -108,7 +108,9 @@ public class ExpressionTestUtil {
 
         Jsr223ScriptEvaluator jsEvaluator = new Jsr223ScriptEvaluator(
                 "ECMAScript", prismContext, protector, LocalizationTestUtil.getLocalizationService());
-        scriptExpressionFactory.registerEvaluator(jsEvaluator.getLanguageUrl(), jsEvaluator);
+        if (jsEvaluator.isInitialized()) {
+            scriptExpressionFactory.registerEvaluator(jsEvaluator.getLanguageUrl(), jsEvaluator);
+        }
 
         ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory =
                 new ScriptExpressionEvaluatorFactory(

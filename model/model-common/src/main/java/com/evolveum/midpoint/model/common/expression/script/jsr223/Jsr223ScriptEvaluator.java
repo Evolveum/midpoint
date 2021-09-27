@@ -87,4 +87,8 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
         return MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + getLanguageName();
     }
 
+    @Override
+    public boolean isInitialized() {
+        return scriptEngine != null;
+    }
 }

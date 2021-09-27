@@ -164,9 +164,13 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
 
-        <!-- JVM args for testing plugins, can be used to add profiling, etc. -->
-        <surefire.args>-Xms1024m -Xmx4096m</surefire.args>
-        <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en</failsafe.args>
+        <!--
+        JVM args for testing plugins, can be used to add profiling, etc.
+        Option add-exports is added because OpenDJ on JDK 17 uses some recently hidden API.
+        It works fine for JDK 11 as well, no need for separate profiles.
+        -->
+        <surefire.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
+        <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
         <!--
         Some modules support "full" or "fast" suite for integration tests.
         This can be used as command line switch for mvn: -DintegrationTestSuite=fast
@@ -2081,7 +2085,7 @@
           Technically, even both can be used, but go with the one used in that POM.
         - Test testing plugin says skipTests=false (that is to run the tests).
         - It defines system property mp.perf.report.prefix=target/PERF (without it CSV goes to stdout).
-        - It defines suiteXmlFile=testng-perf.xml - suite file is different then normaly used ones.
+        - It defines suiteXmlFile=testng-perf.xml - suite file is different then normally used ones.
           Typically, perf test classes are ONLY in perf suite as they would slow down default builds.
         -->
         <profile>
@@ -2095,8 +2099,8 @@
             <id>sqale</id>
             <properties>
                 <!-- Switches test config.xml to the one declaring "sqale" repository. -->
-                <surefire.args>-Xms1024m -Xmx4096m -Dtest.config.file=test-config-new-repo.xml</surefire.args>
-                <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
+                <surefire.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
+                <failsafe.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
         </profile>
     </profiles>
