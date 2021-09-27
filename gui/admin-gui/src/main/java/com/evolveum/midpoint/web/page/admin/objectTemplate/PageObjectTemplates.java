@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.objectTemplate;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -57,6 +56,8 @@ import java.util.List;
                 label = "PageObjectTemplates.auth.objectTemplates.label",
                 description = "PageObjectTemplates.auth.objectTemplates.description")
 })
+@CollectionInstance(identifier = "allObjectTemplates", applicableForType = ObjectTemplateType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.objectTemplates.list", singularLabel = "ObjectType.objectTemplate", icon = GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON))
 public class PageObjectTemplates extends PageAdmin{
 
     private static final long serialVersionUID = 1L;

@@ -18,9 +18,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -55,6 +53,8 @@ import java.util.*;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL,
                         label = "PageCases.auth.cases.view.label",
                         description = "PageCases.auth.cases.view.description") })
+@CollectionInstance(identifier = "allCases", applicableForType = CaseType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.cases.list", singularLabel = "ObjectType.case", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON))
 public class PageCases extends PageAdmin {
     private static final long serialVersionUID = 1L;
 

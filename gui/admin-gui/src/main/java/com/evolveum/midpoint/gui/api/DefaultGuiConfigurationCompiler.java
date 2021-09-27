@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -18,7 +19,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     @Autowired private PrismContext prismContext;
     @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
-    private static final String[] PACKAGES_TO_SCAN = {
+    private static final String[] PANEL_PACKAGES_TO_SCAN = {
             "com.evolveum.midpoint.web.component.objectdetails", //Old panels
             "com.evolveum.midpoint.web.component.assignment",  //Assignments
             "com.evolveum.midpoint.gui.impl.page.admin",
@@ -66,6 +66,20 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.component",
             "com.evolveum.midpoint.gui.impl.page.admin.archetype.component",
             "com.evolveum.midpoint.gui.impl.page.admin.report.component"
+    };
+
+    private static final String[] COLLECTION_PACKAGES_TO_SCAN = {
+            "com.evolveum.midpoint.web.page.admin.users",
+            "com.evolveum.midpoint.web.page.admin.services",
+            "com.evolveum.midpoint.web.page.admin.tasks",
+            "com.evolveum.midpoint.web.page.admin.roles",
+            "com.evolveum.midpoint.web.page.admin.resources",
+            "com.evolveum.midpoint.web.page.admin.reports",
+            "com.evolveum.midpoint.web.page.admin.orgs",
+            "com.evolveum.midpoint.web.page.admin.objectTemplate",
+            "com.evolveum.midpoint.web.page.admin.objectCollection",
+            "com.evolveum.midpoint.web.page.admin.cases",
+            "com.evolveum.midpoint.web.page.admin.archetype"
     };
 
     private final Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
@@ -92,11 +106,18 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     public void postProcess(CompiledGuiProfile compiledGuiProfile) {
         experimentalFeaturesEnabled = compiledGuiProfile.isEnableExperimentalFeatures();
 
-        Set<Class<?>> classes = collectClasses();
+        Set<Class<?>> classes = collectPackagesClasses();
 
         fillInPanelsMap(classes);
         fillInCountersMap(classes);
 
+        compileDefaultDetailsPages(classes, compiledGuiProfile);
+        mergeCollectionViewsWithDefault(compiledGuiProfile);
+        processShadowPanels(classes, compiledGuiProfile);
+
+    }
+
+    private void compileDefaultDetailsPages(Set<Class<?>> classes, CompiledGuiProfile compiledGuiProfile) {
         GuiObjectDetailsSetType defaultDetailsPages = compileDefaultGuiObjectDetailsSetType(classes);
         List<GuiObjectDetailsPageType> detailsPages = defaultDetailsPages.getObjectDetailsPage();
         for (GuiObjectDetailsPageType defaultDetailsPage : detailsPages) {
@@ -111,9 +132,50 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             compiledGuiProfile.getObjectDetails().getObjectDetailsPage().removeIf(p -> QNameUtil.match(p.getType(), defaultDetailsPage.getType()));
             compiledGuiProfile.getObjectDetails().getObjectDetailsPage().add(mergedDetailsPage.cloneWithoutId());
         }
+    }
 
-        processShadowPanels(classes, compiledGuiProfile);
+    private void mergeCollectionViewsWithDefault(CompiledGuiProfile compiledGuiProfile) {
+        Set<Class<?>> classes = collectCollectionClasses();
+        List<CompiledObjectCollectionView> defaultCollectionViews = compileDefaultCollectionViews(classes);
 
+        for (CompiledObjectCollectionView defaultCollectionView : defaultCollectionViews) {
+            CompiledObjectCollectionView compiledObjectCollectionView = compiledGuiProfile.findObjectCollectionView(defaultCollectionView.getContainerType(), defaultCollectionView.getViewIdentifier());
+            if (compiledObjectCollectionView == null) {
+                compiledGuiProfile.getObjectCollectionViews().add(defaultCollectionView);
+                continue;
+            }
+            mergeCollectionViews(compiledObjectCollectionView, defaultCollectionView);
+        }
+
+    }
+
+    private void mergeCollectionViews(CompiledObjectCollectionView compiledObjectCollectionView, CompiledObjectCollectionView defaulCollectionView) {
+        DisplayType displayType = adminGuiConfigurationMergeManager.mergeDisplayType(compiledObjectCollectionView.getDisplay(), defaulCollectionView.getDisplay());
+        compiledObjectCollectionView.setDisplay(displayType);
+
+        if (compiledObjectCollectionView.getApplicableForOperation() == null) {
+            compiledObjectCollectionView.setApplicableForOperation(defaulCollectionView.getApplicableForOperation());
+        }
+    }
+
+    private List<CompiledObjectCollectionView> compileDefaultCollectionViews(Set<Class<?>> classes) {
+        List<CompiledObjectCollectionView> compiledObjectCollectionViews = new ArrayList<>();
+        for (Class<?> clazz : classes) {
+            CollectionInstance collectionInstance = clazz.getAnnotation(CollectionInstance.class);
+            if (collectionInstance == null) {
+                continue;
+            }
+            ObjectTypes objectType = ObjectTypes.getObjectType(collectionInstance.applicableForType());
+            CompiledObjectCollectionView defaultCollectionView = new CompiledObjectCollectionView(objectType.getTypeQName(), collectionInstance.identifier());
+            defaultCollectionView.setDisplay(createDisplayType(collectionInstance.display()));
+            compiledObjectCollectionViews.add(defaultCollectionView);
+            defaultCollectionView.setDefaultView(true);
+
+            if (collectionInstance.applicableForOperation().length == 1) {
+                defaultCollectionView.setApplicableForOperation(collectionInstance.applicableForOperation()[0]);
+            }
+        }
+        return compiledObjectCollectionViews;
     }
 
     private void processShadowPanels(Set<Class<?>> classes, CompiledGuiProfile compiledGuiProfile) {
@@ -243,9 +305,17 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return panels;
     }
 
-    private Set<Class<?>> collectClasses() {
+    private Set<Class<?>> collectPackagesClasses() {
+        return collectClasses(PANEL_PACKAGES_TO_SCAN);
+    }
+
+    private Set<Class<?>> collectCollectionClasses() {
+        return collectClasses(COLLECTION_PACKAGES_TO_SCAN);
+    }
+
+    private Set<Class<?>> collectClasses(String[] packagesToScan) {
         Set<Class<?>> allClasses = new HashSet<>();
-        for (String packageToScan : PACKAGES_TO_SCAN) {
+        for (String packageToScan : packagesToScan) {
             Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
             allClasses.addAll(classes);
         }
@@ -363,11 +433,16 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     private DisplayType createDisplayType(PanelDisplay display) {
         DisplayType displayType = new DisplayType();
-        PolyStringTranslationType translationType = new PolyStringTranslationType();
-        translationType.setKey(display.label());
-        PolyString polyString = new PolyString(null, null, translationType);
-        displayType.setLabel(new PolyStringType(polyString));
+        displayType.setLabel(createPolyStringType(display.label()));
+        displayType.setSingularLabel(createPolyStringType(display.singularLabel()));
         displayType.setIcon(new IconType().cssClass(display.icon()));
         return displayType;
+    }
+
+    private PolyStringType createPolyStringType(String key) {
+        PolyStringTranslationType translationType = new PolyStringTranslationType();
+        translationType.setKey(key);
+        PolyString polyString = new PolyString(null, null, translationType);
+        return new PolyStringType(polyString);
     }
 }

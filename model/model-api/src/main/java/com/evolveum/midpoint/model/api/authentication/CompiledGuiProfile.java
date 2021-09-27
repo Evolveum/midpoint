@@ -188,6 +188,11 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
                 continue;
             }
             ObjectReferenceType collectionRef = objectCollectionView.getCollection() != null ? objectCollectionView.getCollection().getCollectionRef() : null;
+            if (collectionRef == null && objectCollectionView.isDefaultView()) { // e.g. All users, All roles, ...
+                archetypeViews.add(objectCollectionView);
+                continue;
+            }
+
             QName collectionRefType = collectionRef != null ? collectionRef.getType() : null;
             if (collectionRefType != null && ArchetypeType.COMPLEX_TYPE.equals(collectionRefType)){
                 archetypeViews.add(objectCollectionView);

@@ -68,6 +68,8 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     private String objectCollectionDescription;
 
+    private boolean defaultView;
+
     // Only used to construct "default" view definition. May be not needed later on.
     public CompiledObjectCollectionView() {
         super();
@@ -351,4 +353,11 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         return BooleanUtils.isTrue(includeDefaultColumns);
     }
 
+    public boolean isDefaultView() {
+        return defaultView;
+    }
+
+    public void setDefaultView(boolean defaultView) {
+        this.defaultView = defaultView;
+    }
 }

@@ -250,31 +250,12 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     });
                 }
 
-                if (!(isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget())
-                        && getNewObjectGenericButtonVisibility() && isGenericNewButtonVisible()) {
-                    CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
-                    DisplayType defaultButtonDisplayType = getNewObjectButtonSpecialDisplayType();
-                    defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
-
-                    CompositedIconBuilder defaultButtonIconBuilder = new CompositedIconBuilder();
-                    defaultButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                            .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType));
-//                            .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
-
-                    defaultButton.setCompositedIcon(defaultButtonIconBuilder.build());
-                    additionalButtons.add(defaultButton);
-                }
-
                 multifunctionalButton.setAdditionalButtons(additionalButtons);
 
                 return multifunctionalButton;
             }
         };
 
-    }
-
-    protected boolean isGenericNewButtonVisible() {
-        return true;
     }
 
     @Override

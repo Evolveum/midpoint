@@ -15,9 +15,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -57,6 +55,8 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_URL,
                 label = "PageReports.auth.reports.label",
                 description = "PageReports.auth.reports.description")})
+@CollectionInstance(identifier = "allReports", applicableForType = ReportType.class, applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.reports.list", singularLabel = "ObjectType.report", icon = GuiStyleConstants.CLASS_REPORT_ICON))
 public class PageReports extends PageAdmin {
     private static final long serialVersionUID = 1L;
 
@@ -100,10 +100,6 @@ public class PageReports extends PageAdmin {
                 return PageReports.this.createInlineMenu();
             }
 
-            @Override
-            protected boolean isGenericNewButtonVisible() {
-                return false;
-            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);

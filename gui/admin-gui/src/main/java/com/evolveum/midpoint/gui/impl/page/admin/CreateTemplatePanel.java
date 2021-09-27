@@ -95,19 +95,6 @@ public class CreateTemplatePanel<O extends ObjectType> extends BasePanel<PrismOb
                     });
                 }
 
-                if (isGenericNewButtonVisible()) {
-                    CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
-                    DisplayType defaultButtonDisplayType = getDefaultButtonDisplayType();
-                    defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
-
-                    CompositedIconBuilder defaultButtonIconBuilder = new CompositedIconBuilder();
-                    defaultButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                            .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType));
-
-                    defaultButton.setCompositedIcon(defaultButtonIconBuilder.build());
-                    additionalButtons.add(defaultButton);
-                }
-
                 MultiFunctinalButtonDto multifunctionalButton = new MultiFunctinalButtonDto();
                 multifunctionalButton.setAdditionalButtons(additionalButtons);
                 return multifunctionalButton;

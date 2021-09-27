@@ -12,8 +12,12 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,9 +43,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -72,6 +73,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
                         label = "PageResources.auth.resources.view.label",
                         description = "PageResources.auth.resources.view.description")
         })
+@CollectionInstance(identifier = "allResources", applicableForType = ResourceType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.resources.list", singularLabel = "ObjectType.resource", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON))
 public class PageResources extends PageAdmin {
 
     private static final long serialVersionUID = 1L;
