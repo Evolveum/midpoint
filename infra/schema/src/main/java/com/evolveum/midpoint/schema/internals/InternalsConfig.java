@@ -162,8 +162,7 @@ public class InternalsConfig {
         prismMonitoring = internalsConfig.getBoolean("prismMonitoring", prismMonitoring);
         modelProfiling = internalsConfig.getBoolean("modelProfiling", modelProfiling);
         // TODO: testingPaths
-        detailedAuthorizationLog = internalsConfig.getBoolean("detailedAuhotizationLog", detailedAuthorizationLog);
-
+        detailedAuthorizationLog = internalsConfig.getBoolean("detailedAuthorizationLog", detailedAuthorizationLog);
     }
 
     public static void reset() {
@@ -202,7 +201,7 @@ public class InternalsConfig {
         consistencyChecks = true;
         sanityChecks = true;
         encryptionChecks = true;
-        encryptionChecks = true;
+        readEncryptionChecks = true;
         prismMonitoring = true;
         modelProfiling = true;
         allowClearDataLogging = true;
