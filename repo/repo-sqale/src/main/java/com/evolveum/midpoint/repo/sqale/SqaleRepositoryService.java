@@ -374,14 +374,14 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
                 logger.trace("overwriteAddObjectAttempt: originalOid={}, modifications={}",
                         oid, modifications);
-
                 Collection<? extends ItemDelta<?, ?>> executedModifications =
-                        updateContext.execute(modifications);
-
+                        updateContext.execute(modifications, false);
+                replaceObject(updateContext, modifications, updateContext.getPrismObject());
                 if (!executedModifications.isEmpty()) {
                     invokeConflictWatchers((w) -> w.afterModifyObject(oid));
                 }
                 logger.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+
             } catch (ObjectNotFoundException e) {
                 // so it is just plain addObject after all
                 new AddObjectContext<>(sqlRepoContext, newObject)
@@ -599,20 +599,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // UpdateTables is false, we want only to process modifications on fullObject
             // do not modify nested items.
             modifications = updateContext.execute(modifications, false);
-            // We delete original object and cascade of referenced tables, this will also
-            // remove additional rows, which may not be present in full object
-            // after desync
-            updateContext.jdbcSession().newDelete(updateContext.entityPath())
-                    .where(updateContext.entityPath().oid.eq(updateContext.objectOid()))
-                    .execute();
-            try {
-                // We add object again, this will ensure recreation of all indices and correct
-                // table rows again
-                new AddObjectContext<>(sqlRepoContext, updateContext.getPrismObject())
-                        .executeReindexed(updateContext.jdbcSession());
-            } catch (SchemaException | ObjectAlreadyExistsException e) {
-                throw new RepositoryException("Update with reindex failed", e);
-            }
+            replaceObject(updateContext, modifications, updateContext.getPrismObject());
         } else {
             modifications = updateContext.execute(modifications);
             updateContext.jdbcSession().commit();
@@ -623,6 +610,26 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             invokeConflictWatchers((w) -> w.afterModifyObject(prismObject.getOid()));
         }
         return new ModifyObjectResult<>(originalObject, prismObject, modifications);
+    }
+
+    private <T extends ObjectType> @NotNull Collection<? extends ItemDelta<?, ?>> replaceObject(@NotNull RootUpdateContext<?, QObject<MObject>, MObject> updateContext,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications, PrismObject<T> newObject) throws RepositoryException, SchemaException {
+        // We delete original object and cascade of referenced tables, this will also
+        // remove additional rows, which may not be present in full object
+        // after desync
+        updateContext.jdbcSession().newDelete(updateContext.entityPath())
+                .where(updateContext.entityPath().oid.eq(updateContext.objectOid()))
+                .execute();
+        try {
+            // We add object again, this will ensure recreation of all indices and correct
+            // table rows again
+            new AddObjectContext<>(sqlRepoContext, newObject)
+                    .executeReindexed(updateContext.jdbcSession());
+            return modifications;
+        } catch (SchemaException | ObjectAlreadyExistsException e) {
+            throw new RepositoryException("Update with reindex failed", e);
+        }
+
     }
 
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
