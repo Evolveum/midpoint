@@ -68,7 +68,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
     }
 
     @Override
-    protected RoleType createNewObject() {
+    public RoleType createNewObject() {
         return new RoleType();
     }
 

@@ -338,7 +338,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
     }
 
     @Override
-    protected SystemConfigurationType createNewObject() {
+    public SystemConfigurationType createNewObject() {
         return null;
     }
 

@@ -93,7 +93,7 @@ public class PageObjectTemplate extends PageAdminObjectDetails<ObjectTemplateTyp
     }
 
     @Override
-    protected ObjectTemplateType createNewObject() {
+    public ObjectTemplateType createNewObject() {
         return new ObjectTemplateType(getPrismContext());
     }
 

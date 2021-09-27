@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +25,9 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -42,17 +42,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
-import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.*;
 import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
-import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
-import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
-import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
-import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplates;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
@@ -486,15 +480,32 @@ public class LeftMenuPanel extends BasePanel<Void> {
             final Class<? extends PageBase> newPageClass) {
 
         boolean addActive = classMatches(newPageClass) && !isEditForAdminObjectDetails() && !isEditForResourceWizzard();
-        MenuItem newMenu = new MenuItem(newKey,
-                GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null, addActive);
-        mainMenuItem.addMenuItem(newMenu);
+        if (isAddNewObjectMenuItemAuthorized(newPageClass)) {       //mid-7145
+            MenuItem newMenu = new MenuItem(newKey,
+                    GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null, addActive);
+            mainMenuItem.addMenuItem(newMenu);
+        }
 
         boolean editActive = classMatches(newPageClass) && (isEditForAdminObjectDetails() || isEditForResourceWizzard());
         if (editActive) {
             MenuItem edit = new MenuItem(editKey, newPageClass);
             mainMenuItem.addMenuItem(edit);
         }
+    }
+
+    private boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
+        if (newPageClass.isAssignableFrom(PageAdminObjectDetails.class)) {
+            try {
+                PageAdminObjectDetails page = (PageAdminObjectDetails) newPageClass.getConstructor().newInstance();
+                ObjectType object = page.createNewObject();
+                return getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+                        AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
+                        null, null, null);
+            } catch (Exception ex) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New object menu item", ex);
+            }
+        }
+        return true;
     }
 
     private boolean classMatches(Class<? extends PageBase> page) {

@@ -244,7 +244,7 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
     }
 
     @Override
-    protected CaseType createNewObject() {
+    public CaseType createNewObject() {
         return new CaseType();
     }
 

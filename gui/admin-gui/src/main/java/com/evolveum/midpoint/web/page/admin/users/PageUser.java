@@ -144,7 +144,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     @Override
-    protected UserType createNewObject() {
+    public UserType createNewObject() {
         return new UserType();
     }
 
