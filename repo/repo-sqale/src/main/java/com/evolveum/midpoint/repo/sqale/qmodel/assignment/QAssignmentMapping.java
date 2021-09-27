@@ -266,6 +266,7 @@ public class QAssignmentMapping<OR extends MObject>
     public MAssignment newRowObject(OR ownerRow) {
         MAssignment row = newRowObject();
         row.ownerOid = ownerRow.oid;
+        row.ownerType = ownerRow.objectType;
         return row;
     }
 
