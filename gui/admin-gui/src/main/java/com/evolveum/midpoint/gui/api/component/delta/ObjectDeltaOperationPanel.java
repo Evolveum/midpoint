@@ -88,7 +88,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
         };
         showFullResultsLink.setOutputMarkupId(true);
         showFullResultsLink.add(AttributeAppender.append("style", "cursor: pointer;"));
-        showFullResultsLink.add(new VisibleBehaviour(this::isShowFullResultVisible));
+        showFullResultsLink.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getExecutionResult() != null));
         objectDeltaOperationMarkup.add(showFullResultsLink);
 
         Label resourceName = new Label(ID_PARAMETERS_RESOURCE_NAME,
@@ -128,18 +128,6 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
         deltaPanel.setOutputMarkupId(true);
         objectDeltaOperationMarkup.add(deltaPanel);
 
-    }
-
-    private boolean isShowFullResultVisible() {
-        ObjectDeltaOperationType modelObject = getModelObject();
-        if (modelObject == null) {
-            return false;
-        }
-        OperationResultType result = modelObject.getExecutionResult();
-        if (result == null) {
-            return false;
-        }
-        return !WebComponentUtil.isSuccessOrHandledError(result);
     }
 
     private String getBoxCssClass() {
