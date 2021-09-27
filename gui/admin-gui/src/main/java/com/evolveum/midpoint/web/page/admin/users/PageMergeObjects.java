@@ -206,7 +206,8 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         return PageUsers.class;
     }
 
-    protected UserType createNewObject() {
+    @Override
+    public UserType createNewObject() {
         return new UserType();
     }
 

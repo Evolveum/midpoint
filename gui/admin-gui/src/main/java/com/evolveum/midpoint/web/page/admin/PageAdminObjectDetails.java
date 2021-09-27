@@ -338,7 +338,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return null;
     }
 
-    protected abstract O createNewObject();
+    public abstract O createNewObject();
 
     @Override
     protected void onInitialize() {

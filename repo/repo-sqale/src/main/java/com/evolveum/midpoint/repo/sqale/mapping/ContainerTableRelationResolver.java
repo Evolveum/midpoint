@@ -47,7 +47,7 @@ public class ContainerTableRelationResolver<
     @Override
     public ContainerTableUpdateContext<TS, TQ, TR, R> resolve(
             SqaleUpdateContext<?, Q, R> context, ItemPath itemPath) throws RepositoryException {
-        if (itemPath == null || itemPath.size() != 2 || !(itemPath.getSegment(1) instanceof Long)) {
+        if (itemPath == null || itemPath.size() != 2 || !(ItemPath.isId(itemPath.getSegment(1)))) {
             throw new IllegalArgumentException(
                     "Item path provided for container table relation resolver must have two"
                             + " segments with PCV ID as the second");
@@ -68,7 +68,7 @@ public class ContainerTableRelationResolver<
                 (QContainerMapping<TS, TQ, TR, R>) targetMappingSupplier.get();
         TR row = containerMapping.newRowObject(context.row());
         //noinspection ConstantConditions
-        row.cid = (long) itemPath.getSegment(1);
+        row.cid = ItemPath.toId(itemPath.getSegment(1));
         return new ContainerTableUpdateContext<>(context, containerMapping, row);
     }
 }

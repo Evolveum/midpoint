@@ -51,7 +51,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
     public String execute()
             throws SchemaException, ObjectAlreadyExistsException {
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
-            object.setVersion("1"); // initial add always uses 1 as version number
+            object.setVersion("0"); // initial add always uses 1 as version number
             initContexts();
             if (object.getOid() == null) {
                 return addObjectWithoutOid(jdbcSession);

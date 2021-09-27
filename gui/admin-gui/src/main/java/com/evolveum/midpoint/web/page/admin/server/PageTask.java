@@ -122,7 +122,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     @Override
-    protected TaskType createNewObject() {
+    public TaskType createNewObject() {
         return new TaskType();
     }
 

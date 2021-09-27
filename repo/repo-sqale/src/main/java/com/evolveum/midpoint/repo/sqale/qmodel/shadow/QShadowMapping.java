@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.ExtUtils;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.CountItemDeltaProcessor;
@@ -34,6 +37,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -141,6 +146,7 @@ public class QShadowMapping
         if (GetOperationOptions.isRaw(rootOptions)) {
             // If raw=true, we populate attributes with types cached in repository
             applyShadowAttributesDefinitions(shadowType);
+            //return shadowType;
         }
 
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
@@ -176,7 +182,7 @@ public class QShadowMapping
             @Nullable
             MExtItem mapping = repositoryContext().getExtensionItem(Integer.valueOf(attribute.getKey()));
             QName itemName = QNameUtil.uriToQName(mapping.itemName);
-            ItemDefinition<?> definition = definitionFrom(itemName, mapping);
+            ItemDefinition<?> definition = definitionFrom(itemName, mapping, true);
             if (definition instanceof PrismPropertyDefinition) {
                 var item = container.findOrCreateProperty((PrismPropertyDefinition) definition);
                 switch (mapping.cardinality) {
@@ -190,16 +196,60 @@ public class QShadowMapping
                     default:
                         throw new IllegalStateException("");
                 }
+                if (item.isIncomplete() && (item.getDefinition() == null || !item.getDefinition().isIndexOnly())) {
+                    // Item was not fully serialized / probably indexOnly item
+                    item.applyDefinition((PrismPropertyDefinition) definition);
+                }
                 item.setIncomplete(false);
             }
         }
     }
 
+
+    @Override
+    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        List<SelectorOptions<GetOperationOptions>> ret = new ArrayList<>(super.updateGetOptions(options, modifications));
+
+        boolean attributes = false;
+        for (ItemDelta<?, ?> modification : modifications) {
+            if (F_ATTRIBUTES.isSubPath(modification.getPath())) {
+                attributes = true;
+                break;
+            }
+        }
+        if (attributes) {
+            ret.addAll(SchemaService.get().getOperationOptionsBuilder().item(F_ATTRIBUTES).retrieve().build());
+        }
+        return ret;
+    }
+
+
+
     @Override
     public @NotNull Path<?>[] selectExpressions(QShadow entity,
             Collection<SelectorOptions<GetOperationOptions>> options) {
-        // TODO: Switch on RETRIEVE
-        return new Path[] { entity.oid, entity.fullObject, entity.attributes };
+        var retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
+        if (loadIndexOnly(retrieveOptions)) {
+            return new Path[] { entity.oid, entity.fullObject, entity.attributes };
+        }
+        return new Path[] { entity.oid, entity.fullObject };
+    }
+
+    private boolean loadIndexOnly(List<SelectorOptions<GetOperationOptions>> retrieveOptions) {
+        for (SelectorOptions<GetOperationOptions> selectorOptions : retrieveOptions) {
+            if (selectorOptions.getOptions() == null || !RetrieveOption.INCLUDE.equals(selectorOptions.getOptions().getRetrieve())) {
+                continue;
+            }
+
+            ItemPath path = selectorOptions.getSelector() != null ? selectorOptions.getSelector().getPath() : null;
+            if (path == null || path.isEmpty() || F_ATTRIBUTES.isSubPathOrEquivalent(path)) {
+                return true;
+            }
+
+        }
+        return false;
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -214,12 +264,12 @@ public class QShadowMapping
             MExtItem itemInfo = repositoryContext().getExtensionItem(
                     MExtItem.itemNameKey(attribute.getElementName(), MExtItemHolderType.ATTRIBUTES));
             if (itemInfo != null && attribute.getDefinition() == null) {
-                ((Item) attribute).applyDefinition(definitionFrom(itemName, itemInfo), true);
+                ((Item) attribute).applyDefinition(definitionFrom(itemName, itemInfo, false), true);
             }
         }
     }
 
-    private ItemDefinition<?> definitionFrom(QName name, MExtItem itemInfo) {
+    private ItemDefinition<?> definitionFrom(QName name, MExtItem itemInfo, boolean indexOnly) {
         QName typeName = ExtUtils.getSupportedTypeName(itemInfo.valueType);
         final MutableItemDefinition<?> def;
         if (ObjectReferenceType.COMPLEX_TYPE.equals(typeName)) {
@@ -231,6 +281,7 @@ public class QShadowMapping
         def.setMaxOccurs(-1);
         def.setRuntimeSchema(true);
         def.setDynamic(true);
+        def.setIndexOnly(indexOnly);
         return def;
     }
 }

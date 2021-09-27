@@ -6,11 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
