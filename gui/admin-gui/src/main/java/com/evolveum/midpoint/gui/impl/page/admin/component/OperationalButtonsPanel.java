@@ -149,7 +149,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-//        save.add(getVisibilityForSaveButton());
+        save.add(new VisibleBehaviour(this::getVisibilityForSaveButton));
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
         save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
@@ -164,6 +164,10 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     protected void savePerformed(AjaxRequestTarget target) {
 
+    }
+
+    protected boolean getVisibilityForSaveButton() {
+        return true; //todo check if the object is editable? or look at old page behavior
     }
 
     private void backPerformed(AjaxRequestTarget target) {

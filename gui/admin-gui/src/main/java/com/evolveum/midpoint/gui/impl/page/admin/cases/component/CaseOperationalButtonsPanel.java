@@ -71,4 +71,8 @@ public class CaseOperationalButtonsPanel extends AssignmentHolderOperationalButt
         target.add(getPageBase().getFeedbackPanel());
     }
 
+    @Override
+    protected boolean getVisibilityForSaveButton() {
+        return false;
+    }
 }
