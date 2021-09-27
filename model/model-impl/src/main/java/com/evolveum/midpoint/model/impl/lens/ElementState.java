@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.OperationExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,6 +39,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import static com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.recordEndEmbedded;
+import static com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.recordStartEmbedded;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.MonitoredOperationType.*;
 
 /**
  * Encapsulates the maintenance of the state of an element (focus, projection).
@@ -361,19 +366,25 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
 
     //region Computations
     private ObjectDelta<O> computeCurrentDelta() {
-        if (wasPrimaryDeltaExecuted) {
-            return secondaryDelta;
-        } else {
-            try {
-                //noinspection unchecked
-                return ObjectDeltaCollectionsUtil.union(primaryDelta, secondaryDelta);
-            } catch (SchemaException e) {
-                throw new SystemException("Unexpected schema exception while merging deltas: " + e.getMessage(), e);
+        OperationExecution execution = recordStartEmbedded(CURRENT_DELTA_COMPUTATION);
+        try {
+            if (wasPrimaryDeltaExecuted) {
+                return secondaryDelta;
+            } else {
+                try {
+                    //noinspection unchecked
+                    return ObjectDeltaCollectionsUtil.union(primaryDelta, secondaryDelta);
+                } catch (SchemaException e) {
+                    throw new SystemException("Unexpected schema exception while merging deltas: " + e.getMessage(), e);
+                }
             }
+        } finally {
+            recordEndEmbedded(execution);
         }
     }
 
     private ObjectDelta<O> computeSummaryDelta() {
+        OperationExecution execution = recordStartEmbedded(SUMMARY_DELTA_COMPUTATION);
         try {
             List<ObjectDelta<O>> allDeltas = new ArrayList<>();
             CollectionUtils.addIgnoreNull(allDeltas, primaryDelta);
@@ -381,6 +392,8 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
             return ObjectDeltaCollectionsUtil.summarize(allDeltas);
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema exception while merging deltas: " + e.getMessage(), e);
+        } finally {
+            recordEndEmbedded(execution);
         }
     }
 
@@ -402,6 +415,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
     }
 
     private PrismObject<O> computeNewObject() {
+        OperationExecution execution = recordStartEmbedded(NEW_OBJECT_COMPUTATION);
         try {
             PrismObject<O> adjustedCurrentObject = getAdjustedCurrentObject();
             ObjectDelta<O> currentDelta = getCurrentDelta();
@@ -411,6 +425,8 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
         } catch (SchemaException e) {
             // FIXME This is temporary. We should propagate this exception upwards. (But probably not to all getNewObject calls.)
             throw new SystemException("Unexpected schema exception when computing new object: " + e.getMessage(), e);
+        } finally {
+            recordEndEmbedded(execution);
         }
     }
 
@@ -523,10 +539,8 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
 
         LOGGER.trace("Going to swallow to secondary delta (for {}):\n{}", context, itemDelta.debugDumpLazily(1));
 
-        ObjectDelta<O> currentDelta = getCurrentDelta();
         // TODO change this "contains modification" check (but how?)
-        if (currentDelta != null &&
-                currentDelta.containsModification(itemDelta, EquivalenceStrategy.DATA.exceptForValueMetadata())) {
+        if (isDeltaAlreadyPresent(itemDelta)) {
             return;
         }
 
@@ -539,6 +553,17 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
 
         // TODO directly add to current and summary deltas and object new
         invalidateSecondaryDeltaDependencies();
+    }
+
+    private boolean isDeltaAlreadyPresent(ItemDelta<?, ?> itemDelta) {
+        // This gradual check (primary then secondary) is there to avoid the computation of the current delta
+        return !wasPrimaryDeltaExecuted && isDeltaPresentIn(itemDelta, primaryDelta) ||
+                isDeltaPresentIn(itemDelta, secondaryDelta);
+    }
+
+    private boolean isDeltaPresentIn(ItemDelta<?, ?> itemDelta, ObjectDelta<O> objectDelta) {
+        return objectDelta != null &&
+                objectDelta.containsModification(itemDelta, EquivalenceStrategy.DATA.exceptForValueMetadata());
     }
 
     /** Creates the delta if needed. */

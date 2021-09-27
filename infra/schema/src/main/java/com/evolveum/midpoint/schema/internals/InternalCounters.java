@@ -61,12 +61,12 @@ public enum InternalCounters {
     TRIGGER_FIRED_COUNT("triggerFiredCount", "trigger fired count", null);
 
     // Used as localization key
-    private String key;
+    private final String key;
 
     // Used in logfiles, etc.
-    private String label;
+    private final String label;
 
-    private InternalOperationClasses operationClass;
+    private final InternalOperationClasses operationClass;
 
     InternalCounters(String key, String label, InternalOperationClasses operationClass) {
         this.key = key;

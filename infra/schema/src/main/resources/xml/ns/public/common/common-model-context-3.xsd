@@ -2332,6 +2332,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="operationMonitoring" type="tns:OperationMonitoringType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What monitored operations to trace.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="collectLogEntries" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2545,6 +2556,67 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DETAILED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="OperationMonitoringType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What monitored operations to trace.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="operation" type="tns:MonitoredOperationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Monitored operation(s) to be included in traces. (The default is all.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="level" type="tns:OperationMonitoringLevelType" minOccurs="0" default="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Level of monitoring (e.g. whether to measure the time as well.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="operationMonitoring" type="tns:OperationMonitoringType" />
+
+    <xsd:simpleType name="OperationMonitoringLevelType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Monitored operation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="count">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Watching only the operation count.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COUNT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Watching in the full: currently this means both operation count and the time spent.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

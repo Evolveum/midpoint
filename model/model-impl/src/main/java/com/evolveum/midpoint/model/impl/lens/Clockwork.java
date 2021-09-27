@@ -112,10 +112,6 @@ public class Clockwork {
             task.setChannel(originalTaskChannel);
             result.computeStatusIfUnknown();
 
-            // Temporary
-            result.addContext("deltaAggregationTime", context.getDeltaAggregationTime() / 1000);
-            LOGGER.info("Delta aggregation time: {} microseconds", context.getDeltaAggregationTime() / 1000);
-
             recordTraceAtEnd(context, trace, result);
             if (tracingRequested) {
                 tracer.storeTrace(task, result, parentResult);
