@@ -782,7 +782,7 @@ public final class WebComponentUtil {
     }
 
     public static boolean isReport(TaskType task) {
-        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_TASK);
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_TASK) || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK) || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK);
     }
 
     public static boolean isImport(TaskType task) {
