@@ -276,7 +276,6 @@ public class QAssignmentMapping<OR extends MObject>
     public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) {
         MAssignment row = initRowObject(assignment, ownerRow);
 
-        row.ownerType = ownerRow.objectType;
         row.lifecycleState = assignment.getLifecycleState();
         row.orderValue = assignment.getOrder();
         setReference(assignment.getOrgRef(),

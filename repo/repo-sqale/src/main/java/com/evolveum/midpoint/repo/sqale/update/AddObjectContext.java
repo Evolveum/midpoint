@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.update;
 
+import static com.evolveum.midpoint.repo.sqale.SqaleRepositoryService.INITIAL_VERSION_STRING;
+
 import java.util.Objects;
 import java.util.UUID;
 
@@ -51,7 +53,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
     public String execute()
             throws SchemaException, ObjectAlreadyExistsException {
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
-            object.setVersion("0"); // initial add always uses 1 as version number
+            object.setVersion(INITIAL_VERSION_STRING);
             initContexts();
             if (object.getOid() == null) {
                 return addObjectWithoutOid(jdbcSession);
