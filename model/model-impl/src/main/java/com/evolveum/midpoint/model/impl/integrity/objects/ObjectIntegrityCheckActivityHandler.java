@@ -19,7 +19,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -99,7 +99,7 @@ public class ObjectIntegrityCheckActivityHandler
     }
 
     static class MyExecution extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler, AbstractActivityWorkStateType> {
+            ObjectSearchBasedActivityExecution<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler, AbstractActivityWorkStateType> {
 
         final ObjectStatistics objectStatistics = new ObjectStatistics();
 

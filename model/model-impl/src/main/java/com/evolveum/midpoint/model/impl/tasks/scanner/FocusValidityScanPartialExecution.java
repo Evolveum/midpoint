@@ -153,11 +153,11 @@ public class FocusValidityScanPartialExecution
     private ObjectFilter createFilterForItemTimestamp(ItemPath path,
             XMLGregorianCalendar lowerBound, XMLGregorianCalendar upperBound) {
         if (lowerBound == null) {
-            return PrismContext.get().queryFor(getObjectType())
+            return PrismContext.get().queryFor(getContainerType())
                     .item(path).le(upperBound)
                     .buildFilter();
         } else {
-            return PrismContext.get().queryFor(getObjectType())
+            return PrismContext.get().queryFor(getContainerType())
                     .item(path).gt(lowerBound)
                     .and().item(path).le(upperBound)
                     .buildFilter();

@@ -99,7 +99,7 @@ public class ChangeExecutionActivityHandler
     }
 
     static class MyExecution extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler, AbstractActivityWorkStateType> {
+            ObjectSearchBasedActivityExecution<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler, AbstractActivityWorkStateType> {
 
         MyExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ChangeExecutionActivityHandler> context,
                 String shortName) {

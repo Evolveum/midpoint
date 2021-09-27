@@ -10,7 +10,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -93,7 +93,7 @@ public class IterativeScriptingActivityHandler
     }
 
     static class MyExecutionSpecifics extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
+            ObjectSearchBasedActivityExecution<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
 
         MyExecutionSpecifics(
                 @NotNull ExecutionInstantiationContext<MyWorkDefinition, IterativeScriptingActivityHandler> context, String shortName) {

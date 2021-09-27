@@ -12,11 +12,14 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,6 +44,7 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         commonInitialization(initResult);
 
         repoAdd(TASK_DISTRIBUTED_EXPORT_CLASSIC, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_AUDIT_RECORDS, initResult);
 
         createUsers(USERS, initResult);
     }
@@ -66,6 +70,34 @@ public class TestCsvReportMultiNode extends TestCsvReport {
                 .display();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_USERS.oid);
+        basicCheckOutputFile(report, 1004, 2, null);
+    }
+
+    @Test
+    public void test101ExportAuditRecords() throws Exception {
+        if (!(plainRepositoryService instanceof SqaleRepositoryService)) {
+            throw new SkipException("Skipping test before it is relevant only for sqale repo");
+        }
+
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        addObject(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.file);
+        runExportTask(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, result);
+
+        when();
+
+        waitForTaskCloseOrSuspend(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid);
+
+        then();
+
+        assertTask(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid, "after")
+                .assertSuccess()
+                .display();
+
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
         basicCheckOutputFile(report, 1004, 2, null);
     }
 

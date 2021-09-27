@@ -386,8 +386,8 @@ class SearchHelper {
     }
 
     private SearchResultMetadata searchShadowsInRepositoryIteratively(final ProvisioningContext ctx,
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> originalOptions,
-            final ResultHandler<ShadowType> shadowHandler, OperationResult parentResult)
+                                                                      ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> originalOptions,
+                                                                      final ResultHandler<ShadowType> shadowHandler, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException {
         // This is because we need to apply definitions later
@@ -398,7 +398,7 @@ class SearchHelper {
 
     @NotNull
     private ResultHandler<ShadowType> createRepoShadowHandler(ProvisioningContext ctx,
-            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> shadowHandler) {
+                                                              Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> shadowHandler) {
         return (PrismObject<ShadowType> shadow, OperationResult objResult) -> {
             try {
                 processRepoShadow(ctx, shadow, options, objResult);

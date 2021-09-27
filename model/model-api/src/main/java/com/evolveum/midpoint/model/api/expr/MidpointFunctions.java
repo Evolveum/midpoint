@@ -613,7 +613,7 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
-            ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+                                                       ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * <p>

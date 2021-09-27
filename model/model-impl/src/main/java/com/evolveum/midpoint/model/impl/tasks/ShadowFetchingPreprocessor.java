@@ -1,13 +1,17 @@
 package com.evolveum.midpoint.model.impl.tasks;
 
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.task.ObjectPreprocessor;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.CheckedProducer;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,22 +34,26 @@ public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowFetchingPreprocessor.class);
 
-    @NotNull private final SearchBasedActivityExecution<?, ?, ?, ?> activityExecution;
+    @NotNull private final Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions;
+    @NotNull private final SchemaService schemaService;
     @NotNull private final ModelObjectResolver modelObjectResolver;
 
-    ShadowFetchingPreprocessor(@NotNull SearchBasedActivityExecution<?, ?, ?, ?> activityExecution,
+    ShadowFetchingPreprocessor( @NotNull Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions,
+            @NotNull SchemaService schemaService,
             @NotNull ModelObjectResolver modelObjectResolver) {
-        this.activityExecution = activityExecution;
+        this.producerOptions = producerOptions;
+        this.schemaService = schemaService;
         this.modelObjectResolver = modelObjectResolver;
     }
 
     @Override
-    public PrismObject<ShadowType> preprocess(PrismObject<ShadowType> originalObject, Task task, OperationResult result)
+    public PrismObject<ShadowType> preprocess(PrismObject<ShadowType> originalContainer, Task task, OperationResult result)
             throws CommonException {
+        PrismObject<ShadowType> originalObject = originalContainer;
         String oid = originalObject.getOid();
         stateCheck(oid != null, "Original object has no OID");
 
-        Collection<SelectorOptions<GetOperationOptions>> options = adaptSearchOptions(activityExecution.getSearchOptions());
+        Collection<SelectorOptions<GetOperationOptions>> options = adaptSearchOptions(producerOptions.run());
 
         LOGGER.trace("Fetching {} with options: {}", originalObject, options);
         return modelObjectResolver
@@ -57,10 +65,10 @@ public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType
             Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
 
         Collection<SelectorOptions<GetOperationOptions>> optionsToSet =
-                activityExecution.getSchemaService().getOperationOptionsBuilder()
+                schemaService.getOperationOptionsBuilder()
                         .noFetch(false)
                         .errorReportingMethod(FetchErrorReportingMethodType.FORCED_EXCEPTION) // we need exceptions!
                         .build();
-        return GetOperationOptions.merge(activityExecution.getPrismContext(), originalOptions, optionsToSet);
+        return GetOperationOptions.merge(PrismContext.get(), originalOptions, optionsToSet);
     }
 }

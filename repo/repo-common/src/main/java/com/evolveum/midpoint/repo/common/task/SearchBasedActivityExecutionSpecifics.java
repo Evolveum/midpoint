@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.task;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -43,10 +45,10 @@ import javax.xml.namespace.QName;
  * The correct way how to prescribe object type is to use {@link ObjectSetUtil#assumeObjectType(ObjectSetType, QName)} method
  * when constructing the work definition.
  *
- * @param <O> Type of objects processed by the activity
+ * @param <C> Type of objects processed by the activity
  */
 @SuppressWarnings("RedundantThrows")
-public interface SearchBasedActivityExecutionSpecifics<O extends ObjectType>
+interface SearchBasedActivityExecutionSpecifics<C extends Containerable, PC extends PrismContainer>
         extends IterativeActivityExecutionSpecifics {
 
     //region 1. Search specification formulation and customization
@@ -58,7 +60,7 @@ public interface SearchBasedActivityExecutionSpecifics<O extends ObjectType>
      *
      * Note: freely add {@link CommonException} and {@link ActivityExecutionException} to the signature of this method if needed.
      */
-    default @Nullable SearchSpecification<O> createCustomSearchSpecification(OperationResult result) {
+    default @Nullable SearchSpecification<C> createCustomSearchSpecification(OperationResult result) {
         return null;
     }
 
@@ -102,7 +104,7 @@ public interface SearchBasedActivityExecutionSpecifics<O extends ObjectType>
      *
      * BEWARE: Object may have been preprocessed, and may be different from the object present in the request.
      */
-    boolean processObject(@NotNull PrismObject<O> object, @NotNull ItemProcessingRequest<PrismObject<O>> request,
-            RunningTask workerTask, OperationResult result) throws CommonException, ActivityExecutionException;
+    boolean processObject(@NotNull PC container, @NotNull ItemProcessingRequest<PC> request,
+                          RunningTask workerTask, OperationResult result) throws CommonException, ActivityExecutionException;
     //endregion
 }

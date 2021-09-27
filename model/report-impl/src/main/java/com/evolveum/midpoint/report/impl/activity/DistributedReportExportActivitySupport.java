@@ -13,12 +13,13 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
 
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -38,14 +39,14 @@ class DistributedReportExportActivitySupport extends ExportActivitySupport {
      */
     private ObjectReferenceType globalReportDataRef;
 
-    DistributedReportExportActivitySupport(
-            SearchBasedActivityExecution<?, DistributedReportExportWorkDefinition,
-                    DistributedReportExportActivityHandler, ?> activityExecution) {
+    DistributedReportExportActivitySupport(AbstractActivityExecution<?, ?, ?> activityExecution,
+            Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity
+    ) {
         super(activityExecution,
-                activityExecution.getActivity().getHandler().reportService,
-                activityExecution.getActivity().getHandler().objectResolver,
-                activityExecution.getActivity().getWorkDefinition());
-        activity = activityExecution.getActivity();
+                activity.getHandler().reportService,
+                activity.getHandler().objectResolver,
+                activity.getWorkDefinition());
+        this.activity = activity;
     }
 
     void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {

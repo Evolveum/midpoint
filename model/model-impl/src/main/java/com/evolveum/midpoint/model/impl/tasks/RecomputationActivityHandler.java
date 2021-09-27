@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
@@ -96,7 +96,7 @@ public class RecomputationActivityHandler
     }
 
     static class MyExecution extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, RecomputationActivityHandler, AbstractActivityWorkStateType> {
+            ObjectSearchBasedActivityExecution<ObjectType, MyWorkDefinition, RecomputationActivityHandler, AbstractActivityWorkStateType> {
 
         MyExecution(
                 @NotNull ExecutionInstantiationContext<MyWorkDefinition, RecomputationActivityHandler> context,

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.api;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,4 +74,13 @@ public interface ModelAuditService {
      * operations.
      */
     boolean supportsRetrieval();
+
+    /**
+     * @throws UnsupportedOperationException if object retrieval is not supported
+     */
+    void searchObjectsIterative(
+            @Nullable ObjectQuery query, @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull AuditResultHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException;
 }

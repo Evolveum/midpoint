@@ -42,7 +42,7 @@ final class CachingResultHandler<T extends ObjectType> implements ResultHandler<
     private final List<PrismObject<T>> objects = new ArrayList<>();
 
     CachingResultHandler(ResultHandler<T> handler, boolean queryCacheable, boolean readOnly, long started,
-            Class<T> type, CacheUpdater cacheUpdater) {
+                         Class<T> type, CacheUpdater cacheUpdater) {
         this.originalHandler = handler;
         this.queryCacheable = queryCacheable;
         this.readOnly = readOnly;

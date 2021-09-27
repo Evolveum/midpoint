@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.tasks.cluster;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class AutoScalingActivityExecution extends
-        SearchBasedActivityExecution<TaskType, AutoScalingWorkDefinition, AutoScalingActivityHandler, ActivityAutoScalingWorkStateType> {
+        ObjectSearchBasedActivityExecution<TaskType, AutoScalingWorkDefinition, AutoScalingActivityHandler, ActivityAutoScalingWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AutoScalingActivityHandler.class);
 

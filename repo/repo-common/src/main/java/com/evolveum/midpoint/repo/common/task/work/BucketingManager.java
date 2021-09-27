@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketProgressOverviewType;
 
 import org.jetbrains.annotations.NotNull;
@@ -106,7 +107,7 @@ public class BucketingManager {
     /**
      * Narrows a query by taking specified bucket into account.
      */
-    public ObjectQuery narrowQueryForWorkBucket(@NotNull Class<? extends ObjectType> type, ObjectQuery query,
+    public ObjectQuery narrowQueryForWorkBucket(@NotNull Class<? extends Containerable> type, ObjectQuery query,
             @NotNull ActivityDistributionDefinition distributionDefinition,
             @Nullable ItemDefinitionProvider itemDefinitionProvider,
             @NotNull WorkBucketType workBucket)

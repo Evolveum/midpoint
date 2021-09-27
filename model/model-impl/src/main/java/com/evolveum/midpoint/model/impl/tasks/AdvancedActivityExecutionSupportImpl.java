@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.tasks;
 
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
+import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
@@ -14,6 +16,7 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -23,15 +26,17 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.task.*;
 
-import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -40,6 +45,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+
+import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 
 @Component
 public class AdvancedActivityExecutionSupportImpl implements AdvancedActivityExecutionSupport {
@@ -51,6 +60,10 @@ public class AdvancedActivityExecutionSupportImpl implements AdvancedActivityExe
     @Autowired private ProvisioningService provisioningService;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private ModelObjectResolver modelObjectResolver;
+    @Autowired private ModelAuditService modelAuditService;
+
+    private ObjectSearchExecutionSupport objectSearchSupport;
+    private AuditSearchExecutionSupport auditSearchSupport;
 
     @Override
     public boolean isPresent() {
@@ -87,10 +100,11 @@ public class AdvancedActivityExecutionSupportImpl implements AdvancedActivityExe
     @Override
     public void applyDefinitionsToQuery(@NotNull SearchSpecification<?> searchSpecification, @NotNull Task task,
             OperationResult result) throws CommonException {
-        Class<? extends ObjectType> objectType = searchSpecification.getObjectType();
-        if (!searchSpecification.isUseRepository() && ObjectTypes.isClassManagedByProvisioning(objectType)) {
+        Class<? extends Containerable> objectType = searchSpecification.getContainerType();
+        if (!searchSpecification.isUseRepository() && objectType.isAssignableFrom(ObjectType.class)
+                && ObjectTypes.isClassManagedByProvisioning((Class<? extends ObjectType>) objectType)) {
             provisioningService
-                    .applyDefinition(objectType, searchSpecification.getQuery(), task, result);
+                    .applyDefinition((Class<? extends ObjectType>) objectType, searchSpecification.getQuery(), task, result);
         }
     }
 
@@ -103,27 +117,31 @@ public class AdvancedActivityExecutionSupportImpl implements AdvancedActivityExe
     @Override
     public Integer countObjects(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
             @NotNull OperationResult result) throws CommonException {
-        return modelObjectResolver.countObjects(
-                searchSpecification.getObjectType(),
-                searchSpecification.getQuery(),
-                searchSpecification.getSearchOptions(),
-                task, result);
+        return getSearchExecutionSupport(searchSpecification.getContainerType()).countObjects(
+                searchSpecification, task, result);
+    }
+
+    private SearchExecutionSupport getSearchExecutionSupport(Class<?> containerType) {
+        if (MiscSchemaUtil.isObjectType(containerType)) {
+            return new ObjectSearchExecutionSupport(modelObjectResolver);
+        } else if (MiscSchemaUtil.isAuditType(containerType)) {
+            return new AuditSearchExecutionSupport(modelAuditService);
+        }
+        throw new IllegalArgumentException("Unsupported container type " + containerType);
     }
 
     @Override
-    public <O extends ObjectType> void searchIterative(@NotNull SearchSpecification<O> searchSpecification,
-            @NotNull ResultHandler<O> handler, @NotNull RunningTask task, @NotNull OperationResult result)
+    public <C extends Containerable> void searchIterative(@NotNull SearchSpecification<C> searchSpecification,
+            @NotNull ObjectResultHandler handler, @NotNull RunningTask task, @NotNull OperationResult result)
             throws CommonException {
-        modelObjectResolver.searchIterative(
-                searchSpecification.getObjectType(),
-                searchSpecification.getQuery(),
-                searchSpecification.getSearchOptions(),
-                handler, task, result);
+        getSearchExecutionSupport(searchSpecification.getContainerType()).searchIterative(
+                searchSpecification, handler, task, result);
     }
 
     @Override
     public ObjectPreprocessor<ShadowType> createShadowFetchingPreprocessor(
-            @NotNull SearchBasedActivityExecution<?, ?, ?, ?> activityExecution) {
-        return new ShadowFetchingPreprocessor(activityExecution, modelObjectResolver);
+            @NotNull Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions,
+            @NotNull SchemaService schemaService) {
+        return new ShadowFetchingPreprocessor(producerOptions, schemaService, modelObjectResolver);
     }
 }

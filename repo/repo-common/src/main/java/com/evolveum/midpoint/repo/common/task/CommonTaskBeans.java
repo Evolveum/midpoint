@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -39,6 +40,7 @@ public class CommonTaskBeans {
     @Autowired public CacheConfigurationManager cacheConfigurationManager;
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService repositoryService;
     @Autowired @Qualifier("repositoryService") public RepositoryService plainRepositoryService;
+    @Autowired public AuditService auditService;
     @Autowired public PrismContext prismContext;
     @Autowired public SchemaService schemaService;
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;

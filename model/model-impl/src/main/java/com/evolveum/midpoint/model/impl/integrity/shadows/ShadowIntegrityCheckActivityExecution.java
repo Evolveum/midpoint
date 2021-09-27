@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -43,7 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ShadowIntegrityCheckActivityExecution
-        extends SearchBasedActivityExecution
+        extends ObjectSearchBasedActivityExecution
         <ShadowType, ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler, AbstractActivityWorkStateType> {
 
     private ShadowCheckConfiguration configuration;

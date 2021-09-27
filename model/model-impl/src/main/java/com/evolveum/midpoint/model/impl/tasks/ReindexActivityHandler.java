@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
@@ -91,7 +91,7 @@ public class ReindexActivityHandler
     }
 
     static class MyExecution extends
-            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ReindexActivityHandler, AbstractActivityWorkStateType> {
+            ObjectSearchBasedActivityExecution<ObjectType, MyWorkDefinition, ReindexActivityHandler, AbstractActivityWorkStateType> {
 
         MyExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ReindexActivityHandler> context, String shortName) {
             super(context, shortName);

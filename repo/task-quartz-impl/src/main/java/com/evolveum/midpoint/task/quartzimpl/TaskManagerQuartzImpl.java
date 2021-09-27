@@ -629,8 +629,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     @Override
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type,
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-            ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
+                                                                              ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                              ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);

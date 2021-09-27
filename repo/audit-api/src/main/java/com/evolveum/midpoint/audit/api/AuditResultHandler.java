@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.audit.api;
 
+import com.evolveum.midpoint.schema.ObjectResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -15,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  */
 @FunctionalInterface
 @Experimental
-public interface AuditResultHandler {
+public interface AuditResultHandler extends ObjectResultHandler {
 
     /**
      * Handle a single audit event record.
@@ -24,4 +25,5 @@ public interface AuditResultHandler {
      * @return true if the operation should proceed, false if it should stop
      */
     boolean handle(AuditEventRecordType eventRecord, OperationResult parentResult);
+
 }

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -18,13 +20,5 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  * @author Radovan Semancik
  */
-@FunctionalInterface
-public interface ResultHandler<T extends ObjectType> extends ObjectResultHandler {
-
-    /**
-     * Handle a single result.
-     * @param object Resource object to process.
-     * @return true if the operation should proceed, false if it should stop
-     */
-    boolean handle(PrismObject<T> object, OperationResult parentResult);
+public interface ObjectResultHandler {
 }

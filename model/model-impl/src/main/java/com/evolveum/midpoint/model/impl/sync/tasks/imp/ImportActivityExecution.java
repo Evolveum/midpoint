@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ImportActivityExecution
-        extends SearchBasedActivityExecution<ShadowType, ImportWorkDefinition, ImportActivityHandler, AbstractActivityWorkStateType> {
+        extends ObjectSearchBasedActivityExecution<ShadowType, ImportWorkDefinition, ImportActivityHandler, AbstractActivityWorkStateType> {
 
     private ResourceObjectClassSpecification resourceObjectClassSpecification;
     private SynchronizationObjectsFilterImpl objectsFilter;

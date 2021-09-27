@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Execution specifics of a propagation activity.
  */
 public class PropagationActivityExecution
-        extends SearchBasedActivityExecution<
+        extends ObjectSearchBasedActivityExecution<
             ShadowType,
             PropagationWorkDefinition,
             PropagationActivityHandler,

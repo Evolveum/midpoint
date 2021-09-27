@@ -116,8 +116,8 @@ public class SearchOpHandler extends CachedOpHandler {
     }
 
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-            ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
-            boolean strictlySequential, OperationResult parentResult) throws SchemaException {
+                                                                              ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                              boolean strictlySequential, OperationResult parentResult) throws SchemaException {
 
         SearchOpExecution<T> exec = initializeExecution(type, query, options, parentResult, SEARCH_OBJECTS_ITERATIVE);
         ReportingResultHandler<T> reportingHandler = new ReportingResultHandler<>(handler, exec);
@@ -262,8 +262,8 @@ public class SearchOpHandler extends CachedOpHandler {
     }
 
     private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeInternal(Class<T> type, ObjectQuery query,
-            ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
-            boolean strictlySequential, OperationResult parentResult) throws SchemaException {
+                                                                                       ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                                       boolean strictlySequential, OperationResult parentResult) throws SchemaException {
         Long startTime = repoOpStart();
         try {
             return repositoryService.searchObjectsIterative(type, query, handler, options, strictlySequential, parentResult);

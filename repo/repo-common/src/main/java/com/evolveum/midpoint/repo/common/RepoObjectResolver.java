@@ -39,8 +39,8 @@ public class RepoObjectResolver implements ObjectResolver {
 
     @Override
     public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task,
-            OperationResult parentResult)
+                                                       Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task,
+                                                       OperationResult parentResult)
             throws SchemaException {
         cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);
     }

@@ -274,7 +274,7 @@ public interface ProvisioningService {
      *                 Security violation while communicating with the connector or processing provisioning policies
      */
     <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                              final ResultHandler<T> handler, Task task, final OperationResult parentResult)
+                                                                       final ResultHandler<T> handler, Task task, final OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**

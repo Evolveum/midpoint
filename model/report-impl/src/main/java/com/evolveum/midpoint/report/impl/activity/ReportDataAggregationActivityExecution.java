@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.*;
@@ -33,7 +34,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
 class ReportDataAggregationActivityExecution
-        extends SearchBasedActivityExecution
+        extends ObjectSearchBasedActivityExecution
         <ReportDataType,
                 DistributedReportExportWorkDefinition,
                 DistributedReportExportActivityHandler,
@@ -59,7 +60,7 @@ class ReportDataAggregationActivityExecution
     ReportDataAggregationActivityExecution(
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Report data aggregation");
-        support = new DistributedReportExportActivitySupport(this);
+        support = new DistributedReportExportActivitySupport(this, getActivity());
     }
 
     @Override

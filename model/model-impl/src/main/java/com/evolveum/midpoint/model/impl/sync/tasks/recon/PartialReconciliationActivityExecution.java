@@ -15,7 +15,7 @@ import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterI
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * and remaining shadows reconciliation.
  */
 public abstract class PartialReconciliationActivityExecution
-        extends SearchBasedActivityExecution
+        extends ObjectSearchBasedActivityExecution
         <ShadowType,
                 ReconciliationWorkDefinition,
                 ReconciliationActivityHandler,

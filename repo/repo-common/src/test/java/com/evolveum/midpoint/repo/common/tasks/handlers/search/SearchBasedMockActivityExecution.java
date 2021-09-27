@@ -39,7 +39,7 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  * Execution of a search-based mock activity.
  */
 class SearchBasedMockActivityExecution
-        extends SearchBasedActivityExecution
+        extends ObjectSearchBasedActivityExecution
         <ObjectType, SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler, AbstractActivityWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchBasedMockActivityExecution.class);
@@ -105,7 +105,7 @@ class SearchBasedMockActivityExecution
         if (failOnBean != null) {
             try {
                 return PrismContext.get().getQueryConverter()
-                        .parseFilter(failOnBean, getSearchSpecificationRequired().getObjectType());
+                        .parseFilter(failOnBean, getSearchSpecificationRequired().getContainerType());
             } catch (SchemaException e) {
                 throw new SystemException(e);
             }
