@@ -66,7 +66,6 @@ It may seem that this is a very little functionality to justify its own object.
 However, most of the functionality is still not implemented.
 See wiki:Object+Collections+and+Views+Improvements[Object Collections and Views Improvements] page for the details.
 
-
 === Derived Object Collection
 
 Some collections are often based on other collections.
@@ -195,6 +194,49 @@ There is also experimental functionality allowing to hide and show the collectio
     </objectCollectionViews>
 </adminGuiConfiguration>
 ----
+
+=== Default Collection Views (since midPoint 4.4)
+
+MidPoint comes with default collections defined for most of the object. These default collection are based on object type, e.g. there is a default collection for all users in midPoint available in menu by default. Table bellow shows list of default collections and their identifiers. These identifiers are then used to adjust the default collection view. E.g. there is a need to add custom column to the default users list, new action needs to be defined for default roles list, etc. To be able to correctly merge configurations from different places for the same collection view, identifiers are mandatory and every single collection view definition has to have it defined.
+
+[%autowidth]
+|===
+| Identifier | Menu item
+
+| allUsers
+| All users
+
+| allOrgs
+| All organizations
+
+| allRoles
+| All roles
+
+| allServices
+| All services
+
+| allResources
+| All resource
+
+| allCases
+| All cases
+
+| allTasks
+| All tasks
+
+| allReports
+| All reports
+
+| allArchetypes
+| All archetypes
+
+| allObjectCollections
+| All obejct collections
+
+| allObjectTemplates
+| All object tempaltes
+
+|===
 
 == Search configuration
 
