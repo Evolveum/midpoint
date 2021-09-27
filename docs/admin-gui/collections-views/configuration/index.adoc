@@ -156,7 +156,7 @@ Therefore all the roles will have they own customized presentation of the data.
 === Views And Implicit Collections
 
 Some midPoint objects can be considered collections of their own, especially wiki:Archetypes[archetypes]. We want to make things simple and elegant whenever possible.
-Therefore archetypes can be used instead of a collection in the view definition:
+Therefore, archetypes can be used instead of a collection in the view definition:
 
 [source,xml]
 ----
@@ -167,7 +167,7 @@ Therefore archetypes can be used instead of a collection in the view definition:
                             <type>UserType</type>
                             <collection>
                                     <collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->
-                            </collection
+                            </collection>
                     </objectCollectionView>
             </objectCollectionViews>
     </adminGuiConfiguration>
@@ -179,6 +179,22 @@ There may be archetypes that are just being prepared for use, or archetypes that
 Archetypes are not added often, therefore it is not any great burden to create a view for them.
 Especially in this case when they can be used as an implicit collection.
 
+Since midPoint 4.4, views containing reference to the Archetype are also used while new object is going to be created. Instead of redirecting to default object form for new object, template preview is shown first. All views configured for specific type using Archetype as a collection are collected and shown. Only after concrete _template_ for the new object is selected, the form is shown. Selected template (based on the archetype) might influence how the form will look like since it is possible to adjust object details configuration in archetype.
+
+There is also experimental functionality allowing to hide and show the collection views for different types of operation. Fo example, when there is a case that the _All users_ menu item should be shown, but no default user might be created, following configuration can be used:
+
+[source,xml]
+----
+<adminGuiConfiguration>
+    <objectCollectionViews>
+        <objectCollectionView>
+            <identifier>allUsers</identifier>
+            <applicableForOperation>modify</applicableForOperation>
+            <type>UserType</type>
+        </objectCollectionView>
+    </objectCollectionViews>
+</adminGuiConfiguration>
+----
 
 == Search configuration
 
