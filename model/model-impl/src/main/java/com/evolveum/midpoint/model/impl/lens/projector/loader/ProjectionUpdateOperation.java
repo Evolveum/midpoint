@@ -310,6 +310,7 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
             }
         }
         projectionContext.setFresh(true);
+        projectionContext.recompute();
         return false;
     }
 

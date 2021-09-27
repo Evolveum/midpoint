@@ -108,6 +108,7 @@ public class FocusLoadOperation<F extends ObjectType> {
             PrismObject<F> object = reallyLoadFocus(focusContext, result);
             focusContext.setLoadedObject(object);
             focusContext.setFresh(true);
+            focusContext.recompute();
             LOGGER.trace("Focal object loaded: {}", object);
 
         } catch (Throwable t) {

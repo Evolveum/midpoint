@@ -185,6 +185,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 return;
             }
             projectionContext.setLoadedObject(shadow);
+            projectionContext.recompute();
         }
     }
 
