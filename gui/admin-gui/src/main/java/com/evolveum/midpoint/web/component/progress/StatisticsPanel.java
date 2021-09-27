@@ -45,6 +45,7 @@ import java.util.List;
  * @author mederly
  */
 public class StatisticsPanel extends BasePanel<StatisticsDto> {
+    private static final long serialVersionUID = 1L;
 
     private static final String ID_CONTENTS_PANEL = "contents";
 
@@ -87,6 +88,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
 
                 ListDataProvider<ProvisioningStatisticsOperationDto> provider = new ListDataProvider<>(StatisticsPanel.this, new PropertyModel<>(item.getModel(), ProvisioningStatisticsLineDto.F_OPERATIONS));
                 BoxedTablePanel<ProvisioningStatisticsOperationDto> provisioningTable = new BoxedTablePanel<>(ID_PROVISIONING_OPERATIONS, provider, createProvisioningStatisticsColumns()) {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected WebMarkupContainer createHeader(String headerId) {
@@ -119,6 +121,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
 
         ListDataProvider<MappingsLineDto> mappingsProvider = new ListDataProvider<>(this, new PropertyModel<>(getModel(), StatisticsDto.F_MAPPINGS_LINES));
         BoxedTablePanel<MappingsLineDto> mappingsLines = new BoxedTablePanel<>(ID_MAPPINGS_STATISTICS_LINES, mappingsProvider, createMappingsColumn()) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
@@ -137,6 +140,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
 
         ListDataProvider<NotificationsLineDto> notificationsProvider = new ListDataProvider<>(this, new PropertyModel<>(getModel(), StatisticsDto.F_NOTIFICATIONS_LINES));
         BoxedTablePanel<NotificationsLineDto> notificationsLines = new BoxedTablePanel<>(ID_NOTIFICATIONS_STATISTICS_LINES, notificationsProvider, createNotificationColumns()) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
@@ -223,6 +227,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
 
     class TableHeaderFragment extends Fragment {
 
+        private static final long serialVersionUID = 1L;
         private static final String ID_LABEL = "headerLabel";
 
         public TableHeaderFragment(String id, String markupId, MarkupContainer markupProvider, IModel<String> model) {
@@ -247,6 +252,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
     }
 
     class ProvisioningStatisticsHeaderFragment extends Fragment {
+        private static final long serialVersionUID = 1L;
 
         public ProvisioningStatisticsHeaderFragment(String id, String markupId, MarkupContainer markupProvider, IModel<ProvisioningStatisticsLineDto> model) {
             super(id, markupId, markupProvider, model);
