@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Evolveum and contributors
+ * Copyright (C) 2013-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,6 +15,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -22,14 +23,19 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.model.common.ConstantsManager;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -104,7 +110,8 @@ public class TestExpression extends AbstractModelCommonTest {
         Protector protector = ExpressionTestUtil.createInitializedProtector(prismContext);
         Clock clock = new Clock();
         constantsManager = new ConstantsManager();
-        expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock, null, null);
+        expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(
+                resolver, protector, prismContext, clock, null, null);
 
         expressionProfile = compileExpressionProfile(getExpressionProfileName());
         System.out.println("Using expression profile: " + expressionProfile);
@@ -152,8 +159,8 @@ public class TestExpression extends AbstractModelCommonTest {
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext,
-                result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
         // THEN
         assertOutputTriple(outputTriple)
@@ -297,7 +304,8 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test160ScriptJavaScript() throws Exception {
-        // GIVEN
+        skipIfEcmaScriptEngineNotSupported();
+        given();
         OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
@@ -307,11 +315,11 @@ public class TestExpression extends AbstractModelCommonTest {
         VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
-        // WHEN
+        when();
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
-        // THEN
+        then();
         assertOutputTriple(outputTriple)
                 .assertEmptyMinus()
                 .assertEmptyPlus()
@@ -368,7 +376,8 @@ public class TestExpression extends AbstractModelCommonTest {
     }
 
     protected Source<PrismPropertyValue<String>, PrismPropertyDefinition<String>> prepareStringSource() throws SchemaException {
-        PrismPropertyDefinition<String> propDef = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME, PrimitiveType.STRING.getQname());
+        PrismPropertyDefinition<String> propDef = prismContext.definitionFactory()
+                .createPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME, PrimitiveType.STRING.getQname());
         PrismProperty<String> inputProp = prismContext.itemFactory().createProperty(ExpressionConstants.VAR_INPUT_QNAME, propDef);
         PrismPropertyValue<String> pval = prismContext.itemFactory().createPropertyValue(INPUT_VALUE);
         inputProp.add(pval);
@@ -393,7 +402,8 @@ public class TestExpression extends AbstractModelCommonTest {
     protected <V extends PrismValue, D extends ItemDefinition> PrismValueDeltaSetTriple<V> evaluateExpression(
             ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
                 expressionContext.getContextDescription(), expressionContext.getTask(), result);
         logger.debug("Starting evaluation of expression: {}", expression);
@@ -401,17 +411,20 @@ public class TestExpression extends AbstractModelCommonTest {
     }
 
     protected <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
-            ExpressionType expressionType, QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionType expressionType, QName outputType,
+            ExpressionEvaluationContext expressionContext, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         return evaluateExpression(expressionType, outputDefinition, expressionContext, result);
     }
 
     protected <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
-            ExpressionType expressionType, PrimitiveType outputType, ExpressionEvaluationContext expressionContext,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionType expressionType, PrimitiveType outputType,
+            ExpressionEvaluationContext expressionContext, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         return evaluatePropertyExpression(expressionType, outputType.getQname(), expressionContext, result);
     }
 
@@ -511,5 +524,18 @@ public class TestExpression extends AbstractModelCommonTest {
         asserter.setPrismContext(prismContext);
         asserter.display();
         return asserter;
+    }
+
+    /**
+     * Newer JDK is not shipped with JavaScript/ECMAScript engine, we want to skip related tests.
+     */
+    protected void skipIfEcmaScriptEngineNotSupported() {
+        ScriptExpressionEvaluatorFactory evaluatorFactory = (ScriptExpressionEvaluatorFactory)
+                expressionFactory.getEvaluatorFactory(SchemaConstantsGenerated.C_SCRIPT);
+        if (!evaluatorFactory.getScriptExpressionFactory().getEvaluators()
+                .containsKey("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript")) {
+            display("Script engine for ECMAScript missing, skipping the tests.");
+            throw new SkipException("Script engine not available");
+        }
     }
 }
