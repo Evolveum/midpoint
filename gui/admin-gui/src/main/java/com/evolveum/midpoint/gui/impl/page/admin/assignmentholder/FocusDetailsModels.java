@@ -347,4 +347,41 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         }
         return false;
     }
+
+    @Override
+    protected List<ObjectDelta<? extends ObjectType>> getAdditionalModifyDeltas(OperationResult result) {
+        List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+
+        List<ShadowWrapper> accounts = projectionModel.getObject();
+        for (ShadowWrapper account : accounts) {
+            try {
+                ObjectDelta<ShadowType> delta = account.getObjectDelta();
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Account delta computed from {} as:\n{}",
+                            account, delta.debugDump(3));
+                }
+
+                if (!UserDtoStatus.MODIFY.equals(account.getProjectionStatus())) {
+                    continue;
+                }
+
+                if (delta == null || delta.isEmpty()) {
+                    continue;
+                }
+
+                WebComponentUtil.encryptCredentials(delta, true, getPageBase());
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Modifying account:\n{}", delta.debugDump(3));
+                }
+
+                deltas.add(delta);
+
+            } catch (Exception ex) {
+                result.recordFatalError(getPageBase().getString("PageAdminFocus.message.getShadowModifyDeltas.fatalError"), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't compute account delta", ex);
+            }
+        }
+
+        return deltas;
+    }
 }

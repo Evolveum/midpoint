@@ -252,10 +252,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         //TODO this is just a quick hack.. for focus objects, feedback panel and results are processed by ProgressAware.finishProcessing()
 
-        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas =  getChangeExecutor().executeChanges(deltas, previewOnly, task, result, target);
+        ObjectChangeExecutor changeExecutor = getChangeExecutor();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas =  changeExecutor.executeChanges(deltas, previewOnly, task, result, target);
 
         result.computeStatusIfUnknown();
-        if (getChangeExecutor() instanceof ObjectChangesExecutorImpl) {
+        if (changeExecutor instanceof ObjectChangesExecutorImpl) {
             showResult(result);
             if (!previewOnly && result.isSuccess()) {
                 redirectBack();
