@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class FocusCasesCounter<F extends FocusType> extends SimpleCounter<FocusDetailsModels<F>, F> {
 
     public FocusCasesCounter() {
@@ -26,7 +28,7 @@ public class FocusCasesCounter<F extends FocusType> extends SimpleCounter<FocusD
     @Override
     public int count(FocusDetailsModels<F> objectDetailsModels, PageBase pageBase) {
         String oid = objectDetailsModels.getObjectType().getOid();
-        if (oid.isBlank()) {
+        if (StringUtils.isEmpty(oid)) {
             return 0;
         }
 

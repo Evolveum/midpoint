@@ -6,9 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import java.util.Iterator;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -23,24 +33,15 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DetailsPageSaveMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.Iterator;
 
 public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
     private static final long serialVersionUID = 1L;
@@ -149,7 +150,8 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-        save.add(new VisibleBehaviour(this::getVisibilityForSaveButton));
+        save.add(new VisibleBehaviour(this::isSaveButtonVisible));
+        save.add(new EnableBehaviour(this::isSaveButtonEnabled));
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
         save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
@@ -166,8 +168,18 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     }
 
-    protected boolean getVisibilityForSaveButton() {
-        return true; //todo check if the object is editable? or look at old page behavior
+    protected boolean isSaveButtonVisible() {
+        return !getModelObject().isReadOnly() && !isForcedPreview();
+    }
+
+    protected boolean isSaveButtonEnabled() {
+        return true;
+    }
+
+    private boolean isForcedPreview() {
+        GuiObjectDetailsPageType objectDetails = getPageBase().getCompiledGuiProfile()
+                .findObjectDetailsConfiguration(getModelObject().getCompileTimeClass());
+        return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
     }
 
     private void backPerformed(AjaxRequestTarget target) {

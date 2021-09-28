@@ -11,6 +11,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -62,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                         description = "PageUser.auth.user.description")
         })
 public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
@@ -123,6 +129,23 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     protected void collectObjectsForPreview(Map<PrismObject<UserType>, ModelContext<? extends ObjectType>> prismObjectModelContextMap) {
         super.collectObjectsForPreview(prismObjectModelContextMap);
         processAdditionalFocalObjectsForPreview(prismObjectModelContextMap);
+    }
+
+    @Override
+    protected UserOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> wrapperModel) {
+        return new UserOperationalButtonsPanel(id, wrapperModel, getObjectDetailsModels().getDelegationsModel()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void savePerformed(AjaxRequestTarget target) {
+                PageUser.this.savePerformed(target);
+            }
+
+            @Override
+            protected void previewPerformed(AjaxRequestTarget target) {
+                PageUser.this.previewPerformed(target);
+            }
+        };
     }
 
     /**
