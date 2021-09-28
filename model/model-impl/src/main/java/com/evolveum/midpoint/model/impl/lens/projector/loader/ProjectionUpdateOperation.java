@@ -126,11 +126,6 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
 
         projectionContext.setDoReconciliationFlagIfVolatile();
 
-        if (projectionContext.isDoReconciliation() && !projectionContext.isFullShadow()) {
-            // The current object is useless here. So lets just wipe it so it will get loaded
-            projectionContext.setObjectCurrent(null);
-        }
-
         if (loadCurrentObjectIfNeeded(result)) {
             return; // A non-critical error occurred.
         }
@@ -141,7 +136,7 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
         setProjectionSecurityPolicy(result);
         setCanProjectFlag();
 
-        projectionContext.setPrimaryDeltaOldValue();
+        projectionContext.setEstimatedOldValuesInPrimaryDelta();
     }
 
     /**
@@ -295,6 +290,7 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
             //  Probably not. We need to reconsider the above comment.
 
             result.muteLastSubresultError();
+            projectionContext.clearCurrentObject();
             projectionContext.setShadowExistsInRepo(false);
             refreshContextAfterShadowNotFound(options, result);
 
@@ -314,6 +310,7 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
             }
         }
         projectionContext.setFresh(true);
+        projectionContext.recompute();
         return false;
     }
 
@@ -386,6 +383,10 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
      * TODO reconsider this algorithm
      */
     private boolean needToReload() {
+        if (projectionContext.isDoReconciliation() && !projectionContext.isFullShadow()) {
+            return true;
+        }
+
         ResourceShadowDiscriminator rsd = projectionContext.getResourceShadowDiscriminator();
         if (rsd == null) {
             return false;

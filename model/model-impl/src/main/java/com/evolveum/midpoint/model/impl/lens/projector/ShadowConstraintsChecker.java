@@ -92,7 +92,8 @@ public class ShadowConstraintsChecker<F extends FocusType> {
         return constraintsCheckingResult.getMessages();
     }
 
-    public PrismObject getConflictingShadow() {
+    PrismObject<ShadowType> getConflictingShadow() {
+        //noinspection unchecked
         return constraintsCheckingResult.getConflictingShadow();
     }
 

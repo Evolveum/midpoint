@@ -20,6 +20,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.MonitoredOperationType.*;
+
 /**
  * Simple monitoring object. It records the count of expensive operations
  * in the system. It is used in the tests to make sure such operations are not
@@ -72,12 +77,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     }
 
     public static boolean isTrace(InternalOperationClasses operationClass) {
-        Boolean b = TRACE_CLASS_MAP.get(operationClass);
-        if (b == null) {
-            return false;
-        } else {
-            return b;
-        }
+        return Boolean.TRUE.equals(TRACE_CLASS_MAP.get(operationClass));
     }
 
     private static boolean isTrace(InternalCounters counter) {
@@ -123,7 +123,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
                     immediateClass = stackElement.getClassName();
                     immediateMethod = stackElement.getMethodName();
                 }
-                sb.append(stackElement.toString());
+                sb.append(stackElement);
                 sb.append("\n");
             }
             if (traceAndDebug) {
@@ -187,7 +187,8 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     }
 
     @Override
-    public <O extends Objectable> void beforeObjectClone(PrismObject<O> orig) {
+    public <O extends Objectable> void beforeObjectClone(@NotNull PrismObject<O> orig) {
+        ThreadLocalOperationsMonitor.recordStart(CLONE);
         if (!cloneTimingEnabled) {
             return;
         }
@@ -198,7 +199,9 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     }
 
     @Override
-    public synchronized <O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone) {
+    public synchronized <O extends Objectable> void afterObjectClone(@NotNull PrismObject<O> orig,
+            @Nullable PrismObject<O> clone) {
+        ThreadLocalOperationsMonitor.recordEnd(CLONE);
         long count = recordCountInternal(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         if (cloneTimingEnabled) {
             Object cloneStartObject = orig.getUserData(CLONE_START_TIMESTAMP_KEY);
@@ -213,6 +216,26 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
         if (isTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT)) {
             traceOperation("prism object clone", orig::toString, count, false); // Consider setting traceAndDebug as necessary
         }
+    }
+
+    @Override
+    public void beforeObjectSerialization(@NotNull PrismObject<?> item) {
+        ThreadLocalOperationsMonitor.recordStart(OBJECT_SERIALIZATION);
+    }
+
+    @Override
+    public void afterObjectSerialization(@NotNull PrismObject<?> item) {
+        ThreadLocalOperationsMonitor.recordEnd(OBJECT_SERIALIZATION);
+    }
+
+    @Override
+    public void beforeObjectParsing() {
+        ThreadLocalOperationsMonitor.recordStart(OBJECT_PARSING);
+    }
+
+    @Override
+    public void afterObjectParsing(@Nullable PrismObject<?> object) {
+        ThreadLocalOperationsMonitor.recordEnd(OBJECT_PARSING);
     }
 
     public static <F extends AssignmentHolderType> void recordRoleEvaluation(F target, boolean fullEvaluation) {

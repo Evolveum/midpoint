@@ -231,7 +231,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 }
                 ObjectReferenceType membershipRef = new ObjectReferenceType();
                 membershipRef.setOid(AbstractRoleMemberPanel.this.getModelObject().getOid());
-                membershipRef.setType(R.COMPLEX_TYPE);
+                membershipRef.setType(AbstractRoleMemberPanel.this.getModelObject().asPrismObject().getComplexTypeDefinition().getTypeName());
                 membershipRef.setRelation(relation != null && CollectionUtils.isNotEmpty(relation.getRelations()) ?
                         relation.getRelations().get(0) : null);
                 refList.add(membershipRef);

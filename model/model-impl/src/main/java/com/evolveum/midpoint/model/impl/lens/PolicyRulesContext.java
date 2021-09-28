@@ -137,4 +137,11 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
     public Integer getCounter(String policyRuleIdentifier) {
         return counterMap.get(policyRuleIdentifier);
     }
+
+    void copyFrom(@NotNull PolicyRulesContext other) {
+        objectPolicyRules.addAll(other.objectPolicyRules);
+        pendingObjectPolicyStateModifications.addAll(other.pendingObjectPolicyStateModifications);
+        pendingAssignmentPolicyStateModifications.putAll(other.pendingAssignmentPolicyStateModifications);
+        counterMap.putAll(other.counterMap);
+    }
 }

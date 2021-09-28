@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.executor;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -176,6 +175,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             addTrace(objectDeltaOp, result);
 
             logDeltaExecutionEnd(result);
+
+            // To be safe, we set this flag even in the case of exception.
+            elementContext.setAnyDeltasExecutedFlag();
         }
     }
     //endregion Main
@@ -405,7 +407,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         DebugUtil.debugDumpLabel(sb, "Wave", 0);
         sb.append(" ").append(context.getExecutionWave()).append("\n");
         if (resource != null) {
-            sb.append("Resource: ").append(resource.toString()).append("\n");
+            sb.append("Resource: ").append(resource).append("\n");
         }
         sb.append(delta.debugDump());
         sb.append("\n");

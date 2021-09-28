@@ -69,6 +69,7 @@ Parameters:
                 </beforeItemCondition>
                 <tracingProfile>
                     <fileNamePattern>trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>
+                    <operationMonitoring/>
                     <tracingTypeProfile>
                         <level>off</level>
                     </tracingTypeProfile>

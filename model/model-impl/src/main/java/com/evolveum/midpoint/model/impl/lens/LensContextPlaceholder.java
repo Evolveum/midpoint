@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * This class does nothing. It just takes place when no real Lens Context is available.
  * @see ModelExpressionThreadLocalHolder
@@ -20,10 +22,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class LensContextPlaceholder<F extends ObjectType> extends LensContext<F> {
 
-    public LensContextPlaceholder(PrismObject<F> focus) {
+    public LensContextPlaceholder(@NotNull PrismObject<F> focus) {
         //noinspection unchecked
         createFocusContext((Class<F>) focus.asObjectable().getClass());
-        getFocusContext().setLoadedObject(focus);
+        getFocusContext().setInitialObject(focus);
     }
 
     @Override

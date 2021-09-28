@@ -713,7 +713,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         params.setMappingDesc(desc + " in projection " + projCtxDesc);
         params.setNow(now);
         params.setInitializer(internalInitializer);
-        params.setTargetLoader(new ProjectionMappingLoader<>(context, projCtx, contextLoader));
+        params.setTargetLoader(new ProjectionMappingLoader<>(projCtx, contextLoader));
         params.setAPrioriTargetObject(shadowNew);
         params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
         if (context.getFocusContext() != null) {

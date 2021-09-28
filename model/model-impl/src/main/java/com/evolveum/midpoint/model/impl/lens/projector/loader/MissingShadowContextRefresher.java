@@ -145,8 +145,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
             LOGGER.trace("Found new matching link: {}, updating projection context", newLinkRepoShadow);
             LOGGER.trace("Applying definition from provisioning first."); // MID-3317
             beans.provisioningService.applyDefinition(newLinkRepoShadow, task, result);
-            projectionContext.setObjectCurrent(newLinkRepoShadow);
-            projectionContext.setOid(newLinkRepoShadow.getOid());
+            projectionContext.setCurrentObjectAndOid(newLinkRepoShadow);
             // The "exists" information in the projection context can be obsolete - reflecting the fact that
             // resource object couldn't be found.
             projectionContext.setExists(ShadowUtil.isExists(newLinkRepoShadow));

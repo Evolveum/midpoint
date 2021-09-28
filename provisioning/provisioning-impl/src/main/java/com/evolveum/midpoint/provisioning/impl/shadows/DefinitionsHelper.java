@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -51,7 +52,7 @@ class DefinitionsHelper {
     @Autowired protected ShadowManager shadowManager;
     @Autowired private ProvisioningContextFactory ctxFactory;
 
-    public void applyDefinition(ObjectDelta<ShadowType> delta, ShadowType repoShadow,
+    public void applyDefinition(ObjectDelta<ShadowType> delta, @Nullable ShadowType repoShadow,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> shadow = null;
@@ -61,7 +62,7 @@ class DefinitionsHelper {
         } else if (delta.isModify()) {
             if (delta instanceof ShadowDiscriminatorObjectDelta) {
                 // This one does not have OID, it has to be specially processed
-                discriminator = ((ShadowDiscriminatorObjectDelta) delta).getDiscriminator();
+                discriminator = ((ShadowDiscriminatorObjectDelta<?>) delta).getDiscriminator();
             } else {
                 String shadowOid = delta.getOid();
                 if (shadowOid == null) {

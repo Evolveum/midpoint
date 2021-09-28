@@ -223,6 +223,7 @@ public class ClockworkClick<F extends ObjectType> {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException {
 
         Holder<Boolean> restartRequestedHolder = new Holder<>(false);
+        context.clearAnyDeltasExecutedFlag();
 
         beans.medic.partialExecute(Components.EXECUTION,
                 (result1) -> {
@@ -234,8 +235,7 @@ public class ClockworkClick<F extends ObjectType> {
 
         beans.clockworkAuditHelper.audit(context, AuditEventStage.EXECUTION, task, result, overallResult);
 
-        context.rotIfNeeded();
-        context.resetDeltasAfterExecution();
+        context.updateAfterExecution();
 
         if (!restartRequestedHolder.getValue()) {
             context.incrementExecutionWave();
@@ -294,7 +294,7 @@ public class ClockworkClick<F extends ObjectType> {
         result.recordFatalErrorNotFinish(e);
         beans.clockworkAuditHelper.auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
 
-        reclaimSequencesIfPossible(context, task, result);
+        reclaimSequencesIfPossible(result);
         result.recordEnd();
     }
 
@@ -306,7 +306,7 @@ public class ClockworkClick<F extends ObjectType> {
      * solution (because sequence values were maybe not used in these deltas), but we have nothing
      * better at hand now.
      */
-    private <F extends ObjectType> void reclaimSequencesIfPossible(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
+    private void reclaimSequencesIfPossible(OperationResult result) throws SchemaException {
         if (!context.wasAnythingExecuted()) {
             LensUtil.reclaimSequences(context, beans.cacheRepositoryService, task, result);
         } else {

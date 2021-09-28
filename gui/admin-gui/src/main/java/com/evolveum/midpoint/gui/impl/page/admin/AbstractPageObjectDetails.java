@@ -18,6 +18,8 @@ import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -331,12 +333,27 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
         List<ContainerPanelConfigurationType> subConfigs = new ArrayList<>();
         for (ContainerPanelConfigurationType config : configs) {
-            if (BooleanUtils.isTrue(config.isDefault())) {
+            if (BooleanUtils.isTrue(config.isDefault()) && isApplicableForOperation(config)) {
                 return config;
             }
             subConfigs.addAll(config.getPanel());
         }
         return findDefaultConfiguration(subConfigs);
+    }
+
+    private boolean isApplicableForOperation(ContainerPanelConfigurationType configurationType) {
+        if (configurationType.getApplicableForOperation() == null) { //applicable for all
+            return true;
+        }
+
+        if (configurationType.getApplicableForOperation() == OperationTypeType.ADD && !isEditObject()) {
+            return true;
+        }
+
+        if (configurationType.getApplicableForOperation() == OperationTypeType.MODIFY && isEditObject()) {
+            return true;
+        }
+        return false;
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {

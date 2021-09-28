@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -73,7 +74,8 @@ public class ShadowReconcileTriggerHandler implements SingleTriggerHandler {
     }
 
     @Override
-    public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
+    public <O extends ObjectType> void handle(@NotNull PrismObject<O> object, @NotNull TriggerType trigger,
+            @NotNull RunningTask task, @NotNull OperationResult result) {
         if (object.asObjectable() instanceof ShadowType) {
             synchronizeShadowChecked((ShadowType) object.asObjectable(), trigger, task, result);
         } else {

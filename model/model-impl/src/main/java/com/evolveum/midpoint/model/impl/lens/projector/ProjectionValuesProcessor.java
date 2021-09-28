@@ -6,62 +6,51 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.Collection;
+import static java.util.Objects.requireNonNull;
 
-import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
-import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.RememberedElementState;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.PointInTimeType;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import static java.util.Objects.requireNonNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Processor that determines values of account attributes. It does so by taking the pre-processed information left
@@ -104,8 +93,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 
-        ObjectDelta<ShadowType> originalSecondaryDelta = CloneUtil.clone(projContext.getSecondaryDelta());
-        LOGGER.trace("Original secondary delta:\n{}", DebugUtil.debugDumpLazily(originalSecondaryDelta));
+        RememberedElementState<ShadowType> rememberedProjectionState = projContext.rememberElementState();
+        LOGGER.trace("Remembered projection state:\n{}", DebugUtil.debugDumpLazily(rememberedProjectionState));
 
         checkSchemaAndPolicies(projContext, activityDescription);
 
@@ -120,7 +109,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         context.checkConsistenceIfNeeded();
 
         if (!projContext.hasFullShadow() && hasIterationExpression(projContext)) {
-            contextLoader.loadFullShadow(context, projContext, "iteration expression", task, result);
+            contextLoader.loadFullShadow(projContext, "iteration expression", task, result);
             if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
                 return;
             }
@@ -165,7 +154,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             try {
                 LOGGER.trace("Projection values iteration {}, token '{}' for {}",
                         iteration, iterationToken, projContext.getHumanReadableName());
-                LOGGER.trace("Original secondary delta:\n{}", DebugUtil.debugDumpLazily(originalSecondaryDelta)); // todo remove
+                LOGGER.trace("Original secondary delta:\n{}", DebugUtil.debugDumpLazily(rememberedProjectionState)); // todo remove
 
                 if (!evaluateIterationCondition(context, projContext, iteration, iterationToken, true, task, iterationResult)) {
 
@@ -201,7 +190,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                         wasResetIterationCounter = true;
                         iteration = 0;
                         iterationToken = null;
-                        cleanupContext(projContext, null, originalSecondaryDelta);
+                        cleanupContext(projContext, null, rememberedProjectionState);
                         LOGGER.trace("Resetting iteration counter and token because we have rename");
                         context.checkConsistenceIfNeeded();
                         continue;
@@ -236,7 +225,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                             LOGGER.trace("Current shadow satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
                             conflict = false;
                         } else {
-                            PrismObject conflictingShadow = checker.getConflictingShadow();
+                            PrismObject<ShadowType> conflictingShadow = checker.getConflictingShadow();
                             if (conflictingShadow != null) {
                                 LOGGER.debug("Current shadow does not satisfy constraints. It conflicts with {}. Now going to find out what's wrong.", conflictingShadow);
                                 PrismObject<ShadowType> fullConflictingShadow = null;
@@ -271,7 +260,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                                     //the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
                                     if (conflictingShadowOwner != null) {
                                         if (conflictingShadowOwner.getOid().equals(context.getFocusContext().getOid())) {
-                                            treatConflictingWithTheSameOwner(projContext, originalSecondaryDelta, fullConflictingShadow);
+                                            treatConflictingWithTheSameOwner(projContext, rememberedProjectionState, fullConflictingShadow);
                                             skipUniquenessCheck = true;
                                             continue;
                                         } else {
@@ -287,7 +276,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                                                     context.getFocusContext().getObjectNew(), resource, context.getSystemConfiguration(), task, iterationResult);
 
                                             if (match) {
-                                                treatConflictWithMatchedOwner(context, projContext, iterationResult, originalSecondaryDelta, fullConflictingShadow);
+                                                treatConflictWithMatchedOwner(context, projContext, iterationResult, rememberedProjectionState, fullConflictingShadow);
                                                 skipUniquenessCheck = true;
                                                 continue;
                                             } else {
@@ -327,7 +316,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             iterationToken = null;
             LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, projContext.getHumanReadableName());
 
-            cleanupContext(projContext, null, originalSecondaryDelta);
+            cleanupContext(projContext, null, rememberedProjectionState);
             context.checkConsistenceIfNeeded();
         }
 
@@ -336,7 +325,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     }
 
     private <F extends FocusType> void treatConflictWithMatchedOwner(LensContext<F> context, LensProjectionContext projContext,
-            OperationResult result, ObjectDelta<ShadowType> originalSecondaryDelta, PrismObject<ShadowType> fullConflictingShadow)
+            OperationResult result, @NotNull RememberedElementState<ShadowType> rememberedProjectionState,
+            PrismObject<ShadowType> fullConflictingShadow)
             throws SchemaException {
         //check if it is add account (primary delta contains add shadow delta)..
         //if it is add account, create new context for conflicting account..
@@ -344,7 +334,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         if (projContext.getPrimaryDelta() != null && projContext.getPrimaryDelta().isAdd()) {
             treatConflictForShadowAdd(context, projContext, result, fullConflictingShadow);
         } else {
-            treatConflictForShadowNotAdd(context, projContext, originalSecondaryDelta, fullConflictingShadow);
+            treatConflictForShadowNotAdd(context, projContext, rememberedProjectionState, fullConflictingShadow);
         }
     }
 
@@ -353,20 +343,20 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         PrismObject<ShadowType> shadow = projContext.getPrimaryDelta().getObjectToAdd();
         LOGGER.trace("Found primary ADD delta of shadow {}.", shadow);
 
-        LensProjectionContext conflictingAccountContext = context.findProjectionContext(projContext.getResourceShadowDiscriminator(), fullConflictingShadow.getOid());
-        if (conflictingAccountContext == null) {
-            conflictingAccountContext = LensUtil.createAccountContext(context, projContext.getResourceShadowDiscriminator());
-            conflictingAccountContext.setOid(fullConflictingShadow.getOid());
-            conflictingAccountContext.setObjectOld(fullConflictingShadow.clone());
-            conflictingAccountContext.setObjectCurrent(fullConflictingShadow);
-            conflictingAccountContext.setFullShadow(true);
-            conflictingAccountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-            conflictingAccountContext.setResource(projContext.getResource());
-            conflictingAccountContext.setDoReconciliation(true);
-            conflictingAccountContext.getDependencies().clear();
-            conflictingAccountContext.getDependencies().addAll(projContext.getDependencies());
-            conflictingAccountContext.setWave(projContext.getWave());
-            context.addConflictingProjectionContext(conflictingAccountContext);
+        LensProjectionContext conflictingCtx =
+                context.findProjectionContext(projContext.getResourceShadowDiscriminator(), fullConflictingShadow.getOid());
+        if (conflictingCtx == null) {
+            conflictingCtx = context.createDetachedProjectionContext(projContext.getResourceShadowDiscriminator());
+            conflictingCtx.initializeElementState(
+                    fullConflictingShadow.getOid(), fullConflictingShadow.clone(), fullConflictingShadow, null);
+            conflictingCtx.setFullShadow(true);
+            conflictingCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+            conflictingCtx.setResource(projContext.getResource());
+            conflictingCtx.setDoReconciliation(true);
+            conflictingCtx.getDependencies().clear();
+            conflictingCtx.getDependencies().addAll(projContext.getDependencies());
+            conflictingCtx.setWave(projContext.getWave());
+            context.addConflictingProjectionContext(conflictingCtx);
         }
 
         projContext.setBroken();
@@ -377,19 +367,13 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     }
 
     private <F extends FocusType> void treatConflictForShadowNotAdd(LensContext<F> context, LensProjectionContext projContext,
-            ObjectDelta<ShadowType> originalSecondaryDelta, PrismObject<ShadowType> fullConflictingShadow)
+            @NotNull RememberedElementState<ShadowType> rememberedProjectionState, PrismObject<ShadowType> fullConflictingShadow)
             throws SchemaException {
         //found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
-        cleanupContext(projContext, fullConflictingShadow, originalSecondaryDelta);
-        projContext.setObjectOld(fullConflictingShadow.clone());
-        projContext.setObjectCurrent(fullConflictingShadow);
-        projContext.setOid(fullConflictingShadow.getOid());
+        cleanupContext(projContext, fullConflictingShadow, rememberedProjectionState);
+        projContext.replaceOldAndCurrentObject(fullConflictingShadow.getOid(), fullConflictingShadow.clone(), fullConflictingShadow);
         projContext.setFullShadow(true);
         projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-        ObjectDelta<ShadowType> secondaryDelta = projContext.getSecondaryDelta();
-        if (secondaryDelta != null && projContext.getOid() != null) {
-            secondaryDelta.setOid(projContext.getOid());
-        }
         LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
 
         // Re-do this same iteration again (do not increase iteration count).
@@ -398,14 +382,12 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     }
 
     private void treatConflictingWithTheSameOwner(LensProjectionContext projContext,
-            ObjectDelta<ShadowType> originalSecondaryDelta, PrismObject<ShadowType> fullConflictingShadow)
+            @NotNull RememberedElementState<ShadowType> rememberedProjectionState, PrismObject<ShadowType> fullConflictingShadow)
             throws SchemaException {
         LOGGER.debug("Conflicting projection already linked to the current focus, no recompute needed, continue processing with conflicting projection.");
-        cleanupContext(projContext, fullConflictingShadow, originalSecondaryDelta);
+        cleanupContext(projContext, fullConflictingShadow, rememberedProjectionState);
         projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-        projContext.setObjectOld(fullConflictingShadow.clone());
-        projContext.setObjectCurrent(fullConflictingShadow);
-        projContext.setOid(fullConflictingShadow.getOid());
+        projContext.replaceOldAndCurrentObject(fullConflictingShadow.getOid(), fullConflictingShadow.clone(), fullConflictingShadow);
         projContext.setFullShadow(true);
         projContext.setExists(true);
 
@@ -422,13 +404,13 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         }
         LOGGER.trace("willResetIterationCounter: projectionDelta is\n{}", projectionDelta.debugDumpLazily());
         RefinedObjectClassDefinition oOcDef = projectionContext.getCompositeObjectClassDefinition();
-        for (RefinedAttributeDefinition identifierDef: oOcDef.getPrimaryIdentifiers()) {
+        for (RefinedAttributeDefinition<?> identifierDef: oOcDef.getPrimaryIdentifiers()) {
             ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
             if (projectionDelta.findPropertyDelta(identifierPath) != null) {
                 return true;
             }
         }
-        for (RefinedAttributeDefinition identifierDef: oOcDef.getSecondaryIdentifiers()) {
+        for (RefinedAttributeDefinition<?> identifierDef: oOcDef.getSecondaryIdentifiers()) {
             ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
             if (projectionDelta.findPropertyDelta(identifierPath) != null) {
                 return true;
@@ -525,7 +507,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
             if (attributesContainer != null) {
                 for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
-                    RefinedAttributeDefinition rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
+                    RefinedAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
                     if (!rAttrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
                                 "account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
@@ -536,7 +518,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             for(ItemDelta<?,?> modification: primaryDelta.getModifications()) {
                 if (modification.getParentPath().equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
                     PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
-                    RefinedAttributeDefinition rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
+                    RefinedAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
                     if (!rAttrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
                                 "account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
@@ -552,13 +534,13 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
      * Remove the intermediate results of values processing such as secondary deltas.
      */
     private void cleanupContext(LensProjectionContext accountContext, PrismObject<ShadowType> fullConflictingShadow,
-            ObjectDelta<ShadowType> originalSecondaryDelta) throws SchemaException {
+            @NotNull RememberedElementState<ShadowType> rememberedProjectionState) throws SchemaException {
         LOGGER.trace("Cleaning up context; full conflicting shadow = {}", fullConflictingShadow);
 
         // We must NOT clean up activation computation here. This has happened before, it will not happen again
         // and it does not depend on iteration. That's why we stored original secondary delta.
 
-        accountContext.setSecondaryDelta(CloneUtil.clone(originalSecondaryDelta));
+        accountContext.restoreElementState(rememberedProjectionState);
 
         // TODO But, in fact we want to cleanup up activation changes if they are already applied to the new shadow.
         //  This was implemented before but it's missing now.

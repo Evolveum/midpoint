@@ -74,6 +74,11 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                 PageResource.this.refresh(target);
 //                target.add(getDetailsPanel());
             }
+
+            @Override
+            protected void savePerformed(AjaxRequestTarget target) {
+                PageResource.this.savePerformed(target);
+            }
         };
     }
 
