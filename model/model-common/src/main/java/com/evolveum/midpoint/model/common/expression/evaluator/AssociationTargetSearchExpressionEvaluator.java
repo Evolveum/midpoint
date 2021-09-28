@@ -117,7 +117,7 @@ public class AssociationTargetSearchExpressionEvaluator
 
             prismContext.adopt(associationCVal, ShadowType.COMPLEX_TYPE, ShadowType.F_ASSOCIATION);
             if (InternalsConfig.consistencyChecks) {
-                associationCVal.assertDefinitions("associationCVal in assignment expression in "+params.getContextDescription());
+                associationCVal.assertDefinitions(() -> "associationCVal in assignment expression in "+params.getContextDescription());
             }
         } catch (SchemaException e) {
             // Should not happen

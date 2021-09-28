@@ -225,7 +225,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
         assignment.beginActivation().validTo("2099-01-01T00:00:00");
-        context.getFocusContext().addPrimaryDelta(prismContext.deltaFor(UserType.class)
+        context.getFocusContext().addToPrimaryDelta(prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignment)
                 .item(UserType.F_COST_CENTER).replace("1900")
                 .asObjectDelta(USER_JACK_OID));
@@ -276,7 +276,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
         assignment.beginActivation().validTo("2099-01-01T00:00:00");
-        context.getFocusContext().addPrimaryDelta(prismContext.deltaFor(UserType.class)
+        context.getFocusContext().addToPrimaryDelta(prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignment)
                 .item(UserType.F_COST_CENTER).replace("1900")
                 .asObjectDelta(USER_JACK_OID));
@@ -322,7 +322,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        context.getFocusContext().addPrimaryDelta(prismContext.deltaFor(UserType.class)
+        context.getFocusContext().addToPrimaryDelta(prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).replace()
                 .asObjectDelta(USER_JACK_OID));
         displayDumpable("Input context", context);
@@ -372,7 +372,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -431,7 +430,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
@@ -465,7 +463,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, userFrankOid, result);
-        context.getFocusContext().addPrimaryDelta(prismContext.deltaFor(UserType.class)
+        context.getFocusContext().addToPrimaryDelta(prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext)
                                 .beginActivation()
@@ -603,7 +601,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         // WHEN
         when();
-
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN

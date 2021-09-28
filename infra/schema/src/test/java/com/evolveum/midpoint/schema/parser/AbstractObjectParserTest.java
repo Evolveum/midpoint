@@ -102,7 +102,7 @@ public abstract class AbstractObjectParserTest<O extends Objectable> extends Abs
     protected void assertPrismObject(PrismObject<O> object) throws SchemaException {
         assertDefinitions(object);
         object.checkConsistence();
-        object.assertDefinitions(true, "");
+        object.assertDefinitions(true, () -> "");
         assertPrismContext(object);
         assertPrismObjectLocal(object);
     }

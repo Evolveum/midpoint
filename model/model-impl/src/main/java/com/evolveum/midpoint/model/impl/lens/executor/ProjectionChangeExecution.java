@@ -182,9 +182,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
             completed = false;
             LOGGER.debug("ObjectAlreadyExistsException for projection {}, requesting projector restart",
                     projCtx.toHumanReadableString());
-            projCtx.rot(); // todo
-            projCtx.setSecondaryDelta(null); // todo
-            projCtx.setObjectNew(null); // todo
+            projCtx.rotWithDeltaDeletion(); // todo
 
         } catch (Throwable t) {
 

@@ -13,6 +13,7 @@ import static java.util.Collections.singletonList;
 
 import java.io.*;
 import java.util.*;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
@@ -436,11 +437,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             }
 
             if (context.hasExplosiveProjection()) {
-                PrismObject<? extends ObjectType> focus = context.getFocusContext().getObjectAny();
+                PrismObject<? extends ObjectType> focus = Objects.requireNonNull(
+                        context.getFocusContext().getObjectAny(), "no focus object");
 
                 LOGGER.debug("Recomputing {} because there was explosive projection", focus);
 
-                LensContext<? extends ObjectType> recomputeContext = contextFactory.createRecomputeContext(focus, options, task, result);
+                LensContext<? extends ObjectType> recomputeContext =
+                        contextFactory.createRecomputeContext(focus, options, task, result);
                 recomputeContext.setDoReconciliationForAllProjections(true);
                 LOGGER.trace("Recomputing {}, context:\n{}", focus, recomputeContext.debugDumpLazily());
                 clockwork.run(recomputeContext, task, result);

@@ -109,7 +109,7 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         return clone;
     }
 
-    public Set<? extends Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> getProjectionChangeMapEntries() {
+    public Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> getProjectionChangeMapEntries() {
         return projectionChangeMap.entrySet();
     }
 
@@ -123,9 +123,7 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         if (getFocusChange() != null) {
             jaxb.setFocusPrimaryDelta(DeltaConvertor.toObjectDeltaType(getFocusChange()));
         }
-        //noinspection unchecked
-        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries =
-                (Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>>) getProjectionChangeMapEntries();
+        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = getProjectionChangeMapEntries();
         for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
             ProjectionObjectDeltaType projChange = new ProjectionObjectDeltaType();
             projChange.setResourceShadowDiscriminator(entry.getKey().toResourceShadowDiscriminatorType());

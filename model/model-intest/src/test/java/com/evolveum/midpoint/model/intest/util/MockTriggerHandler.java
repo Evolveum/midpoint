@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -61,7 +62,8 @@ public class MockTriggerHandler implements SingleTriggerHandler {
     }
 
     @Override
-    public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
+    public <O extends ObjectType> void handle(@NotNull PrismObject<O> object, @NotNull TriggerType trigger,
+            @NotNull RunningTask task, @NotNull OperationResult result) {
         IntegrationTestTools.display("Mock trigger handler called with " + object);
         lastObject = object.clone();
         invocationCount.incrementAndGet();

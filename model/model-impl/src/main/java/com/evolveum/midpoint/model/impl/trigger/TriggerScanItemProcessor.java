@@ -59,13 +59,14 @@ public class TriggerScanItemProcessor {
         this.activityExecution = activityExecution;
     }
 
-    public boolean processObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result)
+    public boolean processObject(@NotNull PrismObject<ObjectType> object, @NotNull RunningTask workerTask,
+            @NotNull OperationResult result)
             throws CommonException {
         fireTriggers(object, workerTask, result);
         return true;
     }
 
-    private void fireTriggers(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
+    private void fireTriggers(@NotNull PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
         PrismContainer<TriggerType> triggerContainer = object.findContainer(F_TRIGGER);
         if (triggerContainer == null) {
             LOGGER.warn("Strange thing, attempt to fire triggers on {}, but it does not have trigger container", object);

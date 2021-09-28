@@ -13787,6 +13787,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="monitoredOperations" type="tns:MonitoredOperationsStatisticsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information (mainly counters and durations) about monitored operations. These are the operations
+                        that are too small to be represented by OperationResult themselves, yet are important enough
+                        to be monitored. Examples: object cloning, lens element delta or state recomputation, and so on.
+                        The list depends on the current needs of midPoint performance improvement process.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <xsd:experimental>true</xsd:experimental>
+                        <xsd:since>4.4</xsd:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="incomplete" type="xsd:boolean">
@@ -13829,6 +13843,132 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="logSegment" type="tns:LogSegmentType" />
+
+    <xsd:complexType name="MonitoredOperationsStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about selected monitored operations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="operation" type="tns:MonitoredOperationStatisticsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about a particular operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MonitoredOperationStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about selected monitored operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="operation" type="tns:MonitoredOperationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of invocations.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nanos" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Aggregated time spent in the invocations. (If measured.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MonitoredOperationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Monitored operation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="clone">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Prism object clone operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="objectSerialization">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Prism object serialization operation (maybe not all of them, for now).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_SERIALIZATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="objectParsing">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Prism object parsing operation (maybe not all of them, for now).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_PARSING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="currentDeltaComputation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Computation of lens element current delta.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CURRENT_DELTA_COMPUTATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="summaryDeltaComputation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Computation of lens element summary delta.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUMMARY_DELTA_COMPUTATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="newObjectComputation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Computation of lens element new object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEW_OBJECT_COMPUTATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:simpleType name="OperationResultImportanceType">
         <xsd:annotation>

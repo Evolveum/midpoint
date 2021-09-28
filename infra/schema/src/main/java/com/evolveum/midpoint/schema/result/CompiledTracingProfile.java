@@ -37,13 +37,17 @@ public final class CompiledTracingProfile implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(CompiledTracingProfile.class);
 
     @NotNull private final TracingProfileType definition;
+
     @Nullable private final LoggingLevelOverrideConfiguration loggingLevelOverrideConfiguration;
+
+    @NotNull private final OperationMonitoringConfiguration operationMonitoringConfiguration;
 
     private final Map<Class<? extends TraceType>, TracingLevelType> levelMap = new HashMap<>();
 
     private CompiledTracingProfile(@NotNull TracingProfileType definition) {
         this.definition = definition;
         this.loggingLevelOverrideConfiguration = compileLevelOverrideConfiguration(definition.getLoggingOverride());
+        this.operationMonitoringConfiguration = OperationMonitoringConfiguration.create(definition.getOperationMonitoring());
     }
 
     public static CompiledTracingProfile create(TracingProfileType resolvedProfile, PrismContext prismContext) {
@@ -125,7 +129,7 @@ public final class CompiledTracingProfile implements Serializable {
         return Boolean.TRUE.equals(definition.isCollectLogEntries());
     }
 
-    public LoggingLevelOverrideConfiguration getLoggingLevelOverrideConfiguration() {
+    @Nullable LoggingLevelOverrideConfiguration getLoggingLevelOverrideConfiguration() {
         return loggingLevelOverrideConfiguration;
     }
 
@@ -140,7 +144,11 @@ public final class CompiledTracingProfile implements Serializable {
         return rv;
     }
 
-    public boolean isMeasureCpuTime() {
-        return definition.isMeasureCpuTime() == null || Boolean.TRUE.equals(definition.isMeasureCpuTime());
+    boolean isMeasureCpuTime() {
+        return !Boolean.FALSE.equals(definition.isMeasureCpuTime());
+    }
+
+    public @NotNull OperationMonitoringConfiguration getOperationMonitoringConfiguration() {
+        return operationMonitoringConfiguration;
     }
 }

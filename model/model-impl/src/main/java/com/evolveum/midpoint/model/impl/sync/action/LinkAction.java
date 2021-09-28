@@ -36,6 +36,6 @@ public class LinkAction implements Action {
         F focus = situation.getCorrelatedOwner();
         LensFocusContext<F> focusContext = context.createFocusContext();
         //noinspection unchecked
-        focusContext.setLoadedObject((PrismObject<F>) focus.asPrismObject());
+        focusContext.setInitialObject((PrismObject<F>) focus.asPrismObject());
     }
 }

@@ -110,13 +110,14 @@ public class MiscHelper {
                     .collect(Collectors.toList());
     }
 
-    public ModelContext getModelContext(CaseType aCase, Task task, OperationResult result) throws SchemaException,
+    public LensContext<?> getModelContext(CaseType aCase, Task task, OperationResult result) throws SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        LensContextType modelContextType = aCase.getModelContext();
-        if (modelContextType == null) {
+        LensContextType modelContextBean = aCase.getModelContext();
+        if (modelContextBean != null) {
+            return LensContext.fromLensContextBean(modelContextBean, task, result);
+        } else {
             return null;
         }
-        return LensContext.fromLensContextBean(modelContextType, task, result);
     }
 
     public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {

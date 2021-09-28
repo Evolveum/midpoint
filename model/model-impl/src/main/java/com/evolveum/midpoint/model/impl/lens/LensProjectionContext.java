@@ -19,8 +19,14 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
+import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.sync.action.DeleteShadowAction;
+import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -35,7 +41,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -56,6 +61,8 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import static com.evolveum.midpoint.model.impl.lens.ElementState.in;
+
 /**
  * @author semancik
  *
@@ -64,13 +71,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     private static final Trace LOGGER = TraceManager.getTrace(LensProjectionContext.class);
 
+    /**
+     * Delta that came from the resource (using live sync, async update, import, reconciliation, and so on) that
+     * is the basis for the current processing. It is a little bit similar to the primary delta: it is given
+     * from the "outside", not computed by the projector. However, unlike primary delta, this delta describes
+     * what _has already happened_, not what should be done.
+     *
+     * See also {@link ModelProjectionContext#getSyncDelta()}.
+     */
     private ObjectDelta<ShadowType> syncDelta;
 
     /**
      * Is this projection the source of the synchronization? (The syncDelta attribute could be used for this but in
-     * reality it is not always present.) We need this information e.g. when it's not possible to record a clockwork
-     * exception to focus (e.g. as in MID-5801). The alternate way is to record it into shadow representing the synchronization
-     * source, e.g. the object being imported, reconciled, or live-synced.
+     * reality it is not always present.)
+     *
+     * This information was once used for operation execution recording, but is not used now.
      */
     private boolean synchronizationSource;
 
@@ -78,7 +93,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * If set to true: absolute state of this projection was detected by the synchronization.
      * This is mostly for debugging and visibility. It is not used by projection logic.
      */
-    private boolean syncAbsoluteTrigger = false;
+    private boolean syncAbsoluteTrigger;
 
     /**
      * The wave in which this resource should be processed. Initial value of -1 means "undetermined".
@@ -88,7 +103,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /**
      * Indicates that the wave computation is still in progress.
      */
-    private transient boolean waveIncomplete = false;
+    private transient boolean waveIncomplete;
 
     /**
      * Was the processing of this projection (in its execution wave) complete?
@@ -102,27 +117,42 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      */
     private ResourceShadowDiscriminator resourceShadowDiscriminator;
 
-    private boolean fullShadow = false;
+    /**
+     * Is the resource object fully loaded from the resource?
+     *
+     * TODO Sometimes the "true" here means that the object is not loaded, but there's no point in trying to load it.
+     *  We need to clarify that.
+     */
+    private boolean fullShadow;
 
     /**
      * True if the account is assigned to the user by a valid assignment. It may be false for accounts that are either
      * found to be illegal by live sync, were unassigned from user, etc.
      * If set to null the situation is not yet known. Null is a typical value when the context is constructed.
      */
-    private Boolean isAssigned;
-    private Boolean isAssignedOld;
+    private Boolean assigned;
+
+    /**
+     * TODO describe
+     */
+    private Boolean assignedOld;
 
     /**
      * True if the account should be part of the synchronization. E.g. outbound expression should be applied to it.
+     *
      * TODO It looks like this is currently not used. Consider removing.
      */
-    private boolean isActive;
+    private boolean active;
 
     /**
      * True if there is a valid assignment for this projection and/or the policy allows such projection to exist.
      */
-    private Boolean isLegal = null;
-    private Boolean isLegalOld = null;
+    private Boolean legal;
+
+    /**
+     * TODO describe
+     */
+    private Boolean legalOld;
 
     /**
      * True if the projection exists (or will exist) on resource. False if it does not exist.
@@ -130,7 +160,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * reflect actual situation. If there is a pending operation to create the object then
      * isExists will in fact be true.
      */
-    private boolean isExists;
+    private boolean exists;
 
     /**
      * True if shadow exists in the repo. It is set to false after projector discovers that a shadow is gone.
@@ -140,8 +170,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private transient boolean shadowExistsInRepo = true;
 
     /**
+     * Intention of what we want to do with this projection context.
+     *
+     * Although there are more values, currently it seems that we use only UNLINK and DELETE ones.
+     *
+     * Set by the client (see {@link UnlinkAction} and {@link DeleteShadowAction}) or automatically
+     * determined from linkRef delete delta by {@link ContextLoader}.
+     *
+     * See also {@link ModelProjectionContext#getSynchronizationIntent()}.
+     */
+    private SynchronizationIntent synchronizationIntent;
+
+    /**
      * Decision regarding the account. It indicated what the engine has DECIDED TO DO with the context.
      * If set to null no decision was made yet. Null is also a typical value when the context is created.
+     *
+     * See also {@link ModelProjectionContext#getSynchronizationPolicyDecision()}.
      */
     private SynchronizationPolicyDecision synchronizationPolicyDecision;
 
@@ -160,26 +204,26 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * This is mostly for debug purposes. Projector and clockwork do not need to care about this.
      * The synchronization intent is used instead.
      */
-    private SynchronizationSituationType synchronizationSituationDetected = null;
+    private SynchronizationSituationType synchronizationSituationDetected;
     /**
      * Synchronization situation which was the result of synchronization reaction (projector and clockwork run).
      * This is mostly for debug purposes. Projector and clockwork do not care about this (except for setting it).
      * The synchronization decision is used instead.
      */
-    private SynchronizationSituationType synchronizationSituationResolved = null;
+    private SynchronizationSituationType synchronizationSituationResolved;
 
     /**
      * Delta set triple for constructions obtained via assignments. Specifies which constructions (projections e.g. accounts)
      * should be added, removed or stay as they are.
      *
-     * It tells almost nothing about attributes directly although the information about attributes are inside
+     * It tells almost nothing about attributes directly, although the information about attributes are inside
      * each construction.
      *
-     * Intermediary computation result. It is stored to allow re-computing of constructions during
+     * It is an intermediary computation result. It is stored to allow re-computing of constructions during
      * iterative computations.
      *
-     * Source: AssignmentProcessor
-     * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
+     * - Source: AssignmentProcessor
+     * - Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      *
      * Note that relativity is taken to focus OLD state, not to the current state.
      */
@@ -187,26 +231,25 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     /**
      * Evaluated "plain" resource object construction obtained from the schema handling configuration for given resource.
+     *
      * TODO better name
      *
-     * Source: OutboundProcessor
-     * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
+     * - Source: OutboundProcessor
+     * - Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      */
     private transient PlainResourceObjectConstruction<?> evaluatedPlainConstruction;
 
     /**
      * Post-processed triples from the above two properties.
-     * Source: ConsolidationProcessor
-     * Target: ReconciliationProcessor
+     *
+     * - Source: ConsolidationProcessor
+     * - Target: ReconciliationProcessor
      */
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
-    private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
-
-    // Cached copy, to avoid constructing it over and over again
-    private transient PrismObjectDefinition<ShadowType> shadowDefinition = null;
+    private transient Collection<ResourceObjectTypeDependencyType> dependencies;
 
     private transient RefinedObjectClassDefinition structuralObjectClassDefinition;
     private transient Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
@@ -227,20 +270,39 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      */
     private transient boolean toBeArchived;
 
+    /**
+     * Primary identifier + intent + order + resource.
+     *
+     * TODO why not kind?
+     */
     private transient String humanReadableName;
 
-    private Map<String, PrismObject<ShadowType>> entitlementMap = new HashMap<>();
-
+    /**
+     * Short characterization of the projection: kind + intent + resource.
+     *
+     * TODO consider better name
+     */
     private transient String humanReadableString;
+
+    /**
+     * Cached entitlements for the projection, using OID as the key.
+     */
+    private final Map<String, PrismObject<ShadowType>> entitlementMap = new HashMap<>();
 
     /**
      * Cached value metadata to be used for resource object values processed by inbound mappings.
      */
     private transient ValueMetadataType cachedValueMetadata;
 
-    LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
+    LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator discriminator) {
         super(ShadowType.class, lensContext);
-        this.resourceShadowDiscriminator = resourceAccountType;
+        this.resourceShadowDiscriminator = discriminator;
+    }
+
+    private LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator discriminator,
+            ElementState<ShadowType> elementState) {
+        super(elementState, lensContext);
+        this.resourceShadowDiscriminator = discriminator;
     }
 
     public ObjectDelta<ShadowType> getSyncDelta() {
@@ -249,40 +311,66 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setSyncDelta(ObjectDelta<ShadowType> syncDelta) {
         this.syncDelta = syncDelta;
+        state.invalidate(); // sync delta is a parameter for adjuster
     }
 
+    /**
+     * Returns {@link ObjectDeltaObject} to be used e.g. expression evaluation regarding this projection.
+     *
+     * We use {@link ElementState#getRelativeObjectDeltaObject()}, although the "absolute" version should
+     * provide more or less the same results. Projections are not updated iteratively, unlike the focus.
+     */
     public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
-        ObjectDelta<ShadowType> currentDelta = getCurrentDelta();
-        PrismObject<ShadowType> base;
-        if (shouldCreateObjectNew(currentDelta)) {
-            RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
-            if (rOCD != null) {
-                base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
-            } else {
-                base = null;
-            }
-        } else {
-            base = objectCurrent;
-        }
-        return new ObjectDeltaObject<>(base, currentDelta, objectNew, getObjectDefinition());
+        return state.getRelativeObjectDeltaObject();
     }
 
-    private boolean shouldCreateObjectNew(ObjectDelta<ShadowType> currentDelta) {
-        return objectCurrent == null && (ObjectDelta.isModify(currentDelta) || currentDelta == null && decisionIsAdd());
+    /**
+     * Note for implementors: if you introduce a new parameter here (besides syncDelta, OCD, RSD, policy decision),
+     * please add {@link ElementState#invalidate()} call to appropriate setter.
+     */
+    @Override
+    @NotNull CurrentObjectAdjuster<ShadowType> getCurrentObjectAdjuster() {
+        return objectCurrent -> {
+            if (objectCurrent != null) {
+                return objectCurrent;
+            } else if (ObjectDelta.isAdd(syncDelta)) {
+                return syncDelta.getObjectToAdd();
+            } else if (shouldCreateObjectCurrent()) {
+                RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
+                if (rOCD != null) {
+                    return rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        };
     }
 
     @Override
-    public ObjectDelta<ShadowType> getSummaryDelta() {
-        return getCurrentDelta();
+    @NotNull ObjectDefinitionRefiner<ShadowType> getObjectDefinitionRefiner() {
+        return (rawDefinition) -> {
+            try {
+                PrismObjectDefinition<ShadowType> shadowDefinition
+                        = ShadowUtil.applyObjectClass(rawDefinition, getCompositeObjectClassDefinition());
+                shadowDefinition.freeze();
+                return shadowDefinition;
+            } catch (SchemaException e) {
+                // This should not happen
+                throw new SystemException(e.getMessage(), e);
+            }
+        };
+    }
+
+    private boolean shouldCreateObjectCurrent() {
+        ObjectDelta<ShadowType> currentDelta = getCurrentDelta();
+        return ObjectDelta.isModify(currentDelta) || currentDelta == null && decisionIsAdd();
     }
 
     @Override
     public ObjectDelta<ShadowType> getSummarySecondaryDelta() {
-        return secondaryDelta;
-    }
-
-    public boolean hasSecondaryDelta() {
-        return secondaryDelta != null && !secondaryDelta.isEmpty();
+        return getSecondaryDelta();
     }
 
     public boolean isSyncAbsoluteTrigger() {
@@ -333,6 +421,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
         this.resourceShadowDiscriminator = resourceShadowDiscriminator;
+        state.invalidate(); // RSD is a parameter for current object adjuster
     }
 
     public boolean compareResourceShadowDiscriminator(ResourceShadowDiscriminator rsd, boolean compareOrder) {
@@ -390,7 +479,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         } else if (synchronizationPolicyDecision != null) {
             return false;
         } else {
-            return ObjectDelta.isAdd(primaryDelta);
+            return ObjectDelta.isAdd(state.getPrimaryDelta());
         }
     }
 
@@ -407,7 +496,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean isDelete() {
         // Note that there are situations where decision is UNLINK with primary delta being DELETE. (Why?)
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE ||
-                ObjectDelta.isDelete(syncDelta) || ObjectDelta.isDelete(primaryDelta);
+                ObjectDelta.isDelete(syncDelta) || ObjectDelta.isDelete(state.getPrimaryDelta());
     }
 
     @Override
@@ -432,38 +521,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return entitlementMap;
     }
 
-    public void setEntitlementMap(Map<String, PrismObject<ShadowType>> entitlementMap) {
-        this.entitlementMap = entitlementMap;
-    }
-
-    @Override
-    public PrismObjectDefinition<ShadowType> getObjectDefinition() {
-        if (shadowDefinition == null) {
-            try {
-                shadowDefinition = ShadowUtil.applyObjectClass(super.getObjectDefinition(), getCompositeObjectClassDefinition());
-                shadowDefinition.freeze();
-            } catch (SchemaException e) {
-                // This should not happen
-                throw new SystemException(e.getMessage(), e);
-            }
-        }
-        return shadowDefinition;
-    }
 
     public Boolean isAssigned() {
-        return isAssigned;
+        return assigned;
     }
 
     public void setAssigned(boolean isAssigned) {
-        this.isAssigned = isAssigned;
+        this.assigned = isAssigned;
     }
 
     public Boolean isAssignedOld() {
-        return isAssignedOld;
+        return assignedOld;
     }
 
     public void setAssignedOld(Boolean isAssignedOld) {
-        this.isAssignedOld = isAssignedOld;
+        this.assignedOld = isAssignedOld;
     }
 
     /**
@@ -473,33 +545,33 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * TODO: what should we do with projections that appear later?
      */
     public void setAssignedOldIfUnknown(Boolean value) {
-        if (isAssignedOld == null) {
+        if (assignedOld == null) {
             setAssignedOld(value);
         }
     }
 
     public boolean isActive() {
-        return isActive;
+        return active;
     }
 
     public void setActive(boolean isActive) {
-        this.isActive = isActive;
+        this.active = isActive;
     }
 
     public Boolean isLegal() {
-        return isLegal;
+        return legal;
     }
 
     public void setLegal(Boolean isLegal) {
-        this.isLegal = isLegal;
+        this.legal = isLegal;
     }
 
     public Boolean isLegalOld() {
-        return isLegalOld;
+        return legalOld;
     }
 
     public void setLegalOld(Boolean isLegalOld) {
-        this.isLegalOld = isLegalOld;
+        this.legalOld = isLegalOld;
     }
 
     /**
@@ -509,17 +581,17 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * TODO: what should we do with projections that appear later?
      */
     public void setLegalOldIfUnknown(Boolean value) {
-        if (isLegalOld == null) {
+        if (legalOld == null) {
             setLegalOld(value);
         }
     }
 
     public boolean isExists() {
-        return isExists;
+        return exists;
     }
 
     public void setExists(boolean exists) {
-        this.isExists = exists;
+        this.exists = exists;
     }
 
     public boolean isShadowExistsInRepo() {
@@ -530,12 +602,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.shadowExistsInRepo = shadowExistsInRepo;
     }
 
+    public SynchronizationIntent getSynchronizationIntent() {
+        return synchronizationIntent;
+    }
+
+    public void setSynchronizationIntent(SynchronizationIntent synchronizationIntent) {
+        this.synchronizationIntent = synchronizationIntent;
+    }
+
     public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
         return synchronizationPolicyDecision;
     }
 
     public void setSynchronizationPolicyDecision(SynchronizationPolicyDecision policyDecision) {
         this.synchronizationPolicyDecision = policyDecision;
+        state.invalidate(); // policy decision is a parameter for current object adjuster
     }
 
     public void setBroken() {
@@ -669,7 +750,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             if (refinedSchema == null) {
                 return null;
             }
-            structuralObjectClassDefinition = refinedSchema.getRefinedDefinition(getResourceShadowDiscriminator().getKind(), getResourceShadowDiscriminator().getIntent());
+            structuralObjectClassDefinition =
+                    refinedSchema.getRefinedDefinition(resourceShadowDiscriminator.getKind(), resourceShadowDiscriminator.getIntent());
             if (structuralObjectClassDefinition != null) {
                 structuralObjectClassDefinition.freeze();
             }
@@ -691,7 +773,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
         List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
         addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
-        addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectNew());
+        addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, state.computeUnadjustedNewObject());
         auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
         for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
             RefinedObjectClassDefinition auxiliaryObjectClassDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassQName);
@@ -711,6 +793,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                         structuralObjectClassDefinition, getAuxiliaryObjectClassDefinitions());
                 compositeObjectClassDefinition.freeze();
             }
+            state.invalidate(); // composite OCD is a parameter for current object adjuster
         }
         return compositeObjectClassDefinition;
     }
@@ -829,33 +912,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return objectClassDef.getProjection();
     }
 
-    /**
-     * Recomputes the new state of account (accountNew). It is computed by applying deltas to the old state (accountOld).
-     * Assuming that oldAccount is already set (or is null if it does not exist)
-     */
-    public void recompute() throws SchemaException {
-        ObjectDelta<ShadowType> currentDelta = getCurrentDelta();
-        PrismObject<ShadowType> base;
-        if (objectCurrent == null && ObjectDelta.isAdd(syncDelta)) {
-            base = syncDelta.getObjectToAdd();
-        } else if (shouldCreateObjectNew(currentDelta)) {
-            RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
-            if (rOCD != null) {
-                base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
-            } else {
-                base = null;
-            }
-        } else {
-            base = objectCurrent;
-        }
-
-        if (currentDelta == null) {
-            // No change
-            setObjectNew(base);
-        } else {
-            setObjectNew(currentDelta.computeChangedObject(base));
-        }
-    }
 
     /**
      * We sometimes need the 'object new' to exist before any real modifications are computed.
@@ -871,11 +927,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         squeezedAttributes = null;
     }
 
-    /**
-     * Returns delta suitable for execution. The primary and secondary deltas may not make complete sense all by themselves.
-     * E.g. they may both be MODIFY deltas even in case that the account should be created. The deltas begin to make sense
-     * only if combined with sync decision. This method provides the deltas all combined and ready for execution.
-     */
     @Override
     public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
         SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
@@ -903,7 +954,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             }
         } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
             // (Almost) any delta is OK
-            if (isExists && ObjectDelta.isAdd(origDelta)) {
+            if (exists && ObjectDelta.isAdd(origDelta)) {
                 LOGGER.trace("Projection exists and we try to create it anew. This probably means that the primary ADD delta"
                         + " should be ignored. Using secondary delta only. Current delta is:\n{}\nSecondary delta that will"
                         + " be used instead is:\n{}", origDelta.debugDumpLazily(), DebugUtil.debugDumpLazily(getSecondaryDelta()));
@@ -933,48 +984,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    /**
-     * As getPrimaryDelta() but caters for the possibility that an object already exists.
-     * So, if the primary delta is ADD and object already exists, it should be changed somehow,
-     * e.g. to MODIFY delta or to null.
-     *
-     * Actually, the question is what to do with the attribute values if changed to MODIFY.
-     * (a) Should they become REPLACE item deltas? (b) ADD ones?
-     * (c) Or should we compute a difference from objectCurrent to objectToAdd, hoping that
-     * secondary deltas will re-add everything that might be unknowingly removed by this step?
-     * (d) Or should we simply ignore ADD delta altogether, hoping that it was executed
-     * so it need not be repeated?
-     *
-     * And, should not we report AlreadyExistingException instead?
-     *
-     * It seems that (c) i.e. reverting back to objectToAdd is not a good idea at all. For example, this
-     * may erase linkRefs for good.
-     *
-     * For the time being let us proceed with (d), i.e. ignoring such a delta.
-     *
-     * TODO is this OK???? [med]
-     */
-    private ObjectDelta<ShadowType> getFixedPrimaryDelta() {
-        if (ObjectDelta.isAdd(getPrimaryDelta()) && getObjectCurrent() != null) {
-            // Object does exist. Let's ignore the delta - see description above.
-            return null;
-        } else {
-            return getPrimaryDelta(); // nothing to do
-        }
-    }
-
-    public void checkConsistence() {
-        checkConsistence(null, true, false);
-    }
-
     @Override
     public void checkConsistence(String contextDesc) {
-        super.checkConsistence(contextDesc);
-        if (secondaryDelta != null) {
-            boolean requireOid = isRequireSecondaryDeltaOid();
-            // Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
-            checkConsistence(secondaryDelta, requireOid, getElementDesc() + " secondary delta in " + this + (contextDesc == null ? "" : " in " + contextDesc));
-        }
+        // Intentionally not calling super.checkConsistence here. This is done in the parameterized method below.
+        checkConsistence(contextDesc, true, false);
     }
 
     public void checkConsistence(String contextDesc, boolean fresh, boolean force) {
@@ -982,38 +995,42 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             // No not check these. they may be quite wild.
             return;
         }
-        super.checkConsistence(contextDesc);
+
+        state.checkConsistence(this, contextDesc);
+
+        // Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
+        state.checkSecondaryDeltaConsistence(isRequireSecondaryDeltaOid(), this, contextDesc);
+
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
             return;
         }
         if (fresh && !force && resourceShadowDiscriminator != null && !resourceShadowDiscriminator.isTombstone()) {
             if (resource == null) {
-                throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+                throw new IllegalStateException("Null resource in " + this + in(contextDesc));
             }
             if (resourceShadowDiscriminator == null) {
-                throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+                throw new IllegalStateException("Null resource account type in " + this + in(contextDesc));
             }
         }
         if (syncDelta != null) {
             try {
                 syncDelta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
+                throw new IllegalArgumentException(e.getMessage() + "; in " + getElementDesc() + " sync delta in " + this + in(contextDesc), e);
             } catch (IllegalStateException e) {
-                throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
+                throw new IllegalStateException(e.getMessage() + "; in " + getElementDesc() + " sync delta in " + this + in(contextDesc), e);
             }
         }
     }
 
     @Override
-    protected void checkConsistence(PrismObject<ShadowType> object, String elementDesc, String contextDesc) {
-        super.checkConsistence(object, elementDesc, contextDesc);
+    void doExtraObjectConsistenceCheck(@NotNull PrismObject<ShadowType> object, String elementDesc, String contextDesc) {
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(object);
         if (attributesContainer != null) {
             ResourceType resource = getResource();
             if (resource != null) {
                 String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-                for(ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
+                for (ResourceAttribute<?> attribute : attributesContainer.getAttributes()) {
                     QName attrName = attribute.getElementName();
                     if (SchemaConstants.NS_ICF_SCHEMA.equals(attrName.getNamespaceURI())) {
                         continue;
@@ -1021,14 +1038,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                     if (resourceNamespace.equals(attrName.getNamespaceURI())) {
                         continue;
                     }
-                    String desc = elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc);
-                    throw new IllegalStateException("Invalid namespace for attribute "+attrName+" in "+desc);
+                    String desc = elementDesc + " in " + this + (contextDesc == null ? "" : " in " + contextDesc);
+                    throw new IllegalStateException("Invalid namespace for attribute " + attrName + " in " + desc);
                 }
             }
         }
     }
 
-    protected boolean isRequireSecondaryDeltaOid() {
+    private boolean isRequireSecondaryDeltaOid() {
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD ||
                 synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN ||
                 synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
@@ -1038,7 +1055,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             // These may not have the OID yet
             return false;
         }
-        return super.isRequireSecondaryDeltaOid();
+        return state.getPrimaryDelta() == null;
     }
 
     @Override
@@ -1048,13 +1065,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         // We will clean up this projection context fully only if there's a chance we will touch it again.
         if (!completed) {
             synchronizationPolicyDecision = null;
-            isAssigned = null;
-            isActive = false;
+            assigned = null;
+            active = false;
         }
 
         // However, selected items are still cleaned up, in order to preserve existing behavior.
         // This might be important e.g. for inbound mappings that take previous deltas into account.
-        secondaryDelta = null;
+        state.clearSecondaryDelta();
 
 //      isLegal = null;
 //      isLegalOld = null;
@@ -1086,9 +1103,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    @Override
     public LensProjectionContext clone(LensContext<? extends ObjectType> lensContext) {
-        LensProjectionContext clone = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
+        LensProjectionContext clone = new LensProjectionContext(lensContext, resourceShadowDiscriminator, state);
         copyValues(clone);
         return clone;
     }
@@ -1100,8 +1116,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         clone.dependencies = this.dependencies;
         clone.doReconciliation = this.doReconciliation;
         clone.fullShadow = this.fullShadow;
-        clone.isAssigned = this.isAssigned;
-        clone.isAssignedOld = this.isAssignedOld;
+        clone.assigned = this.assigned;
+        clone.assignedOld = this.assignedOld;
         clone.evaluatedPlainConstruction = this.evaluatedPlainConstruction;
         clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
         clone.resource = this.resource;
@@ -1110,7 +1126,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (this.syncDelta != null) {
             clone.syncDelta = this.syncDelta.clone();
         }
-        clone.secondaryDelta = cloneDelta(this.secondaryDelta);
         clone.wave = this.wave;
         clone.synchronizationSource = this.synchronizationSource;
     }
@@ -1146,9 +1161,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (syncDelta != null) {
             CryptoUtil.checkEncrypted(syncDelta);
         }
-        if (secondaryDelta != null) {
-            CryptoUtil.checkEncrypted(secondaryDelta);
-        }
     }
 
     @Override
@@ -1182,13 +1194,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     private String getHumanReadableIdentifier() {
-        PrismObject<ShadowType> object = getObjectNew();
-        if (object == null) {
-            object = getObjectOld();
-        }
-        if (object == null) {
-            object = getObjectCurrent();
-        }
+        PrismObject<ShadowType> object = getObjectAny();
         if (object == null) {
             return null;
         }
@@ -1221,7 +1227,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         StringBuilder sb = new StringBuilder();
         SchemaDebugUtil.indentDebugDump(sb, indent);
         sb.append("PROJECTION ");
-        sb.append(getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName());
+        getObjectTypeClass();
+        sb.append(getObjectTypeClass().getSimpleName());
         sb.append(" ");
         sb.append(getResourceShadowDiscriminator());
         if (resource != null) {
@@ -1237,13 +1244,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         } else {
             sb.append(", shadow");
         }
-        sb.append(", exists=").append(isExists);
+        sb.append(", exists=").append(exists);
         if (!shadowExistsInRepo) {
             sb.append(" (shadow not in repo)");
         }
-        sb.append(", assigned=").append(isAssignedOld).append("->").append(isAssigned);
-        sb.append(", active=").append(isActive);
-        sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
+        sb.append(", assigned=").append(assignedOld).append("->").append(assigned);
+        sb.append(", active=").append(active);
+        sb.append(", legal=").append(legalOld).append("->").append(legal);
         sb.append(", recon=").append(doReconciliation);
         sb.append(", canProject=").append(canProject);
         sb.append(", syncIntent=").append(getSynchronizationIntent());
@@ -1264,19 +1271,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             sb.append(", completed");
         }
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), objectOld, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("current"), objectCurrent, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("current"), getObjectCurrent(), indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("new"), objectNew, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("new"), getObjectNew(), indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("primary delta"), primaryDelta, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("primary delta"), getPrimaryDelta(), indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("secondary delta"), secondaryDelta, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("secondary delta"), getSecondaryDelta(), indent + 1);
 
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("sync delta"), syncDelta, indent + 1);
@@ -1307,6 +1314,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 //            sb.append("ACCOUNT dependencies\n");
 //            sb.append(DebugUtil.debugDump(dependencies, indent + 1));
         }
+
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("composite object class definition"), String.valueOf(compositeObjectClassDefinition), indent+1);
+
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("auxiliary object class definition"), String.valueOf(auxiliaryObjectClassDefinitions), indent+1);
 
         return sb.toString();
     }
@@ -1361,80 +1374,77 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer, LensContext.ExportType exportType) throws SchemaException {
-        LensProjectionContextType lensProjectionContextType = lensProjectionContextTypeContainer.createNewValue().asContainerable();
-        super.storeIntoLensElementContextType(lensProjectionContextType, exportType);
-        lensProjectionContextType.setWave(wave);
-        lensProjectionContextType.setCompleted(completed);
-        lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
+        LensProjectionContextType bean = lensProjectionContextTypeContainer.createNewValue().asContainerable();
+        super.storeIntoLensElementContextType(bean, exportType);
+        bean.setWave(wave);
+        bean.setCompleted(completed);
+        bean.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
                 resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
-        lensProjectionContextType.setFullShadow(fullShadow);
-        lensProjectionContextType.setIsExists(isExists);
-        lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
-        lensProjectionContextType.setDoReconciliation(doReconciliation);
-        lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
-        lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
+        bean.setFullShadow(fullShadow);
+        bean.setIsExists(exists);
+        bean.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
+        bean.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
+        bean.setDoReconciliation(doReconciliation);
+        bean.setSynchronizationSituationDetected(synchronizationSituationDetected);
+        bean.setSynchronizationSituationResolved(synchronizationSituationResolved);
         if (exportType != LensContext.ExportType.MINIMAL) {
-            lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
-            lensProjectionContextType.setIsAssigned(isAssigned);
-            lensProjectionContextType.setIsAssignedOld(isAssignedOld);
-            lensProjectionContextType.setIsActive(isActive);
-            lensProjectionContextType.setIsLegal(isLegal);
-            lensProjectionContextType.setIsLegalOld(isLegalOld);
+            bean.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
+            bean.setIsAssigned(assigned);
+            bean.setIsAssignedOld(assignedOld);
+            bean.setIsActive(active);
+            bean.setIsLegal(legal);
+            bean.setIsLegalOld(legalOld);
             if (exportType != LensContext.ExportType.REDUCED && projectionSecurityPolicy != null) {
                 ObjectReferenceType secRef = new ObjectReferenceType();
                 secRef.asReferenceValue().setObject(projectionSecurityPolicy.asPrismObject());
-                lensProjectionContextType.setProjectionSecurityPolicyRef(secRef);
+                bean.setProjectionSecurityPolicyRef(secRef);
             }
-            lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
+            bean.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
         }
     }
 
     @NotNull
-    static LensProjectionContext fromLensProjectionContextType(LensProjectionContextType projectionContextType,
+    static LensProjectionContext fromLensProjectionContextBean(LensProjectionContextType bean,
             LensContext lensContext, Task task, OperationResult result) throws SchemaException {
 
-        String objectTypeClassString = projectionContextType.getObjectTypeClass();
+        String objectTypeClassString = bean.getObjectTypeClass();
         if (StringUtils.isEmpty(objectTypeClassString)) {
             throw new SystemException("Object type class is undefined in LensProjectionContextType");
         }
         ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
-                projectionContextType.getResourceShadowDiscriminator(), false);
+                bean.getResourceShadowDiscriminator(), false);
 
-        LensProjectionContext projectionContext = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
+        LensProjectionContext ctx = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
 
         PrismContext prismContext = PrismContext.get();
-        projectionContext.retrieveFromLensElementContextType(projectionContextType, task, result);
-        if (projectionContextType.getSyncDelta() != null) {
-            projectionContext.syncDelta = DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), prismContext);
+        ctx.retrieveFromLensElementContextBean(bean, task, result);
+        if (bean.getSyncDelta() != null) {
+            ctx.syncDelta = DeltaConvertor.createObjectDelta(bean.getSyncDelta(), prismContext);
         } else {
-            projectionContext.syncDelta = null;
+            ctx.syncDelta = null;
         }
-        ObjectDeltaType secondaryDeltaType = projectionContextType.getSecondaryDelta();
-        projectionContext.secondaryDelta = secondaryDeltaType != null ?
-                DeltaConvertor.createObjectDelta(secondaryDeltaType, prismContext) : null;
-        ObjectType object = projectionContextType.getObjectNew() != null ? projectionContextType.getObjectNew() : projectionContextType.getObjectOld();
-        projectionContext.fixProvisioningTypeInDelta(projectionContext.secondaryDelta, object, task, result);
-
-        projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
-        projectionContext.completed = BooleanUtils.isTrue(projectionContextType.isCompleted());
-        projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;
-        projectionContext.isAssigned = projectionContextType.isIsAssigned() != null ? projectionContextType.isIsAssigned() : false;
-        projectionContext.isAssignedOld = projectionContextType.isIsAssignedOld() != null ? projectionContextType.isIsAssignedOld() : false;
-        projectionContext.isActive = projectionContextType.isIsActive() != null ? projectionContextType.isIsActive() : false;
-        projectionContext.isLegal = projectionContextType.isIsLegal();
-        projectionContext.isLegalOld = projectionContextType.isIsLegalOld();
-        projectionContext.isExists = projectionContextType.isIsExists() != null ? projectionContextType.isIsExists() : false;
-        projectionContext.synchronizationPolicyDecision = SynchronizationPolicyDecision.fromSynchronizationPolicyDecisionType(projectionContextType.getSynchronizationPolicyDecision());
-        projectionContext.doReconciliation = projectionContextType.isDoReconciliation() != null ? projectionContextType.isDoReconciliation() : false;
-        projectionContext.synchronizationSituationDetected = projectionContextType.getSynchronizationSituationDetected();
-        projectionContext.synchronizationSituationResolved = projectionContextType.getSynchronizationSituationResolved();
-        ObjectReferenceType projectionSecurityPolicyRef = projectionContextType.getProjectionSecurityPolicyRef();
+        ctx.wave = bean.getWave() != null ? bean.getWave() : 0;
+        ctx.completed = BooleanUtils.isTrue(bean.isCompleted());
+        ctx.fullShadow = bean.isFullShadow() != null ? bean.isFullShadow() : false;
+        ctx.assigned = bean.isIsAssigned() != null ? bean.isIsAssigned() : false;
+        ctx.assignedOld = bean.isIsAssignedOld() != null ? bean.isIsAssignedOld() : false;
+        ctx.active = bean.isIsActive() != null ? bean.isIsActive() : false;
+        ctx.legal = bean.isIsLegal();
+        ctx.legalOld = bean.isIsLegalOld();
+        ctx.exists = bean.isIsExists() != null ? bean.isIsExists() : false;
+        ctx.synchronizationIntent = SynchronizationIntent.fromSynchronizationIntentType(bean.getSynchronizationIntent());
+        ctx.synchronizationPolicyDecision =
+                SynchronizationPolicyDecision.fromSynchronizationPolicyDecisionType(bean.getSynchronizationPolicyDecision());
+        ctx.doReconciliation = bean.isDoReconciliation() != null ? bean.isDoReconciliation() : false;
+        ctx.synchronizationSituationDetected = bean.getSynchronizationSituationDetected();
+        ctx.synchronizationSituationResolved = bean.getSynchronizationSituationResolved();
+        ObjectReferenceType projectionSecurityPolicyRef = bean.getProjectionSecurityPolicyRef();
         if (projectionSecurityPolicyRef != null) {
-            projectionContext.projectionSecurityPolicy = (SecurityPolicyType) projectionSecurityPolicyRef.getObjectable();
+            ctx.projectionSecurityPolicy = (SecurityPolicyType) projectionSecurityPolicyRef.getObjectable();
         }
-        projectionContext.syncAbsoluteTrigger = projectionContextType.isSyncAbsoluteTrigger();
+        ctx.syncAbsoluteTrigger = bean.isSyncAbsoluteTrigger();
 
-        return projectionContext;
+        return ctx;
     }
 
     // determines whether full shadow is present, based on operation result got from provisioning
@@ -1546,11 +1556,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 return "(UNKNOWN)";
             }
         }
-    }
-
-    @Override
-    boolean doesPrimaryDeltaApply() {
-        return true; // TODO is this OK?
     }
 
     /**
@@ -1673,5 +1678,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             LOGGER.trace("Resource object volatility is UNPREDICTABLE => setting doReconciliation to TRUE for {}", getResourceShadowDiscriminator());
             setDoReconciliation(true);
         }
+    }
+
+    /** TODO */
+    public void rotWithDeltaDeletion() {
+        rot();
+        state.clearSecondaryDelta();
+    }
+
+    /** Assumes that the resource is loaded. */
+    public boolean isInMaintenance() {
+        return ResourceTypeUtil.isInMaintenance(resource);
     }
 }

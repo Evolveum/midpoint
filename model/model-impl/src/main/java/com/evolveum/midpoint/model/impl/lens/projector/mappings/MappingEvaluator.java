@@ -153,7 +153,7 @@ public class MappingEvaluator {
         params.setNow(now);
         params.setInitializer(internalInitializer);
         params.setProcessor(processor);
-        params.setTargetLoader(new ProjectionMappingLoader<>(context, projCtx, contextLoader));
+        params.setTargetLoader(new ProjectionMappingLoader<>(projCtx, contextLoader));
         params.setAPrioriTargetObject(shadowNew);
         params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
         params.setTargetContext(projCtx);

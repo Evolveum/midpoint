@@ -229,14 +229,14 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
 
-        objectDelta.assertDefinitions("delta before test");
-        user.assertDefinitions("user before test");
+        objectDelta.assertDefinitions(() -> "delta before test");
+        user.assertDefinitions(() -> "user before test");
 
         // apply to user
         objectDelta.applyTo(user);
 
-        objectDelta.assertDefinitions("delta after test");
-        user.assertDefinitions("user after test");
+        objectDelta.assertDefinitions(() -> "delta after test");
+        user.assertDefinitions(() -> "user after test");
 
         // TODO
     }

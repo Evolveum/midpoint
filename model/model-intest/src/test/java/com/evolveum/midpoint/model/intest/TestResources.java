@@ -91,6 +91,10 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        // This is necessary to make this test pass. The reason is that we store the dummy resource
+        // (containing protected string in cleartext) directly into the repository.
+        InternalsConfig.readEncryptionChecks = false;
+
         dummyResourceCtl = DummyResourceContoller.create(null);
         dummyResourceCtl.extendSchemaPirate();
         dummyResource = dummyResourceCtl.getDummyResource();

@@ -658,7 +658,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         } else {
                             specialAttributeDelta = null;
                         }
-                        ItemDeltaItem<PrismPropertyValue<?>, PrismPropertyDefinition<?>> sourceIdi = projectionContext.getObjectDeltaObject().findIdi(sourcePath);
+                        ItemDeltaItem<PrismPropertyValue<?>, PrismPropertyDefinition<?>> sourceIdi =
+                                projectionContext.getObjectDeltaObject().findIdi(sourcePath);
                         if (specialAttributeDelta == null) {
                             specialAttributeDelta = sourceIdi.getDelta();
                         }
@@ -893,7 +894,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
         private void doLoad() throws SchemaException {
             try {
-                beans.contextLoader.loadFullShadow(context, projectionContext, "inbound", env.task, result);
+                beans.contextLoader.loadFullShadow(projectionContext, "inbound", env.task, result);
                 currentProjection = projectionContext.getObjectCurrent();
             } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", projectionContext.getOid(), e.getMessage());
@@ -1071,11 +1072,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
     //  Fortunately, for inbounds processing it seems that current is usually the same as new,
     //  because there are no secondary deltas yet. But are we sure?
     private PrismObject<F> getCurrentFocus() {
-        if (context.getFocusContext().getObjectCurrent() != null) {
-            return context.getFocusContext().getObjectCurrent();
-        } else {
-            return context.getFocusContext().getObjectNew();
-        }
+        return context.getFocusContext().getObjectCurrentOrNew();
     }
 
     private PrismObjectDefinition<F> getFocusDefinition(PrismObject<F> focus) {
