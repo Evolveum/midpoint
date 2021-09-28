@@ -160,7 +160,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     protected <O extends ObjectType> ObjectDelta<O> addFocusDeltaToContext(
             LensContext<O> context, ObjectDelta<O> focusDelta) throws SchemaException {
         LensFocusContext<O> focusContext = context.getOrCreateFocusContext();
-        focusContext.addPrimaryDelta(focusDelta);
+        focusContext.addToPrimaryDelta(focusDelta);
         return focusDelta;
     }
 
@@ -171,7 +171,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, focusContext
                         .getObjectOld().getOid(), propertyPath, propertyValues);
-        focusContext.addPrimaryDelta(userDelta);
+        focusContext.addToPrimaryDelta(userDelta);
         return userDelta;
     }
 
@@ -190,7 +190,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
         ObjectDelta<F> userDelta = prismContext.deltaFactory().object().createModificationAddReference(focusType, focusContext
                 .getObjectOld().getOid(), FocusType.F_LINK_REF, account);
-        focusContext.addPrimaryDelta(userDelta);
+        focusContext.addToPrimaryDelta(userDelta);
         return userDelta;
     }
 
@@ -199,7 +199,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         LensProjectionContext accountCtx = context.findProjectionContextByOid(accountOid);
         ObjectDelta<ShadowType> deleteAccountDelta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class,
                 accountOid);
-        accountCtx.addPrimaryDelta(deleteAccountDelta);
+        accountCtx.addToPrimaryDelta(deleteAccountDelta);
         return deleteAccountDelta;
     }
 
@@ -209,7 +209,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         LensProjectionContext accCtx = context.findProjectionContextByOid(accountOid);
         ObjectDelta<ShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName,
                 propertyValues);
-        accCtx.addPrimaryDelta(accountDelta);
+        accCtx.addToPrimaryDelta(accountDelta);
         return accountDelta;
     }
 
@@ -235,7 +235,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid,
                 roleOid, RoleType.COMPLEX_TYPE, null, modificationBlock, true);
-        focusContext.addPrimaryDelta(userDelta);
+        focusContext.addToPrimaryDelta(userDelta);
         return userDelta;
     }
 
@@ -245,7 +245,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid,
                 roleOid, RoleType.COMPLEX_TYPE, null, null, null, false);
-        focusContext.addPrimaryDelta(userDelta);
+        focusContext.addToPrimaryDelta(userDelta);
         return userDelta;
     }
 

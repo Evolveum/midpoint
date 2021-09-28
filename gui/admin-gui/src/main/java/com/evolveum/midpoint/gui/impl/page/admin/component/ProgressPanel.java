@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -269,10 +270,13 @@ public class ProgressPanel extends BasePanel {
         }
     }
 
+    private Boolean abortVisible;
     public void manageButtons(AjaxRequestTarget target, boolean returningFromAsync, boolean canContinueEditing) {
         if (returningFromAsync) {
             showButton(target, ID_BACK);
-            hideButton(target, ID_ABORT);
+            abortVisible = false;
+//            hideButton(target, ID_ABORT);
+            hideButton(target, ID_CONTINUE_EDITING);
         }
 
         if (canContinueEditing) {
@@ -296,7 +300,7 @@ public class ProgressPanel extends BasePanel {
             }
         };
         configureButton(abortButton);
-        abortButton.add(new VisibleBehaviour(() -> reporterModel.getProcessData().isAbortEnabled() && !reporterModel.getProcessData().isAbortRequested()));
+        abortButton.add(new VisibleBehaviour(() -> isAbortVisible()));
         progressForm.add(abortButton);
 
         AjaxSubmitButton backButton = new AjaxSubmitButton(ID_BACK,
@@ -331,6 +335,13 @@ public class ProgressPanel extends BasePanel {
         };
         configureButton(continueEditingButton);
         progressForm.add(continueEditingButton);
+    }
+
+    private boolean isAbortVisible() {
+        if (BooleanUtils.isFalse(abortVisible)) {
+            return false;
+        }
+        return reporterModel.getProcessData().isAbortEnabled() && !reporterModel.getProcessData().isAbortRequested();
     }
 
     protected void backPerformed() {

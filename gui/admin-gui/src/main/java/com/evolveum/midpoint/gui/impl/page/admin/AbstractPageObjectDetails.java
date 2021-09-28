@@ -18,6 +18,8 @@ import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -226,14 +228,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         LOGGER.trace("returning from saveOrPreviewPerformed");
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
 
-        result.computeStatusIfUnknown();
         postProcessResult(result, executedDeltas);
-        showResult(result);
-        if (!previewOnly && result.isSuccess()) {
-            redirectBack();
-        } else {
-            target.add(getFeedbackPanel());
-        }
+
         return executedDeltas;
     }
 
@@ -254,7 +250,22 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 ////                result.recomputeStatus();
 ////            }
 
-        return getChangeExecutor().executeChanges(deltas, previewOnly, task, result, target);
+        //TODO this is just a quick hack.. for focus objects, feedback panel and results are processed by ProgressAware.finishProcessing()
+
+        ObjectChangeExecutor changeExecutor = getChangeExecutor();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas =  changeExecutor.executeChanges(deltas, previewOnly, task, result, target);
+
+        result.computeStatusIfUnknown();
+        if (changeExecutor instanceof ObjectChangesExecutorImpl) {
+            showResult(result);
+            if (!previewOnly && result.isSuccess()) {
+                redirectBack();
+            } else {
+                target.add(getFeedbackPanel());
+            }
+        }
+
+        return executedDeltas;
     }
 
 
@@ -331,12 +342,27 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
         List<ContainerPanelConfigurationType> subConfigs = new ArrayList<>();
         for (ContainerPanelConfigurationType config : configs) {
-            if (BooleanUtils.isTrue(config.isDefault())) {
+            if (BooleanUtils.isTrue(config.isDefault()) && isApplicableForOperation(config)) {
                 return config;
             }
             subConfigs.addAll(config.getPanel());
         }
         return findDefaultConfiguration(subConfigs);
+    }
+
+    private boolean isApplicableForOperation(ContainerPanelConfigurationType configurationType) {
+        if (configurationType.getApplicableForOperation() == null) { //applicable for all
+            return true;
+        }
+
+        if (configurationType.getApplicableForOperation() == OperationTypeType.ADD && !isEditObject()) {
+            return true;
+        }
+
+        if (configurationType.getApplicableForOperation() == OperationTypeType.MODIFY && isEditObject()) {
+            return true;
+        }
+        return false;
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {

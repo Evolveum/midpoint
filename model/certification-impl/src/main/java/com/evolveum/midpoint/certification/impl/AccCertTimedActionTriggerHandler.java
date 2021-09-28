@@ -53,7 +53,8 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
     }
 
     @Override
-    public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask triggerScannerTask, OperationResult parentResult) {
+    public <O extends ObjectType> void handle(@NotNull PrismObject<O> object, @NotNull TriggerType trigger,
+            @NotNull RunningTask triggerScannerTask, @NotNull OperationResult parentResult) {
         if (!(object.asObjectable() instanceof AccessCertificationCampaignType)) {
             throw new IllegalArgumentException("Unexpected object type: should be AccessCertificationCampaignType: " + object);
         }

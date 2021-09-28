@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCloneable;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import static java.util.Collections.emptyList;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor;
 import com.evolveum.midpoint.schema.util.TraceUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -178,9 +180,23 @@ public class OperationResult
      * After a trace rooted at this operation result is stored, the dictionary that was extracted is stored here.
      * It is necessary to correctly interpret traces in this result and its subresults.
      */
-    private TraceDictionaryType extractedDictionary;    // NOT SERIALIZED
+    private TraceDictionaryType extractedDictionary; // NOT SERIALIZED
 
     private final List<TraceType> traces = new ArrayList<>();
+
+    /** The operation monitoring configuration for the current thread when the current operation started. */
+    private OperationMonitoringConfiguration operationMonitoringConfigurationAtStart;
+
+    /**
+     * Statistics related to executed monitored operations at start - needed to compute the difference,
+     * to be stored in this result in {@link #monitoredOperations}.
+     */
+    private ThreadLocalOperationsMonitor.ExecutedOperations executedMonitoredOperationsAtStart;
+
+    /**
+     * Monitored operations that occurred during this operation execution.
+     */
+    private MonitoredOperationsStatisticsType monitoredOperations;
 
     // Caller can specify the reason of the operation invocation.
     // (Normally, the reason is known from the parent opResult; but it might be an overkill to create operation result
@@ -290,14 +306,9 @@ public class OperationResult
     }
 
     private void recordStart(String operation, Object[] arguments) {
-        collectingLogEntries = tracingProfile != null && tracingProfile.isCollectingLogEntries();
-        if (collectingLogEntries) {
-            LoggingLevelOverrideConfiguration loggingOverrideConfiguration = tracingProfile.getLoggingLevelOverrideConfiguration();
-            if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
-                LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
-                startedLoggingOverride = true;
-            }
-            logRecorder = LogRecorder.open(logSegments, parentLogRecorder, this);
+        if (tracingProfile != null) {
+            startLoggingIfRequested();
+            startOperationMonitoring();
         }
         // TODO for very minor operation results (e.g. those dealing with mapping and script execution)
         //  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
@@ -307,6 +318,34 @@ public class OperationResult
         invocationRecord = OperationInvocationRecord.create(operation, arguments, measureCpuTime);
         invocationId = invocationRecord.getInvocationId();
         start = System.currentTimeMillis();
+    }
+
+    private void startOperationMonitoring() {
+        ThreadLocalOperationsMonitor monitor = ThreadLocalOperationsMonitor.get();
+        operationMonitoringConfigurationAtStart = monitor.getConfiguration();
+        executedMonitoredOperationsAtStart = monitor.getExecutedOperations().copy();
+        monitor.setConfiguration(
+                tracingProfile.getOperationMonitoringConfiguration());
+    }
+
+    private void stopOperationMonitoring() {
+        ThreadLocalOperationsMonitor monitor = ThreadLocalOperationsMonitor.get();
+        setMonitoredOperations(
+                monitor.getMonitoredOperationsRecord(executedMonitoredOperationsAtStart));
+        monitor.setConfiguration(operationMonitoringConfigurationAtStart);
+    }
+
+    private void startLoggingIfRequested() {
+        collectingLogEntries = tracingProfile.isCollectingLogEntries();
+        if (collectingLogEntries) {
+            LoggingLevelOverrideConfiguration loggingOverrideConfiguration =
+                    tracingProfile.getLoggingLevelOverrideConfiguration();
+            if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
+                LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
+                startedLoggingOverride = true;
+            }
+            logRecorder = LogRecorder.open(logSegments, parentLogRecorder, this);
+        }
     }
 
     private Object[] createArguments() {
@@ -353,6 +392,9 @@ public class OperationResult
         if (startedLoggingOverride) {
             LevelOverrideTurboFilter.cancelLoggingOverride();
             startedLoggingOverride = false;
+        }
+        if (executedMonitoredOperationsAtStart != null) {
+            stopOperationMonitoring();
         }
     }
 
@@ -1693,54 +1735,55 @@ public class OperationResult
     }
 
     @Contract("null -> null; !null -> !null")
-    public static OperationResult createOperationResult(OperationResultType result) {
-        if (result == null) {
+    public static OperationResult createOperationResult(OperationResultType bean) {
+        if (bean == null) {
             return null;
         }
 
-        Map<String, Collection<String>> params = ParamsTypeUtil.fromParamsType(result.getParams());
-        Map<String, Collection<String>> context = ParamsTypeUtil.fromParamsType(result.getContext());
-        Map<String, Collection<String>> returns = ParamsTypeUtil.fromParamsType(result.getReturns());
+        Map<String, Collection<String>> params = ParamsTypeUtil.fromParamsType(bean.getParams());
+        Map<String, Collection<String>> context = ParamsTypeUtil.fromParamsType(bean.getContext());
+        Map<String, Collection<String>> returns = ParamsTypeUtil.fromParamsType(bean.getReturns());
 
         List<OperationResult> subresults = null;
-        if (!result.getPartialResults().isEmpty()) {
+        if (!bean.getPartialResults().isEmpty()) {
             subresults = new ArrayList<>();
-            for (OperationResultType subResult : result.getPartialResults()) {
+            for (OperationResultType subResult : bean.getPartialResults()) {
                 subresults.add(createOperationResult(subResult));
             }
         }
 
         LocalizableMessage localizableMessage = null;
-        LocalizableMessageType message = result.getUserFriendlyMessage();
+        LocalizableMessageType message = bean.getUserFriendlyMessage();
         if (message != null) {
             localizableMessage = LocalizationUtil.toLocalizableMessage(message);
         }
 
-        OperationResult opResult = new OperationResult(result.getOperation(), params, context, returns,
-                OperationResultStatus.parseStatusType(result.getStatus()), or0(result.getToken()),
-                result.getMessageCode(), result.getMessage(), localizableMessage, null,
+        OperationResult result = new OperationResult(bean.getOperation(), params, context, returns,
+                OperationResultStatus.parseStatusType(bean.getStatus()), or0(bean.getToken()),
+                bean.getMessageCode(), bean.getMessage(), localizableMessage, null,
                 subresults);
-        opResult.operationKind(result.getOperationKind());
-        opResult.getQualifiers().addAll(result.getQualifier());
-        opResult.setImportance(result.getImportance());
-        opResult.setAsynchronousOperationReference(result.getAsynchronousOperationReference());
-        if (result.getCount() != null) {
-            opResult.setCount(result.getCount());
+        result.operationKind(bean.getOperationKind());
+        result.getQualifiers().addAll(bean.getQualifier());
+        result.setImportance(bean.getImportance());
+        result.setAsynchronousOperationReference(bean.getAsynchronousOperationReference());
+        if (bean.getCount() != null) {
+            result.setCount(bean.getCount());
         }
-        if (result.getHiddenRecordsCount() != null) {
-            opResult.setHiddenRecordsCount(result.getHiddenRecordsCount());
+        if (bean.getHiddenRecordsCount() != null) {
+            result.setHiddenRecordsCount(bean.getHiddenRecordsCount());
         }
-        if (result.getStart() != null) {
-            opResult.setStart(XmlTypeConverter.toMillis(result.getStart()));
+        if (bean.getStart() != null) {
+            result.setStart(XmlTypeConverter.toMillis(bean.getStart()));
         }
-        if (result.getEnd() != null) {
-            opResult.setEnd(XmlTypeConverter.toMillis(result.getEnd()));
+        if (bean.getEnd() != null) {
+            result.setEnd(XmlTypeConverter.toMillis(bean.getEnd()));
         }
-        opResult.setMicroseconds(result.getMicroseconds());
-        opResult.setCpuMicroseconds(result.getCpuMicroseconds());
-        opResult.setInvocationId(result.getInvocationId());
-        opResult.logSegments.addAll(result.getLog());
-        return opResult;
+        result.setMicroseconds(bean.getMicroseconds());
+        result.setCpuMicroseconds(bean.getCpuMicroseconds());
+        result.setInvocationId(bean.getInvocationId());
+        result.logSegments.addAll(bean.getLog());
+        result.setMonitoredOperations(bean.getMonitoredOperations());
+        return result;
     }
 
     public OperationResultType createOperationResultType() {
@@ -1748,25 +1791,26 @@ public class OperationResult
     }
 
     public OperationResultType createOperationResultType(Function<LocalizableMessage, String> resolveKeys) {
-        return createOperationResultType(this, resolveKeys);
+        return createOperationResultBean(this, resolveKeys);
     }
 
-    private static OperationResultType createOperationResultType(OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
-        OperationResultType resultType = new OperationResultType();
-        resultType.setOperationKind(opResult.getOperationKind());
-        resultType.setToken(opResult.getToken());
-        resultType.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
-        resultType.setImportance(opResult.getImportance());
+    private static OperationResultType createOperationResultBean(OperationResult opResult,
+            Function<LocalizableMessage, String> resolveKeys) {
+        OperationResultType bean = new OperationResultType();
+        bean.setOperationKind(opResult.getOperationKind());
+        bean.setToken(opResult.getToken());
+        bean.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
+        bean.setImportance(opResult.getImportance());
         if (opResult.getCount() != 1) {
-            resultType.setCount(opResult.getCount());
+            bean.setCount(opResult.getCount());
         }
         if (opResult.getHiddenRecordsCount() != 0) {
-            resultType.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
+            bean.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
         }
-        resultType.setOperation(opResult.getOperation());
-        resultType.getQualifier().addAll(opResult.getQualifiers());
-        resultType.setMessage(opResult.getMessage());
-        resultType.setMessageCode(opResult.getMessageCode());
+        bean.setOperation(opResult.getOperation());
+        bean.getQualifier().addAll(opResult.getQualifiers());
+        bean.setMessage(opResult.getMessage());
+        bean.setMessageCode(opResult.getMessageCode());
 
         if (opResult.getCause() != null || !opResult.details.isEmpty()) {
             StringBuilder detailSb = new StringBuilder();
@@ -1793,32 +1837,33 @@ public class OperationResult
                 }
             }
 
-            resultType.setDetails(detailSb.toString());
+            bean.setDetails(detailSb.toString());
         }
 
         if (opResult.getUserFriendlyMessage() != null) {
             LocalizableMessageType msg = LocalizationUtil.createLocalizableMessageType(opResult.getUserFriendlyMessage(), resolveKeys);
-            resultType.setUserFriendlyMessage(msg);
+            bean.setUserFriendlyMessage(msg);
         }
 
-        resultType.setParams(opResult.getParamsBean());
-        resultType.setContext(opResult.getContextBean());
-        resultType.setReturns(opResult.getReturnsBean());
+        bean.setParams(opResult.getParamsBean());
+        bean.setContext(opResult.getContextBean());
+        bean.setReturns(opResult.getReturnsBean());
 
         for (OperationResult subResult : opResult.getSubresults()) {
-            resultType.getPartialResults().add(createOperationResultType(subResult, resolveKeys));
+            bean.getPartialResults().add(createOperationResultBean(subResult, resolveKeys));
         }
 
-        resultType.setAsynchronousOperationReference(opResult.getAsynchronousOperationReference());
+        bean.setAsynchronousOperationReference(opResult.getAsynchronousOperationReference());
 
-        resultType.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
-        resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
-        resultType.setMicroseconds(opResult.microseconds);
-        resultType.setCpuMicroseconds(opResult.cpuMicroseconds);
-        resultType.setInvocationId(opResult.invocationId);
-        resultType.getLog().addAll(opResult.logSegments);           // consider cloning here
-        resultType.getTrace().addAll(opResult.traces);           // consider cloning here
-        return resultType;
+        bean.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
+        bean.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
+        bean.setMicroseconds(opResult.microseconds);
+        bean.setCpuMicroseconds(opResult.cpuMicroseconds);
+        bean.setInvocationId(opResult.invocationId);
+        bean.getLog().addAll(opResult.logSegments); // consider cloning here
+        bean.getTrace().addAll(opResult.traces); // consider cloning here
+        bean.setMonitoredOperations(cloneCloneable(opResult.getMonitoredOperations()));
+        return bean;
     }
 
     public void summarize() {
@@ -2537,6 +2582,14 @@ public class OperationResult
 
     public List<TraceType> getTraces() {
         return traces;
+    }
+
+    public MonitoredOperationsStatisticsType getMonitoredOperations() {
+        return monitoredOperations;
+    }
+
+    public void setMonitoredOperations(MonitoredOperationsStatisticsType operations) {
+        this.monitoredOperations = operations;
     }
 
     public @NotNull List<String> getQualifiers() {

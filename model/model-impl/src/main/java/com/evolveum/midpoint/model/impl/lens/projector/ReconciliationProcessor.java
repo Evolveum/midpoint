@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
 import org.jetbrains.annotations.NotNull;
@@ -44,21 +45,12 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.PointInTimeType;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -89,6 +81,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     @Autowired PrismContext prismContext;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private ClockworkMedic medic;
+    @Autowired private ContextLoader contextLoader;
 
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
@@ -129,18 +122,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         }
 
         if (!projCtx.isFullShadow()) {
-            // We need to load the object
-            var options = SchemaService.get().getOperationOptionsBuilder()
-                    .doNotDiscovery()
-                    .futurePointInTime()
-                    //.readOnly() [not yet]
-                    .build();
-            PrismObject<ShadowType> loadedObject =
-                    provisioningService.getObject(ShadowType.class, projCtx.getOid(), options, task, result);
-            projCtx.determineFullShadowFlag(loadedObject);
-            projCtx.setLoadedObject(loadedObject);
-            projCtx.setExists(ShadowUtil.isExists(loadedObject.asObjectable()));
-            projCtx.recompute();
+            contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
         }
 
         LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
@@ -152,7 +134,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = projCtx
                 .getSqueezedAttributes();
         LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
-        reconcileProjectionAttributes(projCtx, squeezedAttributes, rOcDef);
+        reconcileProjectionAttributes(projCtx, squeezedAttributes);
 
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations = projCtx.getSqueezedAssociations();
         LOGGER.trace("Association reconciliation processing {}", projCtx.getHumanReadableName());
@@ -163,7 +145,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private void reconcileAuxiliaryObjectClasses(LensProjectionContext projCtx) throws SchemaException {
 
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses = projCtx.getSqueezedAuxiliaryObjectClasses();
+        var squeezedAuxiliaryObjectClasses
+                = projCtx.getSqueezedAuxiliaryObjectClasses();
         if (squeezedAuxiliaryObjectClasses == null || squeezedAuxiliaryObjectClasses.isEmpty()) {
             return;
         }
@@ -172,7 +155,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
         PrismPropertyDefinition<QName> propDef = shadowNew.getDefinition().findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 
-        DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> pvwoTriple = squeezedAuxiliaryObjectClasses.get(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+        DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> pvwoTriple =
+                squeezedAuxiliaryObjectClasses.get(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 
         Collection<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>> shouldBePValues;
         if (pvwoTriple == null) {
@@ -267,7 +251,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             deletedAuxObjectClassNames = PrismValueCollectionsUtil.getRealValuesOfCollection(valuesToDelete);
         }
         LOGGER.trace("Deleted auxiliary object classes: {}", deletedAuxObjectClassNames);
-        if (deletedAuxObjectClassNames == null || deletedAuxObjectClassNames.isEmpty()) {
+        if (deletedAuxObjectClassNames.isEmpty()) {
             return;
         }
 
@@ -322,8 +306,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private void reconcileProjectionAttributes(
             LensProjectionContext projCtx,
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes,
-            RefinedObjectClassDefinition rOcDef) throws SchemaException {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes)
+            throws SchemaException {
 
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
@@ -333,21 +317,21 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 attributesContainer.getValue().getItemNames();
 
         for (QName attrName : attributeNames) {
-            reconcileProjectionAttribute(attrName, projCtx, squeezedAttributes, rOcDef, shadowNew, attributesContainer);
+            reconcileProjectionAttribute(attrName, projCtx, squeezedAttributes, attributesContainer);
         }
     }
 
-    private <T> void reconcileProjectionAttribute(QName attrName,
+    private <T> void reconcileProjectionAttribute(
+            QName attrName,
             LensProjectionContext projCtx,
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes,
-            RefinedObjectClassDefinition rOcDef,
-            PrismObject<ShadowType> shadowNew, PrismContainer attributesContainer) throws SchemaException {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes,
+            PrismContainer attributesContainer) throws SchemaException {
 
         LOGGER.trace("Attribute reconciliation processing attribute {}", attrName);
         RefinedAttributeDefinition<T> attributeDefinition = projCtx.findAttributeDefinition(attrName);
         if (attributeDefinition == null) {
-            String msg = "No definition for attribute " + attrName + " in " + projCtx.getResourceShadowDiscriminator();
-            throw new SchemaException(msg);
+            throw new SchemaException("No definition for attribute " + attrName + " in " +
+                    projCtx.getResourceShadowDiscriminator());
         }
 
         DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> pvwoTriple =

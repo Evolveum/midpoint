@@ -81,6 +81,7 @@ public class Projector {
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
             ConflictDetectedException {
+        context.setStartedIfNotYet(); // This is for cases where we start the projector "from the outside" (e.g. in tests)
         context.normalize();
         context.resetProjectionWave();
         projectInternal(context, activityDescription, true, task, parentResult);

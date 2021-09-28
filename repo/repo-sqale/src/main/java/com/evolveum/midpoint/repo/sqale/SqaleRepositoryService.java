@@ -542,7 +542,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
                     prepareUpdateContext(transaction, type, oidUuid, getOptions, modifyOptions);
 
-            PrismObject<T> object = updateContext.getPrismObject();
+            PrismObject<T> object = updateContext.getPrismObject().clone();
             Collection<? extends ItemDelta<?, ?>> modifications =
                     modificationsSupplier.get(object.asObjectable());
 

@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -67,6 +69,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
             }
         };
         test.showTitleAsLabel(true);
+        test.add(new VisibleBehaviour(() -> isEditingObject()));
         test.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(test);
 
@@ -86,7 +89,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
 
             @Override
             public boolean isVisible() {
-                return canEdit(getObjectType());
+                return isEditingObject() && canEdit(getObjectType());
             }
         });
         setMaintenance.add(AttributeAppender.append("class", "btn-default btn-sm"));
@@ -113,26 +116,26 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         refreshSchema.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(refreshSchema);
 
-        AjaxIconButton configurationEdit = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_EDIT_MENU_ITEM),
-                createStringResource("pageResource.button.configurationEdit")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                startWizard(true, false);
-            }
-        };
-        configurationEdit.showTitleAsLabel(true);
-        configurationEdit.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return canEdit(getObjectType());
-            }
-        });
-        configurationEdit.add(AttributeAppender.append("class", "btn-default btn-sm"));
-        resourceButtons.add(configurationEdit);
+//        AjaxIconButton configurationEdit = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_EDIT_MENU_ITEM),
+//                createStringResource("pageResource.button.configurationEdit")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                startWizard(true, false);
+//            }
+//        };
+//        configurationEdit.showTitleAsLabel(true);
+//        configurationEdit.add(new VisibleEnableBehaviour() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//                return canEdit(getObjectType());
+//            }
+//        });
+//        configurationEdit.add(AttributeAppender.append("class", "btn-default btn-sm"));
+//        resourceButtons.add(configurationEdit);
         AjaxIconButton wizardShow = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
                 createStringResource("pageResource.button.wizardShow")) {
             private static final long serialVersionUID = 1L;
@@ -148,7 +151,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
 
             @Override
             public boolean isVisible() {
-                return canEdit(getObjectType());
+                return isEditingObject() && canEdit(getObjectType());
             }
         });
         wizardShow.add(AttributeAppender.append("class", "btn-default btn-sm"));
@@ -168,7 +171,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
 
             @Override
             public boolean isVisible() {
-                return canEdit(getObjectType());
+                return isEditingObject() && canEdit(getObjectType());
             }
         });
         wizardEdit.add(AttributeAppender.append("class", "btn-default btn-sm"));
@@ -229,6 +232,9 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
     }
 
     private boolean isVisibleRefresSchemaButton(ResourceType resource) {
+        if (!isEditingObject()) {
+            return false;
+        }
         if (!resource.getAdditionalConnector().isEmpty()) {
             if (resource.getCapabilities() == null) {
                 return false;

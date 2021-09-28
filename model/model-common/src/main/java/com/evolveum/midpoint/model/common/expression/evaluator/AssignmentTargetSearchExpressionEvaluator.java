@@ -66,7 +66,7 @@ public class AssignmentTargetSearchExpressionEvaluator
             }
             prismContext.adopt(assignmentCVal, FocusType.COMPLEX_TYPE, FocusType.F_ASSIGNMENT);
             if (InternalsConfig.consistencyChecks) {
-                assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+context.getContextDescription());
+                assignmentCVal.assertDefinitions(() -> "assignmentCVal in assignment expression in "+context.getContextDescription());
             }
         } catch (SchemaException e) {
             // Should not happen

@@ -4730,6 +4730,12 @@ public final class WebComponentUtil {
         return null;
     }
 
+    public static boolean isResourceRelatedTask(TaskType task) {
+        return WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())
+                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())
+                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
+    }
+
     public static boolean isRefreshEnabled(PageBase pageBase, QName type) {
         CompiledGuiProfile cup = pageBase.getCompiledGuiProfile();
         if (cup == null) {

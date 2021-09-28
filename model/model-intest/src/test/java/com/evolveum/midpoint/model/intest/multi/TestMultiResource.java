@@ -198,13 +198,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     public void test116JackUnAssignRoleDummiesFullErrorIvory() throws Exception {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         getDummyResource().setAddBreakMode(BreakMode.NETWORK);
-        traced(() -> {
-            try {
-                jackUnassignRoleDummiesError(ROLE_DUMMIES_IVORY_OID, RESOURCE_DUMMY_IVORY_OID);
-            } catch (Exception e) {
-                throw new SystemException(e);
-            }
-        });
+        jackUnassignRoleDummiesError(ROLE_DUMMIES_IVORY_OID, RESOURCE_DUMMY_IVORY_OID);
     }
 
     /**
@@ -525,7 +519,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        traced(() -> recomputeUser(USER_JACK_OID, executeOptions().reconcile(), task, result));
+        recomputeUser(USER_JACK_OID, executeOptions().reconcile(), task, result);
 
         // THEN
         then();

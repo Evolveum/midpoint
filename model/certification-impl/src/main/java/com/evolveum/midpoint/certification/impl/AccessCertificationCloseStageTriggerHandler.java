@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +49,8 @@ public class AccessCertificationCloseStageTriggerHandler implements SingleTrigge
     }
 
     @Override
-    public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, RunningTask task, OperationResult result) {
+    public <O extends ObjectType> void handle(@NotNull PrismObject<O> prismObject, @NotNull TriggerType trigger,
+            @NotNull RunningTask task, @NotNull OperationResult result) {
         try {
             ObjectType object = prismObject.asObjectable();
             if (!(object instanceof AccessCertificationCampaignType)) {

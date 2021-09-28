@@ -81,7 +81,8 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
                     if (virtualContainerModel == null) {
                         continue;
                     }
-                    Panel virtualPanel = new PrismContainerPanel<>(view.newChildId(), virtualContainerModel, builder.build());
+                    ItemPanelSettings settings = builder.build();
+                    Panel virtualPanel = new PrismContainerPanel<>(view.newChildId(), virtualContainerModel, settings);
                     view.add(virtualPanel);
                 }
 
@@ -103,7 +104,8 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
 
     }
 
-    private IModel<PrismContainerWrapper<C>> createVirtualContainerModel(VirtualContainersSpecificationType virtualContainer) {
+    //just temporary protected.
+    protected IModel<PrismContainerWrapper<C>> createVirtualContainerModel(VirtualContainersSpecificationType virtualContainer) {
         if (virtualContainer.getPath() != null) {
             return createContainerModel(virtualContainer.getPath().getItemPath());
         }

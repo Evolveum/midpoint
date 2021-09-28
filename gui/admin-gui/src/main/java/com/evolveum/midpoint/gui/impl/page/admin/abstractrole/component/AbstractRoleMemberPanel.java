@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -70,13 +71,20 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -186,6 +194,13 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             @Override
+            protected List<IColumn<SelectableBean<AH>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<AH>, String>> columns = super.createDefaultColumns();
+                columns.add(createRelationColumn());
+                return columns;
+            }
+
+            @Override
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<AH>> rowModel) {
                 if (rowModel == null || rowModel.getObject() == null
                         || rowModel.getObject().getValue() == null) {
@@ -265,6 +280,50 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
+    }
+
+    private  <AH extends AssignmentHolderType> IColumn<SelectableBean<AH>, String> createRelationColumn() {
+        return new AbstractExportableColumn<>(
+                createStringResource("roleMemberPanel.relation")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AH>>> cellItem,
+                    String componentId, IModel<SelectableBean<AH>> rowModel) {
+                cellItem.add(new Label(componentId,
+                        getRelationValue(rowModel.getObject().getValue())));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<AH>> rowModel) {
+                return Model.of(getRelationValue(rowModel.getObject().getValue()));
+            }
+
+        };
+    }
+
+    private <AH extends AssignmentHolderType> String getRelationValue(AH value) {
+        List<String> relations = new ArrayList<>();
+            for (ObjectReferenceType roleMembershipRef : value.getRoleMembershipRef()) {
+                List<QName> defaultRelations = getDefaultRelationsForActions();
+                if (roleMembershipRef.getOid().equals(getModelObject().getOid())
+                        && (defaultRelations.contains(roleMembershipRef.getRelation())
+                        || defaultRelations.contains(PrismConstants.Q_ANY))) {
+                    String relation = roleMembershipRef.getRelation().getLocalPart();
+                    RelationDefinitionType relationDef = WebComponentUtil.getRelationDefinition(roleMembershipRef.getRelation());
+                    if (relationDef != null) {
+                        DisplayType display = relationDef.getDisplay();
+                        if (display != null) {
+                            PolyStringType label = display.getLabel();
+                            if (PolyStringUtils.isNotEmpty(label)) {
+                                relation = WebComponentUtil.getTranslatedPolyString(label);
+                            }
+                        }
+                    }
+                    relations.add(relation);
+                }
+            }
+        return String.join(", ", relations);
     }
 
     private CompiledObjectCollectionView getCompiledCollectionViewFromPanelConfiguration() {

@@ -56,7 +56,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements Iterable<ObjectDe
 
     @Override
     public @NotNull Iterator<ObjectDelta<O>> iterator() {
-        return new Iterator<ObjectDelta<O>>() {
+        return new Iterator<>() {
 
             private final Iterator<WaveDelta<O>> waveDeltaIterator = waveDeltas.iterator();
 
@@ -137,7 +137,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements Iterable<ObjectDe
         return "ObjectDeltaWaves(" + waveDeltas + ")";
     }
 
-    public ObjectDeltaWavesType toObjectDeltaWavesType() throws SchemaException {
+    ObjectDeltaWavesType toObjectDeltaWavesBean() throws SchemaException {
         ObjectDeltaWavesType objectDeltaWavesBean = new ObjectDeltaWavesType();
         for (int i = 0; i < waveDeltas.size(); i++) {
             WaveDelta<O> waveDelta = waveDeltas.get(i);
@@ -152,25 +152,25 @@ public class ObjectDeltaWaves<O extends ObjectType> implements Iterable<ObjectDe
     }
 
     // don't forget to apply provisioning definitions to resulting deltas (it's the client responsibility)
-    static <O extends ObjectType> ObjectDeltaWaves<O> fromObjectDeltaWavesType(ObjectDeltaWavesType objectDeltaWavesBean)
+    static <O extends ObjectType> void fillObjectDeltaWaves(
+            ObjectDeltaWaves<O> objectDeltaWaves,
+            ObjectDeltaWavesType wavesBean)
             throws SchemaException {
-        if (objectDeltaWavesBean == null) {
-            return null;
+        if (wavesBean == null) {
+            return;
         }
 
-        ObjectDeltaWaves<O> objectDeltaWaves = new ObjectDeltaWaves<>();
-        for (ObjectDeltaWaveType objectDeltaWaveBean : objectDeltaWavesBean.getWave()) {
-            if (objectDeltaWaveBean.getNumber() == null) {
-                throw new SchemaException("Missing wave number in " + objectDeltaWaveBean);
+        for (ObjectDeltaWaveType waveBean : wavesBean.getWave()) {
+            if (waveBean.getNumber() == null) {
+                throw new SchemaException("Missing wave number in " + waveBean);
             }
-            if (objectDeltaWaveBean.getDelta() != null) {
-                objectDeltaWaves.add(objectDeltaWaveBean.getNumber(),
-                        DeltaConvertor.createObjectDelta(objectDeltaWaveBean.getDelta(), PrismContext.get()));
+            if (waveBean.getDelta() != null) {
+                objectDeltaWaves.add(waveBean.getNumber(),
+                        DeltaConvertor.createObjectDelta(waveBean.getDelta(), PrismContext.get()));
             } else {
-                objectDeltaWaves.add(objectDeltaWaveBean.getNumber(), null);
+                objectDeltaWaves.add(waveBean.getNumber(), null);
             }
         }
-        return objectDeltaWaves;
     }
 
     /**
@@ -215,7 +215,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements Iterable<ObjectDe
             }
         }
 
-        public void checkEncrypted(String shortDesc) {
+        void checkEncrypted(String shortDesc) {
             if (delta != null) {
                 try {
                     CryptoUtil.checkEncrypted(delta);

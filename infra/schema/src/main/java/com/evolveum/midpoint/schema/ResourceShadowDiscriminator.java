@@ -42,10 +42,10 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 
     private static final long serialVersionUID = 346600684011645741L;
 
-    private String resourceOid;
+    private final String resourceOid;
     private ShadowKindType kind = ShadowKindType.ACCOUNT;
     private String intent;
-    private String tag;
+    private final String tag;
     private QName objectClass;
     private boolean tombstone;
     private int order = 0;
@@ -75,31 +75,30 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         this.tombstone = false;
         setIntent(accRefType.getIntent());
         setKind(kind);
+        this.tag = null;
     }
 
     public ResourceShadowDiscriminator(String resourceOid) {
         this.resourceOid = resourceOid;
+        this.tag = null;
     }
 
     public ResourceShadowDiscriminator(String resourceOid, QName objectClass) {
         this.resourceOid = resourceOid;
         this.objectClass = objectClass;
         this.kind = null;
+        this.tag = null;
     }
 
     public String getResourceOid() {
         return resourceOid;
     }
 
-    public void setResourceOid(String resourceOid) {
-        this.resourceOid = resourceOid;
-    }
-
     public ShadowKindType getKind() {
         return kind;
     }
 
-    public void setKind(ShadowKindType kind) {
+    private void setKind(ShadowKindType kind) {
         this.kind = kind;
     }
 
@@ -107,7 +106,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         return intent;
     }
 
-    public void setIntent(String intent) {
+    private void setIntent(String intent) {
 //        if (intent == null) {
 //            intent = SchemaConstants.INTENT_DEFAULT;
 //        }
@@ -116,10 +115,6 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 
     public String getTag() {
         return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
     }
 
     public QName getObjectClass() {

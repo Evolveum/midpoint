@@ -734,7 +734,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             projectionContext.setSyncAbsoluteTrigger(true);
         }
 
-        projectionContext.setLoadedObject(shadow);
+        // This will set both old and current object: and that's how it should be.
+        projectionContext.setInitialObject(shadow);
 
         if (!tombstone && !containsIncompleteItems(shadow)) {
             projectionContext.setFullShadow(true);
@@ -749,7 +750,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             F owner = syncCtx.getLinkedOwner();
             LensFocusContext<F> focusContext = context.createFocusContext();
             //noinspection unchecked
-            focusContext.setLoadedObject((PrismObject<F>) owner.asPrismObject());
+            focusContext.setInitialObject((PrismObject<F>) owner.asPrismObject());
         }
     }
 

@@ -176,11 +176,20 @@ public class ContextLoader implements ProjectorProcessor {
         }
     }
 
-    public <F extends ObjectType> void loadFullShadow(LensContext<F> context, LensProjectionContext projCtx, String reason,
+    public void loadFullShadow(@NotNull LensProjectionContext projCtx, String reason,
             Task task, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        new ProjectionFullLoadOperation<>(context, projCtx, reason, task)
+        new ProjectionFullLoadOperation<>(projCtx.getLensContext(), projCtx, reason, false, task)
+                .loadFullShadow(parentResult);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    void loadFullShadowNoDiscovery(@NotNull LensProjectionContext projCtx, String reason,
+            Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        new ProjectionFullLoadOperation<>(projCtx.getLensContext(), projCtx, reason, true, task)
                 .loadFullShadow(parentResult);
     }
 

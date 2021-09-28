@@ -174,7 +174,8 @@ public class FocusValidityScanPartialExecution
         return true;
     }
 
-    private LensContext<FocusType> createLensContext(PrismObject<FocusType> focus, RunningTask workerTask, OperationResult result)
+    private LensContext<FocusType> createLensContext(@NotNull PrismObject<FocusType> focus,
+            @NotNull RunningTask workerTask, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 

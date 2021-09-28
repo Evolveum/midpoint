@@ -191,10 +191,6 @@ public class LensUtil {
         }
     }
 
-    public static <F extends ObjectType> LensProjectionContext createAccountContext(LensContext<F> context, ResourceShadowDiscriminator rsd){
-        return new LensProjectionContext(context, rsd);
-    }
-
     public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             Collection<? extends ItemValueWithOrigin<V, D>> origins) throws SchemaException {
         return cloneAndApplyAssignmentOrigin(value, isAssignment, () -> getAutoCreationIdentifier(origins));
@@ -375,29 +371,21 @@ public class LensUtil {
      * Returns a list of context that have equivalent discriminator with the reference context. Ordered by "order" in the
      * discriminator.
      */
-    public static <F extends ObjectType> List<LensProjectionContext> findRelatedContexts(
+    static <F extends ObjectType> List<LensProjectionContext> findRelatedContexts(
             LensContext<F> context, LensProjectionContext refProjCtx) {
-        List<LensProjectionContext> projCtxs = new ArrayList<>();
-        ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
-        if (refDiscr == null) {
-            return projCtxs;
+        ResourceShadowDiscriminator refRsd = refProjCtx.getResourceShadowDiscriminator();
+        if (refRsd == null) {
+            return List.of();
         }
-        for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
-            ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
-            if (refDiscr.equivalent(aDiscr)) {
-                projCtxs.add(aProjCtx);
-            }
-        }
-        Comparator<? super LensProjectionContext> orderComparator = new Comparator<LensProjectionContext>() {
-            @Override
-            public int compare(LensProjectionContext ctx1, LensProjectionContext ctx2) {
-                int order1 = ctx1.getResourceShadowDiscriminator().getOrder();
-                int order2 = ctx2.getResourceShadowDiscriminator().getOrder();
-                return Integer.compare(order1, order2);
-            }
+        Comparator<LensProjectionContext> orderComparator = (ctx1, ctx2) -> {
+            int order1 = ctx1.getResourceShadowDiscriminator().getOrder();
+            int order2 = ctx2.getResourceShadowDiscriminator().getOrder();
+            return Integer.compare(order1, order2);
         };
-        Collections.sort(projCtxs, orderComparator);
-        return projCtxs;
+        return context.getProjectionContexts().stream()
+                .filter(aProjCtx -> refRsd.equivalent(aProjCtx.getResourceShadowDiscriminator()))
+                .sorted(orderComparator)
+                .collect(Collectors.toList());
     }
 
     public static <F extends ObjectType> boolean hasLowerOrderContext(LensContext<F> context,

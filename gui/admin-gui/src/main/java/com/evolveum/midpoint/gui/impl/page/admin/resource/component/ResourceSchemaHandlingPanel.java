@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PanelType(name = "schemaHandling")
-@PanelInstance(identifier = "schemaHandling", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
+@PanelInstance(identifier = "schemaHandling", applicableForType = ResourceType.class,
         display = @PanelDisplay(label = "PageResource.tab.schemaHandling", order = 70))
 public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
