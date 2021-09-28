@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,25 +7,22 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.Collection;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.PrismContext;
-
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -66,7 +63,7 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
     }
 
     @Override
-    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
+    public <V extends PrismValue, D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String contextDescription, Task task, OperationResult result) throws SchemaException, SecurityViolationException {
 
         // TODO is output definition required to be non-null here, or it can be null?
@@ -78,5 +75,9 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 
         return new ScriptExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector, prismContext,
                 scriptExpression, securityContextManager, localizationService);
+    }
+
+    public ScriptExpressionFactory getScriptExpressionFactory() {
+        return scriptExpressionFactory;
     }
 }

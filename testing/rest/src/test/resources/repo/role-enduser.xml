@@ -165,5 +165,5 @@
         </object>
         <item>approvalContext</item>
     </authorization>
-    <roleType>system</roleType>
+    <subtype>system</subtype>
 </role>

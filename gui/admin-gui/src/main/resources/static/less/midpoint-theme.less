@@ -2015,7 +2015,6 @@ th.composited-icon {
     z-index: 1;
     //top: 0;
     right: 0;
-    background-color: @sidebar-light-bg;
     overflow-x: hidden;
     padding-top: 16px;
 
@@ -2215,9 +2214,8 @@ ul.details-menu {
 
 fieldset.objectButtons {
 
-  border: 1px solid @legend-border-color;
+  border-right: 1px solid @legend-border-color;
   padding: revert;
-  border-radius: 3px;
   width: max-content;
   margin-right: 10px;
 
@@ -2229,4 +2227,51 @@ fieldset.objectButtons {
     color: @legend-color;
   }
 }
+
+.btn-margin-right {
+  margin-right: 10px;
+}
+
+.operationalButtonLabel {
+  font-size: 13px;
+  margin-left:5px;
+}
+
+.execute-options {
+  padding-left: 13px;
+  right: initial;
+  width: 202px;
+
+  &.radio input[type=radio] {
+    margin-left: 0px;
+    display: block;
+  }
+}
+
+.execute-options-label {
+  display: inline;
+  margin-left: 5px;
+  font-weight: 400;
+}
+
+.details-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background-color: white;
+}
+
+.details-panel-navigation {
+  order: 1;
+  flex-basis: 17%;
+  background-color: @sidebar-light-bg;
+
+}
+
+.details-panel-details-form {
+  order: 2;
+  flex-basis: 83%;
+  padding: 5px 20px 0px 20px;
+}
+
 

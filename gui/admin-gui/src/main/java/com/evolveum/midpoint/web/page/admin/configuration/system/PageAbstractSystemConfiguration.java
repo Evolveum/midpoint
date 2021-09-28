@@ -84,7 +84,7 @@ public abstract class PageAbstractSystemConfiguration extends PageAdminObjectDet
     }
 
     @Override
-    protected SystemConfigurationType createNewObject() {
+    public SystemConfigurationType createNewObject() {
         return new SystemConfigurationType(getPrismContext());
     }
 

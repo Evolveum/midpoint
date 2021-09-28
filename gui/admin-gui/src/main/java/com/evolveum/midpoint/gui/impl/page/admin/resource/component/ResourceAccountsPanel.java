@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -22,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 public class ResourceAccountsPanel extends ResourceContentTabPanel {
 
 
-    public ResourceAccountsPanel(String id, ObjectDetailsModels<ResourceType> model, ContainerPanelConfigurationType config) {
+    public ResourceAccountsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, ShadowKindType.ACCOUNT, model, config);
     }
 }

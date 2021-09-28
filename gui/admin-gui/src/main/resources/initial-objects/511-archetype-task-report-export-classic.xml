@@ -28,16 +28,9 @@
                 <type>TaskType</type>
                 <panel>
                     <identifier>activity</identifier>
-                    <panelType>activity</panelType>
                     <panel>
                         <identifier>work</identifier>
-                        <display>
-                            <label>Work</label>
-                        </display>
                         <container>
-                            <display>
-                                <label>Activity</label>
-                            </display>
                             <path>activity/work/reportExport</path>
                         </container>
                         <container>
@@ -46,7 +39,6 @@
                             </display>
                             <path>activity/work/reportExport/reportParam</path>
                         </container>
-                        <panelType>work</panelType>
                     </panel>
                 </panel>
             </objectDetails>

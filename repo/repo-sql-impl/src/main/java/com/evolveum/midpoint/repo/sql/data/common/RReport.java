@@ -15,7 +15,6 @@ import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -35,7 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 public class RReport extends RObject {
 
     private RPolyString nameCopy;
-    private ROrientationType orientation;
     private Boolean parent;
     private Boolean useHibernateSession;
 
@@ -52,16 +50,6 @@ public class RReport extends RObject {
 
     public void setNameCopy(RPolyString nameCopy) {
         this.nameCopy = nameCopy;
-    }
-
-    @Enumerated(EnumType.ORDINAL)
-    @Column
-    public ROrientationType getOrientation() {
-        return orientation;
-    }
-
-    public void setOrientation(ROrientationType orientation) {
-        this.orientation = orientation;
     }
 
     @Index(name = "iReportParent")

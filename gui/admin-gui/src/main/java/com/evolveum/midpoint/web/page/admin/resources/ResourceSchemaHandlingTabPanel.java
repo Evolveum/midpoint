@@ -37,12 +37,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResourceSchemaHandlingPanel extends BasePanel<PrismContainerWrapper<SchemaHandlingType>> {
+public class ResourceSchemaHandlingTabPanel extends BasePanel<PrismContainerWrapper<SchemaHandlingType>> {
 
     private static final String ID_TABLE = "table";
     private static final String ID_FORM = "form";
 
-    public ResourceSchemaHandlingPanel(String id, IModel<PrismContainerWrapper<SchemaHandlingType>> model) {
+    public ResourceSchemaHandlingTabPanel(String id, IModel<PrismContainerWrapper<SchemaHandlingType>> model) {
         super(id, model);
     }
 
@@ -70,7 +70,7 @@ public class ResourceSchemaHandlingPanel extends BasePanel<PrismContainerWrapper
 
             @Override
             protected IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> getContainerModel() {
-                return PrismContainerWrapperModel.fromContainerWrapper(ResourceSchemaHandlingPanel.this.getModel(), SchemaHandlingType.F_OBJECT_TYPE);
+                return PrismContainerWrapperModel.fromContainerWrapper(ResourceSchemaHandlingTabPanel.this.getModel(), SchemaHandlingType.F_OBJECT_TYPE);
             }
 
             @Override

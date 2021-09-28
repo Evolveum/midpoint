@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -105,7 +105,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         relations.forEach(relation -> buttonDtoList.add(createCompositedButtonForAssignmentRelation(relation)));
 
         if (isGenericNewObjectButtonVisible()) {
-            DisplayType defaultButtonDisplayType = WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON,
+            DisplayType defaultButtonDisplayType = GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON,
                     "green",
                     createStringResource("AssignmentPanel.defaultAssignment").getString(),
                     createStringResource("AssignmentPanel.newAssignmentTitle", "", "").getString());
@@ -154,7 +154,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         CompositedIconButtonDto buttonDto = new CompositedIconButtonDto();
         buttonDto.setAssignmentObjectRelation(relation);
 
-        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation, "AssignmentPanel.newAssignmentTitle");
+        DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation, "AssignmentPanel.newAssignmentTitle");
 //                isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
         buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
 

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.page.admin.services;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
@@ -14,9 +15,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -28,10 +27,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -61,17 +57,16 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL,
                 label = "PageServices.auth.services.view.label",
                 description = "PageServices.auth.services.view.description")})
+@CollectionInstance(identifier = "allServices", applicableForType = ServiceType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.services.list", singularLabel = "ObjectType.service", icon = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON))
 public class PageServices extends PageAdmin {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageServices.class.getName() + ".";
-    private static final Trace LOGGER = TraceManager.getTrace(PageServices.class);
-    private static final String OPERATION_DELETE_SERVICES = DOT_CLASS + "deleteServices";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
 
-    private IModel<Search> searchModel;
 
     public PageServices() {
         super();

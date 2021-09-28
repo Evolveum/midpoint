@@ -10,6 +10,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -28,7 +30,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements Popupable {
 
@@ -38,7 +39,7 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
     private static final String ID_OK = "ok";
     private static final String ID_CANCEL = "cancel";
 
-    public static final ItemPath PATH_TOKEN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN);
+    public static final ItemPath PATH_TOKEN = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY, ActivityStateType.F_WORK_STATE, LiveSyncWorkStateType.F_TOKEN);
 
     public LivesyncTokenEditorPanel(String id, IModel<PrismObjectWrapper<TaskType>> model) {
         super(id, model);

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
@@ -162,7 +163,11 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
         ObjectFilter filter;
         Boolean indirect = getMemberPanelStorage().getIndirectSearchItem().isIndirect();
 
-        if(!Boolean.TRUE.equals(indirect)) {
+        if(BooleanUtils.isTrue(indirect)) {
+            filter = prismContext.queryFor(type)
+                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+                    .buildFilter();
+        } else {
             S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
                     .block()
                     .item(AssignmentType.F_TARGET_REF)
@@ -176,10 +181,6 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
                 q = q.and().item(AssignmentType.F_ORG_REF).ref(getMemberPanelStorage().getProject().getOid());
             }
             filter = q.endBlock().buildFilter();
-        } else {
-            filter = prismContext.queryFor(type)
-                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
-                    .buildFilter();
         }
         return filter;
     }

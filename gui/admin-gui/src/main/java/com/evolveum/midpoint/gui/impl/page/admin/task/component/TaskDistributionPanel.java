@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -22,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDistributionType
 
 @PanelType(name = "distribution", defaultContainerPath = "activity/distribution", defaultType = WorkDistributionType.class)
 @PanelInstance(identifier = "distribution", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
-        display = @PanelDisplay(label = "ActivityDefinitionType.distribution", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 20))
+        display = @PanelDisplay(label = "ActivityDefinitionType.distribution", icon = GuiStyleConstants.CLASS_TASK_DISTRIBUTION_ICON, order = 20))
 public class TaskDistributionPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskDistributionPanel.class);

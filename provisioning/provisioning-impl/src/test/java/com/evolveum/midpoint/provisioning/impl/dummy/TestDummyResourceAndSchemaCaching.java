@@ -410,7 +410,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         // Change something that's not that important
         ProjectionPolicyType projectionPolicyType = new ProjectionPolicyType();
-        projectionPolicyType.setLegalize(true);
+        projectionPolicyType.setLegalize(false);
 
         ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,

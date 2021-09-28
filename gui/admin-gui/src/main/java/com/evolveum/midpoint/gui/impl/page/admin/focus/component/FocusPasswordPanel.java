@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
@@ -25,8 +26,8 @@ import org.apache.wicket.model.IModel;
 
 @PanelType(name = "password")
 @PanelInstance(identifier = "password",
-        applicableForType = UserType.class,
-        display = @PanelDisplay(label = "prismPropertyPanel.name.credentials.password", order = 50))
+        applicableForType = FocusType.class,
+        display = @PanelDisplay(label = "prismPropertyPanel.name.credentials.password", icon = GuiStyleConstants.CLASS_PASSWORD_ICON, order = 50))
 public class FocusPasswordPanel<F extends FocusType, FDM extends FocusDetailsModels<F>> extends AbstractObjectMainPanel<F, FDM> {
     private static final long serialVersionUID = 1L;
 

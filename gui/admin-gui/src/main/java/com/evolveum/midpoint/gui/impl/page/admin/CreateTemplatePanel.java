@@ -19,7 +19,7 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -95,19 +95,6 @@ public class CreateTemplatePanel<O extends ObjectType> extends BasePanel<PrismOb
                     });
                 }
 
-                if (isGenericNewButtonVisible()) {
-                    CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
-                    DisplayType defaultButtonDisplayType = getDefaultButtonDisplayType();
-                    defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
-
-                    CompositedIconBuilder defaultButtonIconBuilder = new CompositedIconBuilder();
-                    defaultButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                            .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType));
-
-                    defaultButton.setCompositedIcon(defaultButtonIconBuilder.build());
-                    additionalButtons.add(defaultButton);
-                }
-
                 MultiFunctinalButtonDto multifunctionalButton = new MultiFunctinalButtonDto();
                 multifunctionalButton.setAdditionalButtons(additionalButtons);
                 return multifunctionalButton;
@@ -121,7 +108,7 @@ public class CreateTemplatePanel<O extends ObjectType> extends BasePanel<PrismOb
 
     //TODO copied from MainObjectListPanel
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
-        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
+        DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
@@ -136,7 +123,7 @@ public class CreateTemplatePanel<O extends ObjectType> extends BasePanel<PrismOb
         String sb = createStringResource("MainObjectListPanel.newObject").getString()
                 + " "
                 + createStringResource("ObjectTypeLowercase." + getType().getLocalPart()).getString();
-        DisplayType display = WebDisplayTypeUtil.createDisplayType(iconCssStyle, "", sb);
+        DisplayType display = GuiDisplayTypeUtil.createDisplayType(iconCssStyle, "", sb);
         display.setLabel(WebComponentUtil.createPolyFromOrigString(
                 getType().getLocalPart(), "ObjectType." + getType().getLocalPart()));
         return display;

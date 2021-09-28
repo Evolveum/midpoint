@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @PanelType(name = "schedule", defaultContainerPath = "schedule", defaultType = ScheduleType.class)
 @PanelInstance(identifier = "schedule", applicableForType = TaskType.class,
-        display = @PanelDisplay(label = "pageTask.schedule.title", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 15))
+        display = @PanelDisplay(label = "pageTask.schedule.title", icon = GuiStyleConstants.CLASS_TASK_SCHEDULE_ICON, order = 15))
 public class TaskSchedulePanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskSchedulePanel.class);

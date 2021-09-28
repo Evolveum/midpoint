@@ -9,15 +9,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.task;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.TaskOperationalButtonsPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -89,29 +90,35 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     protected TaskOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> wrapperModel) {
         return new TaskOperationalButtonsPanel(id, wrapperModel) {
 
-            @Override
-            protected void afterOperation(AjaxRequestTarget target, OperationResult result) {
-                PageTask.this.afterOperation(target, result);
-            }
-
-            protected boolean isRefreshEnabled() {
-                return PageTask.this.isRefreshEnabled();
-            }
+//            protected boolean isRefreshEnabled() {
+//                return PageTask.this.isRefreshEnabled();
+//            }
 
             protected void refresh(AjaxRequestTarget target) {
                 PageTask.this.refresh(target);
             }
 
-            protected int getRefreshInterval() {
-                return PageTask.this.getRefreshInterval();
+//            protected int getRefreshInterval() {
+//                return PageTask.this.getRefreshInterval();
+//            }
+
+            @Override
+            protected void savePerformed(AjaxRequestTarget target) {
+                PageTask.this.savePerformed(target);
             }
+
         };
     }
 
-    private void afterOperation(AjaxRequestTarget target, OperationResult result) {
-        showResult(result);
-        getModel().reset();
-        refresh(target);
+    @Override
+    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+        if (executedDeltas == null) {
+            return;
+        }
+        String taskOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+        if (taskOid != null) {
+            result.setBackgroundTaskOid(taskOid);
+        }
     }
 
 }

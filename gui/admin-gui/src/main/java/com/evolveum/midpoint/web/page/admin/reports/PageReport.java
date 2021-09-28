@@ -113,7 +113,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     }
 
     @Override
-    protected ReportType createNewObject() {
+    public ReportType createNewObject() {
         return new ReportType(getPrismContext());
     }
 

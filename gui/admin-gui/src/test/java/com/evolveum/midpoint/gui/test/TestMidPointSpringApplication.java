@@ -100,7 +100,6 @@ public class TestMidPointSpringApplication extends AbstractSpringBootApplication
             }
 
         }
-
     }
 
     @Override
@@ -126,6 +125,10 @@ public class TestMidPointSpringApplication extends AbstractSpringBootApplication
         System.setProperty("spring.config.additional-location", "${midpoint.home}/");
 
         application.bannerMode(Banner.Mode.LOG);
+
+        // cglib used by wicket unsupport java 15+ so we need use byte buddy generation for wicket
+        // We can remove this after cglib(wicket) fix issue with java 15+ or when wicket will use byte buddy as default
+        System.setProperty("wicket.ioc.useByteBuddy", "true");
 
         return application.sources(TestMidPointSpringApplication.class);
     }

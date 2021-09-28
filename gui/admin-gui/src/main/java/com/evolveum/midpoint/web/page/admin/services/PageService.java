@@ -62,7 +62,7 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
     }
 
     @Override
-    protected ServiceType createNewObject() {
+    public ServiceType createNewObject() {
         return new ServiceType();
     }
 

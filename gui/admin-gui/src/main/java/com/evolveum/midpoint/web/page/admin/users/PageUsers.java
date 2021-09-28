@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -48,8 +48,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
@@ -76,6 +74,8 @@ import javax.xml.namespace.QName;
                         label = "PageUsers.auth.users.view.label",
                         description = "PageUsers.auth.users.view.description")
         })
+@CollectionInstance(identifier = "allUsers", applicableForType = UserType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.users.list", singularLabel = "ObjectType.user", icon = GuiStyleConstants.CLASS_OBJECT_USER_ICON))
 public class PageUsers extends PageAdmin {
     private static final long serialVersionUID = 1L;
 

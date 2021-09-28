@@ -13,9 +13,11 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -34,17 +36,12 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @PageDescriptor(
         urls = {
@@ -57,6 +54,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                         label = "PageTasks.auth.tasks.label",
                         description = "PageTasks.auth.tasks.description") })
+@CollectionInstance(identifier = "allTasks", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.tasks.list", singularLabel = "ObjectType.task", icon = GuiStyleConstants.CLASS_OBJECT_TASK_ICON))
 public class PageTasks extends PageAdmin {
     private static final long serialVersionUID = 1L;
 

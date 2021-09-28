@@ -3,7 +3,7 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -38,7 +38,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
     private DisplayType getIconDisplayType() {
         ObjectReferenceType ref = getModelObject();
         if (ref == null || ref.getType() == null) {
-            return WebDisplayTypeUtil.createDisplayType("");
+            return GuiDisplayTypeUtil.createDisplayType("");
         }
 
         ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(ref.getType());
@@ -48,7 +48,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 //            item.add(AttributeModifier.replace("title", createStringResource(guiDescriptor.getLocalizationKey())));
 //            item.add(new TooltipBehavior());
 //        }
-        return WebDisplayTypeUtil.createDisplayType(icon);
+        return GuiDisplayTypeUtil.createDisplayType(icon);
     }
 
     private ObjectTypeGuiDescriptor getObjectTypeDescriptor(QName type) {

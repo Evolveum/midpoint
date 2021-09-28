@@ -8,6 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -49,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 @PanelType(name = "results")
 @PanelInstance(identifier = "results", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageTask.result.title", order = 70))
+        display = @PanelDisplay(label = "pageTask.result.title", icon = GuiStyleConstants.CLASS_ICON_TASK_RESULTS, order = 70))
 public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
@@ -85,9 +88,9 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
                 PrismObjectWrapper<TaskType> taskWrapper = TaskResultPanel.this.getObjectWrapper();
                 TaskType taskType = taskWrapper.getObject().asObjectable();
                 OperationResult opResult = OperationResult.createOperationResult(taskType.getResult());
-                OperationResultPanel body = new OperationResultPanel(
+                OperationResultPopupPanel body = new OperationResultPopupPanel(
                         getPageBase().getMainPopupBodyId(),
-                        new Model<>(OpResult.getOpResult(getPageBase(), opResult)));
+                        new Model<>(opResult));
                 body.setOutputMarkupId(true);
                 getPageBase().showMainPopup(body, target);
             }

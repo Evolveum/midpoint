@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -28,7 +27,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -376,7 +375,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 if (CollectionUtils.isNotEmpty(loadedRelations)) {
                     List<AssignmentObjectRelation> relations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations);
                     relations.forEach(relation -> {
-                        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation,
+                        DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation,
                                 "abstractRoleMemberPanel.menu.createMember");
                         CompositedIconButtonDto buttonDto = createCompositedIconButtonDto(additionalButtonDisplayType, relation, createCompositedIcon(relation, additionalButtonDisplayType));
                         additionalButtons.add(buttonDto);
@@ -486,7 +485,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private DisplayType getCreateMemberButtonDisplayType() {
-        return WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
+        return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
                 AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.createMember", "", "").getString());
     }
 

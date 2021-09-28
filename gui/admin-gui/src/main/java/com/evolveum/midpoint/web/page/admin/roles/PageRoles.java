@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
@@ -14,9 +15,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -41,6 +40,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
+
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/roles")
@@ -55,6 +55,8 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_VIEW_URL,
                 label = "PageRoles.auth.roles.view.label",
                 description = "PageRoles.auth.roles.view.description")})
+@CollectionInstance(identifier = "allRoles", applicableForType = RoleType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.roles.list", singularLabel = "ObjectType.role", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON))
 public class PageRoles extends PageAdmin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRoles.class);

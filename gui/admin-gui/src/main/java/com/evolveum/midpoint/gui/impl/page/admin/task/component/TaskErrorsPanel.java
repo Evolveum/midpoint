@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -52,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @PanelType(name = "taskErrors")
 @PanelInstance(identifier = "taskErrors", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageTask.errors.title", order = 50))
+        display = @PanelDisplay(label = "pageTask.errors.title", icon = GuiStyleConstants.CLASS_TASK_ERRORS_ICON, order = 50))
 public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

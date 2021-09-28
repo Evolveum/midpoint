@@ -55,7 +55,18 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-iterative-scripting</identifier>
+                            <path>activity/work/iterativeScripting</path>
+                        </container>
+                    </panel>
+                </panel>
                 <container>
+                    <identifier>objects-to-process</identifier>
                     <display>
                         <label>IterativeBulkActionTask.objectsToProcess</label>
                     </display>
@@ -73,6 +84,7 @@
                     </item>
                 </container>
                 <container>
+                    <identifier>bulk-action</identifier>
                     <display>
                         <label>IterativeBulkActionTask.bulkAction</label>
                     </display>
@@ -91,19 +103,6 @@
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
     <inducement>
         <focusMappings>
             <mapping>

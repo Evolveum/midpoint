@@ -515,6 +515,7 @@ public class CollectionProcessor {
         if (newColumns == null || newColumns.isEmpty()) {
             return;
         }
+        existingView.setIncludeDefaultColumns(objectListViewType.isIncludeDefaultColumns());
         // Not very efficient algorithm. But must do for now.
         List<GuiObjectColumnType> existingColumns = existingView.getColumns();
         existingColumns.addAll(newColumns);

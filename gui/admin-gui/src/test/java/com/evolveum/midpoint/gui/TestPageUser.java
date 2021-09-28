@@ -58,8 +58,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     private static final String TAB_PASSWORD = "mainPanel:mainForm:tabPanel:panel:password";
 
     private static final String PATH_FORM_SHIP = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:"
-            + "input:propertiesLabel:properties:142:property:values:0:value:valueForm:valueContainer:input:originValueContainer:"
-            + "origValueWithButton:origValue:input";
+            + "input:propertiesLabel:properties:123:property:values:0:value:valueForm:valueContainer:input:input";
     private static final String PATH_FORM_SHIP_OLD = "tabPanel:panel:main:values:0:value:valueForm:valueContainer:input:"
             + "propertiesLabel:properties:142:property:values:0:value:valueForm:valueContainer:input:input";
     private static final String PATH_FORM_ADMINISTRATIVE_STATUS = "tabPanel:panel:activation:values:0:value:valueForm:"
@@ -92,6 +91,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         formTester.setValue(PATH_FORM_NAME, "newUser");
+        formTester.setValue(PATH_FORM_SHIP, "ship");
 
         formTester.submit(FORM_SAVE);
 
