@@ -85,17 +85,11 @@ public class TaskObjectClassFactory extends AbstractInputGuiComponentFactory<QNa
         }
 
         TaskType task = (TaskType) object;
-        if (isResourceRelatedTask(task) && wrapper.getPath().startsWith(ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK)) && wrapper.getPath().lastName().equivalent(ResourceObjectSetType.F_OBJECTCLASS)) {
+        if (WebComponentUtil.isResourceRelatedTask(task) && wrapper.getPath().startsWith(ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK)) && wrapper.getPath().lastName().equivalent(ResourceObjectSetType.F_OBJECTCLASS)) {
             return true;
         }
         return false;
 //        return wrapper.getPath().equivalent(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
-    }
-
-    private boolean isResourceRelatedTask(TaskType task) {
-        return WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())
-                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())
-                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
     }
 
     private PrismReferenceValue findResourceReference(PrismPropertyWrapper<QName> itemWrapper) {
