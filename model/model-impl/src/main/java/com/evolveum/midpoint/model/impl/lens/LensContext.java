@@ -556,6 +556,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             if (projectionContext.getWave() != executionWave) {
                 LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
             } else {
+                // TODO we should decide according to the real delta that has been executed
                 ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
                 if (isShadowDeltaSignificant(execDelta)) {
                     LOGGER.debug("Context rot: projection {} rotten because of executable delta {}", projectionContext, execDelta);
@@ -586,9 +587,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     private void rotFocusContextIfNeeded(Holder<Boolean> rotHolder) {
         if (focusContext != null) {
-            ObjectDelta<F> execDelta = focusContext.getCurrentDelta(); // TODO!!!
-            if (!ObjectDelta.isEmpty(execDelta)) {
-                LOGGER.debug("Context rot: focus context rotten because of focus execution delta {}", execDelta);
+            if (focusContext.getAnyDeltasExecutedFlag()) {
+                LOGGER.debug("Context rot: focus context rotten because there were some deltas executed");
                 rotHolder.setValue(true);
             }
             if (rotHolder.getValue()) {
@@ -1869,6 +1869,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     void checkNotStarted(String operation, LensElementContext<?> elementContext) {
         stateCheck(!hasStarted(),
                 "Trying to %s but the clockwork has already started: %s in %s", operation, elementContext, this);
+    }
+
+    void clearAnyDeltasExecutedFlag() {
+        if (focusContext != null) {
+            focusContext.clearAnyDeltasExecutedFlag();
+        }
+        projectionContexts.forEach(LensElementContext::clearAnyDeltasExecutedFlag);
     }
 
     public enum ExportType {

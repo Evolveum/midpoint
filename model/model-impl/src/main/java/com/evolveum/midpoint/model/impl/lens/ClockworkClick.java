@@ -223,6 +223,7 @@ public class ClockworkClick<F extends ObjectType> {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException {
 
         Holder<Boolean> restartRequestedHolder = new Holder<>(false);
+        context.clearAnyDeltasExecutedFlag();
 
         beans.medic.partialExecute(Components.EXECUTION,
                 (result1) -> {

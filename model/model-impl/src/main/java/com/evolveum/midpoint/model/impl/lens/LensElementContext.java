@@ -76,6 +76,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     @NotNull private final List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
 
     /**
+     * Were there any deltas executed during the last call to {@link ChangeExecutor}?
+     *
+     * Used to determine whether the context should be rotten.
+     * (But currently only for focus context. Projections are treated in the original way.)
+     */
+     private transient boolean anyDeltasExecuted;
+
+    /**
      * Current iteration when computing values for the object.
      *
      * The context can be recomputed several times. But we always want to use the same iterationToken if possible.
@@ -590,6 +598,18 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             }
         }
         return false;
+    }
+
+    void clearAnyDeltasExecutedFlag() {
+        anyDeltasExecuted = false;
+    }
+
+    public void setAnyDeltasExecutedFlag() {
+        anyDeltasExecuted = true;
+    }
+
+    boolean getAnyDeltasExecutedFlag() {
+        return anyDeltasExecuted;
     }
     //endregion
 
