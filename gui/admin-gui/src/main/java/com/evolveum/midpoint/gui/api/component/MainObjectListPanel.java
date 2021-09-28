@@ -195,6 +195,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     return;
                 }
 
+                if (getNewObjectInfluencesList().size() <= 1) {
+                    newObjectPerformed(target, null, getObjectCollectionView());
+                    return;
+                }
+
                 NewObjectCreationPopup buttonsPanel = new NewObjectCreationPopup(getPageBase().getMainPopupBodyId(), new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
                     private static final long serialVersionUID = 1L;
 
@@ -207,7 +212,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 };
 
                 getPageBase().showMainPopup(buttonsPanel, target);
-//                navigateToNew(compiledObjectCollectionViews, target);
                 }
         };
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
@@ -221,20 +225,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             @Override
             protected MultiFunctinalButtonDto load() {
                 MultiFunctinalButtonDto multifunctionalButton = new MultiFunctinalButtonDto();
-
-                CompositedIconButtonDto mainButton = new CompositedIconButtonDto();
-                DisplayType mainButtonDisplayType = getNewObjectButtonStandardDisplayType();
-                mainButton.setAdditionalButtonDisplayType(mainButtonDisplayType);
-                Map<IconCssStyle, IconType> layers = createMainButtonLayerIcons(mainButtonDisplayType);
-                CompositedIconBuilder builder = new CompositedIconBuilder();
-                builder.setBasicIcon(WebComponentUtil.getIconCssClass(mainButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                        .appendColorHtmlValue(WebComponentUtil.getIconColor(mainButtonDisplayType));
-                for (Map.Entry<IconCssStyle, IconType> layer : layers.entrySet()) {
-                    builder.appendLayerIcon(layer.getValue(), layer.getKey());
-                }
-
-                mainButton.setCompositedIcon(builder.build());
-                multifunctionalButton.setMainButton(mainButton);
 
                 List<CompositedIconButtonDto> additionalButtons = new ArrayList<>();
 
