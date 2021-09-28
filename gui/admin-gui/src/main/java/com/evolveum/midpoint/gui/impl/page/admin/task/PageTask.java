@@ -90,17 +90,9 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     protected TaskOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> wrapperModel) {
         return new TaskOperationalButtonsPanel(id, wrapperModel) {
 
-//            protected boolean isRefreshEnabled() {
-//                return PageTask.this.isRefreshEnabled();
-//            }
-
             protected void refresh(AjaxRequestTarget target) {
                 PageTask.this.refresh(target);
             }
-
-//            protected int getRefreshInterval() {
-//                return PageTask.this.getRefreshInterval();
-//            }
 
             @Override
             protected void savePerformed(AjaxRequestTarget target) {

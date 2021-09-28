@@ -127,7 +127,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
                     @Override
                     public void onUpdate(AjaxRequestTarget target) {
-                        checkboxMenuItem.getCheckBoxModel().setObject(!checkboxMenuItem.getCheckBoxModel().getObject());
+//                        checkboxMenuItem.getCheckBoxModel().setObject(!checkboxMenuItem.getCheckBoxModel().getObject());
                     }
                 };
                 panel.setOutputMarkupId(true);
