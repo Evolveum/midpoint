@@ -47,11 +47,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
  * 3. finally, instructs the controller to write the (potentially partial) report.
  */
 public class ReportDataCreationActivityExecution
-        extends ContainerSearchBasedActivityExecution
-        <Containerable,
-                DistributedReportExportWorkDefinition,
-                DistributedReportExportActivityHandler,
-                ReportExportWorkStateType> {
+        extends SearchBasedActivityExecution
+        <Containerable, DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler, ReportExportWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportDataCreationActivityExecution.class);
 
@@ -131,10 +128,10 @@ public class ReportDataCreationActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismContainer<Containerable> object,
-            @NotNull ItemProcessingRequest<PrismContainer<Containerable>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull Containerable item,
+            @NotNull ItemProcessingRequest<Containerable> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
-        controller.handleDataRecord(request.getSequentialNumber(), object.getRealValue(), workerTask, result);
+        controller.handleDataRecord(request.getSequentialNumber(), item, workerTask, result);
         return true;
     }
 

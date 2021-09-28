@@ -53,10 +53,11 @@ public class CommonTaskBeans {
 
     @Autowired public BucketContentFactoryGenerator contentFactoryCreator;
     @Autowired public ExpressionFactory expressionFactory;
+    @Autowired public RepositoryItemSourceFactory repositoryItemSourceFactory;
 
     @Autowired(required = false) private AdvancedActivityExecutionSupport advancedActivityExecutionSupport;
 
-    public AdvancedActivityExecutionSupport getAdvancedActivityExecutionSupport() {
+    AdvancedActivityExecutionSupport getAdvancedActivityExecutionSupport() {
         return MoreObjects.firstNonNull(
                 advancedActivityExecutionSupport,
                 NoOpAdvancedActivityExecutionSupport.INSTANCE);

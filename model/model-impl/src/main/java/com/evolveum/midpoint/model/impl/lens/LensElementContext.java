@@ -375,7 +375,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public void swallowToSecondaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
-        if (itemDelta == null || itemDelta.isInFactEmpty()) {
+        if (itemDelta == null || itemDelta.isEmpty()) {
             return;
         }
 

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Execution specifics of a propagation activity.
  */
 public class PropagationActivityExecution
-        extends ObjectSearchBasedActivityExecution<
+        extends SearchBasedActivityExecution<
             ShadowType,
             PropagationWorkDefinition,
             PropagationActivityHandler,
@@ -76,11 +76,11 @@ public class PropagationActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ShadowType> shadow,
-            @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ShadowType shadow,
+            @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result)
             throws CommonException {
         try {
-            getActivityHandler().shadowsFacade.propagateOperations(resource, shadow, workerTask, result);
+            getActivityHandler().shadowsFacade.propagateOperations(resource, shadow.asPrismObject(), workerTask, result);
             return true;
         } catch (GenericFrameworkException | EncryptionException e) {
             throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);

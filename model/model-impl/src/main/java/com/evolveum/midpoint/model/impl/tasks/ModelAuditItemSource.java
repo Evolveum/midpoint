@@ -7,29 +7,35 @@
 
 package com.evolveum.midpoint.model.impl.tasks;
 
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.common.task.SearchSpecification;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.repo.common.task.SearchableItemSource;
+import com.evolveum.midpoint.schema.ContainerableResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 
-import org.jetbrains.annotations.NotNull;
+import static com.evolveum.midpoint.repo.common.task.RepoAuditItemSource.toAuditResultHandler;
 
-import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
+/**
+ * Provides access to audit events at the model level.
+ */
+@Component
+class ModelAuditItemSource implements SearchableItemSource {
 
-class AuditSearchExecutionSupport implements SearchExecutionSupport {
+    @Autowired private ModelAuditService modelAuditService;
 
-    private final ModelAuditService modelAuditService;
-
-    AuditSearchExecutionSupport(ModelAuditService modelAuditService) {
+    ModelAuditItemSource(@NotNull ModelAuditService modelAuditService) {
         this.modelAuditService = modelAuditService;
     }
 
     @Override
-    public Integer countObjects(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
+    public Integer count(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
             @NotNull OperationResult result) throws CommonException {
         return modelAuditService.countObjects(
                 searchSpecification.getQuery(),
@@ -39,14 +45,12 @@ class AuditSearchExecutionSupport implements SearchExecutionSupport {
 
     @Override
     public <C extends Containerable> void searchIterative(@NotNull SearchSpecification<C> searchSpecification,
-            @NotNull ObjectResultHandler handler, @NotNull RunningTask task, @NotNull OperationResult result)
+            @NotNull ContainerableResultHandler<C> handler, @NotNull RunningTask task,
+            @NotNull OperationResult result)
             throws CommonException {
-        assertCheck(handler instanceof AuditResultHandler,
-                "Unsupported type of result handler for object type " + searchSpecification.getContainerType());
         modelAuditService.searchObjectsIterative(
                 searchSpecification.getQuery(),
                 searchSpecification.getSearchOptions(),
-                (AuditResultHandler) handler, task, result);
+                toAuditResultHandler(handler), task, result);
     }
-
 }

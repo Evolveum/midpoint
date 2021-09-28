@@ -16,10 +16,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * It is only used to handle iterative search results now. It may be reused for
  * other purposes as well.
  *
+ * TODO this should perhaps be named ObjectResultHandler
+ *
  * @author Radovan Semancik
  */
 @FunctionalInterface
-public interface ResultHandler<T extends ObjectType> extends ObjectResultHandler {
+public interface ResultHandler<T extends ObjectType> {
 
     /**
      * Handle a single result.

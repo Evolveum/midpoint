@@ -39,9 +39,9 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
     /**
      * Container type provided when counting and retrieving objects.
      */
-    private Class<C> containerType;
+    private Class<C> type;
 
-    /** Object query specifying what objects to process. */
+    /** Query specifying what objects to process. */
     private ObjectQuery query;
 
     /**
@@ -58,9 +58,9 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
      */
     private Boolean useRepository;
 
-    public SearchSpecification(Class<C> containerType, ObjectQuery query,
+    public SearchSpecification(Class<C> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> searchOptions, Boolean useRepository) {
-        this.containerType = containerType;
+        this.type = type;
         this.query = query;
         this.searchOptions = searchOptions;
         this.useRepository = useRepository;
@@ -68,7 +68,7 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
 
     @SuppressWarnings("CopyConstructorMissesField")
     protected SearchSpecification(SearchSpecification<C> prototype) {
-        this(prototype.containerType,
+        this(prototype.type,
                 CloneUtil.clone(prototype.query),
                 CloneUtil.cloneCollectionMembers(prototype.searchOptions),
                 prototype.useRepository);
@@ -113,12 +113,12 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
         return targetTypeClass;
     }
 
-    public Class<C> getContainerType() {
-        return containerType;
+    public Class<C> getType() {
+        return type;
     }
 
-    public void setContainerType(Class<C> containerType) {
-        this.containerType = containerType;
+    public void setType(Class<C> type) {
+        this.type = type;
     }
 
     public ObjectQuery getQuery() {
@@ -149,8 +149,8 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
         this.useRepository = useRepository;
     }
 
-    public boolean concernsShadows() {
-        return ShadowType.class.equals(requireNonNull(containerType));
+    boolean concernsShadows() {
+        return ShadowType.class.equals(requireNonNull(type));
     }
 
     public boolean isNoFetch() {
@@ -165,14 +165,14 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
         return SelectorOptions.findRootOptions(searchOptions);
     }
 
-    public void setNoFetchOption() {
+    void setNoFetchOption() {
         searchOptions = GetOperationOptions.updateToNoFetch(searchOptions);
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "containerType", containerType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "query", query, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "searchOptions", searchOptions, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "useRepository", useRepository, indent + 1);

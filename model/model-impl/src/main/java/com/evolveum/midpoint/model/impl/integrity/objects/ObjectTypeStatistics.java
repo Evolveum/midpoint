@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.integrity.objects;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.histogram.Histogram;
@@ -15,9 +14,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/**
- * @author mederly
- */
 public class ObjectTypeStatistics {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeStatistics.class);
@@ -27,12 +23,12 @@ public class ObjectTypeStatistics {
 
     private final Histogram<ObjectInfo> sizeHistogram = new Histogram<>(SIZE_HISTOGRAM_STEP, MAX_SIZE_HISTOGRAM_LENGTH);
 
-    public void register(PrismObject<ObjectType> object) {
-        RepositoryObjectDiagnosticData diag = (RepositoryObjectDiagnosticData) object.getUserData(RepositoryService.KEY_DIAG_DATA);
+    public void register(ObjectType object) {
+        RepositoryObjectDiagnosticData diag = object.asPrismObject().getUserData(RepositoryService.KEY_DIAG_DATA);
         if (diag == null) {
             throw new IllegalStateException("No diagnostic data in " + object);
         }
-        ObjectInfo info = new ObjectInfo(object.asObjectable());
+        ObjectInfo info = new ObjectInfo(object);
         long size = diag.getStoredObjectSize();
         LOGGER.trace("Found object: {}: {}", info, size);
         sizeHistogram.register(info, size);

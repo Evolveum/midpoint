@@ -58,16 +58,12 @@ public interface AdvancedActivityExecutionSupport {
      */
     void checkRawAuthorization(Task task, OperationResult result) throws CommonException;
 
-    /** Counts objects in "advanced way" (e.g. using model object resolver). */
-    Integer countObjects(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
-            @NotNull OperationResult result) throws CommonException;
-
-    /** Searches for objects in "advanced way" (e.g. using model object resolver). */
-    <C extends Containerable> void searchIterative(@NotNull SearchSpecification<C> searchSpecification,
-                                                @NotNull ObjectResultHandler handler, @NotNull RunningTask task, @NotNull OperationResult result)
-            throws CommonException;
-
-    ObjectPreprocessor<ShadowType> createShadowFetchingPreprocessor(
+    ItemPreprocessor<ShadowType> createShadowFetchingPreprocessor(
             @NotNull Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions,
             @NotNull SchemaService schemaService);
+
+    /**
+     * Returns item source suitable for processing items of given type.
+     */
+    <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type);
 }

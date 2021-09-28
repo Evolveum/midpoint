@@ -24,9 +24,26 @@ import org.jetbrains.annotations.Nullable;
 @Experimental
 public class ContainerableProcessingRequest<C extends Containerable> extends ItemProcessingRequest<C> {
 
-    public ContainerableProcessingRequest(int sequentialNumber, C item,
+    ContainerableProcessingRequest(int sequentialNumber, @NotNull C item,
             @NotNull IterativeActivityExecution<C, ?, ?, ?> activityExecution) {
         super(sequentialNumber, item, activityExecution);
+    }
+
+    /**
+     * Factory method: returns either {@link ContainerableProcessingRequest} or {@link ObjectProcessingRequest}
+     * (if the item is of ObjectType type).
+     */
+    public static <C extends Containerable> @NotNull ContainerableProcessingRequest<C> create(
+            int sequentialNumber, @NotNull C item, @NotNull IterativeActivityExecution<C, ?, ?, ?> activityExecution) {
+        if (item instanceof ObjectType) {
+            //noinspection unchecked
+            return (ContainerableProcessingRequest<C>) new ObjectProcessingRequest<>(
+                    sequentialNumber,
+                    (ObjectType) item,
+                    (IterativeActivityExecution<ObjectType, ?, ?, ?>) activityExecution);
+        } else {
+            return new ContainerableProcessingRequest<>(sequentialNumber, item, activityExecution);
+        }
     }
 
     /**

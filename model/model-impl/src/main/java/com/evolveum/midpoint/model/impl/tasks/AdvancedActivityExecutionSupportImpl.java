@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.tasks;
 
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
-import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
@@ -48,8 +46,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
-import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
-
 @Component
 public class AdvancedActivityExecutionSupportImpl implements AdvancedActivityExecutionSupport {
 
@@ -60,10 +56,9 @@ public class AdvancedActivityExecutionSupportImpl implements AdvancedActivityExe
     @Autowired private ProvisioningService provisioningService;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private ModelObjectResolver modelObjectResolver;
-    @Autowired private ModelAuditService modelAuditService;
-
-    private ObjectSearchExecutionSupport objectSearchSupport;
-    private AuditSearchExecutionSupport auditSearchSupport;
+    @Autowired private ModelObjectSource modelObjectSource;
+    @Autowired private ModelAuditItemSource modelAuditItemSource;
+    @Autowired private ModelContainerableItemSource modelContainerableItemSource;
 
     @Override
     public boolean isPresent() {
@@ -100,12 +95,19 @@ public class AdvancedActivityExecutionSupportImpl implements AdvancedActivityExe
     @Override
     public void applyDefinitionsToQuery(@NotNull SearchSpecification<?> searchSpecification, @NotNull Task task,
             OperationResult result) throws CommonException {
-        Class<? extends Containerable> objectType = searchSpecification.getContainerType();
-        if (!searchSpecification.isUseRepository() && objectType.isAssignableFrom(ObjectType.class)
-                && ObjectTypes.isClassManagedByProvisioning((Class<? extends ObjectType>) objectType)) {
-            provisioningService
-                    .applyDefinition((Class<? extends ObjectType>) objectType, searchSpecification.getQuery(), task, result);
+        Class<? extends Containerable> itemType = searchSpecification.getType();
+        if (!itemType.isAssignableFrom(ObjectType.class)) {
+            return;
         }
+
+        //noinspection unchecked
+        Class<? extends ObjectType> objectType = (Class<? extends ObjectType>) itemType;
+        if (searchSpecification.isUseRepository() || !ObjectTypes.isClassManagedByProvisioning(objectType)) {
+            return;
+        }
+
+        provisioningService
+                .applyDefinition(objectType, searchSpecification.getQuery(), task, result);
     }
 
     @Override
@@ -115,33 +117,20 @@ public class AdvancedActivityExecutionSupportImpl implements AdvancedActivityExe
     }
 
     @Override
-    public Integer countObjects(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
-            @NotNull OperationResult result) throws CommonException {
-        return getSearchExecutionSupport(searchSpecification.getContainerType()).countObjects(
-                searchSpecification, task, result);
-    }
-
-    private SearchExecutionSupport getSearchExecutionSupport(Class<?> containerType) {
-        if (MiscSchemaUtil.isObjectType(containerType)) {
-            return new ObjectSearchExecutionSupport(modelObjectResolver);
-        } else if (MiscSchemaUtil.isAuditType(containerType)) {
-            return new AuditSearchExecutionSupport(modelAuditService);
-        }
-        throw new IllegalArgumentException("Unsupported container type " + containerType);
-    }
-
-    @Override
-    public <C extends Containerable> void searchIterative(@NotNull SearchSpecification<C> searchSpecification,
-            @NotNull ObjectResultHandler handler, @NotNull RunningTask task, @NotNull OperationResult result)
-            throws CommonException {
-        getSearchExecutionSupport(searchSpecification.getContainerType()).searchIterative(
-                searchSpecification, handler, task, result);
-    }
-
-    @Override
-    public ObjectPreprocessor<ShadowType> createShadowFetchingPreprocessor(
+    public ItemPreprocessor<ShadowType> createShadowFetchingPreprocessor(
             @NotNull Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions,
             @NotNull SchemaService schemaService) {
         return new ShadowFetchingPreprocessor(producerOptions, schemaService, modelObjectResolver);
+    }
+
+    @Override
+    public <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type) {
+        if (MiscSchemaUtil.isObjectType(type)) {
+            return modelObjectSource;
+        } else if (MiscSchemaUtil.isAuditType(type)) {
+            return modelAuditItemSource;
+        } else {
+            return modelContainerableItemSource;
+        }
     }
 }

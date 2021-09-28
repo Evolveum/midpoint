@@ -58,21 +58,14 @@ class NoOpAdvancedActivityExecutionSupport implements AdvancedActivityExecutionS
     }
 
     @Override
-    public Integer countObjects(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
-            @NotNull OperationResult result) throws CommonException {
-        throw new UnsupportedOperationException("Model-impl is not available");
-    }
-
-    @Override
-    public <C extends Containerable> void searchIterative(@NotNull SearchSpecification<C> searchSpecification,
-                                                       @NotNull ObjectResultHandler handler, @NotNull RunningTask task, @NotNull OperationResult result) {
-        throw new UnsupportedOperationException("Model-impl is not available");
-    }
-
-    @Override
-    public ObjectPreprocessor<ShadowType> createShadowFetchingPreprocessor(
+    public ItemPreprocessor<ShadowType> createShadowFetchingPreprocessor(
             @NotNull Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions,
             @NotNull SchemaService schemaService) {
+        throw new UnsupportedOperationException("Model-impl is not available");
+    }
+
+    @Override
+    public <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type) {
         throw new UnsupportedOperationException("Model-impl is not available");
     }
 }

@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.model.impl.integrity.shadows.ShadowIntegrity
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -27,7 +29,6 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -43,7 +44,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ShadowIntegrityCheckActivityExecution
-        extends ObjectSearchBasedActivityExecution
+        extends SearchBasedActivityExecution
         <ShadowType, ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler, AbstractActivityWorkStateType> {
 
     private ShadowCheckConfiguration configuration;
@@ -84,10 +85,10 @@ public class ShadowIntegrityCheckActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ShadowType> object,
-            @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ShadowType shadow,
+            @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
-        return itemProcessor.processObject(object, workerTask, result);
+        return itemProcessor.processObject(shadow.asPrismObject(), workerTask, result);
     }
 
     private static class WorkingState {

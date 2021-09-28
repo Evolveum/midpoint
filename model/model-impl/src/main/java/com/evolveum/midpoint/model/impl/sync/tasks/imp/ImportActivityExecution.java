@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +18,6 @@ import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecificat
 import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
@@ -37,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ImportActivityExecution
-        extends ObjectSearchBasedActivityExecution<ShadowType, ImportWorkDefinition, ImportActivityHandler, AbstractActivityWorkStateType> {
+        extends SearchBasedActivityExecution<ShadowType, ImportWorkDefinition, ImportActivityHandler, AbstractActivityWorkStateType> {
 
     private ResourceObjectClassSpecification resourceObjectClassSpecification;
     private SynchronizationObjectsFilterImpl objectsFilter;
@@ -96,10 +95,10 @@ public class ImportActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ShadowType> object,
-            @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ShadowType object,
+            @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
-        synchronizer.synchronize(object, request.getIdentifier(), workerTask, result);
+        synchronizer.synchronize(object.asPrismObject(), request.getIdentifier(), workerTask, result);
         return true;
     }
 

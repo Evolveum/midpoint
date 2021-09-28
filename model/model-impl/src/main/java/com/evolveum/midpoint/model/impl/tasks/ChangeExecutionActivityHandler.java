@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
@@ -99,7 +98,7 @@ public class ChangeExecutionActivityHandler
     }
 
     static class MyExecution extends
-            ObjectSearchBasedActivityExecution<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler, AbstractActivityWorkStateType> {
+            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ChangeExecutionActivityHandler, AbstractActivityWorkStateType> {
 
         MyExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ChangeExecutionActivityHandler> context,
                 String shortName) {
@@ -113,21 +112,20 @@ public class ChangeExecutionActivityHandler
         }
 
         @Override
-        public boolean processObject(@NotNull PrismObject<ObjectType> object,
-                @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
+        public boolean processItem(@NotNull ObjectType object,
+                @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
                 throws CommonException, ActivityExecutionException {
             LOGGER.trace("Executing change on object {}", object);
 
-            IterativeActivityExecution<PrismObject<ObjectType>, ?, ?, ?> activityExecution = request.getActivityExecution();
+            IterativeActivityExecution<ObjectType, ?, ?, ?> activityExecution = request.getActivityExecution();
             MyWorkDefinition workDefinition =
                     (MyWorkDefinition) activityExecution.getActivity().getWorkDefinition();
 
             PrismContext prismContext = getActivityHandler().prismContext;
             ObjectDelta<ObjectType> delta = DeltaConvertor.createObjectDelta(workDefinition.getDelta(), prismContext);
             delta.setOid(object.getOid());
-            if (object.getCompileTimeClass() != null) {
-                delta.setObjectTypeClass(object.getCompileTimeClass());
-            }
+            //noinspection unchecked
+            delta.setObjectTypeClass((Class<ObjectType>) object.getClass());
             prismContext.adopt(delta);
 
             getActivityHandler().modelController.executeChanges(

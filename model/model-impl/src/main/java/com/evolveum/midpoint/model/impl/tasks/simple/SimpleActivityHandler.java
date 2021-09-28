@@ -10,7 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Implementing class for simple model-level search-based activity handlers.
  *
  * It makes writing non-composite activities a little bit easier. Generally the implementation should contain
- * an implementation of {@link WorkDefinition}, a subclass of {@link ObjectSearchBasedActivityExecution}, and
+ * an implementation of {@link WorkDefinition}, a subclass of {@link SearchBasedActivityExecution}, and
  * a configuration code like {@link #getWorkDefinitionSupplier()}, {@link #getLegacyHandlerUri()}, and so on.
  */
 @Component
@@ -101,7 +101,7 @@ public abstract class SimpleActivityHandler<
             O extends ObjectType,
             WD extends WorkDefinition,
             SAH extends SimpleActivityHandler<O, WD, SAH>> {
-        @NotNull ObjectSearchBasedActivityExecution<O, WD, SAH, AbstractActivityWorkStateType> supply(
+        @NotNull SearchBasedActivityExecution<O, WD, SAH, AbstractActivityWorkStateType> supply(
                 ExecutionInstantiationContext<WD, SAH> context, String shortNameCapitalized);
     }
 }

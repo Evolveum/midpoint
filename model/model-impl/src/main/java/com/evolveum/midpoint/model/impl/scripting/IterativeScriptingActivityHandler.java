@@ -10,15 +10,12 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
@@ -26,6 +23,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -93,7 +91,7 @@ public class IterativeScriptingActivityHandler
     }
 
     static class MyExecutionSpecifics extends
-            ObjectSearchBasedActivityExecution<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
+            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, IterativeScriptingActivityHandler, AbstractActivityWorkStateType> {
 
         MyExecutionSpecifics(
                 @NotNull ExecutionInstantiationContext<MyWorkDefinition, IterativeScriptingActivityHandler> context, String shortName) {
@@ -107,17 +105,17 @@ public class IterativeScriptingActivityHandler
         }
 
         @Override
-        public boolean processObject(@NotNull PrismObject<ObjectType> object,
-                @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
+        public boolean processItem(@NotNull ObjectType object,
+                @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
                 throws CommonException, ActivityExecutionException {
             executeScriptOnObject(object, workerTask, result);
             return true;
         }
 
-        private void executeScriptOnObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result)
+        private void executeScriptOnObject(ObjectType object, RunningTask workerTask, OperationResult result)
                 throws CommonException {
             ExecuteScriptType executeScriptRequest = getWorkDefinition().getScriptExecutionRequest().clone();
-            executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));
+            executeScriptRequest.setInput(new ValueListType().value(object));
             ScriptExecutionResult executionResult = getActivityHandler().scriptingService.evaluateExpression(executeScriptRequest,
                     VariablesMap.emptyMap(), false, workerTask, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());

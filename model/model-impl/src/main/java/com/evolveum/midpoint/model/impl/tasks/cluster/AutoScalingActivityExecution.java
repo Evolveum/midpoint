@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.tasks.cluster;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class AutoScalingActivityExecution extends
-        ObjectSearchBasedActivityExecution<TaskType, AutoScalingWorkDefinition, AutoScalingActivityHandler, ActivityAutoScalingWorkStateType> {
+        SearchBasedActivityExecution<TaskType, AutoScalingWorkDefinition, AutoScalingActivityHandler, ActivityAutoScalingWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AutoScalingActivityHandler.class);
 
@@ -91,10 +91,9 @@ public class AutoScalingActivityExecution extends
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<TaskType> object,
-            @NotNull ItemProcessingRequest<PrismObject<TaskType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull TaskType task,
+            @NotNull ItemProcessingRequest<TaskType> request, RunningTask workerTask, OperationResult result)
             throws CommonException {
-        TaskType task = object.asObjectable();
         LOGGER.debug("Going to reconcile workers for task {}", task);
         getActivityHandler().activityManager.reconcileWorkers(task.getOid(), result);
         return true;

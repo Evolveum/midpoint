@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +20,6 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.ObjectSearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
@@ -96,7 +96,7 @@ public class RecomputationActivityHandler
     }
 
     static class MyExecution extends
-            ObjectSearchBasedActivityExecution<ObjectType, MyWorkDefinition, RecomputationActivityHandler, AbstractActivityWorkStateType> {
+            SearchBasedActivityExecution<ObjectType, MyWorkDefinition, RecomputationActivityHandler, AbstractActivityWorkStateType> {
 
         MyExecution(
                 @NotNull ExecutionInstantiationContext<MyWorkDefinition, RecomputationActivityHandler> context,
@@ -111,16 +111,16 @@ public class RecomputationActivityHandler
         }
 
         @Override
-        public boolean processObject(@NotNull PrismObject<ObjectType> object,
-                @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
+        public boolean processItem(@NotNull ObjectType object,
+                @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
                 throws CommonException, ActivityExecutionException {
             boolean simulate = isPreview();
             String action = simulate ? "Simulated recomputation" : "Recomputation";
 
             LOGGER.trace("{} of object {}", action, object);
 
-            LensContext<FocusType> syncContext = getActivityHandler().contextFactory.createRecomputeContext(object,
-                    getWorkDefinition().getExecutionOptions(), workerTask, result);
+            LensContext<FocusType> syncContext = getActivityHandler().contextFactory.createRecomputeContext(
+                    object.asPrismObject(), getWorkDefinition().getExecutionOptions(), workerTask, result);
             LOGGER.trace("{} of object {}: context:\n{}", action, object, syncContext.debugDumpLazily());
 
             if (simulate) {

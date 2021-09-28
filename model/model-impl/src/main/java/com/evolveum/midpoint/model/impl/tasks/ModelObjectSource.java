@@ -7,32 +7,34 @@
 
 package com.evolveum.midpoint.model.impl.tasks;
 
+import static com.evolveum.midpoint.repo.common.task.RepoObjectSource.getObjectType;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.common.task.SearchSpecification;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.repo.common.task.SearchableItemSource;
+import com.evolveum.midpoint.schema.ContainerableResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.jetbrains.annotations.NotNull;
+/**
+ * Provides access to objects at the model level.
+ */
+@Component
+class ModelObjectSource implements SearchableItemSource {
 
-import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
-
-class ObjectSearchExecutionSupport implements SearchExecutionSupport {
-
-    private final ModelObjectResolver modelObjectResolver;
-
-    ObjectSearchExecutionSupport(ModelObjectResolver modelObjectResolver) {
-        this.modelObjectResolver = modelObjectResolver;
-    }
+    @Autowired private ModelObjectResolver modelObjectResolver;
 
     @Override
-    public Integer countObjects(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
+    public Integer count(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
             @NotNull OperationResult result) throws CommonException {
         return modelObjectResolver.countObjects(
-                (Class<? extends ObjectType>) searchSpecification.getContainerType(),
+                getObjectType(searchSpecification.getType()),
                 searchSpecification.getQuery(),
                 searchSpecification.getSearchOptions(),
                 task, result);
@@ -40,14 +42,15 @@ class ObjectSearchExecutionSupport implements SearchExecutionSupport {
 
     @Override
     public <C extends Containerable> void searchIterative(@NotNull SearchSpecification<C> searchSpecification,
-            @NotNull ObjectResultHandler handler, @NotNull RunningTask task, @NotNull OperationResult result)
+            @NotNull ContainerableResultHandler<C> handler, @NotNull RunningTask task, @NotNull OperationResult result)
             throws CommonException {
-        assertCheck(handler instanceof ResultHandler,
-                "Unsupported type of result handler for object type " + searchSpecification.getContainerType());
+        //noinspection unchecked
         modelObjectResolver.searchIterative(
-                (Class<? extends ObjectType>) searchSpecification.getContainerType(),
+                getObjectType(searchSpecification.getType()),
                 searchSpecification.getQuery(),
                 searchSpecification.getSearchOptions(),
-                (ResultHandler) handler, task, result);
+                (object, localResult) ->
+                        handler.handle((C) object.asObjectable(), localResult),
+                task, result);
     }
 }
