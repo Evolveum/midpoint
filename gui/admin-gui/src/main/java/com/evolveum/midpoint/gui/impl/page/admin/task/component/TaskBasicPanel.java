@@ -11,6 +11,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+
 import org.apache.wicket.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
@@ -28,12 +32,30 @@ import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.wicket.model.IModel;
+
 @PanelType(name = "taskBasic", defaultContainerPath = "empty")
 @PanelInstance(identifier = "taskBasic", applicableForType = TaskType.class,
         display = @PanelDisplay(label = "pageAdminFocus.basic", order = 10))
 public class TaskBasicPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
 
     private static final String ID_MAIN_PANEL = "main";
+
+    private static final String[] deprecatedVirtualContainers = {
+            "resource-objects",
+            "reconciliation-options",
+            "objects-to-recompute",
+            "recompute-options",
+            "objects-to-import",
+            "import-options",
+            "objects-to-synchronize",
+            "synchronization-options",
+            "async-options",
+            "cleanup-options",
+            "report-options",
+            "objects-to-process",
+            "bulk-action"
+    };
 
     public TaskBasicPanel(String id, TaskDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -51,8 +73,29 @@ public class TaskBasicPanel extends AbstractObjectMainPanel<TaskType, TaskDetail
             protected ItemEditabilityHandler getEditabilityHandler() {
                 return wrapper -> getBasicTabEditability(wrapper.getPath());
             }
+
+            @Override
+            protected IModel<PrismContainerWrapper> createVirtualContainerModel(VirtualContainersSpecificationType virtualContainer) {
+                if (isDeprecatedVirtualContainer(virtualContainer)) {
+                    return null;
+                }
+                return super.createVirtualContainerModel(virtualContainer);
+            }
         };
         add(mainPanel);
+    }
+
+    private boolean isDeprecatedVirtualContainer(VirtualContainersSpecificationType virtualContainer) {
+        String identifier = virtualContainer.getIdentifier();
+        if (identifier == null) {
+            return false;
+        }
+
+        if (Arrays.asList(deprecatedVirtualContainers).contains(identifier)) {
+            return true;
+        }
+
+        return false;
     }
 
     private ItemVisibility getBasicTabVisibility(ItemPath path) {
