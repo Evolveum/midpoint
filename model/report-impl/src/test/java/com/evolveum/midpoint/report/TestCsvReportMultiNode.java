@@ -7,18 +7,14 @@
 package com.evolveum.midpoint.report;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
 
@@ -30,8 +26,11 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
     private static final File TEST_DIR = new File("src/test/resources/reports");
 
-    private static final TestResource<TaskType> TASK_DISTRIBUTED_EXPORT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
-            "task-distributed-export.xml", "5ab8f8c6-df1a-4580-af8b-a899f240b44f");
+    private static final TestResource<TaskType> TASK_DISTRIBUTED_EXPORT_USERS = new TestResource<>(TEST_DIR_REPORTS,
+            "task-distributed-export-users.xml", "5ab8f8c6-df1a-4580-af8b-a899f240b44f");
+
+    private static final TestResource<TaskType> TASK_DISTRIBUTED_EXPORT_AUDIT = new TestResource<>(TEST_DIR_REPORTS,
+            "task-distributed-export-audit.xml", "466c5ddd-7739-437f-b049-b270da5ff828");
 
     private static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_USERS = new TestResource<>(TEST_DIR,
             "report-object-collection-users.xml", "64e13165-21e5-419a-8d8b-732895109f84");
@@ -43,7 +42,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         super.initSystem(initTask, initResult);
         commonInitialization(initResult);
 
-        repoAdd(TASK_DISTRIBUTED_EXPORT_CLASSIC, initResult);
+        repoAdd(TASK_DISTRIBUTED_EXPORT_USERS, initResult);
+        repoAdd(TASK_DISTRIBUTED_EXPORT_AUDIT, initResult);
         repoAdd(OBJECT_COLLECTION_ALL_AUDIT_RECORDS, initResult);
 
         createUsers(USERS, initResult);
@@ -57,15 +57,15 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         OperationResult result = task.getResult();
 
         addObject(REPORT_OBJECT_COLLECTION_USERS.file);
-        runExportTask(REPORT_OBJECT_COLLECTION_USERS, result);
+        runExportTask(TASK_DISTRIBUTED_EXPORT_USERS, REPORT_OBJECT_COLLECTION_USERS, result);
 
         when();
 
-        waitForTaskCloseOrSuspend(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid);
+        waitForTaskCloseOrSuspend(TASK_DISTRIBUTED_EXPORT_USERS.oid);
 
         then();
 
-        assertTask(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid, "after")
+        assertTask(TASK_DISTRIBUTED_EXPORT_USERS.oid, "after")
                 .assertSuccess()
                 .display();
 
@@ -85,15 +85,15 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         OperationResult result = task.getResult();
 
         addObject(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.file);
-        runExportTask(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, result);
+        runExportTask(TASK_DISTRIBUTED_EXPORT_AUDIT, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, result);
 
         when();
 
-        waitForTaskCloseOrSuspend(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid);
+        waitForTaskCloseOrSuspend(TASK_DISTRIBUTED_EXPORT_AUDIT.oid);
 
         then();
 
-        assertTask(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid, "after")
+        assertTask(TASK_DISTRIBUTED_EXPORT_AUDIT.oid, "after")
                 .assertSuccess()
                 .display();
 
@@ -101,15 +101,17 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         basicCheckOutputFile(report, 1004, 2, null);
     }
 
+    // TODO maybe we no longer need to override the method in the superclass
     @Override
-    void runExportTask(TestResource<ReportType> reportResource, OperationResult result) throws CommonException {
+    void runExportTask(TestResource<TaskType> taskResource, TestResource<ReportType> reportResource,
+            OperationResult result) throws CommonException {
         changeTaskReport(reportResource,
                 ItemPath.create(TaskType.F_ACTIVITY,
                         ActivityDefinitionType.F_WORK,
                         WorkDefinitionsType.F_DISTRIBUTED_REPORT_EXPORT,
                         ClassicReportImportWorkDefinitionType.F_REPORT_REF
                 ),
-                TASK_DISTRIBUTED_EXPORT_CLASSIC);
-        rerunTask(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid, result);
+                taskResource);
+        rerunTask(taskResource.oid, result);
     }
 }
