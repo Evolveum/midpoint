@@ -14,6 +14,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -31,11 +32,6 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -113,7 +109,7 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
         // TODO: more variables?
 
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
-                conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()),
+                conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(),
                 MiscSchemaUtil.getExpressionProfile(), desc, task, result);
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task);
         ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, null, task, result);
@@ -124,7 +120,7 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
     }
 
     private <F extends AssignmentHolderType> void recordLifecycleTransitionDelta(LensFocusContext<F> focusContext, String targetLifecycleState) throws SchemaException {
-        PropertyDelta<String> lifecycleDelta = focusContext.getPrismContext().deltaFactory().property()
+        PropertyDelta<String> lifecycleDelta = PrismContext.get().deltaFactory().property()
                 .createModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, focusContext.getObjectDefinition(),
                 targetLifecycleState);
         focusContext.swallowToSecondaryDelta(lifecycleDelta);

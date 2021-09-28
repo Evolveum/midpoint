@@ -84,7 +84,7 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
     }
 
     @Override
-    protected ArchetypeType createNewObject() {
+    public ArchetypeType createNewObject() {
         return new ArchetypeType(getPrismContext());
     }
 

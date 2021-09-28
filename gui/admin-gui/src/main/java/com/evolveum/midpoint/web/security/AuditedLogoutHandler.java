@@ -88,7 +88,7 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         auditEvent(request, authentication);
     }
 
-    private void auditEvent(HttpServletRequest request, Authentication authentication) {
+    protected void auditEvent(HttpServletRequest request, Authentication authentication) {
         OperationResult result = new OperationResult(OP_AUDIT_EVENT); // Eventually we should get this from the caller
 
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser(authentication);

@@ -14,14 +14,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -29,13 +24,10 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -55,7 +47,9 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
@@ -111,17 +105,17 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     protected static final File ROLE_OPERATORS_FILE = new File(TEST_DIR, "role-operators.xml");
 
     protected static final File USER_OPERATOR_ORG_MEMBER_FILE = new File(TEST_DIR, "user-operator-org-member.xml");
-    protected static final String USER_OPERATOR_ORG_MEMBER_OID = "operator-org-member";
+    protected static final String USER_OPERATOR_ORG_MEMBER_OID = "6f706572-6174-6f72-2d6f-72672d6d656d";
 
     protected static final File USER_OPERATOR_ORG_MANAGER_FILE = new File(TEST_DIR, "user-operator-org-manager.xml");
 
     protected static final File USER_OPERATOR_ROLE_MEMBER_FILE = new File(TEST_DIR, "user-operator-role-member.xml");
-    protected static final String USER_OPERATOR_ROLE_MEMBER_OID = "operator-role-member";
+    protected static final String USER_OPERATOR_ROLE_MEMBER_OID = "6f706572-6174-6f72-2d72-6f6c652d6d65";
 
     protected static final File USER_OPERATOR_ROLE_APPROVER_FILE = new File(TEST_DIR, "user-operator-role-approver.xml");
 
     protected static final File USER_OPERATOR_FILE = new File(TEST_DIR, "user-operator.xml");
-    protected static final String USER_OPERATOR_OID = "operator-user";
+    protected static final String USER_OPERATOR_OID = "6f706572-6174-6f72-2d75-736572000000";
 
     protected PrismObject<ResourceType> resource;
     protected ResourceType resourceType;
@@ -259,13 +253,13 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertNotNull("No configuration container", configurationContainer);
-        PrismContainerDefinition confContDef = configurationContainer.getDefinition();
+        PrismContainerDefinition<?> confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
         PrismProperty<String> propDefaultAssignee = configurationContainer.findProperty(CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME);
         assertNotNull("No defaultAssignee conf prop", propDefaultAssignee);
 
-//        assertNotNull("No configuration properties container", confingurationPropertiesContainer);
-//        PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();
+//        assertNotNull("No configuration properties container", configurationPropertiesContainer);
+//        PrismContainerDefinition confPropDef = configurationPropertiesContainer.getDefinition();
 //        assertNotNull("No configuration properties container definition", confPropDef);
 
     }
@@ -331,7 +325,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
+        assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
 
         CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilitiesList, CreateCapabilityType.class);
         assertNotNull("Missing create capability", capCreate);
@@ -341,12 +335,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertNotNull("Missing activation capability", capAct);
 
         ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilitiesList, ReadCapabilityType.class);
-        assertNotNull("Missing read capability" ,capRead);
+        assertNotNull("Missing read capability", capRead);
         assertEquals("Wrong caching-only setting in read capability", Boolean.TRUE, capRead.isCachingOnly());
 
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
-            System.out.println("Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
+            System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
         }
 
     }
@@ -379,18 +373,18 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         account.checkConsistence();
 
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(ACCOUNT_WILL_OID)
-            .assertConception()
-            .pendingOperations()
+                .assertConception()
+                .pendingOperations()
                 .singleOperation()
-                    .assertId()
-                    .assertType(PendingOperationTypeType.MANUAL)
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertId()
+                .assertType(PendingOperationTypeType.MANUAL)
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
                 .end()
-            .end()
-            .attributes()
+                .end()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
-            .end()
-            .assertNoPassword();
+                .end()
+                .assertNoPassword();
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
 
@@ -398,20 +392,20 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         syncServiceMock.assertSingleNotifyInProgressOnly();
 
         ShadowAsserter<Void> shadowProvisioningAsserter = assertShadowProvisioning(ACCOUNT_WILL_OID)
-            .assertConception()
-            .assertName(ACCOUNT_WILL_USERNAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .pendingOperations()
+                .assertConception()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .pendingOperations()
                 .singleOperation()
-                    .assertId()
-                    .assertType(PendingOperationTypeType.MANUAL)
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertId()
+                .assertType(PendingOperationTypeType.MANUAL)
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
                 .end()
-            .end()
-            .attributes()
+                .end()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
-            .end()
-            .assertNoPassword();
+                .end()
+                .assertNoPassword();
         assertAttributeFromCache(shadowProvisioningAsserter, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowProvisioningAsserter, ActivationStatusType.ENABLED);
 
@@ -420,8 +414,6 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
     }
 
-
-
     @Test
     public void test102GetAccountWillFuture() throws Exception {
         // GIVEN
@@ -429,7 +421,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
         when();
@@ -556,7 +548,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         syncServiceMock.reset();
 
-        Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
         when();
@@ -605,7 +597,6 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(options),
                 task, result);
-
 
         // THEN
         then();
@@ -680,7 +671,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
         assertShadowPassword(shadowProvisioning);
 
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning,
+        assertSinglePendingOperation(shadowProvisioning,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
                 OperationResultStatusType.SUCCESS,
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
@@ -713,20 +704,20 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
-            .display()
-            .pendingOperations()
+                .display()
+                .pendingOperations()
                 .singleOperation()
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
         ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
-        .display()
-        .pendingOperations()
-            .singleOperation()
+                .display()
+                .pendingOperations()
+                .singleOperation()
                 .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
                 .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
                 .assertResultStatus(OperationResultStatusType.SUCCESS)
@@ -764,20 +755,20 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
-            .display()
-            .pendingOperations()
+                .display()
+                .pendingOperations()
                 .singleOperation()
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
         ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
-        .display()
-        .pendingOperations()
-            .singleOperation()
+                .display()
+                .pendingOperations()
+                .singleOperation()
                 .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
                 .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
                 .assertResultStatus(OperationResultStatusType.SUCCESS)
@@ -815,14 +806,14 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
-            .display()
-            .pendingOperations()
+                .display()
+                .pendingOperations()
                 .assertNone();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
         ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
-            .display()
-            .pendingOperations()
+                .display()
+                .pendingOperations()
                 .assertNone();
 
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -859,18 +850,18 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
-            .display()
-            .assertBasicRepoProperties()
-            .attributes()
+                .display()
+                .assertBasicRepoProperties()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-            .pendingOperations()
+                .pendingOperations()
                 .singleOperation()
-                    .assertType(PendingOperationTypeType.MANUAL)
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                    .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                    .assertId();
+                .assertType(PendingOperationTypeType.MANUAL)
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .assertId();
 
         // Still old data in the repo. The operation is not completed yet.
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
@@ -932,17 +923,17 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
-            .display()
-            .assertBasicRepoProperties()
-            .attributes()
+                .display()
+                .assertBasicRepoProperties()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-            .pendingOperations()
+                .pendingOperations()
                 .singleOperation()
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                    .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                    .assertId();
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .assertId();
 
         // Still old data in the repo. The operation is not completed yet.
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
@@ -953,20 +944,20 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
         ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
-            .display()
-            .assertBasicRepoProperties()
-            .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .attributes()
+                .display()
+                .assertBasicRepoProperties()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME)
                 .end()
-            .pendingOperations()
+                .pendingOperations()
                 .singleOperation()
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                    .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                    .assertId();
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .assertId();
 
         assertShadowPassword(shadowProvisioning);
 
@@ -975,11 +966,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
                 task, result);
         ShadowAsserter.forShadow(shadowProvisioningFuture, "future")
-            .display()
-            .assertName(ACCOUNT_WILL_USERNAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .attributes()
+                .display()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
         assertShadowPassword(shadowProvisioningFuture);
@@ -1017,38 +1008,38 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
-            .display()
-            .assertBasicRepoProperties()
-            .assertName(ACCOUNT_WILL_USERNAME)
-            .attributes()
+                .display()
+                .assertBasicRepoProperties()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-            .pendingOperations()
+                .pendingOperations()
                 .singleOperation()
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
-                    .assertId();
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+                .assertId();
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
         ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
-            .display()
-            .assertName(ACCOUNT_WILL_USERNAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .attributes()
+                .display()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-            .pendingOperations()
+                .pendingOperations()
                 .singleOperation()
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
-                    .assertId();
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+                .assertId();
         if (supportsBackingStore()) {
             assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         } else {
@@ -1062,11 +1053,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
                 task, result);
         ShadowAsserter.forShadow(shadowProvisioningFuture, "future")
-            .display()
-            .assertName(ACCOUNT_WILL_USERNAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .attributes()
+                .display()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
         assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -1125,7 +1116,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
         assertShadowPassword(shadowProvisioning);
 
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning,
+        assertSinglePendingOperation(shadowProvisioning,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
                 OperationResultStatusType.SUCCESS,
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
@@ -1188,7 +1179,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
         assertShadowPassword(shadowProvisioning);
 
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning,
+        assertSinglePendingOperation(shadowProvisioning,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
                 OperationResultStatusType.SUCCESS,
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
@@ -1208,7 +1199,6 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
     }
-
 
     /**
      * disable - do not complete yet (do not wait for delta to expire, we want several deltas at once).
@@ -1388,13 +1378,13 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         int expectedNumberOfWorkItems = 3;
         List<String> expectedWorkItemsAssigneesOids = Stream.of
-                (USER_OPERATOR_ROLE_MEMBER_OID, USER_OPERATOR_OID, USER_OPERATOR_ORG_MEMBER_OID)
+                        (USER_OPERATOR_ROLE_MEMBER_OID, USER_OPERATOR_OID, USER_OPERATOR_ORG_MEMBER_OID)
                 .sorted(String::compareToIgnoreCase).collect(Collectors.toList());
 
         CaseType caseType = repositoryService.getObject(CaseType.class, willLastCaseOid, null, result).asObjectable();
 
         List<String> actualWorkItemsAssigneesOids = caseType.getWorkItem().stream().flatMap(caseWorkItemType ->
-                caseWorkItemType.getAssigneeRef().stream())
+                        caseWorkItemType.getAssigneeRef().stream())
                 .map(ObjectReferenceType::getOid).sorted(String::compareToIgnoreCase).collect(Collectors.toList());
         int actualNumberOfWorkItems = caseType.getWorkItem().size();
 
@@ -1433,28 +1423,28 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Provisioning shadow", shadowProvisioning);
 
         PrismObject<ShadowType> shadowRepo = assertRepoShadow(ACCOUNT_WILL_OID)
-            .pendingOperations()
+                .pendingOperations()
                 .assertOperations(3)
                 .by()
-                    .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .item(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)
+                .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .item(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)
                 .find()
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
-                    .end()
-                .by()
-                    .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                    .item(SchemaConstants.PATH_PASSWORD_VALUE)
-                .find()
-                    .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
-                    .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                    .end()
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                 .end()
-            .attributes()
+                .by()
+                .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .item(SchemaConstants.PATH_PASSWORD_VALUE)
+                .find()
+                .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .end()
+                .end()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-            .getObject();
+                .getObject();
 
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.DISABLED);
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
@@ -1463,29 +1453,29 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         syncServiceMock.assertSingleNotifySuccessOnly();
 
         ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
-            .assertName(ACCOUNT_WILL_USERNAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .attributes()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE)
-            .end()
-            .pendingOperations()
+                .end()
+                .pendingOperations()
                 .assertOperations(3)
                 .by()
-                    .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .item(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)
+                .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .item(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)
                 .find()
-                    .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
-                    .end()
+                .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+                .end()
                 .by()
-                    .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                    .item(SchemaConstants.PATH_PASSWORD_VALUE)
+                .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .item(SchemaConstants.PATH_PASSWORD_VALUE)
                 .find()
-                    .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
-                    .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                    .end()
+                .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .end()
                 .end();
 
         if (supportsBackingStore()) {
@@ -1497,14 +1487,14 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowPassword(shadowProvisioning);
 
         PrismObject<ShadowType> shadowProvisioningFuture = assertShadowFuture(ACCOUNT_WILL_OID)
-            .assertName(ACCOUNT_WILL_USERNAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .attributes()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE)
                 .end()
-            .getObject();
+                .getObject();
 
         assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
         // TODO
@@ -1513,7 +1503,6 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
         assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
     }
-
 
     /**
      * lets ff 5min just for fun. Refresh, make sure everything should be the same (grace not expired yet)
@@ -1787,22 +1776,22 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
-        ShadowAsserter.forShadow(shadowRepo,"repo")
-            .display()
-            .assertBasicRepoProperties()
-            .attributes()
+        ShadowAsserter.forShadow(shadowRepo, "repo")
+                .display()
+                .assertBasicRepoProperties()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-            .pendingOperations()
+                .pendingOperations()
                 .assertOperations(3)
                 .by()
-                    .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .item(SchemaConstants.PATH_PASSWORD_VALUE)
+                .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .item(SchemaConstants.PATH_PASSWORD_VALUE)
                 .find()
-                    .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+                .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
                 .end();
 
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
@@ -1812,25 +1801,25 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
-        ShadowAsserter.forShadow(shadowProvisioning,"provisioning")
-        .display()
-        .assertName(ACCOUNT_WILL_USERNAME)
-        .assertKind(ShadowKindType.ACCOUNT)
-        .attributes()
-            .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
-            .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE)
-            .end()
-        .pendingOperations()
-            .assertOperations(3)
-            .by()
+        ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
+                .display()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .attributes()
+                .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
+                .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE)
+                .end()
+                .pendingOperations()
+                .assertOperations(3)
+                .by()
                 .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
                 .item(SchemaConstants.PATH_PASSWORD_VALUE)
-            .find()
+                .find()
                 .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
                 .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
                 .assertResultStatus(OperationResultStatusType.SUCCESS)
                 .assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
-            .end();
+                .end();
 
         if (supportsBackingStore()) {
             assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.DISABLED);
@@ -1844,12 +1833,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
                 task, result);
-        ShadowAsserter.forShadow(shadowProvisioningFuture,"future")
-            .display()
-            .assertName(ACCOUNT_WILL_USERNAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .attributes()
+        ShadowAsserter.forShadow(shadowProvisioningFuture, "future")
+                .display()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
@@ -1884,22 +1873,22 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
-        ShadowAsserter.forShadow(shadowRepo,"repo")
-            .display()
-            .assertBasicRepoProperties()
-            .attributes()
+        ShadowAsserter.forShadow(shadowRepo, "repo")
+                .display()
+                .assertBasicRepoProperties()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-            .pendingOperations()
+                .pendingOperations()
                 .assertOperations(2)
                 .by()
-                    .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .item(SchemaConstants.PATH_PASSWORD_VALUE)
+                .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .item(SchemaConstants.PATH_PASSWORD_VALUE)
                 .find()
-                    .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+                .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
                 .end();
 
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
@@ -1909,25 +1898,25 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
-        ShadowAsserter.forShadow(shadowProvisioning,"provisioning")
-        .display()
-        .assertName(ACCOUNT_WILL_USERNAME)
-        .assertKind(ShadowKindType.ACCOUNT)
-        .attributes()
-            .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
-            .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE)
-            .end()
-        .pendingOperations()
-            .assertOperations(2)
-            .by()
+        ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
+                .display()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .attributes()
+                .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
+                .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE)
+                .end()
+                .pendingOperations()
+                .assertOperations(2)
+                .by()
                 .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
                 .item(SchemaConstants.PATH_PASSWORD_VALUE)
-            .find()
+                .find()
                 .assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
                 .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
                 .assertResultStatus(OperationResultStatusType.SUCCESS)
                 .assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
-            .end();
+                .end();
 
         if (supportsBackingStore()) {
             assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.DISABLED);
@@ -1941,12 +1930,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
                 task, result);
-        ShadowAsserter.forShadow(shadowProvisioningFuture,"future")
-            .display()
-            .assertName(ACCOUNT_WILL_USERNAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .attributes()
+        ShadowAsserter.forShadow(shadowProvisioningFuture, "future")
+                .display()
+                .assertName(ACCOUNT_WILL_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
@@ -2252,7 +2241,6 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
                 task, result);
 
-
         // THEN
         then();
         assertSuccess(result);
@@ -2278,7 +2266,6 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(options),
                 task, result);
-
 
         // THEN
         then();
@@ -2339,7 +2326,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowDead(shadowProvisioning);
         assertShadowPassword(shadowProvisioning);
 
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning,
+        assertSinglePendingOperation(shadowProvisioning,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
                 OperationResultStatusType.SUCCESS,
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
@@ -2400,7 +2387,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowDead(shadowProvisioning);
         assertShadowPassword(shadowProvisioning);
 
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning,
+        assertSinglePendingOperation(shadowProvisioning,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
                 OperationResultStatusType.SUCCESS,
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
@@ -2436,10 +2423,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         PrismObject<ShadowType> repoShadow = assertRepoShadow(ACCOUNT_FIASCO_OID)
                 .assertConception()
                 .pendingOperations()
-                    .singleOperation()
-                        .assertId()
-                        .assertType(PendingOperationTypeType.MANUAL)
-                    .end()
+                .singleOperation()
+                .assertId()
+                .assertType(PendingOperationTypeType.MANUAL)
+                .end()
                 .end()
                 .getObject();
 
@@ -2464,18 +2451,18 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         XMLGregorianCalendar operationTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(ACCOUNT_FIASCO_OID)
-            .assertIsNotExists()
-            .pendingOperations()
+        assertRepoShadow(ACCOUNT_FIASCO_OID)
+                .assertIsNotExists()
+                .pendingOperations()
                 .singleOperation()
-                    .assertId()
-                    .assertType(PendingOperationTypeType.MANUAL)
-                    .assertCompletionTimestamp(operationTimestampStart, operationTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                .assertId()
+                .assertType(PendingOperationTypeType.MANUAL)
+                .assertCompletionTimestamp(operationTimestampStart, operationTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
                 .end()
-            .end()
-            .assertNoPassword();
+                .end()
+                .assertNoPassword();
 
         syncServiceMock.assertNoNotifyChange();
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -2484,14 +2471,13 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     }
 
-
     // TODO: create, close case, then update backing store.
 
     // TODO: let grace period expire without updating the backing store (semi-manual-only)
 
     private void assertPendingOperationDeltas(PrismObject<ShadowType> shadow, int expectedNumber) {
         List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-        assertEquals("Wrong number of pending operations in "+shadow, expectedNumber, pendingOperations.size());
+        assertEquals("Wrong number of pending operations in " + shadow, expectedNumber, pendingOperations.size());
     }
 
     private PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
@@ -2524,16 +2510,16 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertNotNull("No operation ", pendingOperation);
 
         ObjectDeltaType deltaType = pendingOperation.getDelta();
-        assertNotNull("No delta in pending operation in "+shadow, deltaType);
+        assertNotNull("No delta in pending operation in " + shadow, deltaType);
         // TODO: check content of pending operations in the shadow
 
-        TestUtil.assertBetween("No request timestamp in pending operation in "+shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
+        TestUtil.assertBetween("No request timestamp in pending operation in " + shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
 
         OperationResultStatusType status = pendingOperation.getResultStatus();
-        assertEquals("Wrong status in pending operation in "+shadow, expectedStatus, status);
+        assertEquals("Wrong status in pending operation in " + shadow, expectedStatus, status);
 
         if (expectedStatus != OperationResultStatusType.IN_PROGRESS) {
-            TestUtil.assertBetween("No completion timestamp in pending operation in "+shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
+            TestUtil.assertBetween("No completion timestamp in pending operation in " + shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
         }
 
         return pendingOperation;
@@ -2542,7 +2528,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     private PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
             OperationResultStatusType expectedResult, ItemPath itemPath) {
         List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-        for (PendingOperationType pendingOperation: pendingOperations) {
+        for (PendingOperationType pendingOperation : pendingOperations) {
             OperationResultStatusType result = pendingOperation.getResultStatus();
             if (result == null) {
                 result = OperationResultStatusType.IN_PROGRESS;
@@ -2554,8 +2540,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 return pendingOperation;
             }
             ObjectDeltaType delta = pendingOperation.getDelta();
-            assertNotNull("No delta in pending operation in "+shadow, delta);
-            for (ItemDeltaType itemDelta: delta.getItemDelta()) {
+            assertNotNull("No delta in pending operation in " + shadow, delta);
+            for (ItemDeltaType itemDelta : delta.getItemDelta()) {
                 ItemPath deltaPath = itemDelta.getPath().getItemPath();
                 if (itemPath.equivalent(deltaPath)) {
                     return pendingOperation;
@@ -2618,7 +2604,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     }
 
     private void assertManual(AbstractWriteCapabilityType cap) {
-        assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
+        assertEquals("Manual flag not set in capability " + cap, Boolean.TRUE, cap.isManual());
     }
 
 }

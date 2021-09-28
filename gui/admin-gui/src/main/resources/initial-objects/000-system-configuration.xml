@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -59,6 +59,12 @@
             loading message (unnecessary log pollution) -->
             <level>WARN</level>
             <package>org.apache.wicket.resource.PropertiesFactory</package>
+        </classLogger>
+        <classLogger>
+            <!-- disabled INFO messages "Reflections took 84 ms to scan 1 urls, producing..."
+            (unnecessary log pollution) -->
+            <level>WARN</level>
+            <package>org.reflections.Reflections</package>
         </classLogger>
         <classLogger>
             <!-- disabled because we don't need to see every log message for every key
@@ -371,11 +377,11 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
-                <identifier>single-bulk-action-tasks-view</identifier>
+                <identifier>import-resource-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000508" relation="org:default" type="c:ArchetypeType"/>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000509" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
@@ -383,7 +389,7 @@
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000509" relation="org:default" type="c:ArchetypeType"/>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000510" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
@@ -436,99 +442,116 @@
         <objectDetails>
             <objectDetailsPage>
                 <type>c:TaskType</type>
-                <container>
-                    <displayOrder>150</displayOrder>
+                <panel>
+                    <identifier>advanced-options-panel</identifier>
                     <display>
                         <label>Advanced options</label>
                     </display>
-                    <item>
-                        <c:path>cleanupAfterCompletion</c:path>
-                    </item>
-                    <item>
-                        <c:path>threadStopAction</c:path>
-                    </item>
-                    <item>
-                        <c:path>binding</c:path>
-                    </item>
-                    <item>
-                        <c:path>dependent</c:path>
-                    </item>
-                </container>
-                <container>
-                    <displayOrder>900</displayOrder>
+                    <panelType>formPanel</panelType>
+                    <container>
+                        <identifier>advanced-options</identifier>
+                        <displayOrder>150</displayOrder>
+                        <display>
+                            <label>Advanced options</label>
+                        </display>
+                        <item>
+                            <c:path>cleanupAfterCompletion</c:path>
+                        </item>
+                        <item>
+                            <c:path>threadStopAction</c:path>
+                        </item>
+                        <item>
+                            <c:path>binding</c:path>
+                        </item>
+                        <item>
+                            <c:path>dependent</c:path>
+                        </item>
+                    </container>
+                </panel>
+                <panel>
+                    <identifier>operational-attributes-panel</identifier>
                     <display>
-                        <label>Operational attributes (state)</label>
+                        <label>Operational attributes</label>
                     </display>
-                    <item>
-                        <c:path>executionState</c:path>
-                    </item>
-                    <item>
-                        <c:path>schedulingState</c:path>
-                    </item>
-                    <item>
-                        <c:path>node</c:path>
-                    </item>
-                    <item>
-                        <c:path>nodeAsObserved</c:path>
-                    </item>
-                    <item>
-                        <c:path>resultStatus</c:path>
-                    </item>
-                    <item>
-                        <c:path>result</c:path>
-                    </item>
-                    <item>
-                        <c:path>nextRunStartTimestamp</c:path>
-                    </item>
-                    <item>
-                        <c:path>nextRetryTimestamp</c:path>
-                    </item>
-                    <item>
-                        <c:path>unpauseAction</c:path>
-                    </item>
-                    <item>
-                        <c:path>taskIdentifier</c:path>
-                    </item>
-                    <item>
-                        <c:path>parent</c:path>
-                    </item>
-                    <item>
-                        <c:path>waitingReason</c:path>
-                    </item>
-                    <item>
-                        <c:path>stateBeforeSuspend</c:path>
-                    </item>
-                    <item>
-                        <path>schedulingStateBeforeSuspend</path>
-                    </item>
-                    <item>
-                        <c:path>category</c:path>
-                    </item>
-                    <item>
-                        <c:path>otherHandlersUriStack</c:path>
-                    </item>
-                    <item>
-                        <c:path>channel</c:path>
-                    </item>
-                    <item>
-                        <c:path>subtaskRef</c:path>
-                    </item>
-                    <item>
-                        <c:path>dependentTaskRef</c:path>
-                    </item>
-                    <item>
-                        <c:path>lastRunStartTimestamp</c:path>
-                    </item>
-                    <item>
-                        <c:path>lastRunFinishTimestamp</c:path>
-                    </item>
-                    <item>
-                        <c:path>completionTimestamp</c:path>
-                    </item>
-                </container>
+                    <panelType>formPanel</panelType>
+                    <container>
+                        <identifier>operational-attributes</identifier>
+                        <displayOrder>900</displayOrder>
+                        <display>
+                            <label>Operational attributes (state)</label>
+                        </display>
+                        <item>
+                            <c:path>executionState</c:path>
+                        </item>
+                        <item>
+                            <c:path>schedulingState</c:path>
+                        </item>
+                        <item>
+                            <c:path>node</c:path>
+                        </item>
+                        <item>
+                            <c:path>nodeAsObserved</c:path>
+                        </item>
+                        <item>
+                            <c:path>resultStatus</c:path>
+                        </item>
+                        <item>
+                            <c:path>result</c:path>
+                        </item>
+                        <item>
+                            <c:path>nextRunStartTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>nextRetryTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>unpauseAction</c:path>
+                        </item>
+                        <item>
+                            <c:path>taskIdentifier</c:path>
+                        </item>
+                        <item>
+                            <c:path>parent</c:path>
+                        </item>
+                        <item>
+                            <c:path>waitingReason</c:path>
+                        </item>
+                        <item>
+                            <c:path>stateBeforeSuspend</c:path>
+                        </item>
+                        <item>
+                            <path>schedulingStateBeforeSuspend</path>
+                        </item>
+                        <item>
+                            <c:path>category</c:path>
+                        </item>
+                        <item>
+                            <c:path>otherHandlersUriStack</c:path>
+                        </item>
+                        <item>
+                            <c:path>channel</c:path>
+                        </item>
+                        <item>
+                            <c:path>subtaskRef</c:path>
+                        </item>
+                        <item>
+                            <c:path>dependentTaskRef</c:path>
+                        </item>
+                        <item>
+                            <c:path>lastRunStartTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>lastRunFinishTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>completionTimestamp</c:path>
+                        </item>
+                    </container>
+                </panel>
                 <container>
                     <displayOrder>910</displayOrder>
                     <visibility>hidden</visibility>
+                    <identifier>operation-attributes-progress</identifier>
                     <display>
                         <label>Operational attributes (progress)</label>
                     </display>

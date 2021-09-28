@@ -101,7 +101,7 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
     }
 
     @Override
-    protected ObjectCollectionType createNewObject() {
+    public ObjectCollectionType createNewObject() {
         return new ObjectCollectionType(getPrismContext());
     }
 

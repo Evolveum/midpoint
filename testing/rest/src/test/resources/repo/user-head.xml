@@ -18,7 +18,7 @@
     <c:fullName>Head of Heads</c:fullName>
     <c:givenName>Head</c:givenName>
     <c:familyName>of Heads</c:familyName>
-    <c:employeeType>superuser</c:employeeType>
+    <c:subtype>superuser</c:subtype>
     <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <c:password>
             <c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">

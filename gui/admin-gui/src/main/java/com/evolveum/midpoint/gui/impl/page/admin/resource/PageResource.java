@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
                         label = "PageResource.auth.resource.label",
                         description = "PageResource.auth.resource.description")
         })
-public class PageResource extends PageAssignmentHolderDetails<ResourceType, AssignmentHolderDetailsModel<ResourceType>> {
+public class PageResource extends PageAssignmentHolderDetails<ResourceType, ResourceDetailsModel> {
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
@@ -70,10 +70,16 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Assi
 
             @Override
             protected void refreshStatus(AjaxRequestTarget target) {
+                target.add(PageResource.this.get(ID_DETAILS_VIEW));
                 PageResource.this.refresh(target);
 //                target.add(getDetailsPanel());
             }
         };
+    }
+
+    @Override
+    protected ResourceDetailsModel createObjectDetailsModels(PrismObject<ResourceType> object) {
+        return new ResourceDetailsModel(createPrismObejctModel(object), this);
     }
 
     @Override

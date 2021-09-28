@@ -61,7 +61,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     @Override
     protected void initLayout() {
         Collection<CompiledObjectCollectionView> applicableArchetypes = findAllApplicableArchetypeViews();
-        if (isAdd() && !applicableArchetypes.isEmpty()) {
+        if (isAdd() && applicableArchetypes.size() > 1) {
             TemplateFragment templateFragment = new TemplateFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageAssignmentHolderDetails.this);
             add(templateFragment);
         } else {

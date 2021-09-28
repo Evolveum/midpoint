@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.objectCollection;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplates;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -55,6 +55,8 @@ import java.util.List;
                 label = "PageObjectCollections.auth.objectCollections.label",
                 description = "PageObjectCollections.auth.objectCollections.description")
 })
+@CollectionInstance(identifier = "allObjectCollections", applicableForType = ObjectCollectionType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.objectCollections.list", singularLabel = "ObjectType.objectCollection", icon = GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON))
 public class PageObjectCollections extends PageAdmin{
 
     private static final long serialVersionUID = 1L;

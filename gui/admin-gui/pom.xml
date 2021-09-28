@@ -45,8 +45,24 @@
             <artifactId>spring-boot-actuator</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security.extensions</groupId>
-            <artifactId>spring-security-saml2-core</artifactId>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-saml2-service-provider</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-saml-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-security-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-xmlsec-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -254,7 +270,7 @@
         </dependency>
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc8</artifactId>
+            <artifactId>ojdbc11</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -637,14 +653,8 @@
             <artifactId>openjson</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.opensaml</groupId>
-            <artifactId>opensaml-security-impl</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.cryptacular</groupId>
-                    <artifactId>cryptacular</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>net.shibboleth.utilities</groupId>
+            <artifactId>java-support</artifactId>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -891,7 +901,7 @@
                         </exclude>
                         <exclude>
                             <groupId>com.oracle.database.jdbc</groupId>
-                            <artifactId>ojdbc8</artifactId>
+                            <artifactId>ojdbc11</artifactId>
                         </exclude>
                     </excludes>
                     -->
@@ -933,7 +943,7 @@
                                 <!-- note how the archive is treated as a normal file directory -->
                                 <directory>${project.build.directory}/midpoint-executable.war/WEB-INF/lib-provided</directory>
                                 <includes>
-                                    <include>ojdbc8-*.jar</include>
+                                    <include>ojdbc11-*.jar</include>
                                     <include>ucp-*.jar</include>
                                     <include>oraclepki-*.jar</include>
                                     <include>osdt_cert-*.jar</include>

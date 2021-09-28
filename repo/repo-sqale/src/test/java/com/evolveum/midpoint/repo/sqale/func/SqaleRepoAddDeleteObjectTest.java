@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
@@ -103,7 +104,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         MUser row = selectOne(u, u.nameOrig.eq(userName));
         assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.nameNorm).isNotNull(); // normalized name is stored
-        assertThat(row.version).isEqualTo(1); // initial version is set, ignoring provided version
+        // initial version is set, ignoring provided version
+        assertThat(row.version).isEqualTo(SqaleRepositoryService.INITIAL_VERSION_NUMBER);
         // read-only column with value generated/stored in the database
         assertThat(row.objectType).isEqualTo(MObjectType.USER);
         assertThat(row.subtypes).isNull(); // we don't store empty lists as empty arrays
@@ -179,7 +181,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.fullNameOrig).isEqualTo("Overwritten User");
 
         and("provided version for overwrite is ignored");
-        assertThat(row.version).isEqualTo(2);
+        assertThat(row.version).isEqualTo(SqaleRepositoryService.INITIAL_VERSION_NUMBER + 1);
     }
 
     @Test
@@ -208,7 +210,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, userType.getOid());
 
         and("provided version for overwrite is ignored");
-        assertThat(row.version).isEqualTo(1);
+        assertThat(row.version).isEqualTo(SqaleRepositoryService.INITIAL_VERSION_NUMBER);
     }
 
     // detailed container tests are from test200 on, this one has overwrite priority :-)
@@ -269,7 +271,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(assRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
 
         and("provided version for overwrite is ignored");
-        assertThat(row.version).isEqualTo(2);
+        assertThat(row.version).isEqualTo(SqaleRepositoryService.INITIAL_VERSION_NUMBER + 1);
     }
 
     @Test
@@ -296,7 +298,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MUser mUser = users.get(0);
         assertThat(mUser.oid).isEqualTo(providedOid);
-        assertThat(mUser.version).isEqualTo(1); // initial version is set
+        assertThat(mUser.version).isEqualTo(SqaleRepositoryService.INITIAL_VERSION_NUMBER);
     }
 
     @Test
@@ -348,7 +350,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
         assertCount(QObject.CLASS, baseCount); // no new object was created
         MUser row = selectObjectByOid(QUser.class, providedOid);
-        assertThat(row.version).isEqualTo(1); // version is still initial, no change
+        assertThat(row.version).isEqualTo(SqaleRepositoryService.INITIAL_VERSION_NUMBER); // no change
     }
 
     @Test
@@ -1700,6 +1702,10 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.waitingReason).isEqualTo(TaskWaitingReasonType.OTHER_TASKS);
         assertThat(row.dependentTaskIdentifiers)
                 .containsExactlyInAnyOrder("dep-task-1", "dep-task-2");
+
+        and("stored full object does not contain operation result");
+        TaskType parsedTask = parseFullObject(row.fullObject);
+        assertThat(parsedTask.getResult()).isNull();
     }
 
     @Test

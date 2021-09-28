@@ -7,23 +7,23 @@
 
 package com.evolveum.midpoint.repo.common.task.reports;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityReportsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingRecordType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsExecutionReportConfigurationType;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityReportsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsExecutionReportConfigurationType;
 
 public class ItemsReport extends AbstractReport {
 
     private static final ItemPath STATE_ITEM_PATH = ItemPath.create(ActivityStateType.F_REPORTS, ActivityReportsType.F_ITEMS);
+
+    private static final int MAX_ERROR_MESSAGE_SIZE = 1000;
 
     public ItemsReport(ItemsExecutionReportConfigurationType definition, @NotNull CurrentActivityState<?> activityState) {
         super(definition, ItemProcessingRecordType.COMPLEX_TYPE, activityState);
@@ -44,10 +44,28 @@ public class ItemsReport extends AbstractReport {
             return;
         }
 
+        transformErrorMessage(record);
+
         // Synchronized because it can be called from multiple worker threads (LATs).
         synchronized (this) {
             openIfClosed(result);
             writeRecord(record);
+        }
+    }
+
+    /**
+     * Transforms error message to be safely storable into CSV:
+     * shortens it and replaces line breaks with spaces.
+     */
+    @Experimental
+    private void transformErrorMessage(@NotNull ItemProcessingRecordType record) {
+        String message = record.getErrorMessage();
+        if (message != null) {
+            message = message.replaceAll("\\R+", " ");
+            if (message.length() > MAX_ERROR_MESSAGE_SIZE) {
+                message = message.substring(0, MAX_ERROR_MESSAGE_SIZE);
+            }
+            record.setErrorMessage(message);
         }
     }
 

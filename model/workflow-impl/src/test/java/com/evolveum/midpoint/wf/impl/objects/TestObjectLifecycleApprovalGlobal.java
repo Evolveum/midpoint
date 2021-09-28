@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,20 @@
 
 package com.evolveum.midpoint.wf.impl.objects;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -24,17 +37,6 @@ import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Tests role lifecycle with global policy rules.
@@ -46,6 +48,8 @@ import static org.testng.AssertJUnit.assertEquals;
 public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecycleApproval {
 
     private static final File GLOBAL_POLICY_RULES_FILE = new File(TEST_RESOURCE_DIR, "global-policy-rules.xml");
+    private static final @NotNull String OID1 = "10000001-d34d-b33f-f00d-d34db33ff00d";
+    private static final @NotNull String OID2 = "20000002-d34d-b33f-f00d-d34db33ff00d";
 
     @Override
     protected boolean approveObjectAdd() {
@@ -170,10 +174,10 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         ObjectDelta<RoleType> judgeDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT)
-                        .add(createAssignmentTo("oid1", ObjectTypes.ROLE, prismContext),
-                                createAssignmentTo("oid2", ObjectTypes.ROLE, prismContext))
+                .add(createAssignmentTo(OID1, ObjectTypes.ROLE, prismContext),
+                        createAssignmentTo(OID2, ObjectTypes.ROLE, prismContext))
                 .item(RoleType.F_DESCRIPTION)
-                        .replace("hi")
+                .replace("hi")
                 .asObjectDeltaCast(roleJudgeOid);
 
         executeTest(new TestDetails() {
@@ -255,7 +259,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         assertEquals("Wrong risk level", "high", judgeAfter.asObjectable().getRiskLevel());
         assertEquals("Wrong description", "hi", judgeAfter.asObjectable().getDescription());
-        assertInducedRoles(judgeAfter, "oid1", "oid2");
+        assertInducedRoles(judgeAfter, OID1, OID2);
     }
 
     // MID-4372
@@ -328,8 +332,8 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                 .name("captain")
                 .description("something")
                 .riskLevel("high")
-                .inducement(createAssignmentTo("oid1", ObjectTypes.ROLE, prismContext))
-                .inducement(createAssignmentTo("oid2", ObjectTypes.ROLE, prismContext));
+                .inducement(createAssignmentTo(OID1, ObjectTypes.ROLE, prismContext))
+                .inducement(createAssignmentTo(OID2, ObjectTypes.ROLE, prismContext));
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(captain.asPrismObject());
 
         executeTest(new TestDetails() {
@@ -418,7 +422,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
         display("Captain role", captainAfter);
 
         assertEquals("Wrong risk level", "high", captainAfter.asObjectable().getRiskLevel());
-        assertInducedRoles(captainAfter, "oid1", "oid2");
+        assertInducedRoles(captainAfter, OID1, OID2);
     }
 
     @Test
@@ -429,7 +433,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         ObjectDelta<RoleType> captainDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT)
-                        .delete(cloneCollectionMembers(captainBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
+                .delete(cloneCollectionMembers(captainBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
                 .asObjectDeltaCast(roleCaptainOid);
 
         executeTest(new TestDetails() {
@@ -514,8 +518,8 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                 .name("thief")
                 .description("something")
                 .riskLevel("high")
-                .inducement(createAssignmentTo("oid1", ObjectTypes.ROLE, prismContext))
-                .inducement(createAssignmentTo("oid2", ObjectTypes.ROLE, prismContext));
+                .inducement(createAssignmentTo(OID1, ObjectTypes.ROLE, prismContext))
+                .inducement(createAssignmentTo(OID2, ObjectTypes.ROLE, prismContext));
 
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(thief.asPrismObject());
 
@@ -604,7 +608,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
         display("Thief role", thiefAfter);
 
         assertEquals("Wrong risk level", "high", thiefAfter.asObjectable().getRiskLevel());
-        assertInducedRoles(thiefAfter, "oid1", "oid2");
+        assertInducedRoles(thiefAfter, OID1, OID2);
     }
 
     @Test

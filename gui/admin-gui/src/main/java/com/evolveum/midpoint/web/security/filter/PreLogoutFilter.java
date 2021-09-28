@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -16,8 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
-
-import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
 
 /**
  * @author skublik

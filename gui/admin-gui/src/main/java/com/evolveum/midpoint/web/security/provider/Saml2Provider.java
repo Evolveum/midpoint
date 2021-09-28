@@ -6,19 +6,19 @@
  */
 package com.evolveum.midpoint.web.security.provider;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
+import com.evolveum.midpoint.web.security.module.configuration.SamlMidpointAdditionalConfiguration;
+
+import org.apache.commons.lang3.StringUtils;
+import org.opensaml.saml.saml2.core.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.saml.saml2.attribute.Attribute;
-import org.springframework.security.saml.spi.DefaultSamlAuthentication;
+import org.springframework.security.saml2.provider.service.authentication.*;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
+import org.springframework.util.CollectionUtils;
+
 /**
  * @author skublik
  */
@@ -43,9 +45,47 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(Saml2Provider.class);
 
+    private final OpenSaml4AuthenticationProvider openSamlProvider = new OpenSaml4AuthenticationProvider();
+    private final Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultConverter = OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
+
     @Autowired
     @Qualifier("passwordAuthenticationEvaluator")
     private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
+
+    public Saml2Provider() {
+        openSamlProvider.setResponseAuthenticationConverter((responseToken) -> {
+            Saml2Authentication authentication = defaultConverter.convert(responseToken);
+            DefaultSaml2AuthenticatedPrincipal principal = (DefaultSaml2AuthenticatedPrincipal) authentication.getPrincipal();
+            Map<String, List<Object>> originalAttributes = principal.getAttributes();
+            Response response = responseToken.getResponse();
+            Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
+            Map<String, List<Object>> attributes = new LinkedHashMap<>();
+            for (AttributeStatement attributeStatement : assertion.getAttributeStatements()) {
+                for (Attribute attribute : attributeStatement.getAttributes()) {
+                    if (originalAttributes.containsKey(attribute.getName())) {
+                        List<Object> attributeValues = originalAttributes.get(attribute.getName());
+                        attributes.put(attribute.getName(), attributeValues);
+                        if (StringUtils.isNotEmpty(attribute.getFriendlyName())) {
+                            attributes.put(attribute.getFriendlyName(), attributeValues);
+                        }
+                    }
+                }
+            }
+            MidpointSaml2AuthenticatedPrincipal newPrincipal = new MidpointSaml2AuthenticatedPrincipal(
+                    principal.getName(),
+                    attributes,
+                    assertion.getSubject().getNameID()
+            );
+            newPrincipal.setRelyingPartyRegistrationId(responseToken.getToken().getRelyingPartyRegistration().getRegistrationId());
+            Saml2Authentication saml2Authentication = new Saml2Authentication(
+                    newPrincipal,
+                    authentication.getSaml2Response(),
+                    authentication.getAuthorities()
+            );
+            saml2Authentication.setDetails(assertion.getSubject().getNameID());
+            return saml2Authentication;
+        });
+    }
 
     @Override
     protected AuthenticationEvaluator getEvaluator() {
@@ -53,7 +93,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
     }
 
     @Override
-    protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
+    protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
             ModuleAuthentication moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
         if (principal != null && principal instanceof GuiProfiledPrincipal) {
@@ -71,27 +111,31 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
         Authentication token;
-        if (authentication instanceof DefaultSamlAuthentication) {
-            DefaultSamlAuthentication samlAuthentication = (DefaultSamlAuthentication) authentication;
+        if (authentication instanceof Saml2AuthenticationToken) {
+            Saml2AuthenticationToken samlAuthenticationToken = (Saml2AuthenticationToken) authentication;
+            Saml2Authentication samlAuthentication = (Saml2Authentication) openSamlProvider.authenticate(samlAuthenticationToken);
             Saml2ModuleAuthentication samlModule = (Saml2ModuleAuthentication) SecurityUtils.getProcessingModule(true);
             try {
-                List<Attribute> attributes = ((DefaultSamlAuthentication) authentication).getAssertion().getAttributes();
+                DefaultSaml2AuthenticatedPrincipal principal = (DefaultSaml2AuthenticatedPrincipal) samlAuthentication.getPrincipal();
+                samlAuthenticationToken.setDetails(principal);
+                Map<String, List<Object>> attributes = principal.getAttributes();
                 String enteredUsername = "";
-                for (Attribute attribute : attributes) {
-                    if (attribute != null
-                            && ((attribute.getFriendlyName() != null && attribute.getFriendlyName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId())))
-                            || (attribute.getName() != null && attribute.getName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId()))))) {
-                        List<Object> values = attribute.getValues();
-                        if (values == null) {
-                            LOGGER.error("Saml attribute, which define username don't contains value");
-                            throw new AuthenticationServiceException("web.security.auth.saml2.username.null");
-                        }
-                        if (values.size() != 1) {
-                            LOGGER.error("Saml attribute, which define username contains more values {}", values);
-                            throw new AuthenticationServiceException("web.security.auth.saml2.username.more.values");
-                        }
-                        enteredUsername = (String) values.iterator().next();
+                SamlMidpointAdditionalConfiguration config = samlModule.getAdditionalConfiguration().get(samlAuthenticationToken.getRelyingPartyRegistration().getRegistrationId());
+                String nameOfSamlAttribute = config.getNameOfUsernameAttribute();
+                if (!attributes.containsKey(nameOfSamlAttribute)){
+                    LOGGER.error("Couldn't find attribute for username in saml response");
+                    throw new AuthenticationServiceException("web.security.auth.saml2.username.null");
+                } else {
+                    List<Object> values = attributes.get(nameOfSamlAttribute);
+                    if (values == null || values.isEmpty() || values.get(0) == null) {
+                        LOGGER.error("Saml attribute, which define username don't contains value");
+                        throw new AuthenticationServiceException("web.security.auth.saml2.username.null");
                     }
+                    if (values.size() != 1) {
+                        LOGGER.error("Saml attribute, which define username contains more values {}", values);
+                        throw new AuthenticationServiceException("web.security.auth.saml2.username.more.values");
+                    }
+                    enteredUsername = (String) values.iterator().next();
                 }
                 PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, focusType, requireAssignment);
                 if (channel != null) {
@@ -99,15 +143,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
                 }
                 token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, authContext);
             } catch (AuthenticationException e) {
-//                AnonymousAuthenticationToken anonymousToken = new AnonymousAuthenticationToken(
-//                        UUID.randomUUID().toString(),
-//                        "anonymousUser",
-//                        AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")
-//                );
-//                anonymousToken.setDetails(samlAuthentication);
-//                samlModule.setAuthentication(anonymousToken);
-
-                samlModule.setAuthentication(samlAuthentication);
+                samlModule.setAuthentication(samlAuthenticationToken);
                 LOGGER.info("Authentication with saml module failed: {}", e.getMessage());
                 throw e;
             }
@@ -121,7 +157,6 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
         LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
                 authentication.getClass().getSimpleName(), principal.getAuthorities());
         return token;
-
     }
 
     @Override
@@ -135,10 +170,26 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
 
     @Override
     public boolean supports(Class authentication) {
-        if (DefaultSamlAuthentication.class.equals(authentication)) {
-            return true;
+        return openSamlProvider.supports(authentication);
+    }
+
+    public class MidpointSaml2AuthenticatedPrincipal extends DefaultSaml2AuthenticatedPrincipal{
+
+        private final String spNameQualifier;
+        private final String nameIdFormat;
+
+        public MidpointSaml2AuthenticatedPrincipal(String name, Map<String, List<Object>> attributes, NameID nameID) {
+            super(name, attributes);
+            spNameQualifier = nameID.getSPNameQualifier();
+            nameIdFormat = nameID.getFormat();
         }
 
-        return false;
+        public String getNameIdFormat() {
+            return nameIdFormat;
+        }
+
+        public String getSpNameQualifier() {
+            return spNameQualifier;
+        }
     }
 }

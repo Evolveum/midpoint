@@ -53,6 +53,12 @@ public class TaskDetailsModel extends AssignmentHolderDetailsModel<TaskType> {
         }, false);
     }
 
+    @Override
+    public void reset() {
+        super.reset();
+        rootTaskModel.reset();
+    }
+
     /**
      * Loads root task from the repository. Returns null if task cannot be loaded.
      *

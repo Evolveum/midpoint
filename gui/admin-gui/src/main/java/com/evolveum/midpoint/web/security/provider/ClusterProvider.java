@@ -84,7 +84,7 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
         }
     }
 
-    protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, ModuleAuthentication moduleAuthentication, Authentication token) {
+    protected void writeAuthentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, ModuleAuthentication moduleAuthentication, Authentication token) {
         mpAuthentication.setPrincipal(token.getPrincipal());
         mpAuthentication.setCredential(token.getCredentials());
         moduleAuthentication.setAuthentication(token);

@@ -82,7 +82,8 @@ public class QAuditDeltaMapping
         try {
             return parseSchemaObject(bytes, identifier, clazz);
         } catch (SchemaException e) {
-            logger.error("Cannot parse {}: {}", clazz.getSimpleName(), e.getMessage(), e);
+            // If it's "just" schema error, we ignore it. No reason not to return the audit record.
+            // Also, parseSchemaObject logs this on ERROR, so we don't need to do it here.
             return null;
         }
     }

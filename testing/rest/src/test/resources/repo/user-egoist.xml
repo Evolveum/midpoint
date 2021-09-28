@@ -21,7 +21,7 @@
     <c:fullName>Self Seeker</c:fullName>
     <c:givenName>Self</c:givenName>
     <c:familyName>Seeker</c:familyName>
-    <c:employeeType>enduser</c:employeeType>
+    <c:subtype>enduser</c:subtype>
     <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <c:password>
             <c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">

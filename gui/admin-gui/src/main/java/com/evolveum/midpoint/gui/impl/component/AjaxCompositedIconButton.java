@@ -37,6 +37,8 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
     private IModel<CompositedIconButtonDto> buttonModel;
 
+    private boolean titleAsLabel;
+
     public AjaxCompositedIconButton(String id, IModel<CompositedIconButtonDto> buttonModel) {
         super(id);
         this.buttonModel = buttonModel;
@@ -122,6 +124,12 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
                 sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
             }
             sb.append("></i> ");
+
+            if (titleAsLabel) {
+                sb.append("<span class=\"operationalButtonLabel\">")
+                        .append(title.getObject())
+                        .append("</span>");
+            }
         }
 
         if (icon.hasLayerIcons()) {
@@ -149,5 +157,9 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         if (tag.isOpenClose()) {
             tag.setType(XmlTag.TagType.OPEN);
         }
+    }
+
+    public void titleAsLabel(boolean titleAsLabel) {
+        this.titleAsLabel = titleAsLabel;
     }
 }

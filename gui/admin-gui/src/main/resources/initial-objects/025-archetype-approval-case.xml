@@ -48,8 +48,10 @@
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
                     </display>
+                    <displayOrder>1</displayOrder>
                     <panelType>approvalCase</panelType>
                     <type>c:CaseType</type>
+                    <default>true</default>
                 </panel>
             </objectDetails>
         </adminGuiConfiguration>

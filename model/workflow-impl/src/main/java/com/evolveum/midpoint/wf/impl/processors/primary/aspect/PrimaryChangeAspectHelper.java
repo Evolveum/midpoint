@@ -13,7 +13,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import org.apache.velocity.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -64,7 +64,7 @@ public class PrimaryChangeAspectHelper {
             return null;
         }
         String aspectName = aspect.getBeanName();
-        String getterName = "get" + StringUtils.capitalizeFirstLetter(aspectName);
+        String getterName = "get" + StringUtils.capitalize(aspectName);
         Object aspectConfigurationObject;
         try {
             Method getter = processorConfigurationType.getClass().getDeclaredMethod(getterName);

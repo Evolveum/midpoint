@@ -268,6 +268,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             }
 
         };
+        evidenceForm.add(evidencePanel);
         evidencePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         evidencePanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -279,7 +280,6 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
                 return CaseTypeUtil.isManualProvisioningCase(caseObj);
             }
         });
-        evidenceForm.add(evidencePanel);
 
         WebMarkupContainer commentContainer = new WebMarkupContainer(ID_APPROVER_CONTAINER);
         commentContainer.setOutputMarkupId(true);

@@ -174,15 +174,20 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
     }
 
-    public SecurityPolicyType locateProjectionSecurityPolicy(RefinedObjectClassDefinition structuralObjectClassDefinition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        LOGGER.trace("Finishing loading of projection context: security policy");
+    public SecurityPolicyType locateProjectionSecurityPolicy(RefinedObjectClassDefinition structuralObjectClassDefinition,
+            Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        LOGGER.trace("locateProjectionSecurityPolicy starting");
         ObjectReferenceType securityPolicyRef = structuralObjectClassDefinition.getSecurityPolicyRef();
         if (securityPolicyRef == null || securityPolicyRef.getOid() == null) {
-            LOGGER.trace("Security policy not defined for the projection context.");
+            LOGGER.trace("Security policy not defined for the structural object class, trying legacy password policy.");
             return loadProjectionLegacyPasswordPolicy(structuralObjectClassDefinition, task, result);
         }
         LOGGER.trace("Loading security policy {} from: {}", securityPolicyRef, structuralObjectClassDefinition);
-        SecurityPolicyType securityPolicy = objectResolver.resolve(securityPolicyRef, SecurityPolicyType.class, null, " projection security policy", task, result);
+        // TODO Use read-only option. (But deal with the fact that we modify the returned object...)
+        SecurityPolicyType securityPolicy = objectResolver.resolve(securityPolicyRef, SecurityPolicyType.class,
+                null, " projection security policy", task, result);
         if (securityPolicy == null) {
             LOGGER.debug("Security policy {} defined for the projection does not exist", securityPolicyRef);
             return null;

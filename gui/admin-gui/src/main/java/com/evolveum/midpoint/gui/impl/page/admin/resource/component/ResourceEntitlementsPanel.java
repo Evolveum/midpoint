@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -21,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
         display = @PanelDisplay(label = "PageResource.tab.content.entitlement", order = 40))
 public class ResourceEntitlementsPanel extends ResourceContentTabPanel {
 
-    public ResourceEntitlementsPanel(String id, ObjectDetailsModels<ResourceType> model, ContainerPanelConfigurationType config) {
+    public ResourceEntitlementsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, ShadowKindType.ENTITLEMENT, model, config);
     }
 }

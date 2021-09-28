@@ -11,18 +11,15 @@ import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Collection;
-import java.util.List;
-
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 
 /**
  * @author skublik
@@ -84,7 +81,7 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     @Override
     public String getPathDuringProccessing() {
         String suffix = this.channel.getUrlSuffix();
-        return StringUtils.isBlank(suffix) ? null : ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + stripSlashes(suffix);
+        return StringUtils.isBlank(suffix) ? null : ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + SecurityUtils.stripSlashes(suffix);
     }
 
     @Override

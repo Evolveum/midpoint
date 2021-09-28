@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
@@ -21,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "reporting", defaultContainerPath = "activity/reporting")
 @PanelInstance(identifier = "reporting", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
-        display = @PanelDisplay(label = "ActivityDefinitionType.reporting", order = 50))
+        display = @PanelDisplay(label = "ActivityDefinitionType.reporting", icon = GuiStyleConstants.CLASS_REPORT_ICON, order = 50))
 public class TaskReportingPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskReportingPanel.class);

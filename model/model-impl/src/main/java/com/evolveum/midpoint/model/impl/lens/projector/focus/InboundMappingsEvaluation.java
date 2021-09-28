@@ -127,8 +127,9 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 continue;
             }
             if (!projectionContext.isCanProject()) {
-                LOGGER.trace("Skipping processing of inbound expressions for projection {}: there is a limit to propagate changes only from resource {}",
-                        lazy(projectionContext::getHumanReadableName), context.getTriggeredResourceOid());
+                LOGGER.trace("Skipping processing of inbound expressions for projection {}: "
+                                + "there is a limit to propagate changes only from resource {}",
+                        lazy(projectionContext::getHumanReadableName), context.getTriggeringResourceOid());
                 continue;
             }
 
@@ -896,7 +897,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 currentProjection = projectionContext.getObjectCurrent();
             } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", projectionContext.getOid(), e.getMessage());
-                projectionContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                projectionContext.setBroken();
             }
         }
 

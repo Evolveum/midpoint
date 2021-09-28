@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.page.admin.orgs;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
@@ -16,9 +17,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -28,11 +27,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -61,6 +56,8 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORGS_VIEW_URL,
                 label = "PageRoles.auth.orgs.view.label",
                 description = "PageRoles.auth.orgs.view.description")})
+@CollectionInstance(identifier = "allOrgs", applicableForType = OrgType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.orgs.list", singularLabel = "ObjectType.org", icon = GuiStyleConstants.CLASS_OBJECT_ORG_ICON))
 public class PageOrgs extends PageAdmin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgs.class);

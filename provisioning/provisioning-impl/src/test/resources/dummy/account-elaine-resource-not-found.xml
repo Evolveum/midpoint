@@ -12,7 +12,7 @@
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>will</name>
-    <resourceRef oid="ef2bc95b-does-noot-exis-t999dddddddd" />
+    <resourceRef oid="ef2bc95b-d0e5-0001-beef-0999dddddddd" />
     <objectClass>ri:AccountObjectClass</objectClass>
     <kind>account</kind>
     <attributes>

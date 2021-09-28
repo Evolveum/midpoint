@@ -127,6 +127,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_RESOURCE_BROKEN = "fa fa-exclamation";
     public static final String CLASS_ICON_RESOURCE_UNKNOWN = "fa fa-question";
     public static final String CLASS_ICON_RESOURCE_MAINTENANCE = "fa fa-wrench";
+    public static final String CLASS_ICON_RESOURCE_SCHEMA = "fa fa-code";
     public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-bank";
     public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pencil-square-o";
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer";
@@ -242,6 +243,24 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ICON_SAVE = "fa fa-save";
     public static final String CLASS_ICON_PREVIEW = "fa fa-eye";
-    public static final String CLASS_ICON_REMOVE = "fa fa-remove";
+    public static final String CLASS_ICON_REMOVE = "fa fa-trash";
 
+    public static final String CLASS_ICON_WIZARD = "fa fa-magic";
+
+    public static final String CLASS_TASK_DISTRIBUTION_ICON = "fa fa-cubes";
+    public static final String CLASS_TASK_WORK_ICON = "fa fa-briefcase";
+    public static final String CLASS_TASK_CONTROL_FLOW_ICON = "fa fa-code-fork";
+    public static final String CLASS_TASK_SCHEDULE_ICON = "fa fa-calendar";
+    public static final String CLASS_TASK_STATISTICS_ICON = "fa fa-line-chart";
+    public static final String CLASS_TASK_ERRORS_ICON = "fa fa-exclamation-circle";
+    public static final String CLASS_TASK_ACTIVITY_ICON = "fa fa-cog";
+
+    public static final String CLASS_GROUP_ICON = "fa fa-users";
+    public static final String CLASS_APPLICABLE_POLICY_ICON = "fa fa-share-alt";
+    public static final String CLASS_LIFECYCLE_ICON = "fa fa-recycle";
+    public static final String CLASS_TRIGGER_ICON = "fa fa-calendar-check-o";
+    public static final String CLASS_PASSWORD_ICON = "fa fa-key";
+
+    public static final String CLASS_OPTIONS_BUTTON_ICON = "fa fa-bars";
+    public static final String CLASS_TRACING_BUTTON_ICON = "fa fa-stethoscope";
 }

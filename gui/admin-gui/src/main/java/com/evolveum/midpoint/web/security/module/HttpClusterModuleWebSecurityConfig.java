@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.security.module;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.HttpAuthenticationEntryPoint;
@@ -15,12 +16,12 @@ import com.evolveum.midpoint.web.security.MidpointAllowAllAuthorizationEvaluator
 import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.web.security.filter.HttpClusterAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-
-import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
 
 /**
  * @author skublik
@@ -46,7 +47,7 @@ public class HttpClusterModuleWebSecurityConfig<C extends ModuleWebSecurityConfi
 
         super.configure(http);
         HttpAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new HttpAuthenticationEntryPoint());
-        http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
+        http.antMatcher(SecurityUtils.stripEndingSlashes(getPrefix()) + "/**");
 
         HttpClusterAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpClusterAuthenticationFilter(authenticationManager(), entryPoint));
         RememberMeServices rememberMeServices = http.getSharedObject(RememberMeServices.class);

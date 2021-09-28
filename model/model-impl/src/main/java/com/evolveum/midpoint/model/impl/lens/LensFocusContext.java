@@ -53,7 +53,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     private boolean primaryDeltaConsolidated;
 
-    private transient ArchetypePolicyType archetypePolicyType;
+    private transient ArchetypePolicyType archetypePolicy;
 
     private transient List<ArchetypeType> archetypes;
 
@@ -67,12 +67,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         super(objectTypeClass, lensContext);
     }
 
-    public ArchetypePolicyType getArchetypePolicyType() {
-        return archetypePolicyType;
+    public ArchetypePolicyType getArchetypePolicy() {
+        return archetypePolicy;
     }
 
-    public void setArchetypePolicyType(ArchetypePolicyType objectPolicyConfigurationType) {
-        this.archetypePolicyType = objectPolicyConfigurationType;
+    public void setArchetypePolicy(ArchetypePolicyType value) {
+        this.archetypePolicy = value;
     }
 
     public ArchetypeType getArchetype() {
@@ -95,10 +95,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     public LifecycleStateModelType getLifecycleModel() {
-        if (archetypePolicyType == null) {
+        if (archetypePolicy == null) {
             return null;
         }
-        return archetypePolicyType.getLifecycleStateModel();
+        return archetypePolicy.getLifecycleStateModel();
     }
 
     @Override
@@ -125,6 +125,15 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     @Override
     public ObjectDelta<O> getSummaryDelta() {
+        long start = System.nanoTime();
+        try {
+            return getSummaryDeltaInternal();
+        } finally {
+            lensContext.recordDeltaAggregationTime(System.nanoTime() - start);
+        }
+    }
+
+    private ObjectDelta<O> getSummaryDeltaInternal() {
         try {
             List<ObjectDelta<O>> allDeltas = new ArrayList<>();
             CollectionUtils.addIgnoreNull(allDeltas, primaryDelta);
@@ -308,8 +317,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         return sb.toString();
     }
 
-    LensFocusContextType toLensFocusContextType(PrismContext prismContext, LensContext.ExportType exportType) throws SchemaException {
-        LensFocusContextType rv = new LensFocusContextType(prismContext);
+    LensFocusContextType toLensFocusContextType(LensContext.ExportType exportType) throws SchemaException {
+        LensFocusContextType rv = new LensFocusContextType(PrismContext.get());
         super.storeIntoLensElementContextType(rv, exportType);
         if (exportType != LensContext.ExportType.MINIMAL) {
             rv.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
@@ -332,7 +341,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
 
         lensFocusContext.retrieveFromLensElementContextType(focusContextType, task, result);
-        lensFocusContext.secondaryDeltas = ObjectDeltaWaves.fromObjectDeltaWavesType(focusContextType.getSecondaryDeltas(), lensContext.getPrismContext());
+        lensFocusContext.secondaryDeltas = ObjectDeltaWaves.fromObjectDeltaWavesType(focusContextType.getSecondaryDeltas());
 
         // fixing provisioning type in delta (however, this is not usually needed, unless primary object is shadow or resource
         Objectable object;
@@ -467,5 +476,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public void setPrimaryDeltaExecuted(boolean primaryDeltaExecuted) {
         this.primaryDeltaExecuted = primaryDeltaExecuted;
+    }
+
+    public void deleteEmptyPrimaryDelta() {
+        ObjectDelta<?> primaryDelta = getPrimaryDelta();
+        if (ObjectDelta.isModify(primaryDelta) && primaryDelta.isEmpty()) {
+            setPrimaryDelta(null);
+        }
     }
 }

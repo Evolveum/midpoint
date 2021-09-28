@@ -13,6 +13,7 @@ import java.util.function.BooleanSupplier;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +49,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private List<RichHyperlinkType> additionalMenuLink = new ArrayList<>();
     private List<RichHyperlinkType> userDashboardLink = new ArrayList<>();
     private List<CompiledObjectCollectionView> objectCollectionViews = new ArrayList<>();
+    private List<CompiledShadowCollectionView> shadowCollectionViews = new ArrayList<>();
     private CompiledObjectCollectionView defaultObjectCollectionView = null;
     private DashboardLayoutType userDashboard;
     private List<CompiledDashboardType> configurableDashboards = new ArrayList<>();
@@ -146,6 +148,15 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return defaultObjectCollectionView;
     }
 
+    public CompiledShadowCollectionView findShadowCollectionView(@NotNull String resourceOid, ShadowKindType kindType, String intent) {
+        for (CompiledShadowCollectionView shadowCollectionView : shadowCollectionViews) {
+            if (shadowCollectionView.match(resourceOid, kindType, intent)) {
+                return shadowCollectionView;
+            }
+        }
+        return null;
+    }
+
     /**
      * Find all views that are applicable for a particular object type. Returns views for all collections
      * and archetypes that are applicable for that type. Ideal to be used in constructing menus.
@@ -177,6 +188,11 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
                 continue;
             }
             ObjectReferenceType collectionRef = objectCollectionView.getCollection() != null ? objectCollectionView.getCollection().getCollectionRef() : null;
+            if (collectionRef == null && objectCollectionView.isDefaultView()) { // e.g. All users, All roles, ...
+                archetypeViews.add(objectCollectionView);
+                continue;
+            }
+
             QName collectionRefType = collectionRef != null ? collectionRef.getType() : null;
             if (collectionRefType != null && ArchetypeType.COMPLEX_TYPE.equals(collectionRefType)){
                 archetypeViews.add(objectCollectionView);
@@ -203,22 +219,6 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     public <O extends ObjectType> List<CompiledObjectCollectionView> findAllApplicableObjectCollectionViews(Class<O> compileTimeClass) {
         return findAllApplicableObjectCollectionViews(ObjectTypes.getObjectType(compileTimeClass).getTypeQName());
     }
-
-//    public <O extends ObjectType> CompiledObjectCollectionView findObjectViewByViewName(Class<O> compileTimeClass, String viewName){
-//        if (compileTimeClass == null || StringUtils.isEmpty(viewName)){
-//            return null;
-//        }
-//        List<CompiledObjectCollectionView> objectViews = findAllApplicableObjectCollectionViews(compileTimeClass);
-//        if (objectViews == null) {
-//            return null;
-//        }
-//        for (CompiledObjectCollectionView view : objectViews){
-//            if (viewName.equals(view.getViewIdentifier())){
-//                return view;
-//            }
-//        }
-//        return null;
-//    }
 
     /**
      * Default list view setting should never be needed publicly. Always check setting for specific
@@ -279,6 +279,37 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
             return null;
         }
         return findObjectConfiguration(objectDetails.getObjectDetailsPage(), typeQName);
+    }
+
+    public <O extends ObjectType> GuiShadowDetailsPageType findShadowDetailsConfiguration(ResourceShadowDiscriminator shadowDiscriminator) {
+        if (objectDetails == null) {
+            return null;
+        }
+
+        for (GuiShadowDetailsPageType shadowDetailsPageType : objectDetails.getShadowDetailsPage()) {
+            if (applicableForAll(shadowDetailsPageType)) {
+                return shadowDetailsPageType;
+            }
+            if (shadowDetailsPageType.getResourceRef() == null) {
+                continue;
+            }
+            if (!shadowDiscriminator.getResourceOid().equals(shadowDetailsPageType.getResourceRef().getOid())) {
+                continue;
+            }
+            if (shadowDiscriminator.getKind() != shadowDetailsPageType.getKind()) {
+                continue;
+            }
+            if (!shadowDiscriminator.getIntent().equals(shadowDetailsPageType.getIntent())) {
+                continue;
+            }
+            return shadowDetailsPageType;
+        }
+
+        return null;
+    }
+
+    private boolean applicableForAll(GuiShadowDetailsPageType shadowDetailsPageType) {
+        return shadowDetailsPageType.getResourceRef() == null && shadowDetailsPageType.getKind() == null && shadowDetailsPageType.getIntent() == null;
     }
 
     private <T extends AbstractObjectTypeConfigurationType, O extends ObjectType> T findObjectConfiguration(

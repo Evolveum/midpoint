@@ -147,6 +147,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     public void addItem(ItemWrapper<?, ?> newItem) {
         items.add(newItem);
         if (newItem instanceof PrismContainerWrapper) {
+
+            collectExtensionItems(newItem, false, nonContainers);
+
             if (!((PrismContainerWrapper) newItem).isVirtual()) {
                 containers.add((PrismContainerWrapper) newItem);
             }

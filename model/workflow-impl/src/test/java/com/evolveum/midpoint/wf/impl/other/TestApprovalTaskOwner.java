@@ -38,11 +38,11 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
 
     private static final File FILE_USER_MANAGER = new File(TEST_RESOURCE_DIR, "user-manager.xml");
     private static final String USER_MANAGER_NAME = "manager";
-    private static final String USER_MANAGER_OID = "00000000-0000-0000-mng0-000000000002";
+    private static final String USER_MANAGER_OID = "00000000-0000-0000-6d6e-000000000002";
 
     private static final File FILE_ROLE_META_APPROVE_MANAGER = new File(TEST_RESOURCE_DIR, "metarole-approve-manager.xml");
     private static final File FILE_ROLE_DUELLING_CLASSROOM_TEACHER = new File(TEST_RESOURCE_DIR, "role-duelling-classroom-teacher.xml");
-    private static final String ROLE_DUELLING_CLASSROOM_TEACHER_OID = "00000000-role-0000-0000-111111111777";
+    private static final String ROLE_DUELLING_CLASSROOM_TEACHER_OID = "00000000-726c-0000-0000-111111111777";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -98,7 +98,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
                 .display()
                 .assertArchetypeRef(SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value())
                 .owner()
-                    .assertOid(USER_MANAGER_OID);
+                .assertOid(USER_MANAGER_OID);
 
         //assert assigned role
         assertUserAfter(USER_JACK_OID).assignments().assertRole(ROLE_DUELLING_CLASSROOM_TEACHER_OID);
@@ -164,7 +164,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
                 .display()
                 .assertArchetypeRef(SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value())
                 .owner()
-                    .assertOid(USER_ADMINISTRATOR_OID);
+                .assertOid(USER_ADMINISTRATOR_OID);
 
         assertUserAfter(USER_JACK_OID).assignments().assertRole(ROLE_DUELLING_CLASSROOM_TEACHER_OID);
     }

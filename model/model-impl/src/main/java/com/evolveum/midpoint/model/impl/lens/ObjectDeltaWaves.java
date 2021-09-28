@@ -152,8 +152,8 @@ public class ObjectDeltaWaves<O extends ObjectType> implements Iterable<ObjectDe
     }
 
     // don't forget to apply provisioning definitions to resulting deltas (it's the client responsibility)
-    public static <O extends ObjectType> ObjectDeltaWaves<O> fromObjectDeltaWavesType(ObjectDeltaWavesType objectDeltaWavesBean,
-            PrismContext prismContext) throws SchemaException {
+    static <O extends ObjectType> ObjectDeltaWaves<O> fromObjectDeltaWavesType(ObjectDeltaWavesType objectDeltaWavesBean)
+            throws SchemaException {
         if (objectDeltaWavesBean == null) {
             return null;
         }
@@ -165,7 +165,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements Iterable<ObjectDe
             }
             if (objectDeltaWaveBean.getDelta() != null) {
                 objectDeltaWaves.add(objectDeltaWaveBean.getNumber(),
-                        DeltaConvertor.createObjectDelta(objectDeltaWaveBean.getDelta(), prismContext));
+                        DeltaConvertor.createObjectDelta(objectDeltaWaveBean.getDelta(), PrismContext.get()));
             } else {
                 objectDeltaWaves.add(objectDeltaWaveBean.getNumber(), null);
             }

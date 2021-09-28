@@ -546,19 +546,16 @@ public class ResourceTypeUtil {
 
     }
 
+    public static boolean isInMaintenance(ResourceType resource) {
+        return getAdministrativeAvailabilityStatus(resource) == AdministrativeAvailabilityStatusType.MAINTENANCE;
+    }
+
     public static AdministrativeAvailabilityStatusType getAdministrativeAvailabilityStatus(ResourceType resource) {
-        if (resource == null)
-            return null;
-
-        if (resource.getAdministrativeOperationalState() == null) {
+        if (resource == null) {
             return null;
         }
-
-        if (resource.getAdministrativeOperationalState().getAdministrativeAvailabilityStatus() == null) {
-            return null;
-        }
-
-        return resource.getAdministrativeOperationalState().getAdministrativeAvailabilityStatus();
+        AdministrativeOperationalStateType adminOpState = resource.getAdministrativeOperationalState();
+        return adminOpState != null ? adminOpState.getAdministrativeAvailabilityStatus() : null;
     }
 
     public static boolean isAvoidDuplicateValues(ResourceType resource) {
@@ -741,27 +738,5 @@ public class ResourceTypeUtil {
 
     public static boolean isInMaintenance(PrismObject<ResourceType> resource) {
         return isInMaintenance(resource.asObjectable());
-    }
-
-    public static boolean isInMaintenance(ResourceType resource) {
-        if (resource == null) {
-            return false;
-        }
-
-        AdministrativeOperationalStateType administrativeOperationalState = resource.getAdministrativeOperationalState();
-        if (administrativeOperationalState == null) {
-            return false;
-        }
-
-        AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
-        if (administrativeAvailabilityStatus == null) {
-            return false;
-        }
-
-        if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailabilityStatus) {
-            return true;
-        }
-
-        return false;
     }
 }

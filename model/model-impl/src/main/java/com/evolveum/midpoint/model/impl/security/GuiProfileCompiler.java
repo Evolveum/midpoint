@@ -222,6 +222,10 @@ public class GuiProfileCompiler {
                     joinObjectDetails(composite.getObjectDetails(), objectDetails);
                 }
             }
+
+            for (GuiShadowDetailsPageType shadowDetails : adminGuiConfiguration.getObjectDetails().getShadowDetailsPage()) {
+                joinShadowDetails(composite.getObjectDetails(), shadowDetails);
+            }
         }
         if (adminGuiConfiguration.getUserDashboard() != null) {
             if (composite.getUserDashboard() == null) {
@@ -336,11 +340,31 @@ public class GuiProfileCompiler {
         for (GuiObjectListViewType objectCollectionView : viewsType.getObjectCollectionView()) {
             applyView(composite, objectCollectionView, task, result);
         }
+
+        for (GuiShadowListViewType shadowCollectionView : viewsType.getShadowCollectionView()) {
+            applyShadowView(composite, shadowCollectionView, task, result);
+        }
     }
 
     private void applyView(CompiledGuiProfile composite, GuiObjectListViewType objectListViewType, Task task, OperationResult result) {
         try {
             CompiledObjectCollectionView existingView = findOrCreateMatchingView(composite, objectListViewType);
+            compileView(existingView, objectListViewType, task, result);
+        } catch (Throwable e) {
+            // Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
+            // want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
+            // This is also handled somewhere up the call stack. But we want to handle it also here. Otherwise an error in one collection would
+            // mean that entire configuration processing will be stopped. We do not want that. We want to skip processing of just that one wrong view.
+            LOGGER.error("Error compiling user profile, view '{}': {}", collectionProcessor.determineViewIdentifier(objectListViewType), e.getMessage(), e);
+        }
+    }
+
+    private void applyShadowView(CompiledGuiProfile composite, GuiShadowListViewType objectListViewType, Task task, OperationResult result) {
+        try {
+            CompiledShadowCollectionView existingView = findOrCreateMatchingShadowView(composite, objectListViewType);
+            existingView.setResourceRef(objectListViewType.getResourceRef());
+            existingView.setShadowKindType(objectListViewType.getKind());
+            existingView.setIntent(objectListViewType.getIntent());
             compileView(existingView, objectListViewType, task, result);
         } catch (Throwable e) {
             // Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
@@ -362,6 +386,20 @@ public class GuiProfileCompiler {
         }
         return existingView;
     }
+
+    private CompiledShadowCollectionView findOrCreateMatchingShadowView(CompiledGuiProfile composite, GuiShadowListViewType objectListViewType) {
+        String viewIdentifier = collectionProcessor.determineViewIdentifier(objectListViewType);
+        if (objectListViewType.getResourceRef() == null) {
+            return new CompiledShadowCollectionView();
+        }
+        CompiledShadowCollectionView existingView = composite.findShadowCollectionView(objectListViewType.getResourceRef().getOid(), objectListViewType.getKind(), objectListViewType.getIntent());
+        if (existingView == null) {
+            existingView = new CompiledShadowCollectionView(viewIdentifier);
+            composite.getObjectCollectionViews().add(existingView);
+        }
+        return existingView;
+    }
+
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
@@ -408,6 +446,11 @@ public class GuiProfileCompiler {
         objectForms.getObjectForm().add(newForm.clone().id(null));
     }
 
+    private void joinShadowDetails(GuiObjectDetailsSetType objectDetailsSet, GuiShadowDetailsPageType newObjectDetails) {
+        objectDetailsSet.getShadowDetailsPage().removeIf(currentDetails -> isTheSameShadowDiscriminatorType(currentDetails, newObjectDetails));
+        objectDetailsSet.getShadowDetailsPage().add(newObjectDetails.clone());
+    }
+
     private void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
         objectDetailsSet.getObjectDetailsPage().removeIf(currentDetails -> isTheSameObjectType(currentDetails, newObjectDetails));
         objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
@@ -415,6 +458,16 @@ public class GuiProfileCompiler {
 
     private boolean isTheSameObjectType(AbstractObjectTypeConfigurationType oldConf, AbstractObjectTypeConfigurationType newConf) {
         return QNameUtil.match(oldConf.getType(), newConf.getType());
+    }
+
+    private boolean isTheSameShadowDiscriminatorType(GuiShadowDetailsPageType oldConf, GuiShadowDetailsPageType newConf) {
+        if (oldConf.getResourceRef() == null || newConf.getResourceRef() == null) {
+            LOGGER.warn("Cannot join shadow details configuration as defined in {} and {}. No resource defined", oldConf, newConf);
+            return false;
+        }
+        ResourceShadowDiscriminator oldDiscriminator = new ResourceShadowDiscriminator(oldConf.getResourceRef().getOid(), oldConf.getKind(), oldConf.getIntent(), null, false);
+        ResourceShadowDiscriminator newDiscriminator = new ResourceShadowDiscriminator(newConf.getResourceRef().getOid(), newConf.getKind(), newConf.getIntent(), null, false);
+        return oldDiscriminator.equals(newDiscriminator);
     }
 
     private boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm){

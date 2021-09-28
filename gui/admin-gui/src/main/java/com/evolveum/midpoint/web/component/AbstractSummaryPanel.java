@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -339,7 +339,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
     private String getArchetypePolicyAdditionalCssClass() {
         if (getModelObject() instanceof AssignmentHolderType) {
-            DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
+            DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
             return WebComponentUtil.getIconColor(displayType);
         }
         return "";
@@ -347,7 +347,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
     private String getArchetypeLabel() {
         if (getModelObject() instanceof AssignmentHolderType) {
-            DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
+            DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
             return displayType == null || displayType.getLabel() == null ? "" : displayType.getLabel().getOrig();
         }
         return "";
@@ -355,7 +355,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
     private String getArchetypeIconCssClass() {
         if (getModelObject() instanceof AssignmentHolderType) {
-            DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
+            DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
             return WebComponentUtil.getIconCssClass(displayType);
         }
         return "";

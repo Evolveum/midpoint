@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
@@ -28,6 +30,8 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
     private final Map<String, Object> variables = new HashMap<>();
 
     private Class<C> oldType;
+
+    private CompiledObjectCollectionView objectCollectionView;
 
     public BaseSearchDataProvider(Component component, IModel<Search<C>> search) {
         this(component, search, false, true);
@@ -85,4 +89,12 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
         this.variables.put(name, value);
     }
 
+
+    protected CompiledObjectCollectionView getCompiledObjectCollectionView() {
+        return objectCollectionView;
+    }
+
+    public void setCompiledObjectCollectionView(CompiledObjectCollectionView objectCollectionView) {
+        this.objectCollectionView = objectCollectionView;
+    }
 }

@@ -41,7 +41,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -217,7 +217,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
 
         PrismObject<O> assignmentHolderObj = getObjectWrapper().getObject();
-        DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
+        DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
         if (displayType == null || displayType.getLabel() == null) {
             return null;
         }
@@ -338,7 +338,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return null;
     }
 
-    protected abstract O createNewObject();
+    public abstract O createNewObject();
 
     @Override
     protected void onInitialize() {

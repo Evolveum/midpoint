@@ -7,65 +7,55 @@
 
 package com.evolveum.midpoint.web.security.module;
 
-import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
-
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
-import javax.servlet.Filter;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
+
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.saml.MidpointMetadataRelyingPartyRegistrationResolver;
+
+import com.evolveum.midpoint.web.security.saml.MidpointSaml2LoginConfigurer;
+
+import com.evolveum.midpoint.web.security.saml.MidpointSaml2LogoutRequestResolver;
+import com.evolveum.midpoint.web.security.saml.MidpointSaml2LogoutRequestSuccessHandler;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-
-import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.saml.SamlAuthentication;
-import org.springframework.security.saml.SamlRequestMatcher;
-import org.springframework.security.saml.provider.SamlProviderLogoutFilter;
-import org.springframework.security.saml.provider.SamlServerConfiguration;
-import org.springframework.security.saml.provider.provisioning.SamlProviderProvisioning;
-import org.springframework.security.saml.provider.service.ServiceProviderService;
-import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
-import org.springframework.security.saml.spi.DefaultSamlAuthentication;
-import org.springframework.security.saml.spi.SpringSecuritySaml;
-import org.springframework.security.saml.spi.opensaml.OpenSamlImplementation;
-import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
-import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
+import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;
+import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
+import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
+import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.*;
-import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationRequestFilter;
-import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationResponseFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
-import org.springframework.security.web.savedrequest.RequestCacheAwareFilter;
-import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
+import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutRequestResolver;
+import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver;
+import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2RelyingPartyInitiatedLogoutSuccessHandler;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author skublik
@@ -79,26 +69,22 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
     @Autowired
     private ModelAuditRecorder auditProvider;
 
-    private MidpointSamlProviderServerBeanConfiguration beanConfiguration;
-
     public SamlModuleWebSecurityConfig(C configuration) {
         super(configuration);
-        this.beanConfiguration = new MidpointSamlProviderServerBeanConfiguration(configuration);
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        getObjectPostProcessor().postProcess(getBeanConfiguration());
         super.configure(http);
 
-        http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
+        http.antMatcher(SecurityUtils.stripEndingSlashes(getPrefix()) + "/**");
         http.csrf().disable();
 
         MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
             @Override
             protected Authentication createNewAuthentication(AnonymousAuthenticationToken anonymousAuthenticationToken) {
-                if (anonymousAuthenticationToken.getDetails() instanceof SamlAuthentication) {
-                    return (SamlAuthentication) anonymousAuthenticationToken.getDetails();
+                if (anonymousAuthenticationToken.getDetails() instanceof Saml2AuthenticationToken) {
+                    return (Saml2AuthenticationToken) anonymousAuthenticationToken.getDetails();
                 }
                 return null;
             }
@@ -106,30 +92,32 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         getOrApply(http, exceptionConfigurer)
                 .authenticationEntryPoint(new SamlAuthenticationEntryPoint(SAML_LOGIN_PATH));
 
-        http.addFilterAfter(
-                getBeanConfiguration().samlConfigurationFilter(),
-                BasicAuthenticationFilter.class
-        )
-                .addFilterBefore(
-                        getBeanConfiguration().spMetadataFilter(),
-                        RequestCacheAwareFilter.class
-                )
-                .addFilterAt(
-                        getBeanConfiguration().spAuthenticationRequestFilter(),
-                        RequestCacheAwareFilter.class
-                )
-                .addFilterAfter(
-                        getBeanConfiguration().spAuthenticationResponseFilter(),
-                        RequestCacheAwareFilter.class
-                )
-                .addFilterBefore(
-                        getBeanConfiguration().spSamlLogoutFilter(),
-                        SecurityContextHolderAwareRequestFilter.class
-                );
-    }
+        MidpointSaml2LoginConfigurer configurer = new MidpointSaml2LoginConfigurer(auditProvider);
+        configurer.relyingPartyRegistrationRepository(relyingPartyRegistrations())
+                .loginProcessingUrl(getConfiguration().getPrefix() + SamlModuleWebSecurityConfiguration.SSO_LOCATION_URL_SUFFIX)
+                .successHandler(getObjectPostProcessor().postProcess(
+                        new MidPointAuthenticationSuccessHandler().setPrefix(getConfiguration().getPrefix())))
+                .failureHandler(new MidpointAuthenticationFailureHandler());
+        try {
+            configurer.authenticationManager(new ProviderManager(Collections.emptyList(), authenticationManager()));
+        } catch (Exception e) {
+            LOGGER.error("Couldn't initialize authentication manager for saml2 module");
+        }
+        getOrApply(http, configurer);
 
-    public SamlServiceProviderServerBeanConfiguration getBeanConfiguration() {
-        return beanConfiguration;
+        RelyingPartyRegistrationResolver registrationResolver = new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrations());
+        LogoutSuccessHandler logoutRequestSuccessHandler = logoutRequestSuccessHandler(registrationResolver);
+
+        http.logout().clearAuthentication(true)
+                .logoutRequestMatcher(new AntPathRequestMatcher(getPrefix() + "/logout"))
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .logoutSuccessHandler(logoutRequestSuccessHandler);
+
+        Saml2MetadataFilter filter = new Saml2MetadataFilter(new MidpointMetadataRelyingPartyRegistrationResolver(relyingPartyRegistrations()),
+                new OpenSamlMetadataResolver());
+        filter.setRequestMatcher(new AntPathRequestMatcher( getConfiguration().getPrefix() + "/metadata/*"));
+        http.addFilterAfter(filter, Saml2WebSsoAuthenticationFilter.class);
     }
 
     @Override
@@ -144,7 +132,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
                     ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
                     if (moduleAuthentication != null
                             && (moduleAuthentication.getAuthentication() == null
-                                || moduleAuthentication.getAuthentication() instanceof SamlAuthentication)) {
+                            || moduleAuthentication.getAuthentication() instanceof Saml2AuthenticationToken)) {
                         Authentication authentication = createBasicAuthentication((HttpServletRequest) req);
                         moduleAuthentication.setAuthentication(authentication);
                         mpAuthentication.setPrincipal(authentication.getPrincipal());
@@ -157,98 +145,11 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         return filter;
     }
 
-    private class MidpointSamlProviderServerBeanConfiguration extends SamlServiceProviderServerBeanConfiguration {
-
-        private final SamlModuleWebSecurityConfiguration configuration;
-
-        private final SamlServerConfiguration saml2Config;
-
-        public MidpointSamlProviderServerBeanConfiguration(SamlModuleWebSecurityConfiguration configuration) {
-            this.configuration = configuration;
-            this.saml2Config = configuration.getSamlConfiguration();
-        }
-
-        @Override
-        @Bean(name = "samlServiceProviderProvisioning")
-        public SamlProviderProvisioning<ServiceProviderService> getSamlProvisioning() {
-            return new MidpointHostBasedSamlServiceProviderProvisioning(
-                    samlConfigurationRepository(),
-                    samlTransformer(),
-                    samlValidator(),
-                    samlMetadataCache(),
-                    authenticationRequestEnhancer()
-            );
-        }
-
-        @Bean
-        public SpringSecuritySaml samlImplementation() {
-            OpenSamlImplementation springSaml = new MidpointOpenSamlImplementation(samlTime()).init();
-            springSaml.setSamlKeyStoreProvider(new MidpointSamlKeyStoreProvider());
-            return springSaml;
-        }
-
-        @Override
-        protected SamlServerConfiguration getDefaultHostSamlServerConfiguration() {
-            return saml2Config;
-        }
-
-        @Override
-        public Filter spAuthenticationRequestFilter() {
-            return new MidpointSamlAuthenticationRequestFilter(getSamlProvisioning());
-        }
-
-        @Override
-        public Filter spAuthenticationResponseFilter() {
-            MidpointSamlAuthenticationResponseFilter authenticationFilter =
-                    new MidpointSamlAuthenticationResponseFilter(auditProvider, getSamlProvisioning());
-            try {
-                authenticationFilter.setAuthenticationManager(new ProviderManager(Collections.emptyList(), authenticationManager()));
-            } catch (Exception e) {
-                LOGGER.error("Couldn't initialize authentication manager for saml2 module");
-            }
-            authenticationFilter.setAuthenticationSuccessHandler(getObjectPostProcessor().postProcess(
-                    new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix())));
-            authenticationFilter.setAuthenticationFailureHandler(new MidpointAuthenticationFailureHandler());
-            return authenticationFilter;
-        }
-
-        @Override
-        public Filter spSamlLogoutFilter() {
-            List<LogoutHandler> handlers = new ArrayList<LogoutHandler>();
-            handlers.add(new SecurityContextLogoutHandler());
-            handlers.add(new CookieClearingLogoutHandler("JSESSIONID"));
-            handlers.add(new MidpointServiceProviderLogoutHandler(getSamlProvisioning()));
-            return new SamlProviderLogoutFilter(
-                    getSamlProvisioning(),
-                    new CompositeLogoutHandler(handlers),
-                    new SamlRequestMatcher(getSamlProvisioning(), "logout") {
-                        @Override
-                        public boolean matches(HttpServletRequest request) {
-                            ModuleAuthentication module = SecurityUtils.getProcessingModule(false);
-                            if (module != null && module.isInternalLogout()) {
-                                module.setInternalLogout(false);
-                                return true;
-                            }
-                            return super.matches(request);
-                        }
-                    },
-                    createLogoutHandler()
-            );
-        }
-
-        private class MidpointSimpleAuthenticationManager implements AuthenticationManager {
-            @Override
-            public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-
-                if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointPrincipal) {
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-                return authentication;
-            }
-        }
+    private InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrations() {
+        return getConfiguration().getRelyingPartyRegistrationRepository();
     }
 
-    private class SamlAuthenticationDetailsSource implements AuthenticationDetailsSource<HttpServletRequest, Object> {
+    private static class SamlAuthenticationDetailsSource implements AuthenticationDetailsSource<HttpServletRequest, Object> {
 
         private final WebAuthenticationDetailsSource detailsSource = new WebAuthenticationDetailsSource();
 
@@ -257,11 +158,19 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
             if (SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication) {
                 MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
                 ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-                if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof SamlAuthentication) {
+                if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof Saml2AuthenticationToken) {
                     return moduleAuthentication.getAuthentication();
                 }
             }
             return detailsSource.buildDetails(context);
         }
+    }
+
+    private LogoutSuccessHandler logoutRequestSuccessHandler(RelyingPartyRegistrationResolver registrationResolver) {
+        Saml2LogoutRequestResolver logoutRequestResolver = new MidpointSaml2LogoutRequestResolver(
+                new OpenSaml4LogoutRequestResolver(registrationResolver));
+        Saml2RelyingPartyInitiatedLogoutSuccessHandler handler = new Saml2RelyingPartyInitiatedLogoutSuccessHandler(logoutRequestResolver);
+        return getObjectPostProcessor().postProcess(new MidpointSaml2LogoutRequestSuccessHandler(
+                handler));
     }
 }

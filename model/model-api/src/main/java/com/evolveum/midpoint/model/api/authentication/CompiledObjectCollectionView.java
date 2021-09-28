@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -63,8 +64,11 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     private UserInterfaceElementVisibilityType visibility;
     private OperationTypeType applicableForOperation;
+    private Boolean includeDefaultColumns;
 
     private String objectCollectionDescription;
+
+    private boolean defaultView;
 
     // Only used to construct "default" view definition. May be not needed later on.
     public CompiledObjectCollectionView() {
@@ -279,6 +283,14 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         return applicableForOperation;
     }
 
+    public void setIncludeDefaultColumns(Boolean includeDefaultColumns) {
+        this.includeDefaultColumns = includeDefaultColumns;
+    }
+
+    public Boolean getIncludeDefaultColumns() {
+        return includeDefaultColumns;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
@@ -286,6 +298,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         DebugUtil.debugDumpWithLabelLn(sb, "viewIdentifier", viewIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "columns", columns, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "includeDefaultColumns", includeDefaultColumns, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "display", display, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "additionalPanels", additionalPanels, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "distinct", distinct, indent + 1);
@@ -324,6 +337,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         viewType.setPaging(getPaging());
         viewType.setVisibility(getVisibility());
         viewType.setApplicableForOperation(getApplicableForOperation());
+        viewType.setIncludeDefaultColumns(getIncludeDefaultColumns());
         return viewType;
     }
 
@@ -335,4 +349,15 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         return operationTypeType == applicableForOperation;
     }
 
+    public boolean isIncludeDefaultColumns() {
+        return BooleanUtils.isTrue(includeDefaultColumns);
+    }
+
+    public boolean isDefaultView() {
+        return defaultView;
+    }
+
+    public void setDefaultView(boolean defaultView) {
+        this.defaultView = defaultView;
+    }
 }

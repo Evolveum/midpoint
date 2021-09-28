@@ -8,10 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
@@ -44,10 +42,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
@@ -80,7 +75,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     protected SqlRecorder queryRecorder;
 
     @BeforeClass
-    public void clearDatabase() {
+    public void initDatabase() throws Exception {
         queryRecorder = new SqlRecorder(QUERY_BUFFER_SIZE);
         sqlRepoContext.setQuerydslSqlListener(queryRecorder);
 
@@ -117,7 +112,6 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             cacheTablesCleared = true;
             display("URI cache and Extension item catalog tables cleared");
         }
-        // TODO m_ext_item is not deleted now, do we want it too? session scope like URI cache?
     }
 
     // Called on demand
@@ -507,6 +501,21 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                 selectorOptions != null && selectorOptions.length != 0
                         ? List.of(selectorOptions) : null,
                 operationResult);
+    }
+
+    @NotNull
+    protected <T extends Objectable> T parseFullObject(byte[] fullObject) throws SchemaException {
+        //noinspection unchecked
+        return (T) prismContext.parseObject(
+                new String(fullObject, StandardCharsets.UTF_8)).asObjectable();
+    }
+
+    protected @NotNull Collection<SelectorOptions<GetOperationOptions>> retrieveGetOptions(ItemName... paths) {
+        GetOperationOptionsBuilder options = SchemaService.get().getOperationOptionsBuilder();
+        for (ItemName path : paths) {
+            options.item(path).retrieve();
+        }
+        return options.build();
     }
 
     /**

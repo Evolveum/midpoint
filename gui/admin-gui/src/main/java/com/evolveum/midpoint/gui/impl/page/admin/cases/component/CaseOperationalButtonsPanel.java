@@ -28,25 +28,30 @@ public class CaseOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String DOT_CLASS = CaseOperationalButtonsPanel.class.getName() + ".";
     private static final String OPERATION_STOP_CASE_PROCESS = DOT_CLASS + "stopCaseProcess";
 
-    private static final String ID_REPORT_BUTTONS = "caseButtons";
+    private static final String ID_CASES_BUTTONS = "caseButtons";
 
     public CaseOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<CaseType>> model) {
         super(id, model);
     }
 
+
     @Override
-    protected void addButtons(RepeatingView repeatingView) {
-        super.addButtons(repeatingView);
-        initStopProcessButton(repeatingView);
+    protected void onInitialize() {
+        super.onInitialize();
+        initStopProcessButton();
     }
 
-    private void initStopProcessButton(RepeatingView repeatingView) {
-        AjaxIconButton preview = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_STOP_MENU_ITEM), Model.of("pageCases.button.stopProcess")) {
+    private void initStopProcessButton() {
+        RepeatingView repeatingView = new RepeatingView(ID_CASES_BUTTONS);
+        add(repeatingView);
+
+        AjaxIconButton preview = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_STOP_MENU_ITEM), createStringResource("pageCases.button.stopProcess")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 stopCaseProcessConfirmed(ajaxRequestTarget);
             }
         };
+        preview.showTitleAsLabel(true);
         preview.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
 
         repeatingView.add(preview);
@@ -66,4 +71,8 @@ public class CaseOperationalButtonsPanel extends AssignmentHolderOperationalButt
         target.add(getPageBase().getFeedbackPanel());
     }
 
+    @Override
+    protected boolean getVisibilityForSaveButton() {
+        return false;
+    }
 }

@@ -38,7 +38,11 @@ public class ExtensionProcessor {
         for (Item<?, ?> item : prismContainerValue.getItems()) {
             try {
                 Objects.requireNonNull(item, "Object for converting must not be null.");
-                ExtItemInfo extItemInfo = findExtensionItem(item.getDefinition(), holderType);
+                ItemDefinition extDef = item.getDefinition();
+                if (extDef == null) {
+                    continue; // item does not have definition, skipping
+                }
+                ExtItemInfo extItemInfo = findExtensionItem(extDef, holderType);
                 if (extItemInfo == null) {
                     continue; // not-indexed, skipping this item
                 }
@@ -48,7 +52,7 @@ public class ExtensionProcessor {
             } catch (RuntimeException e) {
                 // If anything happens (like NPE in Map.of) we want to capture the "bad" item.
                 throw new SystemException(
-                        "Unexpected exception while processing extension item " + item, e);
+                        "Exception when translating extension item " + item, e);
             }
         }
 

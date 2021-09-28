@@ -8,8 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.web.component.assignment.AssignmentHeaderPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -57,7 +56,7 @@ public class MyAssignmentsPanel extends BasePanel<List<AssignmentItemDto>> {
                 } else {
                     iconClass = item.getType().getIconCssClass();
                 }
-                return WebDisplayTypeUtil.createDisplayType(iconClass, "",
+                return GuiDisplayTypeUtil.createDisplayType(iconClass, "",
                         AssignmentsUtil.createAssignmentIconTitleModel(MyAssignmentsPanel.this, rowModel.getObject().getType()).getObject());
 
             }

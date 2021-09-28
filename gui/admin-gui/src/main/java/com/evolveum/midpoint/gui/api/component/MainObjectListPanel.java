@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
@@ -98,6 +98,17 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         };
     }
 
+    public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType config) {
+        super(id, type, options, config);
+        executeOptionsModel = new LoadableModel<>(false) {
+
+            @Override
+            protected ExecuteChangeOptionsDto load() {
+                return ExecuteChangeOptionsDto.createFromSystemConfiguration();
+            }
+        };
+    }
+
     @Override
     protected void onInitialize() {
         super.onInitialize();
@@ -129,7 +140,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
-        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
+        DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
@@ -239,20 +250,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     });
                 }
 
-                if (!(isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()) && getNewObjectGenericButtonVisibility()) {
-                    CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
-                    DisplayType defaultButtonDisplayType = getNewObjectButtonSpecialDisplayType();
-                    defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
-
-                    CompositedIconBuilder defaultButtonIconBuilder = new CompositedIconBuilder();
-                    defaultButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                            .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType));
-//                            .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
-
-                    defaultButton.setCompositedIcon(defaultButtonIconBuilder.build());
-                    additionalButtons.add(defaultButton);
-                }
-
                 multifunctionalButton.setAdditionalButtons(additionalButtons);
 
                 return multifunctionalButton;
@@ -275,14 +272,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
             CompiledObjectCollectionView view = getObjectCollectionView();
             if (ObjectCollectionViewUtil.isArchetypedCollectionView(view)) {
-                return WebDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
+                return GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
             }
         }
 
         String sb = createStringResource("MainObjectListPanel.newObject").getString()
                 + " "
                 + createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString();
-        return WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
+        return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
                 sb);
     }
 
@@ -299,7 +296,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         String sb = createStringResource("MainObjectListPanel.newObject").getString()
                 + " "
                 + createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString();
-        DisplayType display = WebDisplayTypeUtil.createDisplayType(iconCssStyle, "", sb);
+        DisplayType display = GuiDisplayTypeUtil.createDisplayType(iconCssStyle, "", sb);
         display.setLabel(WebComponentUtil.createPolyFromOrigString(
                 getType().getSimpleName(), "ObjectType." + getType().getSimpleName()));
         return display;

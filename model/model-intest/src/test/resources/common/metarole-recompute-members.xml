@@ -1,0 +1,43 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        oid="5e9b9363-9b99-4716-9e97-5b7e5c6d272f">
+    <name>recompute-members</name>
+    <inducement>
+        <policyRule>
+            <documentation>
+                When inducements are modified, members of this role are recomputed.
+                (But only if 'recomputeMembers' extension option is set.)
+                This is to simulate now removed 'reconcileAffected' option.
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <item>inducement</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkSource/>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <condition>
+            <expression>
+                <script>
+                    <code>midpoint.extensionOptionIsTrue('recomputeMembers')</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+</role>

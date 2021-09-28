@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.web.security.util;
 
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
-import static org.springframework.security.saml.util.StringUtils.stripStartingSlashes;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +20,7 @@ import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -766,6 +764,31 @@ public class SecurityUtils {
             return SecurityUtil.isRecordSessionLessAccessChannel(channel);
         }
         return false;
+    }
+
+    public static String stripEndingSlashes(String s) {
+        if (StringUtils.isNotEmpty(s) && s.endsWith("/")) {
+            if (s.equals("/")) {
+                return "";
+            }
+            s = s.substring(0, s.length() - 1);
+        }
+        return s;
+    }
+    public static String stripStartingSlashes(String s) {
+        if (StringUtils.isNotEmpty(s) && s.startsWith("/")) {
+            if (s.equals("/")) {
+                return "";
+            }
+            s = s.substring(1);
+        }
+        return s;
+    }
+
+    public static String stripSlashes(String s) {
+        s = stripStartingSlashes(s);
+        s = stripEndingSlashes(s);
+        return s;
     }
 
     public static boolean existLoginPageForActualAuthModule() {

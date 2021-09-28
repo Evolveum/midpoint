@@ -15,14 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,7 +24,6 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -39,7 +32,6 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -50,8 +42,6 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceConten
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
-import org.opensaml.xacml.policy.ResourcesType;
 
 /**
  * @author katkav
@@ -317,8 +307,8 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
     private ResourceContentResourcePanel initResourceContent(IModel<PrismObject<ResourceType>> model) {
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
-        ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPageBase());
+        ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model,
+                getObjectClass(), getKind(), getIntent(), searchMode, null);
         resourceContent.setOutputMarkupId(true);
         return resourceContent;
 
@@ -327,8 +317,8 @@ public class ResourceContentTabPanel extends BasePanel<PrismObject<ResourceType>
     private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObject<ResourceType>> model) {
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
-        ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPageBase());
+        ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model,
+                getObjectClass(), getKind(), getIntent(), searchMode, null);
         repositoryContent.setOutputMarkupId(true);
         return repositoryContent;
     }

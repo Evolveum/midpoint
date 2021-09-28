@@ -7,14 +7,15 @@
 package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.web.security.module.configuration.SamlMidpointAdditionalConfiguration;
 import com.evolveum.midpoint.web.security.util.IdentityProvider;
 import com.evolveum.midpoint.web.security.util.RequestState;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.saml.SamlAuthentication;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,10 +24,10 @@ import java.util.Map;
  * @author skublik
  */
 
-public class Saml2ModuleAuthentication extends ModuleAuthentication {
+public class Saml2ModuleAuthentication extends ModuleAuthentication implements Serializable {
 
     private List<IdentityProvider> providers = new ArrayList<IdentityProvider>();
-    private Map<String, String> namesOfUsernameAttributes;
+    private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration;
     private RequestState requestState;
 
     public Saml2ModuleAuthentication() {
@@ -51,18 +52,18 @@ public class Saml2ModuleAuthentication extends ModuleAuthentication {
         return providers;
     }
 
-    public Map<String, String> getNamesOfUsernameAttributes() {
-        return namesOfUsernameAttributes;
+    public Map<String, SamlMidpointAdditionalConfiguration> getAdditionalConfiguration() {
+        return additionalConfiguration;
     }
 
-    public void setNamesOfUsernameAttributes(Map<String, String> namesOfUsernameAttributes) {
-        this.namesOfUsernameAttributes = namesOfUsernameAttributes;
+    public void setAdditionalConfiguration(Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration) {
+        this.additionalConfiguration = additionalConfiguration;
     }
 
     @Override
     public ModuleAuthentication clone() {
         Saml2ModuleAuthentication module = new Saml2ModuleAuthentication();
-        module.setNamesOfUsernameAttributes(this.getNamesOfUsernameAttributes());
+        module.setAdditionalConfiguration(this.getAdditionalConfiguration());
         module.setProviders(this.getProviders());
         Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();
         Authentication newAuthentication = this.getAuthentication();
@@ -71,7 +72,7 @@ public class Saml2ModuleAuthentication extends ModuleAuthentication {
                 && !((MidpointAuthentication) actualAuth).getAuthentications().isEmpty()) {
             ModuleAuthentication actualModule = ((MidpointAuthentication) actualAuth).getAuthentications().get(0);
             if (actualModule instanceof Saml2ModuleAuthentication
-                    && actualModule.getAuthentication() instanceof SamlAuthentication) {
+                    && actualModule.getAuthentication() instanceof Saml2AuthenticationToken) {
                 newAuthentication = actualModule.getAuthentication();
             }
         }

@@ -75,7 +75,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
     }
 
     @Override
-    protected OrgType createNewObject() {
+    public OrgType createNewObject() {
         return new OrgType();
     }
 

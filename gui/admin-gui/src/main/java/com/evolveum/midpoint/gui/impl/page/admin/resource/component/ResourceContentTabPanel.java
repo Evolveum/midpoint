@@ -12,6 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -51,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * @author katkav
  * @author semancik
  */
-public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceType, ObjectDetailsModels<ResourceType>> {
+public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceContentTabPanel.class);
@@ -80,7 +83,7 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
     private IModel<ResourceContentSearchDto> resourceContentSearch;
 
     public ResourceContentTabPanel(String id, final ShadowKindType kind,
-            final ObjectDetailsModels<ResourceType> model, ContainerPanelConfigurationType config) {
+            final ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
 
         this.kind = kind;
@@ -88,20 +91,14 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
         //TODO config
     }
 
-//    @Override
-//    protected void onInitialize() {
-//        super.onInitialize();
-//        initLayout();
-//    }
-
     private IModel<ResourceContentSearchDto> createContentSearchModel(final ShadowKindType kind) {
-        return new LoadableModel<ResourceContentSearchDto>(true) {
+        return new LoadableModel<>(true) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected ResourceContentSearchDto load() {
-                isRepoSearch  = !getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).getResourceSearch();
+                isRepoSearch = !getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).getResourceSearch();
                 return getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                         SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).getContentSearch();
 
@@ -312,7 +309,7 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPageBase());
+                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration());
         resourceContent.setOutputMarkupId(true);
         return resourceContent;
 
@@ -322,7 +319,7 @@ public class ResourceContentTabPanel extends AbstractObjectMainPanel<ResourceTyp
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPageBase());
+                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration());
         repositoryContent.setOutputMarkupId(true);
         return repositoryContent;
     }

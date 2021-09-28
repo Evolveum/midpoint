@@ -7,10 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -52,7 +57,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
     }
 
     private void initResourceButtons(RepeatingView resourceButtons) {
-        AjaxButton test = new AjaxButton(resourceButtons.newChildId(),
+        AjaxIconButton test = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM),
                 createStringResource("pageResource.button.test")) {
             private static final long serialVersionUID = 1L;
 
@@ -61,10 +66,11 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 testConnectionPerformed(target);
             }
         };
+        test.showTitleAsLabel(true);
         test.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(test);
 
-        AjaxButton setMaintenance = new AjaxButton(resourceButtons.newChildId(),
+        AjaxIconButton setMaintenance = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE),
                 createStringResource("pageResource.button.toggleMaintenance")) {
             private static final long serialVersionUID = 1L;
 
@@ -74,6 +80,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 refreshStatus(target);
             }
         };
+        setMaintenance.showTitleAsLabel(true);
         setMaintenance.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -85,7 +92,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         setMaintenance.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(setMaintenance);
 
-        AjaxButton refreshSchema = new AjaxButton(resourceButtons.newChildId(),
+        AjaxIconButton refreshSchema = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA),
                 createStringResource("pageResource.button.refreshSchema")) {
             private static final long serialVersionUID = 1L;
 
@@ -102,23 +109,11 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 return isVisibleRefresSchemaButton(getObjectType());
             }
         });
+        refreshSchema.showTitleAsLabel(true);
         refreshSchema.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(refreshSchema);
-        AjaxButton editXml = new AjaxButton(resourceButtons.newChildId(),
-                createStringResource("pageResource.button.editXml")) {
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(PageDebugView.PARAM_OBJECT_ID, getPrismObject().getOid());
-                parameters.add(PageDebugView.PARAM_OBJECT_TYPE, "ResourceType");
-                getPageBase().navigateToNext(PageDebugView.class, parameters);
-            }
-        };
-        resourceButtons.add(editXml);
-        editXml.add(AttributeAppender.append("class", "btn-default btn-sm"));
-        AjaxButton configurationEdit = new AjaxButton(resourceButtons.newChildId(),
+        AjaxIconButton configurationEdit = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_EDIT_MENU_ITEM),
                 createStringResource("pageResource.button.configurationEdit")) {
             private static final long serialVersionUID = 1L;
 
@@ -127,6 +122,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 startWizard(true, false);
             }
         };
+        configurationEdit.showTitleAsLabel(true);
         configurationEdit.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -137,7 +133,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         });
         configurationEdit.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(configurationEdit);
-        AjaxButton wizardShow = new AjaxButton(resourceButtons.newChildId(),
+        AjaxIconButton wizardShow = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
                 createStringResource("pageResource.button.wizardShow")) {
             private static final long serialVersionUID = 1L;
 
@@ -146,6 +142,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 startWizard(false, true);
             }
         };
+        wizardShow.showTitleAsLabel(true);
         wizardShow.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -156,7 +153,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         });
         wizardShow.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(wizardShow);
-        AjaxButton wizardEdit = new AjaxButton(resourceButtons.newChildId(),
+        AjaxIconButton wizardEdit = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
                 createStringResource("pageResource.button.wizardEdit")) {
             private static final long serialVersionUID = 1L;
 
@@ -165,6 +162,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 startWizard(false, false);
             }
         };
+        wizardEdit.showTitleAsLabel(true);
         wizardEdit.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 

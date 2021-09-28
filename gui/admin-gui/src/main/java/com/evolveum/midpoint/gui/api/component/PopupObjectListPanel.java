@@ -137,4 +137,9 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     protected UserProfileStorage.TableId getTableId() {
         return null;
     }
+
+    @Override
+    protected boolean isCollectionViewPanelForCompiledView() {
+        return false;
+    }
 }
