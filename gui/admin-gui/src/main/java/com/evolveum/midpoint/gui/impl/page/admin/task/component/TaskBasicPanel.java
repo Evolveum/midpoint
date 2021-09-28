@@ -41,7 +41,7 @@ public class TaskBasicPanel extends AbstractObjectMainPanel<TaskType, TaskDetail
 
     private static final String ID_MAIN_PANEL = "main";
 
-    private static final String[] deprecatedVirtualContainers = {
+    private static final String[] DEPRECATED_VIRTUAL_CONTAINERS = {
             "resource-objects",
             "reconciliation-options",
             "objects-to-recompute",
@@ -91,7 +91,7 @@ public class TaskBasicPanel extends AbstractObjectMainPanel<TaskType, TaskDetail
             return false;
         }
 
-        if (Arrays.asList(deprecatedVirtualContainers).contains(identifier)) {
+        if (Arrays.asList(DEPRECATED_VIRTUAL_CONTAINERS).contains(identifier)) {
             return true;
         }
 
