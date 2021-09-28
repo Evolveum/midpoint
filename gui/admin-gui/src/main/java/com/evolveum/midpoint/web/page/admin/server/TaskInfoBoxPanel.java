@@ -37,7 +37,8 @@ public class TaskInfoBoxPanel extends InfoBoxPanel<ActivityInfoBoxDto> {
     @Override
     protected void customInitLayout(WebMarkupContainer parentInfoBox, IModel<ActivityInfoBoxDto> model, Class<? extends IRequestablePage> linkPage) {
 
-        Label duration = new Label(ID_DURATION, new ReadOnlyModel<>(() -> WebComponentUtil.formatDurationWordsForLocal(model.getObject().getDuration(), true, true, getPageBase())));
+        Label duration = new Label(ID_DURATION, new ReadOnlyModel<>(() -> model != null && model.getObject() != null ?
+                WebComponentUtil.formatDurationWordsForLocal(model.getObject().getDuration(), true, true, getPageBase()) : ""));
         parentInfoBox.add(duration);
 
         Label errorMessage = new Label(ID_ERROR_MESSAGE, new PropertyModel<>(model, ActivityInfoBoxDto.F_ERROR_MESSAGE));

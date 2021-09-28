@@ -92,12 +92,15 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  */
 public class SqaleRepositoryService extends SqaleServiceBase implements RepositoryService {
 
+    public static final String REPOSITORY_IMPL_NAME = "SQaLe";
+
+    public static final int INITIAL_VERSION_NUMBER = 0;
+    public static final String INITIAL_VERSION_STRING = String.valueOf(INITIAL_VERSION_NUMBER);
+
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
     private static final Collection<SelectorOptions<GetOperationOptions>> GET_FOR_UPDATE_OPTIONS =
             SchemaService.get().getOperationOptionsBuilder().build();
-
-    public static final String REPOSITORY_IMPL_NAME = "SQaLe";
 
     private final SqlQueryExecutor sqlQueryExecutor;
 
@@ -641,7 +644,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return prepareUpdateContext(jdbcSession, schemaType, Collections.emptyList(), oid, null);
     }
 
-    /** Read object for update and returns update context that contains it.
+    /**
+     * Read object for update and returns update context that contains it.
      **/
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject>
     RootUpdateContext<S, Q, R> prepareUpdateContext(
@@ -653,7 +657,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         QueryTableMapping<S, FlexibleRelationalPathBase<Object>, Object> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Collection<SelectorOptions<GetOperationOptions>> getOptions = rootMapping.updateGetOptions(GET_FOR_UPDATE_OPTIONS, modifications);
-
 
         return prepareUpdateContext(jdbcSession, schemaType, oid, getOptions, options);
     }

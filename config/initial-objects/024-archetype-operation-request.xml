@@ -48,19 +48,10 @@
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
                     </display>
+                    <displayOrder>1</displayOrder>
                     <panelType>operationRequestCase</panelType>
                     <type>c:CaseType</type>
-                </panel>
-                <panel>
-                    <identifier>operationRequestCase</identifier>
-                    <display>
-                        <label>Operation request</label>
-                        <icon>
-                            <cssClass>fa fa-circle-o</cssClass>
-                        </icon>
-                    </display>
-                    <panelType>operationRequestCase</panelType>
-                    <type>c:CaseType</type>
+                    <default>true</default>
                 </panel>
             </objectDetails>
         </adminGuiConfiguration>
