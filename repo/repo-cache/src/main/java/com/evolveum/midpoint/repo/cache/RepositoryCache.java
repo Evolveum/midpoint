@@ -115,8 +115,8 @@ public class RepositoryCache implements RepositoryService, Cache {
 
     @Override
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-                                                                              ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                              boolean strictlySequential, OperationResult parentResult) throws SchemaException {
+            ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
+            boolean strictlySequential, OperationResult parentResult) throws SchemaException {
         return searchOpHandler.searchObjectsIterative(type, query, handler, options, strictlySequential, parentResult);
     }
 

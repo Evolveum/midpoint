@@ -1154,8 +1154,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery origQuery,
-                                                                              final ResultHandler<T> handler, final Collection<SelectorOptions<GetOperationOptions>> rawOptions,
-                                                                              final Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
+            Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
 
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");

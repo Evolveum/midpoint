@@ -273,9 +273,11 @@ public interface ProvisioningService {
      * @throws SecurityViolationException
      *                 Security violation while communicating with the connector or processing provisioning policies
      */
-    <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                       final ResultHandler<T> handler, Task task, final OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task,
+            OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * Modifies object using relative change description. Must fail if user with

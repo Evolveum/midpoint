@@ -49,9 +49,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 public class ReportDataCreationActivityExecution
         extends ContainerSearchBasedActivityExecution
         <Containerable,
-                                        DistributedReportExportWorkDefinition,
-                                        DistributedReportExportActivityHandler,
-                                        ReportExportWorkStateType> {
+                DistributedReportExportWorkDefinition,
+                DistributedReportExportActivityHandler,
+                ReportExportWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportDataCreationActivityExecution.class);
 

@@ -40,8 +40,8 @@ public class RepoSimpleObjectResolver implements SimpleObjectResolver {
     }
 
     public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
-                                                       Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task,
-                                                       OperationResult parentResult)
+            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task,
+            OperationResult parentResult)
             throws SchemaException {
         cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);
     }

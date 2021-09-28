@@ -865,7 +865,7 @@ public class ObjectRetriever {
     }
 
     public <T extends ObjectType> void searchObjectsIterativeByPaging(Class<T> type, ObjectQuery query,
-                                                                      ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws SchemaException {
 
         try {
@@ -987,7 +987,7 @@ public class ObjectRetriever {
     }
 
     public <T extends ObjectType> void searchObjectsIterativeByFetchAll(Class<T> type, ObjectQuery query,
-                                                                        ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws SchemaException {
         try {
             SearchResultList<PrismObject<T>> objects = repositoryService.searchObjects(type, query, options, result);

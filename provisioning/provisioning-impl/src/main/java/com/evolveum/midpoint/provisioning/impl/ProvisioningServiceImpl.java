@@ -802,9 +802,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     // TODO: move to ResourceManager and ConnectorManager
     // the shadow-related code is already in the ShadowCache
-    private <T extends ObjectType> boolean handleRepoObject(final Class<T> type, PrismObject<T> object,
-                                                            final Collection<SelectorOptions<GetOperationOptions>> options,
-                                                            final ResultHandler<T> handler, Task task, final OperationResult objResult) {
+    private <T extends ObjectType> boolean handleRepoObject(Class<T> type, PrismObject<T> object,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            ResultHandler<T> handler, Task task, OperationResult objResult) {
 
         PrismObject<T> completeObject;
         try {
@@ -833,8 +833,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @SuppressWarnings({ "unchecked" })
     @Override
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-                                                                              Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task,
-                                                                              OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
+            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task,
+            OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         Validate.notNull(parentResult, "Operation result must not be null.");
