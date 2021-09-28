@@ -25,6 +25,7 @@
     VARIOUS MVN COMMANDS (with rough times on average notebook)
     Note: Javadoc takes long time but it's only part of the "dist" profile (active by default).
     Hence, "-Dmaven.javadoc.skip" is not necessary with "-P -dist".
+    Javadoc skip can still be useful when we want to build distribution package faster.
 
     Quick developer's run without any tests, skipping distribution (~6m):
     mvn clean install -P -dist -DskipTests

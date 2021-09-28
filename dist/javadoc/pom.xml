@@ -22,12 +22,10 @@
     <name>midPoint JavaDoc</name>
 
     <properties>
-        <!-- see notes in main midPoint POM -->
-        <!--  MID-5666: For some reason deploying of javadoc was disabled -->
-        <!--
+        <!-- Don't set maven.deploy.skip to true, we want Jenkins to publish artifacts, see MID-5666. -->
+        <!-- See notes in main midPoint POM, install skip allows for -Dmaven.javadoc.skip, see MID-7242. -->
         <maven.install.skip>true</maven.install.skip>
-        <maven.deploy.skip>true</maven.deploy.skip>
-        -->
+        <!-- This enables build without -DskipTests option (e.g. full build). -->
         <maven.test.skip>true</maven.test.skip>
     </properties>
 
