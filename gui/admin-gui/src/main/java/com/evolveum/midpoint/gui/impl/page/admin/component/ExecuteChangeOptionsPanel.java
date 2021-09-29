@@ -58,35 +58,14 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     private static final String ID_OPTIONS = "options";
     private static final String ID_RESET_CHOICES = "resetChoices";
 
-    private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
-
-    public ExecuteChangeOptionsPanel(String id) {
-        super(id);
-
-         executeOptionsModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected ExecuteChangeOptionsDto load() {
-                return ExecuteChangeOptionsDto.createFromSystemConfiguration();
-            }
-        };
+    public ExecuteChangeOptionsPanel(String id, LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel) {
+        super(id, executeOptionsModel);
     }
 
     @Override
     protected void onInitialize(){
         super.onInitialize();
         initLayout();
-    }
-
-    @Override
-    public IModel<ExecuteChangeOptionsDto> getModel() {
-        return executeOptionsModel;
-    }
-
-    @Override
-    public ExecuteChangeOptionsDto getModelObject() {
-        return executeOptionsModel.getObject();
     }
 
     private CheckboxMenuItem createCheckboxMenuItem(String label, String propertyExpression) {
