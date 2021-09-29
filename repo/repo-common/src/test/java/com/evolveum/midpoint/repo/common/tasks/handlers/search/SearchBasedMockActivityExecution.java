@@ -58,6 +58,12 @@ class SearchBasedMockActivityExecution
     }
 
     @Override
+    public void beforeExecution(OperationResult opResult) {
+        getRecorder().recordRealizationStartTimestamp(
+                activityState.getRealizationStartTimestamp());
+    }
+
+    @Override
     public boolean processItem(@NotNull ObjectType object,
             @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
             throws SchemaException, ThresholdPolicyViolationException {
@@ -112,7 +118,6 @@ class SearchBasedMockActivityExecution
             return null;
         }
     }
-
 
     private void provideSomeMockStatistics(ItemProcessingRequest<ObjectType> request, RunningTask workerTask) {
         ObjectType object = request.getItem();

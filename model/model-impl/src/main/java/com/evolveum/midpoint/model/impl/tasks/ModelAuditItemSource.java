@@ -30,10 +30,6 @@ class ModelAuditItemSource implements SearchableItemSource {
 
     @Autowired private ModelAuditService modelAuditService;
 
-    ModelAuditItemSource(@NotNull ModelAuditService modelAuditService) {
-        this.modelAuditService = modelAuditService;
-    }
-
     @Override
     public Integer count(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
             @NotNull OperationResult result) throws CommonException {

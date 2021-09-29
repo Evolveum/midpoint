@@ -235,6 +235,8 @@ public class ActivityTreePurger {
             swallow(
                     beans.prismContext.deltaFor(TaskType.class)
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_STATE)).replace()
+                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_START_TIMESTAMP)).replace()
+                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_END_TIMESTAMP)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
                             .asItemDeltas());

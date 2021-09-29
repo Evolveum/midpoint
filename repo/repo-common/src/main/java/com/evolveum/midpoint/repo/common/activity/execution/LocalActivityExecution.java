@@ -7,19 +7,24 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
@@ -78,12 +83,31 @@ public abstract class LocalActivityExecution<
 
         if (activityState.getRealizationState() != IN_PROGRESS_LOCAL) {
             activityState.setRealizationState(IN_PROGRESS_LOCAL);
-            activityState.recordRealizationStart(startTimestamp);
+            XMLGregorianCalendar realizationStart;
+            if (isWorker()) {
+                // Getting the timestamp from the coordinator task. Note that the coordinator activity state does not need
+                // to be fresh, because the realization start timestamp is updated before worker tasks are started.
+                realizationStart = getCoordinatorActivityState().getRealizationStartTimestamp();
+            } else {
+                realizationStart = XmlTypeConverter.createXMLGregorianCalendar(startTimestamp);
+            }
+            activityState.recordRealizationStart(realizationStart);
         }
 
         activityState.setResultStatus(IN_PROGRESS);
         activityState.recordExecutionStart(startTimestamp);
         activityState.flushPendingTaskModificationsChecked(result);
+    }
+
+    /** Returns (potentially not fresh) activity state of the coordinator task. Assuming we are in worker task. */
+    protected ActivityState getCoordinatorActivityState() {
+        try {
+            return activityState.getCurrentActivityStateInParentTask(false,
+                    getActivityStateDefinition().getWorkStateTypeName(), null);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            // Shouldn't occur for running tasks with fresh = false.
+            throw new SystemException("Unexpected exception: " + e.getMessage(), e);
+        }
     }
 
     private void updateStateOnExecutionFinish(OperationResult result, ActivityExecutionResult executionResult)

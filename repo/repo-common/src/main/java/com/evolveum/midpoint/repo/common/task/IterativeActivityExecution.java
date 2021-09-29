@@ -710,23 +710,19 @@ public abstract class IterativeActivityExecution<
             return explicit;
         }
 
-        if (activityState.isWorker()) {
+        if (isWorker()) {
             return getCoordinatorActivityState();
         } else {
             return activityState;
         }
     }
 
-    /** Returns activity state of the coordinator task. Assuming we are in worker task. */
-    private ActivityState getCoordinatorActivityState() {
-        Task parentTask = java.util.Objects.requireNonNull(
-                getRunningTask().getParentTask(), "No parent task");
-        return new OtherActivityState(
-                parentTask,
-                parentTask.getActivitiesStateOrClone(),
-                getActivityPath(),
-                getActivityStateDefinition().getWorkStateTypeName(),
-                beans);
+    /** Returns fresh activity state of the coordinator task. Assuming we are in worker task. */
+    @SuppressWarnings("unused") // but may be helpful in the future
+    private ActivityState getFreshCoordinatorActivityState(@NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return activityState.getCurrentActivityStateInParentTask(true,
+                getActivityStateDefinition().getWorkStateTypeName(), result);
     }
 
     @NotNull final ItemsReport getItemsReport() {
