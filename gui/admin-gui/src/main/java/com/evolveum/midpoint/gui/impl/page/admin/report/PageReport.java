@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.report;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
@@ -59,6 +60,11 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     private static final String ID_TABLE_CONTAINER = "tableContainer";
     private static final String ID_TABLE_BOX = "tableBox";
     private static final String ID_REPORT_TABLE = "reportTable";
+
+    private static final String DOT_CLASS = PageReport.class.getName() + ".";
+    protected static final String OPERATION_SAVE_AND_RUN_REPORT = DOT_CLASS + "saveAndRunReport";
+    protected static final String OPERATION_RUN_REPORT = DOT_CLASS + "saveAndRunReport";
+    private boolean processingOfSaveAndRun =false;
 
     public PageReport() {
         super();
@@ -136,50 +142,62 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     }
 
     public void saveAndRunPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult("saveAndRunReport");
-        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = saveOrPreviewPerformed(target, result, false);
+        try {
+            processingOfSaveAndRun = true;
+            OperationResult saveResult = new OperationResult(OPERATION_SAVE);
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = saveOrPreviewPerformed(target, saveResult, false);
 
-        if (!result.isError()) {
-
-            PrismObject<ReportType> report;
-            if (getModelObjectType().getOid() != null) {
-                report = getModelPrismObject();
-            } else {
-                report = (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
-            }
-            if (!ReportOperationalButtonsPanel.hasParameters(report.asObjectable())) {
-                try {
-                    Task task = createSimpleTask("run_task");
-                    getReportManager().runReport(report, null, task, result);
-                } catch (Exception ex) {
-                    result.recordFatalError(ex);
-                } finally {
-                    result.computeStatusIfUnknown();
-                    redirectBack();
+            if (!saveResult.isError()) {
+                OperationResult saveAndRunResult = new OperationResult(OPERATION_SAVE_AND_RUN_REPORT);
+                PrismObject<ReportType> report;
+                if (getModelObjectType().getOid() != null) {
+                    report = getModelPrismObject();
+                } else {
+                    report = (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
                 }
-
-            } else {
-
-                RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report.asObjectable()) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
-                        try {
-                            Task task = createSimpleTask("run_task");
-                            getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
-                        } catch (Exception ex) {
-                            result.recordFatalError(ex);
-                        } finally {
-                            result.computeStatusIfUnknown();
-                        }
-                        hideMainPopup(target);
+                if (!ReportOperationalButtonsPanel.hasParameters(report.asObjectable())) {
+                    try {
+                        Task task = createSimpleTask(OPERATION_RUN_REPORT);
+                        getReportManager().runReport(report, null, task, saveAndRunResult);
+                    } catch (Exception ex) {
+                        saveAndRunResult.recordFatalError(ex);
+                    } finally {
+                        saveAndRunResult.computeStatusIfUnknown();
+                        showResult(saveAndRunResult);
                         redirectBack();
                     }
-                };
-                showMainPopup(runReportPopupPanel, target);
+
+                } else {
+
+                    RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report.asObjectable()) {
+
+                        private static final long serialVersionUID = 1L;
+
+                        protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+                            try {
+                                Task task = createSimpleTask(OPERATION_RUN_REPORT);
+                                getReportManager().runReport(reportType.asPrismObject(), reportParam, task, saveAndRunResult);
+                            } catch (Exception ex) {
+                                saveAndRunResult.recordFatalError(ex);
+                            } finally {
+                                saveAndRunResult.computeStatusIfUnknown();
+                            }
+                            hideMainPopup(target);
+                            showResult(saveAndRunResult);
+                            redirectBack();
+                        }
+                    };
+                    showMainPopup(runReportPopupPanel, target);
+                }
             }
+        } finally {
+            processingOfSaveAndRun = false;
         }
+    }
+
+    @Override
+    protected boolean allowRedirectBack() {
+        return !processingOfSaveAndRun;
     }
 
     private ReportObjectsListPanel<?> getReportTable() {
