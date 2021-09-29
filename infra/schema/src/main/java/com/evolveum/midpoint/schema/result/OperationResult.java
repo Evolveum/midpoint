@@ -1561,6 +1561,11 @@ public class OperationResult
         status = OperationResultStatus.IN_PROGRESS;
     }
 
+    public void setInProgress(String message) {
+        setInProgress();
+        setMessage(message);
+    }
+
     public void setUnknown() {
         status = OperationResultStatus.UNKNOWN;
     }

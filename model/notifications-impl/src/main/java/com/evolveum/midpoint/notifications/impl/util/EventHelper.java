@@ -23,20 +23,23 @@ public class EventHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(EventHelper.class);
 
+    private static final String OP_PROCESS_EVENT = EventHelper.class.getName() + ".processEvent";
+
     @Autowired private NotificationManager notificationManager;
 
-    public void processEvent(Event event, Task task, OperationResult result) {
+    public void processEvent(Event event, Task task, OperationResult parentResult) {
+        // It would be better if we could go without creating a subresult. However, we need to record
+        // the exception, so it should be done so.
+        OperationResult result = parentResult.subresult(OP_PROCESS_EVENT)
+                .setMinor()
+                .build();
         try {
             notificationManager.processEvent(event, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
+        } finally {
+            result.close();
         }
-
-        // todo work correctly with operationResult (in whole notification module)
-        if (result.isUnknown()) {
-            result.computeStatus();
-        }
-        result.recordSuccessIfUnknown();
     }
 }
