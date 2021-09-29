@@ -19,7 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.expiry.ExpiryPolicy;
-import org.cache2k.processor.EntryProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 import static com.evolveum.midpoint.repo.cache.handlers.SearchOpHandler.QUERY_RESULT_SIZE_LIMIT;
 
@@ -107,9 +107,9 @@ public class GlobalQueryCache extends AbstractGlobalCache {
         }
     }
 
-    public void invokeAll(EntryProcessor<QueryKey, GlobalCacheQueryValue, Void> entryProcessor) {
+    public void deleteMatching(Predicate<Map.Entry<QueryKey, GlobalCacheQueryValue>> predicate) {
         if (cache != null) {
-            cache.invokeAll(cache.keys(), entryProcessor);
+            cache.asMap().entrySet().removeIf(predicate);
         }
     }
 
