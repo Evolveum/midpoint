@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 import org.jetbrains.annotations.NotNull;
@@ -606,4 +607,13 @@ public class MiscSchemaUtil {
             return Integer.compare(displayOrder1, displayOrder2);
         });
     }
+
+    public static boolean isObjectType(Class<?> type) {
+        return ObjectType.class.isAssignableFrom(type);
+    }
+
+    public static boolean isAuditType(Class<?> type) {
+        return AuditEventRecordType.class.equals(type);
+    }
+
 }

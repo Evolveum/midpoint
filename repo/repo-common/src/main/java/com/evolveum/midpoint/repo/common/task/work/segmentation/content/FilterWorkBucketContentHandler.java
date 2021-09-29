@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +36,7 @@ public class FilterWorkBucketContentHandler extends BaseWorkBucketContentHandler
     @NotNull
     @Override
     public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket,
-            AbstractWorkSegmentationType configuration, Class<? extends ObjectType> type,
+            AbstractWorkSegmentationType configuration, Class<? extends Containerable> type,
             ItemDefinitionProvider itemDefinitionProvider) throws SchemaException {
 
         FilterWorkBucketContentType content = (FilterWorkBucketContentType) bucket.getContent();

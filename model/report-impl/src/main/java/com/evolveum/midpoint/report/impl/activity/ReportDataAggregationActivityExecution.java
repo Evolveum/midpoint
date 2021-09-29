@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStat
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -59,7 +58,7 @@ class ReportDataAggregationActivityExecution
     ReportDataAggregationActivityExecution(
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Report data aggregation");
-        support = new DistributedReportExportActivitySupport(this);
+        support = new DistributedReportExportActivitySupport(this, getActivity());
     }
 
     @Override
@@ -87,11 +86,11 @@ class ReportDataAggregationActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ReportDataType> reportData,
-            @NotNull ItemProcessingRequest<PrismObject<ReportDataType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ReportDataType reportData,
+            @NotNull ItemProcessingRequest<ReportDataType> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
         LOGGER.info("Appending data from {} (and deleting the object)", reportData);
-        aggregatedData.append(reportData.asObjectable().getData());
+        aggregatedData.append(reportData.getData());
         getActivityHandler().commonTaskBeans.repositoryService.deleteObject(ReportDataType.class, reportData.getOid(), result);
         return true;
     }

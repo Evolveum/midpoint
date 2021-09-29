@@ -10,9 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.prism.ItemDefinition;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -22,11 +19,13 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.component.ContainersPopupDto;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -228,7 +227,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
 
             List<PrismContainerDefinition<? extends Containerable>> childContainers;
             try {
-                childContainers = metadataWrapper.getChildContainers();
+                childContainers = metadataWrapper != null ? metadataWrapper.getChildContainers() : Collections.emptyList();
             } catch (SchemaException e) {
                 LOGGER.error("Cannot get child containers: {}", e.getMessage(), e);
                 childContainers = Collections.emptyList();
@@ -236,7 +235,8 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
 
             List<ContainersPopupDto> navigation = childContainers.stream().map(c -> new ContainersPopupDto(false, c)).collect(Collectors.toList());
 
-            List<? extends ItemDefinition> childNonContainers = metadataWrapper.getChildNonContainers();
+            List<? extends ItemDefinition> childNonContainers = metadataWrapper != null ? metadataWrapper.getChildNonContainers()
+                    : Collections.emptyList();
             if (!childNonContainers.isEmpty()) {
                 navigation.add(new ContainersPopupDto(false, metadataWrapper));
             }

@@ -203,7 +203,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
             );
         }
 
-        runExportTask(reportResource, result);
+        runExportTaskClassic(reportResource, result);
 
         when();
 

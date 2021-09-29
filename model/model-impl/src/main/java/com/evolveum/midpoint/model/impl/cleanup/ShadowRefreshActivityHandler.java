@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecution;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
@@ -120,10 +119,10 @@ public class ShadowRefreshActivityHandler
         }
 
         @Override
-        public boolean processObject(@NotNull PrismObject<ShadowType> object,
-                @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request, RunningTask workerTask, OperationResult result)
+        public boolean processItem(@NotNull ShadowType object,
+                @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result)
                 throws CommonException, ActivityExecutionException {
-            getModelBeans().provisioningService.refreshShadow(object, null, workerTask, result);
+            getModelBeans().provisioningService.refreshShadow(object.asPrismObject(), null, workerTask, result);
             return true;
         }
     }

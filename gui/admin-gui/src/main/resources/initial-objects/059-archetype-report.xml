@@ -50,6 +50,7 @@
                 </panel>
                 <panel>
                     <identifier>fileFormat</identifier>
+                    <displayOrder>20</displayOrder>
                     <display>
                         <label>File format</label>
                         <cssClass>fa fa-file-text-o</cssClass>
@@ -60,7 +61,7 @@
                     <container>
                         <path>fileFormat</path>
                     </container>
-                    <panelType>genericSingleValue</panelType>
+                    <panelType>formPanel</panelType>
                     <path>c:fileFormat</path>
                     <type>c:FileFormatConfigurationType</type>
                 </panel>

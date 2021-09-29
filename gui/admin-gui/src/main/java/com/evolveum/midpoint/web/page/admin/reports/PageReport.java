@@ -135,7 +135,6 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
         if (runReport && !result.isError()) {
             showResult(result);
-            Task task = createSimpleTask("run_task");
 
             PrismObject<ReportType> report;
             if (getObjectModel().getObject().getOid() != null) {
@@ -145,6 +144,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
             }
             if (hasParameters(report.asObjectable())) {
                 try {
+                    Task task = createSimpleTask("run_task");
                     getReportManager().runReport(report, null, task, result);
                 } catch (Exception ex) {
                     result.recordFatalError(ex);
@@ -165,6 +165,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
 
                     protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
                         try {
+                            Task task = createSimpleTask("run_task");
                             getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
                         } catch (Exception ex) {
                             result.recordFatalError(ex);

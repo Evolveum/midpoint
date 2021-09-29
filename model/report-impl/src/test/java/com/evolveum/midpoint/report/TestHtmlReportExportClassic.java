@@ -121,7 +121,7 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
 
         when();
 
-        runExportTask(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, result);
+        runExportTaskClassic(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, result);
         waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
 
         then();
@@ -250,7 +250,7 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
 
         when();
 
-        runExportTask(reportResource, result);
+        runExportTaskClassic(reportResource, result);
         waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
 
         then();

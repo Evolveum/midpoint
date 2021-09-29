@@ -22,12 +22,15 @@ import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
 import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
 import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -81,6 +84,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 ATTR_NUMBER, Integer.class, false, false);
     }
+
+    @Autowired RepositoryService repositoryService;
 
     private static final String GOOD_ACCOUNT = "good";
     private static final String INCONVERTIBLE_ACCOUNT = "inconvertible";
@@ -520,13 +525,20 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .assertSize(1)
                     .end();
 
-        assertSelectedAccountByName(objects, TOTALLY_UNSTORABLE_ACCOUNT)
-                .assertNoOid()
-                // Primary identifier value is not here, because it is set as part of object shadowization (which failed)
-                .attributes()
-                    .assertSize(3) // number, name, uid
-                    .end()
+
+        var asserter = assertSelectedAccountByName(objects, TOTALLY_UNSTORABLE_ACCOUNT);
+        // Disabled no oid, since sqale is able to store large items
+        if (isSqaleRepository()) {
+            asserter.assertOid();
+        } else {
+            asserter.assertNoOid()
                 .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "could not execute batch");
+        }
+        // Primary identifier value is not here, because it is set as part of object shadowization (which failed)
+        asserter.attributes()
+                .assertSize(3) // number, name, uid
+            .end();
+
     }
 
     @NotNull
@@ -630,7 +642,10 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .attributes()
                     .assertSize(1)
                     .end();
-
+        if (isSqaleRepository()) {
+            // Totally unstorable account is storable
+            return;
+        }
         assertSelectedAccountByName(objects, TOTALLY_UNSTORABLE_ACCOUNT) // it has name, because the name attribute was not removed (why?)
                 .assertNoOid()
                 // Primary identifier value is not here, because it is set as part of object shadowization (which failed)
@@ -755,6 +770,10 @@ public class TestDummyNegative extends AbstractDummyTest {
         List<LiveSyncEvent> noChangeEvents = events.stream()
                 .filter(event -> event.getChangeDescription() == null)
                 .collect(Collectors.toList());
+        if (isSqaleRepository()) {
+            // Totally unstorable account is storable
+            return;
+        }
         assertThat(noChangeEvents).hasSize(1);
         LiveSyncEvent failedEvent = noChangeEvents.get(0);
         displayDumpable("failed event", failedEvent);
@@ -775,4 +794,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.controller.getDummyResource().addAccount(account);
     }
     //endregion
+
+    private boolean isSqaleRepository() {
+        return this.repositoryService instanceof SqaleRepositoryService;
+    }
 }

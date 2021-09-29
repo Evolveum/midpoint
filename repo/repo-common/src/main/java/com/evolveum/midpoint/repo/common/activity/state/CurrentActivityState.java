@@ -18,6 +18,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityReali
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +47,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Activity state for the current activity execution. Provides the full functionality, including creation of the work state
@@ -262,6 +266,11 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     }
 
     public void recordRealizationStart(long startTimestamp) throws ActivityExecutionException {
+        setRealizationStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(startTimestamp));
+        setRealizationEndTimestamp(null);
+    }
+
+    public void recordRealizationStart(XMLGregorianCalendar startTimestamp) throws ActivityExecutionException {
         setRealizationStartTimestamp(startTimestamp);
         setRealizationEndTimestamp(null);
     }
@@ -276,8 +285,8 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         setItemRealValues(ActivityStateType.F_REALIZATION_STATE, value);
     }
 
-    private void setRealizationStartTimestamp(Long value) throws ActivityExecutionException {
-        setItemRealValues(ActivityStateType.F_REALIZATION_START_TIMESTAMP, createXMLGregorianCalendar(value));
+    private void setRealizationStartTimestamp(XMLGregorianCalendar value) throws ActivityExecutionException {
+        setItemRealValues(ActivityStateType.F_REALIZATION_START_TIMESTAMP, value);
     }
 
     private void setRealizationEndTimestamp(Long value) throws ActivityExecutionException {
@@ -296,14 +305,6 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     //region Result status
     public void setResultStatus(@NotNull OperationResultStatus status) throws ActivityExecutionException {
         setItemRealValues(ActivityStateType.F_RESULT_STATUS, createStatusType(status));
-    }
-
-    private void setResultState(OperationResultStatus resultStatus) throws SchemaException {
-        ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
-                .item(getResultStatusItemPath()).replace(createStatusType(resultStatus))
-                .asItemDelta();
-        getTask().modify(itemDelta);
-        LOGGER.trace("Setting result status to {} for {}", resultStatus, activityExecution);
     }
     //endregion
 

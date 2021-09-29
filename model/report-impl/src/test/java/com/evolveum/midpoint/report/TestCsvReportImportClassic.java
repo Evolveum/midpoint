@@ -129,7 +129,7 @@ public class TestCsvReportImportClassic extends TestCsvReport {
 
         addObject(OBJECT_COLLECTION_ALL_USERS, task, result);
         addObject(REPORT_REIMPORT_USERS_CLASSIC, task, result);
-        runExportTask(REPORT_REIMPORT_USERS_CLASSIC, result);
+        runExportTaskClassic(REPORT_REIMPORT_USERS_CLASSIC, result);
         PrismObject<UserType> oldWill = getObject(UserType.class, USER_WILL.oid);
 
         waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);

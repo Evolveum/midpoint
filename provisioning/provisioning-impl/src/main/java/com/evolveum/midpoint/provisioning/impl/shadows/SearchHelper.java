@@ -385,9 +385,9 @@ class SearchHelper {
         }
     }
 
-    private SearchResultMetadata searchShadowsInRepositoryIteratively(final ProvisioningContext ctx,
+    private SearchResultMetadata searchShadowsInRepositoryIteratively(ProvisioningContext ctx,
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> originalOptions,
-            final ResultHandler<ShadowType> shadowHandler, OperationResult parentResult)
+            ResultHandler<ShadowType> shadowHandler, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException {
         // This is because we need to apply definitions later

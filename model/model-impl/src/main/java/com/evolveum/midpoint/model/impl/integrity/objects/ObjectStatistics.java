@@ -21,7 +21,7 @@ public class ObjectStatistics {
     private int errors = 0; // TODO use standard mechanisms instead
     private final Map<String,ObjectTypeStatistics> statisticsMap = new HashMap<>();        // key is object class full name
 
-    public Map<String, ObjectTypeStatistics> getStatisticsMap() {
+    Map<String, ObjectTypeStatistics> getStatisticsMap() {
         return statisticsMap;
     }
 
@@ -29,8 +29,8 @@ public class ObjectStatistics {
         return errors;
     }
 
-    public void record(PrismObject<ObjectType> object) {
-        String key = object.asObjectable().getClass().getName();
+    public void record(ObjectType object) {
+        String key = object.getClass().getName();
         ObjectTypeStatistics typeStatistics = statisticsMap.computeIfAbsent(key, (k) -> new ObjectTypeStatistics());
         typeStatistics.register(object);
     }

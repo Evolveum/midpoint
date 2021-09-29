@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Activity execution specifics for classical collection report export.
+ * Activity execution specifics for classical (i.e. not distributed) collection report export.
  */
 public class ClassicCollectionReportExportActivityExecution
         extends PlainIterativeActivityExecution
@@ -115,8 +115,8 @@ public class ClassicCollectionReportExportActivityExecution
         AtomicInteger sequence = new AtomicInteger(0);
 
         Handler<Containerable> handler = record -> {
-            ItemProcessingRequest<Containerable> request = new ContainerableProcessingRequest<>(
-                    sequence.getAndIncrement(), record, this);
+            ItemProcessingRequest<Containerable> request =
+                    ContainerableProcessingRequest.create(sequence.getAndIncrement(), record, this);
             coordinator.submit(request, result);
             return true;
         };

@@ -1327,7 +1327,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             ObjectQuery query = prismContext()
                     .queryFor(FocusType.class)
-                    .item(FocusType.F_LINK_REF).ref(shadowOid)
+                    .item(FocusType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
                     .build();
             SearchResultList<PrismObject<FocusType>> result =
                     executeSearchObjects(FocusType.class, query, options, OP_SEARCH_SHADOW_OWNER);

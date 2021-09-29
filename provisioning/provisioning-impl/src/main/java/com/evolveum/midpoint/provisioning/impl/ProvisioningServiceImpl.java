@@ -802,9 +802,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     // TODO: move to ResourceManager and ConnectorManager
     // the shadow-related code is already in the ShadowCache
-    private <T extends ObjectType> boolean handleRepoObject(final Class<T> type, PrismObject<T> object,
-            final Collection<SelectorOptions<GetOperationOptions>> options,
-            final ResultHandler<T> handler, Task task, final OperationResult objResult) {
+    private <T extends ObjectType> boolean handleRepoObject(Class<T> type, PrismObject<T> object,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            ResultHandler<T> handler, Task task, OperationResult objResult) {
 
         PrismObject<T> completeObject;
         try {

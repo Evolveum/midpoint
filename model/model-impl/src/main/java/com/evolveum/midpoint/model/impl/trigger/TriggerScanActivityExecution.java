@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecution;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
@@ -61,8 +60,8 @@ class TriggerScanActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ObjectType> object,
-            @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ObjectType object,
+            @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
         return itemProcessor.processObject(object, workerTask, result);
     }

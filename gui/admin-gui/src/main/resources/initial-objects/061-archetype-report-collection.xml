@@ -32,6 +32,7 @@
                 <type>ReportType</type>
                 <panel>
                     <identifier>engine</identifier>
+                    <displayOrder>11</displayOrder>
                     <display>
                         <label>Engine</label>
                         <cssClass>fa fa-microchip</cssClass>
@@ -51,12 +52,13 @@
                             <path>objectCollection/useOnlyReportView</path>
                         </item>
                     </container>
-                    <panelType>genericSingleValue</panelType>
+                    <panelType>formPanel</panelType>
                     <path>c:objectCollection</path>
                     <type>c:ObjectCollectionReportEngineConfigurationType</type>
                 </panel>
                 <panel>
                     <identifier>collection</identifier>
+                    <displayOrder>12</displayOrder>
                     <display>
                         <label>Collection</label>
                         <cssClass>fa fa-filter</cssClass>
@@ -67,7 +69,7 @@
                     <container>
                         <path>objectCollection/collection</path>
                     </container>
-                    <panelType>genericSingleValue</panelType>
+                    <panelType>formPanel</panelType>
                     <path>c:objectCollection/collection</path>
                     <type>c:CollectionRefSpecificationType</type>
                 </panel>

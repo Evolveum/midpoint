@@ -5,13 +5,14 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -141,8 +141,8 @@ public class ObjectIntegrityCheckActivityHandler
         }
 
         @Override
-        public boolean processObject(@NotNull PrismObject<ObjectType> object,
-                @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult parentResult)
+        public boolean processItem(@NotNull ObjectType object,
+                @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult parentResult)
                 throws CommonException, ActivityExecutionException {
             OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_ITEM);
             try {

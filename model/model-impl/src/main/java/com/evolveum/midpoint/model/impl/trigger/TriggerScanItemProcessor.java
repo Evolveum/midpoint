@@ -59,14 +59,14 @@ public class TriggerScanItemProcessor {
         this.activityExecution = activityExecution;
     }
 
-    public boolean processObject(@NotNull PrismObject<ObjectType> object, @NotNull RunningTask workerTask,
+    public boolean processObject(@NotNull ObjectType object, @NotNull RunningTask workerTask,
             @NotNull OperationResult result)
             throws CommonException {
-        fireTriggers(object, workerTask, result);
+        fireTriggers(object.asPrismObject(), workerTask, result);
         return true;
     }
 
-    private void fireTriggers(@NotNull PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
+    private void fireTriggers(@NotNull PrismObject<? extends ObjectType> object, RunningTask workerTask, OperationResult result) {
         PrismContainer<TriggerType> triggerContainer = object.findContainer(F_TRIGGER);
         if (triggerContainer == null) {
             LOGGER.warn("Strange thing, attempt to fire triggers on {}, but it does not have trigger container", object);
@@ -180,7 +180,7 @@ public class TriggerScanItemProcessor {
         return activityExecution.getThisScanTimestamp().compare(timestamp) != DatatypeConstants.LESSER;
     }
 
-    private void removeTriggers(PrismObject<ObjectType> object, Collection<TriggerType> triggers, Task task,
+    private void removeTriggers(PrismObject<? extends ObjectType> object, Collection<TriggerType> triggers, Task task,
             PrismContainerDefinition<TriggerType> triggerContainerDef) {
         ContainerDelta<TriggerType> triggerDelta = triggerContainerDef.createEmptyDelta(F_TRIGGER);
         for (TriggerType trigger : triggers) {

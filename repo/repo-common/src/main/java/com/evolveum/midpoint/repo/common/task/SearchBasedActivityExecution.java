@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
@@ -40,8 +40,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.NOT_APPLICABLE;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -52,7 +51,7 @@ import static java.util.Objects.requireNonNull;
  *
  * 1. Bucketing, i.e. orchestrating getting and processing buckets. See {@link #doExecute(OperationResult)}.
  *
- * 2. Item source preparation = preparation of search specification ({@link #prepareSearchSpecification(OperationResult)}).
+ * 2. Item source preparation = preparation of search specification ({@link #prepareSearchSpecificationAndSearchableItemSource(OperationResult)}).
  * This includes
  *
  *   a. converting the configured object set to search spec (or obtaining the spec from
@@ -70,21 +69,26 @@ import static java.util.Objects.requireNonNull;
  *   c. applying additional pre-processing to objects (currently used for retrying failed objects),
  */
 public abstract class SearchBasedActivityExecution<
-        O extends ObjectType,
+        C extends Containerable,
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         WS extends AbstractActivityWorkStateType>
-        extends IterativeActivityExecution<PrismObject<O>, WD, AH, WS>
-        implements SearchBasedActivityExecutionSpecifics<O> {
+        extends IterativeActivityExecution<C, WD, AH, WS>
+        implements SearchBasedActivityExecutionSpecifics<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchBasedActivityExecution.class);
 
     private static final String OP_PREPROCESS_OBJECT = SearchBasedActivityExecution.class.getName() + ".preprocessObject";
 
     /**
-     * Specification of the search that is to be executed: object type, query, options, and "use repository" flag.
+     * Specification of the search that is to be executed: container type, query, options, and "use repository" flag.
      */
-    protected SearchSpecification<O> searchSpecification;
+    protected SearchSpecification<C> searchSpecification;
+
+    /**
+     * Source of items to be processed: repo or model, objects or audit event records, or any containerables.
+     */
+    private SearchableItemSource searchableItemSource;
 
     /**
      * Additional filter to be applied to each object received (if not null).
@@ -101,11 +105,11 @@ public abstract class SearchBasedActivityExecution<
      *
      * See {@link #processItem(ItemProcessingRequest, RunningTask, OperationResult)}.
      */
-    private ObjectPreprocessor<O> preprocessor;
+    private ItemPreprocessor<C> preprocessor;
 
     /**
      * OIDs of objects submitted to processing in current part execution (i.e. in the current bucket).
-     * Used to filter duplicates.
+     * Used to filter duplicates. Not applicable to non-object items.
      */
     private final Set<String> oidsSeen = ConcurrentHashMap.newKeySet();
 
@@ -122,10 +126,11 @@ public abstract class SearchBasedActivityExecution<
     @Override
     protected final void prepareItemSourceForCurrentBucket(OperationResult result)
             throws ActivityExecutionException, CommonException {
-        prepareSearchSpecification(result);
+        prepareSearchSpecificationAndSearchableItemSource(result);
     }
 
-    private void prepareSearchSpecification(OperationResult result) throws CommonException, ActivityExecutionException {
+    private void prepareSearchSpecificationAndSearchableItemSource(OperationResult result)
+            throws CommonException, ActivityExecutionException {
         searchSpecification = createCustomizedSearchSpecification(result);
 
         narrowQueryForBucketingAndErrorHandling();
@@ -134,11 +139,23 @@ public abstract class SearchBasedActivityExecution<
 
         LOGGER.trace("{}: will do the following search (in bucket: {}):\n{}",
                 shortName, bucket, DebugUtil.debugDumpLazily(searchSpecification));
+
+        searchableItemSource = createSearchableItemSource();
     }
 
-    private @NotNull SearchSpecification<O> createCustomizedSearchSpecification(OperationResult result)
+    private SearchableItemSource createSearchableItemSource() {
+        if (searchSpecification.isUseRepository() || !advancedSupportAvailable()) {
+            return beans.repositoryItemSourceFactory
+                    .getItemSourceFor(searchSpecification.getType());
+        } else {
+            return beans.getAdvancedActivityExecutionSupport()
+                    .getItemSourceFor(searchSpecification.getType());
+        }
+    }
+
+    private @NotNull SearchSpecification<C> createCustomizedSearchSpecification(OperationResult result)
             throws CommonException, ActivityExecutionException {
-        SearchSpecification<O> searchSpecification = doCreateSearchSpecification(result);
+        SearchSpecification<C> searchSpecification = doCreateSearchSpecification(result);
         customizeSearchSpecification(searchSpecification, result);
         return searchSpecification;
     }
@@ -147,9 +164,9 @@ public abstract class SearchBasedActivityExecution<
      * Creates the search specification (type, query, options, use repo). Normally it is created from the configuration
      * embodied in work definition, but it can be fully overridden for the least configurable activities.
      */
-    private @NotNull SearchSpecification<O> doCreateSearchSpecification(OperationResult result)
+    private @NotNull SearchSpecification<C> doCreateSearchSpecification(OperationResult result)
             throws SchemaException, ActivityExecutionException {
-        SearchSpecification<O> customSpec = createCustomSearchSpecification(result);
+        SearchSpecification<C> customSpec = createCustomSearchSpecification(result);
         if (customSpec != null) {
             return customSpec;
         }
@@ -162,12 +179,12 @@ public abstract class SearchBasedActivityExecution<
     /**
      * Converts {@link ObjectSetSpecification} into {@link SearchSpecification}.
      */
-    private @NotNull SearchSpecification<O> createSearchSpecificationFromObjectSetSpec(
+    private @NotNull SearchSpecification<C> createSearchSpecificationFromObjectSetSpec(
             @NotNull ObjectSetSpecification objectSetSpecification, OperationResult result)
             throws SchemaException, ActivityExecutionException {
         if (objectSetSpecification instanceof ResourceObjectSetSpecificationImpl) {
             //noinspection unchecked
-            return (SearchSpecification<O>)
+            return (SearchSpecification<C>)
                     beans.getAdvancedActivityExecutionSupport().createSearchSpecificationFromResourceObjectSetSpec(
                             (ResourceObjectSetSpecificationImpl) objectSetSpecification, getRunningTask(), result);
         } else if (objectSetSpecification instanceof RepositoryObjectSetSpecificationImpl) {
@@ -182,7 +199,7 @@ public abstract class SearchBasedActivityExecution<
     /**
      * Customizes the configured search specification. Almost fully delegated to the plugin.
      */
-    private void customizeSearchSpecification(SearchSpecification<O> searchSpecification, OperationResult result)
+    private void customizeSearchSpecification(SearchSpecification<C> searchSpecification, OperationResult result)
             throws CommonException {
 
         searchSpecification.setQuery(
@@ -240,7 +257,7 @@ public abstract class SearchBasedActivityExecution<
     private ObjectQuery narrowQueryToProcessBucket(ObjectQuery failureNarrowedQuery) throws SchemaException {
         ObjectQuery bucketNarrowedQuery;
         bucketNarrowedQuery = beans.bucketingManager.narrowQueryForWorkBucket(
-                getObjectType(),
+                getItemType(),
                 failureNarrowedQuery,
                 activity.getDefinition().getDistributionDefinition(),
                 createItemDefinitionProvider(),
@@ -287,10 +304,10 @@ public abstract class SearchBasedActivityExecution<
                                     + "Model processing is required.");
                     argCheck(searchSpecification.concernsShadows(),
                             "FETCH_FAILED_OBJECTS processing is available only for shadows, not for %s",
-                            searchSpecification.getObjectType());
+                            searchSpecification.getType());
                     //noinspection unchecked
-                    preprocessor = (ObjectPreprocessor<O>) beans.getAdvancedActivityExecutionSupport()
-                            .createShadowFetchingPreprocessor(this);
+                    preprocessor = (ItemPreprocessor<C>) beans.getAdvancedActivityExecutionSupport()
+                            .createShadowFetchingPreprocessor(this::getSearchOptions, getSchemaService());
                     LOGGER.trace("{}: shadow-fetching preprocessor was set up", shortName);
 
                 case NARROW_QUERY:
@@ -333,7 +350,7 @@ public abstract class SearchBasedActivityExecution<
 
     @Override
     protected final boolean isInRepository(OperationResult result) throws ActivityExecutionException, CommonException {
-        SearchSpecification<O> simpleSearchSpecification;
+        SearchSpecification<C> simpleSearchSpecification;
         if (searchSpecification != null) {
             simpleSearchSpecification = searchSpecification;
         } else {
@@ -344,7 +361,7 @@ public abstract class SearchBasedActivityExecution<
         return simpleSearchSpecification.isUseRepository() ||
                 simpleSearchSpecification.isRaw() ||
                 simpleSearchSpecification.isNoFetch() ||
-                !ShadowType.class.equals(simpleSearchSpecification.getObjectType());
+                !ShadowType.class.equals(simpleSearchSpecification.getType());
     }
 
     private void resolveExpressionsInQuery(OperationResult result) throws CommonException {
@@ -364,7 +381,7 @@ public abstract class SearchBasedActivityExecution<
     public final @Nullable Integer determineOverallSize(OperationResult result)
             throws CommonException, ActivityExecutionException {
         assert bucket == null;
-        prepareSearchSpecification(result);
+        prepareSearchSpecificationAndSearchableItemSource(result);
         return countObjects(result);
     }
 
@@ -378,20 +395,7 @@ public abstract class SearchBasedActivityExecution<
      * Used to count objects using model or any similar higher-level interface. Defaults to repository count.
      */
     protected Integer countObjects(OperationResult result) throws CommonException {
-        if (searchSpecification.isUseRepository() || !advancedSupportAvailable()) {
-            return countObjectsInRepository(result);
-        } else {
-            return beans.getAdvancedActivityExecutionSupport()
-                    .countObjects(searchSpecification, getRunningTask(), result);
-        }
-    }
-
-    private int countObjectsInRepository(OperationResult result) throws SchemaException {
-        return beans.repositoryService.countObjects(
-                getObjectType(),
-                getQuery(),
-                getSearchOptions(),
-                result);
+        return searchableItemSource.count(searchSpecification, getRunningTask(), result);
     }
 
     @Override
@@ -406,12 +410,18 @@ public abstract class SearchBasedActivityExecution<
         return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
     }
 
+    private boolean filteredOutByAdditionalFilter(ItemProcessingRequest<C> request)
+            throws SchemaException {
+        return additionalFilter != null &&
+                !additionalFilter.match(request.getItem().asPrismContainerValue(), getBeans().matchingRuleRegistry);
+    }
+
     @Override
-    public final boolean processItem(@NotNull ItemProcessingRequest<PrismObject<O>> request, @NotNull RunningTask workerTask,
+    public final boolean processItem(@NotNull ItemProcessingRequest<C> request, @NotNull RunningTask workerTask,
             OperationResult result) throws CommonException, ActivityExecutionException {
 
-        PrismObject<O> object = request.getItem();
-        String oid = object.getOid();
+        C item = request.getItem();
+        String oid = request.getItemOid();
         if (oid != null) {
             if (!checkAndRegisterOid(oid)) {
                 LOGGER.trace("Skipping OID that has been already seen: {}", oid);
@@ -419,7 +429,7 @@ public abstract class SearchBasedActivityExecution<
                 return true; // continue working
             }
         } else {
-            LOGGER.trace("OID is null; can be in case of malformed objects");
+            LOGGER.trace("No OID for the item");
         }
 
         if (filteredOutByAdditionalFilter(request)) {
@@ -428,27 +438,28 @@ public abstract class SearchBasedActivityExecution<
             return true; // continue working
         }
 
-        OperationResultType originalFetchResult = object.asObjectable().getFetchResult();
-        if (originalFetchResult == null) {
-            return processWithPreprocessing(request, workerTask, result);
+        OperationResultType originalFetchResult = getFetchResult(item);
+        if (originalFetchResult != null) {
+            // We assume that if there's a fetch result, then the corresponding item (most probably shadow)
+            // was not retrieved successfully. So instead of regular processing we process it as an error.
+            // (Maybe we could check if the result is really an error. Will do that some day.)
+            return processError(item, originalFetchResult, workerTask, result);
+        }
+
+        // The item was retrieved OK. Let's process it.
+        C preprocessedItem = preprocessItem(request, workerTask, result);
+        return processItem(preprocessedItem, request, workerTask, result);
+    }
+
+    private OperationResultType getFetchResult(C item) {
+        if (item instanceof ObjectType) {
+            return ((ObjectType) item).getFetchResult();
         } else {
-            return processError(object, originalFetchResult, workerTask, result);
+            return null;
         }
     }
 
-    private boolean filteredOutByAdditionalFilter(ItemProcessingRequest<PrismObject<O>> request)
-            throws SchemaException {
-        return additionalFilter != null &&
-                !additionalFilter.match(request.getItem().getValue(), getBeans().matchingRuleRegistry);
-    }
-
-    private boolean processWithPreprocessing(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
-            OperationResult result) throws CommonException, ActivityExecutionException {
-        PrismObject<O> objectToProcess = preprocessObject(request, workerTask, result);
-        return processObject(objectToProcess, request, workerTask, result);
-    }
-
-    private PrismObject<O> preprocessObject(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
+    private C preprocessItem(ItemProcessingRequest<C> request, RunningTask workerTask,
             OperationResult parentResult) throws CommonException {
         if (preprocessor == null) {
             return request.getItem();
@@ -465,33 +476,26 @@ public abstract class SearchBasedActivityExecution<
     }
 
     @SuppressWarnings({ "WeakerAccess", "unused" })
-    protected final boolean processError(PrismObject<O> object, @NotNull OperationResultType errorFetchResult, RunningTask workerTask,
+    protected final boolean processError(C item, @NotNull OperationResultType errorFetchResult, RunningTask workerTask,
             OperationResult result)
             throws CommonException, ActivityExecutionException {
         result.recordFatalError("Error in preprocessing: " + errorFetchResult.getMessage());
-        return true; // "Can continue" flag is updated by item processing gatekeeper (unfortunately, the exception is lost)
+        // We can return true here, as the "can continue" flag is updated by item processing gatekeeper
+        // based on the error severity. Unfortunately, the exception as such is lost when the operation
+        // result was converted from native form to a bean to be stored in the object.
+        return true;
     }
 
     /**
-     * Used to search using model or any similar higher-level interface. Defaults to search using repository.
+     * Retrieves items from the source and passes them to search
      */
     private void searchIterative(OperationResult result) throws CommonException {
-        if (searchSpecification.isUseRepository() || !advancedSupportAvailable()) {
-            searchIterativeInRepository(result);
-        } else {
-            beans.getAdvancedActivityExecutionSupport()
-                    .searchIterative(searchSpecification, createSearchResultHandler(), getRunningTask(), result);
-        }
-    }
-
-    protected final void searchIterativeInRepository(OperationResult result) throws SchemaException {
-        beans.repositoryService.searchObjectsIterative(
-                getObjectType(),
-                getQuery(),
-                createSearchResultHandler(),
-                getSearchOptions(),
-                true,
-                result);
+        ContainerableResultHandler<C> handler = (object, parentResult) -> {
+            ItemProcessingRequest<C> request =
+                    ContainerableProcessingRequest.create(sequentialNumberCounter.getAndIncrement(), object, this);
+            return coordinator.submit(request, parentResult);
+        };
+        searchableItemSource.searchIterative(searchSpecification, handler, getRunningTask(), result);
     }
 
     private boolean advancedSupportAvailable() {
@@ -511,34 +515,18 @@ public abstract class SearchBasedActivityExecution<
         return beans.taskManager;
     }
 
-    /**
-     * Passes all objects found into the processing coordinator.
-     * (Which processes them directly or queues them for the worker threads.)
-     */
-    protected final ResultHandler<O> createSearchResultHandler() {
-        return (object, parentResult) -> {
-            ObjectProcessingRequest<O> request =
-                    new ObjectProcessingRequest<>(sequentialNumberCounter.getAndIncrement(), object, this);
-            return coordinator.submit(request, parentResult);
-        };
-    }
-
-    private boolean checkAndRegisterOid(String oid) {
-        return oidsSeen.add(oid);
-    }
-
     @Override
     protected final boolean hasProgressCommitPoints() {
         return true;
     }
 
     @NotNull
-    protected final SearchSpecification<O> getSearchSpecificationRequired() {
+    protected final SearchSpecification<C> getSearchSpecificationRequired() {
         return requireNonNull(searchSpecification, "no search specification");
     }
 
-    public final Class<O> getObjectType() {
-        return getSearchSpecificationRequired().getObjectType();
+    public final Class<C> getItemType() {
+        return getSearchSpecificationRequired().getType();
     }
 
     public final ObjectQuery getQuery() {
@@ -547,5 +535,9 @@ public abstract class SearchBasedActivityExecution<
 
     public final Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
         return getSearchSpecificationRequired().getSearchOptions();
+    }
+
+    private boolean checkAndRegisterOid(String oid) {
+        return oidsSeen.add(oid);
     }
 }
