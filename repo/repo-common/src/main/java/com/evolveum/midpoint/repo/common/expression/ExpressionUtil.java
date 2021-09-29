@@ -233,7 +233,8 @@ public class ExpressionUtil {
                 // TODO should we attempt to convert Item to a list of PrismValues?
                 return typedValue;
             }
-        } else if (value instanceof Collection && ((Collection)value).iterator().next() instanceof PrismValue) {
+        } else if (value instanceof Collection && !((Collection)value).isEmpty()
+                && ((Collection)value).iterator().next() instanceof PrismValue) {
             if (valueVariableMode == ValueVariableModeType.REAL_VALUE) {
                 return convertPrismValuesToRealValue(typedValue);
             } else {

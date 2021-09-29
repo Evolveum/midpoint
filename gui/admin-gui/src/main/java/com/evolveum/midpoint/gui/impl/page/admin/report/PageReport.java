@@ -140,8 +140,6 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = saveOrPreviewPerformed(target, result, false);
 
         if (!result.isError()) {
-            showResult(result);
-            Task task = createSimpleTask("run_task");
 
             PrismObject<ReportType> report;
             if (getModelObjectType().getOid() != null) {
@@ -149,13 +147,15 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
             } else {
                 report = (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
             }
-            if (ReportOperationalButtonsPanel.hasParameters(report.asObjectable())) {
+            if (!ReportOperationalButtonsPanel.hasParameters(report.asObjectable())) {
                 try {
+                    Task task = createSimpleTask("run_task");
                     getReportManager().runReport(report, null, task, result);
                 } catch (Exception ex) {
                     result.recordFatalError(ex);
                 } finally {
                     result.computeStatusIfUnknown();
+                    redirectBack();
                 }
 
             } else {
@@ -166,6 +166,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
 
                     protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
                         try {
+                            Task task = createSimpleTask("run_task");
                             getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
                         } catch (Exception ex) {
                             result.recordFatalError(ex);
@@ -173,14 +174,11 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
                             result.computeStatusIfUnknown();
                         }
                         hideMainPopup(target);
+                        redirectBack();
                     }
                 };
-                showResult(result);
-                redirectBack();
                 showMainPopup(runReportPopupPanel, target);
             }
-            showResult(result);
-            redirectBack();
         }
     }
 
