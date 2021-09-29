@@ -39,12 +39,32 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Context information about SQL query.
+ * Execution context of the SQL query.
  * Works as a kind of accumulator where information are added as the object query is interpreted.
- * It is also used as an entry point for {@link FilterProcessor} processing for this query.
- * And finally, it also executes the query, because this way it is more practical to contain
- * all the needed parametrized types without using Class-type parameters.
- * <p>
+ * The object has a couple of overlapping responsibilities:
+ *
+ * * It implements {@link FilterProcessor} and is used as an entry point for filter processing for the query.
+ * * It executes the query, returning {@link PageOf} low-level rows, see {@link #executeQuery}.
+ * * It transforms the row beans to midPoint objects using {@link #transformToSchemaType}.
+ *
+ * {@link QueryTableMapping} is crucial for all these steps and flow of the execution goes a lot between
+ * the {@link SqlQueryExecutor}, this class and particular methods of the mapping.
+ * Anything specific for a particular type/table should be part of the mapping logic.
+ *
+ * The mapping contract should cover all the needs of this execution context.
+ * It can be extended if needed, but always think whether existing mechanisms are not enough already.
+ * E.g. if you need to post-process the low level result, there is a way how to do it and it allows for things
+ * like loading all the detail table rows in a single query.
+ * See {@link #transformToSchemaType} for notes how this allows for inter-row state keeping as well.
+ *
+ * [NOTE]
+ * Implementation note:
+ * There was an option to keep this as an information accumulator only and do the execution
+ * elsewhere, but it proved more practical to utilize all the contained parameterized types.
+ * Methods executing the query and processing the result would need to be parameterized the same way
+ * this context already is - so it was better to use the types here.
+ *
+ * [NOTE]
  * This object <b>does not handle SQL connections or transaction</b> in any way, any connection
  * needed is provided from the outside.
  *
@@ -122,7 +142,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     /**
      * Processes the object filter and sets the WHERE clause.
      *
-     * This is different than {@link #process(ObjectFilter)} that just creates a predicate.
+     * This is different from {@link #process(ObjectFilter)} that just creates a predicate.
      * That method is used in this one and {@link SQLQuery#where(Predicate)} is called.
      */
     public void processFilter(ObjectFilter filter) throws RepositoryException {
@@ -171,13 +191,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         }
     }
 
-    // TODO EXPLAIN
-    public Predicate transform(Predicate predicate) {
-        return predicate;
-    }
-
     /**
-     * This takes care of {@link ObjectPaging} which includes ordering.
+     * This method takes care of {@link ObjectPaging} which includes ordering.
      */
     public void processObjectPaging(ObjectPaging paging) throws RepositoryException {
         if (paging == null) {
@@ -263,11 +278,18 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     /**
      * Returns page of results with each row represented by a {@link Tuple}.
-     * Tuple contains expressions specified by {@link QueryTableMapping#selectExpressions}.
+     * Tuple contains expressions specified by {@link QueryTableMapping#selectExpressions},
+     * see {@link #buildSelectExpressions} for details.
      * This may for example be {@link R} (representing the whole entity) and then individual paths
      * for extension columns, see {@code extensionColumns} in {@link QueryTableMapping}.
-     * If any "fetchers" for detail tables are specified they are executed, in which case
-     * {@link R} in the Tuple is necessary.
+     *
+     * {@link QueryTableMapping} has many responsibilities in the process:
+     *
+     * * {@link #options} are used to amend the select expression list; the options later enter
+     * as a parameter to most methods related to the transformation from row to midPoint object.
+     * * {@link QueryTableMapping#processResult} allows for low-level result list processing,
+     * e.g. fetching any additional objects efficiently (based on the whole result list).
+     * * Finally, see {@link #transformToSchemaType} fo, outside this method transformation is done {@link QueryTableMapping#createRowTransformer}
      */
     public PageOf<Tuple> executeQuery(JdbcSession jdbcSession) throws QueryException {
         SQLQuery<?> query = sqlQuery.clone(jdbcSession.connection());

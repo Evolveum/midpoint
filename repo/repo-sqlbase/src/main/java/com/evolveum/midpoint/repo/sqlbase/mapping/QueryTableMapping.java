@@ -46,6 +46,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * The main goal of this type is to map object query conditions and ORDER BY to SQL.
  * Mappings also takes care of transformation between schema/prism objects and repository objects
  * (row beans or tuples).
+ * Any logic specific for the particular type (table) should appear in the related mapping subclass.
+ * This applies for filtering, fetching (e.g. additional detail tables) and transforming to midPoint
+ * objets.
+ * See also Javadoc in {@link SqlQueryContext} for additional info.
  *
  * Other important functions of mapping:
  *
@@ -310,6 +314,12 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 
+    /**
+     * Similarly, transformation to midPoint objects allows for state using {@link ResultListRowTransformer}
+     * instead of is done in one-by-one manner, it is not done by
+     * the mapping (which is otherwise stateless), but the mapping creates transformer , there is also room
+     * for a stateful object
+     */
     public ResultListRowTransformer<S, Q, R> createRowTransformer(
             SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
         return (tuple, entityPath, options) -> {
