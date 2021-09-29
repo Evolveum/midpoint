@@ -100,8 +100,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
     }
 
     @Override
-    protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
-
+    protected boolean shouldBeStoppedProcessingOfChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options, boolean previewOnly, AjaxRequestTarget target, OperationResult result) {
         if (ItemStatus.NOT_CHANGED == getObjectDetailsModels().getObjectStatus()) {
             boolean delegationChangesExist = processDeputyAssignments(previewOnly);
 
@@ -118,11 +117,10 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
                         target.add(getFeedbackPanel());
                     }
                 }
-                return null;
+                return true;
             }
         }
-
-        return super.executeChanges(deltas, previewOnly, options, task, result, target);
+        return false;
     }
 
     @Override
