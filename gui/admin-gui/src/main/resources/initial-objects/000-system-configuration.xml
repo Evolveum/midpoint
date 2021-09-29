@@ -385,11 +385,34 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView>
-                <identifier>iterative-bulk-action-tasks-view</identifier>
+                <identifier>report-import-task-view</identifier>
                 <refreshInterval>30</refreshInterval>
+                <applicableForOperation>add</applicableForOperation>
                 <type>TaskType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000510" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>export-report-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000511" relation="org:default" type="c:ArchetypeType">
+                        <!-- Report export task -->
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>export-report-distributed-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000512" relation="org:default" type="c:ArchetypeType">
+                        <!-- Distributed report export task -->
+                    </collectionRef>
                 </collection>
             </objectCollectionView>
             <objectCollectionView>

@@ -240,7 +240,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         if (deltas.isEmpty()) {
-            //nothing to do;
+            result.recordWarning("PageAdminObjectDetails.noChangesSave");
+            showResult(result);
+            target.add(getFeedbackPanel());
+            redirectBack();
             return null;
         }
         //TODO force

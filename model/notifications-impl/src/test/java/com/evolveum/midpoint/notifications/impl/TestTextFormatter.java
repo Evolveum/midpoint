@@ -254,7 +254,7 @@ public class TestTextFormatter extends AbstractSpringTest {
         // @formatter:off
         ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF)
-                    .add(ObjectTypeUtil.createObjectRef("some-account-oid", ObjectTypes.SHADOW))
+                    .add(ObjectTypeUtil.createObjectRef("aecfb587-cc61-41aa-aeeb-962d4369de86", ObjectTypes.SHADOW))
                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)
                     .replace(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
                 .asObjectDelta("some-user-oid");
