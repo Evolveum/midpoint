@@ -248,10 +248,10 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
                 }
             }
         }
-        runConfirmPerformed(target, getModelObject(), parameterContainer);
+        runConfirmPerformed(target, getModelObject().asPrismObject(), parameterContainer);
     }
 
-    protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType2,
+    protected void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> reportType2,
             PrismContainer<ReportParameterType> reportParam) {
     }
 
