@@ -32,6 +32,7 @@
                 <type>ReportType</type>
                 <panel>
                     <identifier>engine</identifier>
+                    <displayOrder>11</displayOrder>
                     <display>
                         <label>Engine</label>
                         <cssClass>fa fa-microchip</cssClass>
@@ -54,7 +55,7 @@
                             <path>dashboard/storeExportedWidgetData</path>
                         </item>
                     </container>
-                    <panelType>genericSingleValue</panelType>
+                    <panelType>formPanel</panelType>
                     <path>c:dashboard</path>
                     <type>c:DashboardReportEngineConfigurationType</type>
                 </panel>
@@ -74,7 +75,7 @@
                         </display>
                         <path>dashboard/view</path>
                     </container>
-                    <panelType>genericSingleValue</panelType>
+                    <panelType>formPanel</panelType>
                     <path>c:dashboard/view</path>
                     <type>c:GuiObjectListViewType</type>
                 </panel>
