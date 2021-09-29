@@ -81,8 +81,6 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
         tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);
 
-
-
         DisplayNamePanel<C> displayNamePanel = createDisplayNamePanel(ID_DISPLAY_NAME);
 
         displayNamePanel.setOutputMarkupId(true);
