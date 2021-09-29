@@ -100,30 +100,18 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
         return new UserDetailsModel(createPrismObejctModel(object), this);
     }
 
+    private boolean delegationChangesExist = false;
     @Override
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
-
         if (ItemStatus.NOT_CHANGED == getObjectDetailsModels().getObjectStatus()) {
-            boolean delegationChangesExist = processDeputyAssignments(previewOnly);
-
-            if (deltas.isEmpty() && !options.isReconcile()) {
-                if (!previewOnly) {
-                    if (!delegationChangesExist) {
-                        result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
-                        showResult(result);
-                    }
-                    redirectBack();
-                } else {
-                    if (!delegationChangesExist) {
-                        warn(getString("PageAdminObjectDetails.noChangesPreview"));
-                        target.add(getFeedbackPanel());
-                    }
-                }
-                return null;
-            }
+            delegationChangesExist = processDeputyAssignments(previewOnly);
         }
-
         return super.executeChanges(deltas, previewOnly, options, task, result, target);
+    }
+
+    @Override
+    protected boolean noChangesToExecute(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options) {
+        return deltas.isEmpty() && !options.isReconcile() && !delegationChangesExist;
     }
 
     @Override

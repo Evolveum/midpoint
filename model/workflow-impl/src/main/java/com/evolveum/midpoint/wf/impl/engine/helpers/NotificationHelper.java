@@ -35,7 +35,7 @@ public class NotificationHelper {
 
     private static final String OP_SEND_PREPARED_NOTIFICATIONS = NotificationHelper.class.getName() + ".sendPreparedNotifications";
 
-    private Set<WorkflowListener> workflowListeners = ConcurrentHashMap.newKeySet();
+    private final Set<WorkflowListener> workflowListeners = ConcurrentHashMap.newKeySet();
 
     public void sendPreparedNotifications(EngineInvocationContext ctx, OperationResult parentResult) {
         OperationResult result = parentResult.subresult(OP_SEND_PREPARED_NOTIFICATIONS)

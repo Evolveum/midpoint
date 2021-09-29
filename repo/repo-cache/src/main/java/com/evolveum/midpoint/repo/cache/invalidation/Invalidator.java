@@ -117,7 +117,7 @@ public class Invalidator {
                     new CacheInvalidationContext(false, new RepositoryCacheInvalidationDetails(additionalInfo)));
         } catch (Throwable t) {
             result.recordFatalError(t);
-            throw t;        // Really? We want the operation to proceed anyway. But OTOH we want to be sure devel team gets notified about this.
+            throw t; // Really? We want the operation to proceed anyway. But OTOH we want to be sure devel team gets notified about this.
         } finally {
             result.computeStatusIfUnknown();
         }
@@ -157,15 +157,16 @@ public class Invalidator {
         AtomicInteger all = new AtomicInteger(0);
         AtomicInteger removed = new AtomicInteger(0);
 
-        globalQueryCache.invokeAll(entry -> {
+        globalQueryCache.deleteMatching(entry -> {
             QueryKey queryKey = entry.getKey();
             all.incrementAndGet();
             if (change.mayAffect(queryKey, entry.getValue().getResult(), matchingRuleRegistry)) {
                 LOGGER.trace("Removing (from global cache) query for type={}, change={}: {}", type, change, queryKey.getQuery());
-                entry.remove();
                 removed.incrementAndGet();
+                return true;
+            } else {
+                return false;
             }
-            return null;
         });
         LOGGER.trace("Removed (from global cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
     }

@@ -8,21 +8,24 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import static com.evolveum.midpoint.report.impl.ReportUtils.getDirection;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionTypeType.EXPORT;
 
 import java.util.Collection;
+import java.util.Objects;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.report.impl.controller.*;
 
 import com.evolveum.midpoint.repo.common.task.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
@@ -35,9 +38,8 @@ import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Executes parts of distributed report data creation activity:
@@ -48,10 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
  */
 public class ReportDataCreationActivityExecution
         extends SearchBasedActivityExecution
-        <ObjectType,
-                DistributedReportExportWorkDefinition,
-                DistributedReportExportActivityHandler,
-                ReportExportWorkStateType> {
+        <Containerable, DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler, ReportExportWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportDataCreationActivityExecution.class);
 
@@ -59,24 +58,29 @@ public class ReportDataCreationActivityExecution
      * Execution object (~ controller) that is used to translate objects found into report data.
      * Initialized on the activity execution start.
      */
-    private CollectionDistributedExportController<ObjectType> controller;
+    private CollectionDistributedExportController<Containerable> controller;
 
     /**
      * This is "master" search specification, derived from the report.
      * It is then narrowed down using buckets by the activity framework.
      */
-    private SearchSpecification<ObjectType> masterSearchSpecification;
+    private SearchSpecification<Containerable> masterSearchSpecification;
 
     @NotNull private final DistributedReportExportActivitySupport support;
 
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
 
+    /**
+     * Segmentation of bucketed audit report based on time from/to.
+     */
+    private AuditReportSegmentation auditReportSegmentation;
+
     ReportDataCreationActivityExecution(
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Report data creation");
         reportService = getActivity().getHandler().reportService;
-        support = new DistributedReportExportActivitySupport(this);
+        support = new DistributedReportExportActivitySupport(this, getActivity());
     }
 
     /**
@@ -118,6 +122,19 @@ public class ReportDataCreationActivityExecution
 
         stateCheck(searchSpecificationHolder.searchSpecification != null, "No search specification was provided");
         masterSearchSpecification = searchSpecificationHolder.searchSpecification;
+
+        if (AuditEventRecordType.class.equals(masterSearchSpecification.getType())) {
+            initializeAuditReportBucketing(result);
+        }
+    }
+
+    private void initializeAuditReportBucketing(OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        @NotNull XMLGregorianCalendar reportFrom = XmlTypeConverter.createXMLGregorianCalendar("2020-01-01T00:00:00.000+02:00");
+        @NotNull XMLGregorianCalendar reportTo = Objects.requireNonNull(
+                activityState.getRealizationStartTimestamp(),
+                "no realization start timestamp for " + this);
+        auditReportSegmentation = new AuditReportSegmentation(reportFrom, reportTo);
     }
 
     /**
@@ -126,16 +143,25 @@ public class ReportDataCreationActivityExecution
      * down to simple search specification - and this is done exactly in this method.
      */
     @Override
-    public @NotNull SearchSpecification<ObjectType> createCustomSearchSpecification(OperationResult result) {
+    public @NotNull SearchSpecification<Containerable> createCustomSearchSpecification(OperationResult result) {
         return masterSearchSpecification.clone();
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ObjectType> object,
-            @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull Containerable item,
+            @NotNull ItemProcessingRequest<Containerable> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
-        controller.handleDataRecord(request.getSequentialNumber(), object.asObjectable(), workerTask, result);
+        controller.handleDataRecord(request.getSequentialNumber(), item, workerTask, result);
         return true;
+    }
+
+    @Override
+    public AbstractWorkSegmentationType resolveImplicitSegmentation(@NotNull ImplicitWorkSegmentationType segmentation) {
+        if (auditReportSegmentation != null) {
+            return auditReportSegmentation.resolveImplicitSegmentation(segmentation);
+        } else {
+            return super.resolveImplicitSegmentation(segmentation);
+        }
     }
 
     @Override
@@ -148,17 +174,17 @@ public class ReportDataCreationActivityExecution
         controller.afterBucketExecution(bucket.getSequentialNumber(), result);
     }
 
-    private static class SearchSpecificationHolder implements ReportDataSource<ObjectType> {
+    private static class SearchSpecificationHolder implements ReportDataSource<Containerable> {
 
-        private SearchSpecification<ObjectType> searchSpecification;
+        private SearchSpecification<Containerable> searchSpecification;
 
         @Override
-        public void initialize(Class<ObjectType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) {
+        public void initialize(Class<Containerable> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) {
             searchSpecification = new SearchSpecification<>(type, query, options, false);
         }
 
         @Override
-        public void run(Handler<ObjectType> handler, OperationResult result) {
+        public void run(Handler<Containerable> handler, OperationResult result) {
             // no-op
         }
     }

@@ -262,7 +262,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
 
     public static void runReportPerformed(AjaxRequestTarget target, ReportType report, PageBase pageBase) {
 
-        if (hasParameters(report)) {
+        if (!hasParameters(report)) {
             runConfirmPerformed(target, report, null, pageBase);
             return;
         }
@@ -311,6 +311,6 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
     }
 
     public static boolean hasParameters(ReportType report) {
-        return report.getObjectCollection() == null || report.getObjectCollection().getParameter().isEmpty();
+        return report.getObjectCollection() != null && !report.getObjectCollection().getParameter().isEmpty();
     }
 }

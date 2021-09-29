@@ -15,7 +15,6 @@ import java.util.Map;
 
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
-
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
@@ -92,7 +91,9 @@ public class ExtensionUpdateContext<Q extends FlexibleRelationalPathBase<R>, R>
         Expression<Jsonb> resultJsonb =
                 template(Jsonb.class, "coalesce({0}, '{}')::jsonb", jsonbPath);
         if (!deletedItems.isEmpty()) {
-            resultJsonb = template(Jsonb.class, "{0} - {1}", resultJsonb, deletedItems);
+            for (String deletedItem : deletedItems) {
+                resultJsonb = template(Jsonb.class, "{0} - '{1s}'", resultJsonb, deletedItem);
+            }
         }
         if (!changedItems.isEmpty()) {
             resultJsonb = template(Jsonb.class, "{0} || {1}::jsonb",

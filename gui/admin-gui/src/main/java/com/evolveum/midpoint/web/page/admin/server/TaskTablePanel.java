@@ -11,6 +11,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
@@ -149,6 +150,34 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private void showResult(OperationResult result) {
         getPageBase().showResult(result);
     }
+
+    @Override
+    protected @NotNull List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
+        //HACK TODO clenup and think about generic mechanism for this
+        CompiledObjectCollectionView objectCollectionView  = getObjectCollectionView();
+        if (!isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)) {
+            super.getNewObjectInfluencesList();
+        }
+
+        List<CompiledObjectCollectionView> compiledObjectCollectionViews = getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(TaskType.COMPLEX_TYPE, OperationTypeType.ADD);
+        List<CompiledObjectCollectionView> filteredObjectCollectionViews = new ArrayList<>();
+        for (CompiledObjectCollectionView compiledObjectCollectionView : compiledObjectCollectionViews) {
+            if (isViewForObjectCollectionType(compiledObjectCollectionView, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
+                filteredObjectCollectionViews.add(compiledObjectCollectionView);
+            }
+
+            if (isViewForObjectCollectionType(compiledObjectCollectionView, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
+                filteredObjectCollectionViews.add(compiledObjectCollectionView);
+            }
+
+            if (isViewForObjectCollectionType(compiledObjectCollectionView, SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
+                filteredObjectCollectionViews.add(compiledObjectCollectionView);
+            }
+
+        }
+        return filteredObjectCollectionViews;
+    }
+
 
     private void synchronizeTasksPerformed(AjaxRequestTarget target) {
         Task opTask = createSimpleTask(OPERATION_SYNCHRONIZE_TASKS);

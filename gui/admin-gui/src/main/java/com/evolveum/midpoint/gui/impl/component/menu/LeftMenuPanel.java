@@ -570,6 +570,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
         List<CompiledObjectCollectionView> objectViews = getPageBase().getCompiledGuiProfile().findAllApplicableObjectCollectionViews(type);
 
         objectViews.forEach(objectView -> {
+            if (!WebComponentUtil.getElementVisibility(objectView.getVisibility())) {
+                return;
+            }
+
+            OperationTypeType operationTypeType = objectView.getApplicableForOperation();
+            if (operationTypeType != null && operationTypeType != OperationTypeType.MODIFY) {
+                return;
+            }
+
             if (objectView.getCollection() == null) {
                 return;
             }

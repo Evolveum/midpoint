@@ -52,7 +52,6 @@ public class DashboardUtils {
             return true;
         }
         if(widget.getData().getDisplaySourceType() == null) {
-            LOGGER.error("DisplayStoreType of data is not found in widget " + widget.getIdentifier());
             return true;
         }
         return false;

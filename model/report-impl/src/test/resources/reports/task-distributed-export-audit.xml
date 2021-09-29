@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="466c5ddd-7739-437f-b049-b270da5ff828">
+    <name>distributed-export-audit</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+
+    <activity>
+        <work>
+            <distributedReportExport>
+                <reportRef oid="oid" />
+            </distributedReportExport>
+        </work>
+        <tailoring>
+            <change>
+                <reference>data-creation</reference>
+                <distribution>
+                    <buckets>
+                        <implicitSegmentation>
+                            <numberOfBuckets>10</numberOfBuckets>
+                        </implicitSegmentation>
+                    </buckets>
+                    <workerThreads>4</workerThreads>
+                </distribution>
+            </change>
+        </tailoring>
+    </activity>
+</task>

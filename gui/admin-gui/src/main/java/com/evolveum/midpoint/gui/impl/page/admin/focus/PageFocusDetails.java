@@ -155,22 +155,19 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         return super.executeChanges(deltas, previewOnly, options, task, result, target);
     }
 
-//    @Override
-//    protected final void saveOrPreviewPostProcess(AjaxRequestTarget target, Task task, ExecuteChangeOptionsDto options) {
-//        Fragment progressPanelFragment = new ProgressFragment(ID_DETAILS_VIEW, ID_PROGRESS_PANEL_FRAGMENT, PageFocusDetails.this, options);
-//        replace(progressPanelFragment);
-//        target.add(progressPanelFragment);
-//    }
+    @Override
+    protected void recordNoChangesWarning(OperationResult result) {
+        if (previewRequested) {
+            result.recordWarning(getString("PageAdminObjectDetails.noChangesPreview"));
+        } else {
+            super.recordNoChangesWarning(result);
+        }
+    }
 
-//    @Override
-//    protected void postProcessDeltas(AjaxRequestTarget target, Collection<ObjectDelta<? extends ObjectType>> deltas, ItemStatus status, ExecuteChangeOptionsDto executeChangeOptionsDto) throws SchemaException {
-//        super.postProcessDeltas(target, deltas, status, executeChangeOptionsDto);
-//
-//        if (executeChangeOptionsDto.isReconcile() && deltas.isEmpty()) {
-//            ObjectDelta emptyDelta = getPrismContext().deltaFor(getType()).asObjectDelta(getModelPrismObject().getOid());
-//            deltas.add(emptyDelta);
-//        }
-//    }
+    @Override
+    protected boolean allowRedirectBack() {
+        return !previewRequested;
+    }
 
     protected ProgressPanel getProgressPanel() {
         return (ProgressPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_PROGRESS_PANEL));

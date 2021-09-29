@@ -1,13 +1,14 @@
 package com.evolveum.midpoint.model.impl.tasks;
 
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.task.ObjectPreprocessor;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.task.ItemPreprocessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -26,41 +27,43 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  *
  * It is expected that it throws an exception if the object cannot be fetched fully.
  */
-public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType> {
+public class ShadowFetchingPreprocessor implements ItemPreprocessor<ShadowType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowFetchingPreprocessor.class);
 
-    @NotNull private final SearchBasedActivityExecution<?, ?, ?, ?> activityExecution;
+    @NotNull private final Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions;
+    @NotNull private final SchemaService schemaService;
     @NotNull private final ModelObjectResolver modelObjectResolver;
 
-    ShadowFetchingPreprocessor(@NotNull SearchBasedActivityExecution<?, ?, ?, ?> activityExecution,
+    ShadowFetchingPreprocessor( @NotNull Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions,
+            @NotNull SchemaService schemaService,
             @NotNull ModelObjectResolver modelObjectResolver) {
-        this.activityExecution = activityExecution;
+        this.producerOptions = producerOptions;
+        this.schemaService = schemaService;
         this.modelObjectResolver = modelObjectResolver;
     }
 
     @Override
-    public PrismObject<ShadowType> preprocess(PrismObject<ShadowType> originalObject, Task task, OperationResult result)
+    public ShadowType preprocess(ShadowType originalShadow, Task task, OperationResult result)
             throws CommonException {
-        String oid = originalObject.getOid();
+        String oid = originalShadow.getOid();
         stateCheck(oid != null, "Original object has no OID");
 
-        Collection<SelectorOptions<GetOperationOptions>> options = adaptSearchOptions(activityExecution.getSearchOptions());
+        Collection<SelectorOptions<GetOperationOptions>> options = adaptSearchOptions(producerOptions.run());
 
-        LOGGER.trace("Fetching {} with options: {}", originalObject, options);
+        LOGGER.trace("Fetching {} with options: {}", originalShadow, options);
         return modelObjectResolver
-                .getObject(ShadowType.class, oid, options, task, result)
-                .asPrismObject();
+                .getObject(ShadowType.class, oid, options, task, result);
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> adaptSearchOptions(
             Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
 
         Collection<SelectorOptions<GetOperationOptions>> optionsToSet =
-                activityExecution.getSchemaService().getOperationOptionsBuilder()
+                schemaService.getOperationOptionsBuilder()
                         .noFetch(false)
                         .errorReportingMethod(FetchErrorReportingMethodType.FORCED_EXCEPTION) // we need exceptions!
                         .build();
-        return GetOperationOptions.merge(activityExecution.getPrismContext(), originalOptions, optionsToSet);
+        return GetOperationOptions.merge(PrismContext.get(), originalOptions, optionsToSet);
     }
 }

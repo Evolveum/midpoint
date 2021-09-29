@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.hooks;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -22,7 +23,7 @@ import java.util.Collection;
  * <ul>
  * <li>{@link com.evolveum.midpoint.model.api.ModelService#getObject(Class, String, java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)}</li>
  * <li>{@link com.evolveum.midpoint.model.api.ModelService#searchObjects(Class, com.evolveum.midpoint.prism.query.ObjectQuery, java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)}</li>
- * <li>{@link com.evolveum.midpoint.model.api.ModelService#searchObjectsIterative(Class, com.evolveum.midpoint.prism.query.ObjectQuery, com.evolveum.midpoint.schema.ResultHandler, java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)}</li>
+ * <li>{@link com.evolveum.midpoint.model.api.ModelService#searchObjectsIterative(Class, com.evolveum.midpoint.prism.query.ObjectQuery, ResultHandler, java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)}</li>
  * </ul>
  *
  * TODO: this is just super simple, not stable, not finished yet.

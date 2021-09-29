@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task.work.segmentation.content;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -37,7 +38,7 @@ public class StringValueWorkBucketContentHandler extends BaseWorkBucketContentHa
     @NotNull
     @Override
     public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
-            Class<? extends ObjectType> type, ItemDefinitionProvider itemDefinitionProvider) {
+            Class<? extends Containerable> type, ItemDefinitionProvider itemDefinitionProvider) {
 
         StringValueWorkBucketContentType content = (StringValueWorkBucketContentType) bucket.getContent();
 

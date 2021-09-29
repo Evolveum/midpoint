@@ -7,35 +7,31 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType.F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP;
 
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.schema.SchemaService;
-
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.work.ItemDefinitionProvider;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -130,12 +126,12 @@ class RemainingShadowsActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ShadowType> shadow,
-            @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request,
+    public boolean processItem(@NotNull ShadowType shadow,
+            @NotNull ItemProcessingRequest<ShadowType> request,
             RunningTask workerTask, OperationResult result)
             throws CommonException {
 
-        if (!objectsFilter.matches(shadow)) {
+        if (!objectsFilter.matches(shadow.asPrismObject())) {
             result.recordNotApplicable();
             return true;
         }
@@ -149,11 +145,11 @@ class RemainingShadowsActivityExecution
      * However, in order to detect errors in the processing, we need to have more strict control over the process:
      * the result must not be marked as `HANDLED_ERROR` as it's currently the case in provisioning handling.
      */
-    private void reconcileShadow(PrismObject<ShadowType> shadow, Task task, OperationResult result)
+    private void reconcileShadow(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
         LOGGER.trace("Reconciling shadow {}, fullSynchronizationTimestamp={}", shadow,
-                shadow.asObjectable().getFullSynchronizationTimestamp());
+                shadow.getFullSynchronizationTimestamp());
         try {
             Collection<SelectorOptions<GetOperationOptions>> options =
                     SchemaService.get().getOperationOptionsBuilder()
@@ -168,7 +164,7 @@ class RemainingShadowsActivityExecution
         }
     }
 
-    private void handleObjectNotFoundException(PrismObject<ShadowType> shadow, ObjectNotFoundException e, Task task,
+    private void handleObjectNotFoundException(ShadowType shadow, ObjectNotFoundException e, Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
         if (!shadow.getOid().equals(e.getOid())) {
@@ -189,7 +185,7 @@ class RemainingShadowsActivityExecution
         reactShadowGone(shadow, task, result);
     }
 
-    private void reactShadowGone(PrismObject<ShadowType> originalShadow, Task task, OperationResult result)
+    private void reactShadowGone(ShadowType originalShadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
@@ -208,7 +204,7 @@ class RemainingShadowsActivityExecution
         getModelBeans().eventDispatcher.notifyChange(change, task, result);
     }
 
-    private PrismObject<ShadowType> reloadShadow(PrismObject<ShadowType> originalShadow, OperationResult result)
+    private PrismObject<ShadowType> reloadShadow(ShadowType originalShadow, OperationResult result)
             throws SchemaException {
         try {
             // not read-only because we modify the shadow afterwards
@@ -218,9 +214,9 @@ class RemainingShadowsActivityExecution
             //  Try to find out if it can occur.
             LOGGER.debug("Shadow disappeared. But we need to notify the model! Shadow: {}", originalShadow);
 
-            originalShadow.asObjectable().setDead(true);
-            originalShadow.asObjectable().setExists(false);
-            return originalShadow;
+            originalShadow.setDead(true);
+            originalShadow.setExists(false);
+            return originalShadow.asPrismObject();
         }
     }
 

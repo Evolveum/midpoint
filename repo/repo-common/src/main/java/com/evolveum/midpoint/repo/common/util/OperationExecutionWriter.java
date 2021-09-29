@@ -198,7 +198,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
         OperationExecutionRecordTypeType currentRecordType = toNotNull(request.recordToAdd.getRecordType());
         String taskOid = request.getTaskOid();
-        String taskPartUri = request.getTaskPartUri();
+        ActivityPathType activityPath = request.getActivityPath();
 
         List<OperationExecutionType> recordsToDelete = new ArrayList<>();
         List<OperationExecutionType> recordsToConsider = new ArrayList<>(existingRecords);
@@ -211,7 +211,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         // If the former is preferable, then please move this block of code just above the filtering on record type.
         for (Iterator<OperationExecutionType> iterator = recordsToConsider.iterator(); iterator.hasNext(); ) {
             OperationExecutionType record = iterator.next();
-            if (shouldDeleteBecauseOfTheSameTaskAndPart(record, taskOid, taskPartUri)) {
+            if (shouldDeleteBecauseOfTheSameTaskAndActivity(record, taskOid, activityPath)) {
                 recordsToDelete.add(record);
                 iterator.remove();
             }
@@ -246,10 +246,10 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         return toNotNull(record.getRecordType()) == recordType;
     }
 
-    private boolean shouldDeleteBecauseOfTheSameTaskAndPart(OperationExecutionType execution, String taskOid,
-            String taskPartUri) {
+    private boolean shouldDeleteBecauseOfTheSameTaskAndActivity(OperationExecutionType execution, String taskOid,
+            ActivityPathType activityPath) {
         return taskOid != null && taskOid.equals(getTaskOid(execution)) &&
-                Objects.equals(taskPartUri, execution.getTaskPartUri());
+                Objects.equals(activityPath, execution.getActivityPath());
     }
 
     @PostConstruct
@@ -396,8 +396,8 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
             return OperationExecutionWriter.getTaskOid(recordToAdd);
         }
 
-        private String getTaskPartUri() {
-            return recordToAdd.getTaskPartUri();
+        private ActivityPathType getActivityPath() {
+            return recordToAdd.getActivityPath();
         }
 
         @Override

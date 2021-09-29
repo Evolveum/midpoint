@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin;
 
-import java.time.Duration;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -24,7 +23,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -183,7 +181,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         };
     }
 
-
     public void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
         saveOrPreviewPerformed(target, result, false);
@@ -196,7 +193,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 //    private ObjectDelta<O> delta;
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
-
 
         PrismObjectWrapper<O> objectWrapper = getModelWrapperObject();
         LOGGER.debug("Saving object {}", objectWrapper);
@@ -228,18 +224,27 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         LOGGER.trace("returning from saveOrPreviewPerformed");
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
 
-        postProcessResult(result, executedDeltas);
+        postProcessResult(result, executedDeltas, target);
 
         return executedDeltas;
     }
 
-    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+        result.computeStatusIfUnknown();
 
+        if (allowRedirectBack() && !result.isError()) { // && allowRedirectBack()) {
+            redirectBack();
+        } else {
+            target.add(getFeedbackPanel());
+        }
     }
 
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
-        if (deltas.isEmpty()) {
-            //nothing to do;
+        if (noChangesToExecute(deltas, options)) {
+            recordNoChangesWarning(result);
+
+
+            showResult(result);
             return null;
         }
         //TODO force
@@ -253,21 +258,26 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         //TODO this is just a quick hack.. for focus objects, feedback panel and results are processed by ProgressAware.finishProcessing()
 
         ObjectChangeExecutor changeExecutor = getChangeExecutor();
-        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas =  changeExecutor.executeChanges(deltas, previewOnly, task, result, target);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = changeExecutor.executeChanges(deltas, previewOnly, task, result, target);
 
-        result.computeStatusIfUnknown();
         if (changeExecutor instanceof ObjectChangesExecutorImpl) {
             showResult(result);
-            if (!previewOnly && result.isSuccess()) {
-                redirectBack();
-            } else {
-                target.add(getFeedbackPanel());
-            }
         }
 
         return executedDeltas;
     }
 
+    protected boolean noChangesToExecute(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options) {
+        return deltas.isEmpty();
+    }
+
+    protected void recordNoChangesWarning(OperationResult result) {
+        result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
+    }
+
+    protected boolean allowRedirectBack() {
+        return true;
+    }
 
     protected ExecuteChangeOptionsDto getExecuteChangesOptionsDto() {
         return getOperationalButtonsPanel().getExecuteChangeOptions();
@@ -281,8 +291,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected ObjectChangeExecutor getChangeExecutor() {
         return new ObjectChangesExecutorImpl();
     }
-
-
 
     private void checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {
         if (validationErrors != null && !validationErrors.isEmpty()) {
@@ -397,7 +405,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         };
     }
 
-
     private PrismObject<O> loadPrismObject() {
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
@@ -467,13 +474,14 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected abstract Class<O> getType();
     protected abstract Panel createSummaryPanel(String id, LoadableModel<O> summaryModel);
 
-
     private MidpointForm getMainForm() {
         return (MidpointForm) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM));
     }
+
     protected Component getSummaryPanel() {
         return get(createComponentPath(ID_DETAILS_VIEW, ID_SUMMARY));
     }
+
     protected OperationalButtonsPanel getOperationalButtonsPanel() {
         return (OperationalButtonsPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_BUTTONS));
     }

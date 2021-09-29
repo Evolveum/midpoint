@@ -103,14 +103,16 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     }
 
     @Override
-    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
         if (executedDeltas == null) {
+            super.postProcessResult(result, executedDeltas, target);
             return;
         }
         String taskOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
         if (taskOid != null) {
             result.setBackgroundTaskOid(taskOid);
         }
+        super.postProcessResult(result, executedDeltas, target);
     }
 
 }

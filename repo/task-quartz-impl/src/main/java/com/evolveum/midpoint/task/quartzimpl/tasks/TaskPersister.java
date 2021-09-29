@@ -56,7 +56,7 @@ public class TaskPersister {
 
     public void switchToBackground(TaskQuartzImpl task, OperationResult parentResult) {
 
-        parentResult.recordStatus(OperationResultStatus.IN_PROGRESS, "Task switched to background");
+        parentResult.setInProgress("Task switched to background");
         OperationResult result = parentResult.createSubresult(OP_SWITCH_TO_BACKGROUND);
 
         // if the task result was unknown, we change it to 'in-progress'
