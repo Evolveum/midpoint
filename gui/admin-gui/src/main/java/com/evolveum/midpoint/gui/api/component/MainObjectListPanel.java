@@ -9,15 +9,18 @@ package com.evolveum.midpoint.gui.api.component;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.*;
 
@@ -68,6 +71,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author katkav
@@ -191,8 +196,12 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isCollectionViewPanelForCompiledView()) {
-                    newObjectPerformed(target, null, getObjectCollectionView());
-                    return;
+                    CompiledObjectCollectionView collectionView = getObjectCollectionView();
+                    //HACK TODO clenup and think about generic mechanism for this
+                    if (!isViewForObjectCollectionType(collectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)) {
+                        newObjectPerformed(target, null, collectionView);
+                        return;
+                    }
                 }
 
                 if (getNewObjectInfluencesList().size() <= 1) {
@@ -217,6 +226,28 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
         createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return createNewObjectButton;
+    }
+
+    protected boolean isViewForObjectCollectionType(CompiledObjectCollectionView collectionView, String oid, QName type) {
+        if (collectionView == null) {
+            return false;
+        }
+
+        CollectionRefSpecificationType collectionRefSpecificationType = collectionView.getCollection();
+        if (collectionRefSpecificationType == null) {
+            return false;
+        }
+
+        ObjectReferenceType collectionRef = collectionRefSpecificationType.getCollectionRef();
+        if (collectionRef == null) {
+            return false;
+        }
+
+        if (!QNameUtil.match(collectionRef.getType(), type)) {
+            return false;
+        }
+
+        return collectionRef.getOid().equals(oid);
     }
 
     protected LoadableModel<MultiFunctinalButtonDto> loadButtonDescriptions() {
