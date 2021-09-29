@@ -137,7 +137,7 @@ public class EngineInvocationContext implements DebugDumpable {
         pendingAuditRecords.add(record);
     }
 
-    public void commit(OperationResult parentResult)
+    void commit(OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
             ExpressionEvaluationException, ConfigurationException, CommunicationException {
         OperationResult result = parentResult.subresult(OP_COMMIT)

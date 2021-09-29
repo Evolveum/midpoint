@@ -10,6 +10,8 @@ package com.evolveum.midpoint.task.api;
 import java.util.Collection;
 import java.util.Map;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -33,6 +35,9 @@ public interface ExecutionSupport {
      * Returns the mode in which the activity executes (normal, dry run, simulate, ...).
      */
     @NotNull ExecutionModeType getExecutionMode();
+
+    /** Returns the path of the activity we are executing. */
+    @NotNull ActivityPath getActivityPath();
 
     /**
      * Increments given counters related to the activity execution.
