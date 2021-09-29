@@ -2845,6 +2845,10 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         When did the current (or last) realization start?
+
+                        For workers, this information is copied from the coordinator when the worker starts.
+                        For delegates, this information describes when the realization started in the delegate.
+                        (Can be a moment after it started in the delegator task.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2853,6 +2857,11 @@
                     <xsd:documentation>
                         When did the current (or last) realization end? If null, this means that the current realization
                         is in progress.
+
+                        The meaning in workers is undefined.
+
+                        The meaning in delegates is "the realization end from the point of view of the delegate",
+                        i.e. just a moment before the realization ends from the point of view of the delegator.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

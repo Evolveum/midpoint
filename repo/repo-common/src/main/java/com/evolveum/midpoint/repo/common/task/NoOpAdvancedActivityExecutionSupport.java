@@ -7,19 +7,21 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 class NoOpAdvancedActivityExecutionSupport implements AdvancedActivityExecutionSupport {
 
@@ -56,20 +58,14 @@ class NoOpAdvancedActivityExecutionSupport implements AdvancedActivityExecutionS
     }
 
     @Override
-    public Integer countObjects(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
-            @NotNull OperationResult result) throws CommonException {
+    public ItemPreprocessor<ShadowType> createShadowFetchingPreprocessor(
+            @NotNull Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions,
+            @NotNull SchemaService schemaService) {
         throw new UnsupportedOperationException("Model-impl is not available");
     }
 
     @Override
-    public <O extends ObjectType> void searchIterative(@NotNull SearchSpecification<O> searchSpecification,
-            @NotNull ResultHandler<O> handler, @NotNull RunningTask task, @NotNull OperationResult result) {
-        throw new UnsupportedOperationException("Model-impl is not available");
-    }
-
-    @Override
-    public ObjectPreprocessor<ShadowType> createShadowFetchingPreprocessor(
-            @NotNull SearchBasedActivityExecution<?, ?, ?, ?> activityExecution) {
+    public <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type) {
         throw new UnsupportedOperationException("Model-impl is not available");
     }
 }

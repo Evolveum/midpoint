@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -16,17 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * It is only used to handle iterative search results now. It may be reused for
  * other purposes as well.
  *
- * TODO this should perhaps be named ObjectResultHandler
- *
  * @author Radovan Semancik
  */
-@FunctionalInterface
-public interface ResultHandler<T extends ObjectType> {
-
-    /**
-     * Handle a single result.
-     * @param object Resource object to process.
-     * @return true if the operation should proceed, false if it should stop
-     */
-    boolean handle(PrismObject<T> object, OperationResult parentResult);
+public interface ObjectResultHandler {
 }

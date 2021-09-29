@@ -23,7 +23,6 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,8 +58,14 @@ class SearchBasedMockActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ObjectType> object,
-            @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
+    public void beforeExecution(OperationResult opResult) {
+        getRecorder().recordRealizationStartTimestamp(
+                activityState.getRealizationStartTimestamp());
+    }
+
+    @Override
+    public boolean processItem(@NotNull ObjectType object,
+            @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
             throws SchemaException, ThresholdPolicyViolationException {
 
         String message = emptyIfNull(getWorkDefinition().getMessage()) + object.getName().getOrig();
@@ -86,13 +91,13 @@ class SearchBasedMockActivityExecution
         }
     }
 
-    private void checkFailOn(PrismObject<ObjectType> object) throws SchemaException, ThresholdPolicyViolationException {
+    private void checkFailOn(ObjectType object) throws SchemaException, ThresholdPolicyViolationException {
         if (getWorkDefinition().getFailOn() == null) {
             return;
         }
 
         boolean matches = failOnFilter.get().match(
-                object.asObjectable().asPrismContainerValue(),
+                object.asPrismContainerValue(),
                 SchemaService.get().matchingRuleRegistry());
         if (matches) {
             // To stop the processing immediately.
@@ -105,7 +110,7 @@ class SearchBasedMockActivityExecution
         if (failOnBean != null) {
             try {
                 return PrismContext.get().getQueryConverter()
-                        .parseFilter(failOnBean, getSearchSpecificationRequired().getObjectType());
+                        .parseFilter(failOnBean, getSearchSpecificationRequired().getType());
             } catch (SchemaException e) {
                 throw new SystemException(e);
             }
@@ -114,13 +119,12 @@ class SearchBasedMockActivityExecution
         }
     }
 
-
-    private void provideSomeMockStatistics(ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask) {
-        PrismObject<ObjectType> object = request.getItem();
+    private void provideSomeMockStatistics(ItemProcessingRequest<ObjectType> request, RunningTask workerTask) {
+        ObjectType object = request.getItem();
         workerTask.onSynchronizationStart(request.getIdentifier(), object.getOid(), SynchronizationSituationType.UNLINKED);
         workerTask.onSynchronizationSituationChange(request.getIdentifier(), object.getOid(), SynchronizationSituationType.LINKED);
-        workerTask.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
-        workerTask.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
+        workerTask.recordObjectActionExecuted(object.asPrismObject(), ChangeType.MODIFY, null);
+        workerTask.recordObjectActionExecuted(object.asPrismObject(), ChangeType.MODIFY, null);
     }
 
     @NotNull

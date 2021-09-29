@@ -2624,6 +2624,10 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertErrors(0)
                 .assertProgress(100)
                 .assertHasWallClockTime();
+
+        assertThat(recorder.getRealizationStartTimestamps())
+                .as("realization start timestamps")
+                .hasSize(1);
     }
 
     /**

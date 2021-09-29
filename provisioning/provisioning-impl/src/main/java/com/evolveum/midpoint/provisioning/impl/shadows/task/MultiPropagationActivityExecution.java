@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -17,7 +19,6 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -55,8 +56,8 @@ public class MultiPropagationActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ResourceType> resource,
-            @NotNull ItemProcessingRequest<PrismObject<ResourceType>> request,
+    public boolean processItem(@NotNull ResourceType resource,
+            @NotNull ItemProcessingRequest<ResourceType> request,
             RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
         LOGGER.trace("Propagating provisioning operations on {}", resource);
@@ -68,7 +69,7 @@ public class MultiPropagationActivityExecution
                 .build();
 
         getBeans().repositoryService.searchObjectsIterative(ShadowType.class, shadowQuery, (shadow, lResult) -> {
-            propagateOperationsOnShadow(shadow, resource, workerTask, lResult);
+            propagateOperationsOnShadow(shadow, resource.asPrismObject(), workerTask, lResult);
             return true;
         }, null, true, result);
 

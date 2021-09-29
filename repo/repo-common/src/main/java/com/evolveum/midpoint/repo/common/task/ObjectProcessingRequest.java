@@ -8,14 +8,12 @@
 package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks.Target;
-import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -23,32 +21,33 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Request to process an object.
+ *
+ * It is a subtype of {@link ContainerableProcessingRequest} that provides more specific implementations
+ * of the methods like {@link #getItemOid()} or {@link #getIterationItemInformation()}.
+ *
+ * TODO Reconsider if this is a good idea. But it seems so: an alternative would be
+ *  a lot of if-then-else commands in the method bodies.
  */
-public class ObjectProcessingRequest<O extends ObjectType> extends ItemProcessingRequest<PrismObject<O>> {
+public class ObjectProcessingRequest<O extends ObjectType> extends ContainerableProcessingRequest<O> {
 
-    ObjectProcessingRequest(int sequentialNumber, PrismObject<O> item,
-            @NotNull IterativeActivityExecution<PrismObject<O>, ?, ?, ?> activityExecution) {
+    ObjectProcessingRequest(int sequentialNumber, O item,
+            @NotNull IterativeActivityExecution<O, ?, ?, ?> activityExecution) {
         super(sequentialNumber, item, activityExecution);
     }
 
     @Override
     public @NotNull IterationItemInformation getIterationItemInformation() {
-        return new IterationItemInformation(item);
+        return new IterationItemInformation(item.asPrismObject());
     }
 
     @Override
     public Target getOperationExecutionRecordingTarget() {
-        return createRecordingTargetForObject(getItem());
+        return createRecordingTargetForObject(getItem().asPrismObject());
     }
 
     @Override
     public String getObjectOidToRecordRetryTrigger() {
-        return getItem().asObjectable().getOid(); // TODO
-    }
-
-    @Override
-    public void acknowledge(boolean release, OperationResult result) {
-        // Nothing to acknowledge here.
+        return getItem().getOid(); // TODO
     }
 
     @Override
@@ -58,8 +57,7 @@ public class ObjectProcessingRequest<O extends ObjectType> extends ItemProcessin
 
     @Override
     public @Nullable SynchronizationSituationType getSynchronizationSituationOnProcessingStart() {
-        O object = item.asObjectable();
-        return object instanceof ShadowType ? ((ShadowType) object).getSynchronizationSituation() : null;
+        return item instanceof ShadowType ? ((ShadowType) item).getSynchronizationSituation() : null;
     }
 
     @Override

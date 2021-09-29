@@ -234,7 +234,12 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         );
     }
 
-    void runExportTask(TestResource<ReportType> reportResource, OperationResult result) throws CommonException {
+    void runExportTaskClassic(TestResource<ReportType> reportResource, OperationResult result) throws CommonException {
+        runExportTask(TASK_EXPORT_CLASSIC, reportResource, result);
+    }
+
+    void runExportTask(TestResource<TaskType> taskResource, TestResource<ReportType> reportResource, OperationResult result)
+            throws CommonException {
         modifyObjectReplaceContainer(ReportType.class,
                 reportResource.oid,
                 ReportType.F_FILE_FORMAT,
@@ -248,8 +253,8 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
                         WorkDefinitionsType.F_REPORT_EXPORT,
                         ClassicReportImportWorkDefinitionType.F_REPORT_REF
                 ),
-                TASK_EXPORT_CLASSIC);
-        rerunTask(TASK_EXPORT_CLASSIC.oid, result);
+                taskResource);
+        rerunTask(taskResource.oid, result);
     }
 
     protected abstract FileFormatConfigurationType getFileFormatConfiguration();

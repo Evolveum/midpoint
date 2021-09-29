@@ -7,20 +7,22 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 /**
  * Advanced features needed for activity execution, like
@@ -56,15 +58,12 @@ public interface AdvancedActivityExecutionSupport {
      */
     void checkRawAuthorization(Task task, OperationResult result) throws CommonException;
 
-    /** Counts objects in "advanced way" (e.g. using model object resolver). */
-    Integer countObjects(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
-            @NotNull OperationResult result) throws CommonException;
+    ItemPreprocessor<ShadowType> createShadowFetchingPreprocessor(
+            @NotNull Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions,
+            @NotNull SchemaService schemaService);
 
-    /** Searches for objects in "advanced way" (e.g. using model object resolver). */
-    <O extends ObjectType> void searchIterative(@NotNull SearchSpecification<O> searchSpecification,
-            @NotNull ResultHandler<O> handler, @NotNull RunningTask task, @NotNull OperationResult result)
-            throws CommonException;
-
-    ObjectPreprocessor<ShadowType> createShadowFetchingPreprocessor(
-            @NotNull SearchBasedActivityExecution<?, ?, ?, ?> activityExecution);
+    /**
+     * Returns item source suitable for processing items of given type.
+     */
+    <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type);
 }

@@ -14,6 +14,8 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +35,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -163,9 +164,9 @@ public class ShadowCleanupActivityHandler
         }
 
         @Override
-        public boolean processObject(@NotNull PrismObject<ShadowType> object,
-                @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request, RunningTask workerTask, OperationResult result) {
-            deleteShadow(object, workerTask, result);
+        public boolean processItem(@NotNull ShadowType shadow,
+                @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result) {
+            deleteShadow(shadow.asPrismObject(), workerTask, result);
             return true;
         }
 

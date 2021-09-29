@@ -91,10 +91,9 @@ public class AutoScalingActivityExecution extends
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<TaskType> object,
-            @NotNull ItemProcessingRequest<PrismObject<TaskType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull TaskType task,
+            @NotNull ItemProcessingRequest<TaskType> request, RunningTask workerTask, OperationResult result)
             throws CommonException {
-        TaskType task = object.asObjectable();
         LOGGER.debug("Going to reconcile workers for task {}", task);
         getActivityHandler().activityManager.reconcileWorkers(task.getOid(), result);
         return true;

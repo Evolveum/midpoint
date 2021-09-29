@@ -8,27 +8,23 @@
 package com.evolveum.midpoint.repo.common.task;
 
 import java.util.Collection;
-
-import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.task.work.ItemDefinitionProvider;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Provides execution logic and/or execution state related to a search-based activity execution.
@@ -43,10 +39,10 @@ import javax.xml.namespace.QName;
  * The correct way how to prescribe object type is to use {@link ObjectSetUtil#assumeObjectType(ObjectSetType, QName)} method
  * when constructing the work definition.
  *
- * @param <O> Type of objects processed by the activity
+ * @param <C> Type of objects processed by the activity
  */
 @SuppressWarnings("RedundantThrows")
-public interface SearchBasedActivityExecutionSpecifics<O extends ObjectType>
+interface SearchBasedActivityExecutionSpecifics<C extends Containerable>
         extends IterativeActivityExecutionSpecifics {
 
     //region 1. Search specification formulation and customization
@@ -58,7 +54,7 @@ public interface SearchBasedActivityExecutionSpecifics<O extends ObjectType>
      *
      * Note: freely add {@link CommonException} and {@link ActivityExecutionException} to the signature of this method if needed.
      */
-    default @Nullable SearchSpecification<O> createCustomSearchSpecification(OperationResult result) {
+    default @Nullable SearchSpecification<C> createCustomSearchSpecification(OperationResult result) {
         return null;
     }
 
@@ -98,11 +94,11 @@ public interface SearchBasedActivityExecutionSpecifics<O extends ObjectType>
 
     //region 2. Object processing
     /**
-     * Processes given object that came as part of a request.
+     * Processes given item that came as part of a request.
      *
-     * BEWARE: Object may have been preprocessed, and may be different from the object present in the request.
+     * BEWARE: Item may have been preprocessed, and may be different from the item present in the request.
      */
-    boolean processObject(@NotNull PrismObject<O> object, @NotNull ItemProcessingRequest<PrismObject<O>> request,
+    boolean processItem(@NotNull C item, @NotNull ItemProcessingRequest<C> request,
             RunningTask workerTask, OperationResult result) throws CommonException, ActivityExecutionException;
     //endregion
 }

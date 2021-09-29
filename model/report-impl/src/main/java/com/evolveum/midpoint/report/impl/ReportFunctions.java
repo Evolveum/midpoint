@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.report.impl;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelService;

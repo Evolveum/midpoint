@@ -7,13 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
-
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -54,8 +51,8 @@ class OperationCompletionActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ShadowType> object,
-            @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request,
+    public boolean processItem(@NotNull ShadowType object,
+            @NotNull ItemProcessingRequest<ShadowType> request,
             RunningTask workerTask, OperationResult result)
             throws CommonException {
 
@@ -63,7 +60,7 @@ class OperationCompletionActivityExecution
         try {
             ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(Boolean.TRUE);
             ModelImplUtils.clearRequestee(workerTask);
-            getModelBeans().provisioningService.refreshShadow(object, options, workerTask, result);
+            getModelBeans().provisioningService.refreshShadow(object.asPrismObject(), options, workerTask, result);
             return true;
         } finally {
             RepositoryCache.exitLocalCaches();

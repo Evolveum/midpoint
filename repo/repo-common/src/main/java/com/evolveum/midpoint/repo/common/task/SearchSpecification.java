@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -32,14 +34,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class SearchSpecification<O extends ObjectType> implements DebugDumpable, Cloneable {
+public class SearchSpecification<C extends Containerable> implements DebugDumpable, Cloneable {
 
     /**
-     * Object type provided when counting and retrieving objects.
+     * Container type provided when counting and retrieving objects.
      */
-    private Class<O> objectType;
+    private Class<C> type;
 
-    /** Object query specifying what objects to process. */
+    /** Query specifying what objects to process. */
     private ObjectQuery query;
 
     /**
@@ -56,29 +58,29 @@ public class SearchSpecification<O extends ObjectType> implements DebugDumpable,
      */
     private Boolean useRepository;
 
-    public SearchSpecification(Class<O> objectType, ObjectQuery query,
+    public SearchSpecification(Class<C> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> searchOptions, Boolean useRepository) {
-        this.objectType = objectType;
+        this.type = type;
         this.query = query;
         this.searchOptions = searchOptions;
         this.useRepository = useRepository;
     }
 
     @SuppressWarnings("CopyConstructorMissesField")
-    protected SearchSpecification(SearchSpecification<O> prototype) {
-        this(prototype.objectType,
+    protected SearchSpecification(SearchSpecification<C> prototype) {
+        this(prototype.type,
                 CloneUtil.clone(prototype.query),
                 CloneUtil.cloneCollectionMembers(prototype.searchOptions),
                 prototype.useRepository);
     }
 
-    @NotNull static <O extends ObjectType> SearchSpecification<O> fromRepositoryObjectSetSpecification(
+    @NotNull static <C extends Containerable> SearchSpecification<C> fromRepositoryObjectSetSpecification(
             @NotNull RepositoryObjectSetSpecificationImpl objectSetSpecification) throws SchemaException {
         //noinspection unchecked
-        Class<O> objectType = (Class<O>) determineObjectType(objectSetSpecification);
+        Class<C> containerType = (Class<C>) determineContainerType(objectSetSpecification);
         return new SearchSpecification<>(
-                objectType,
-                createObjectQuery(objectType, objectSetSpecification.getQueryBean()),
+                containerType,
+                createObjectQuery(containerType, objectSetSpecification.getQueryBean()),
                 MiscSchemaUtil.optionsTypeToOptions(objectSetSpecification.getSearchOptionsBean(), PrismContext.get()),
                 objectSetSpecification.isUseRepositoryDirectly());
     }
@@ -86,29 +88,37 @@ public class SearchSpecification<O extends ObjectType> implements DebugDumpable,
     /**
      * TODO move to prism-api
      */
-    private static @NotNull ObjectQuery createObjectQuery(@NotNull Class<? extends ObjectType> objectType,
+    private static @NotNull ObjectQuery createObjectQuery(@NotNull Class<? extends Containerable> containerType,
             @Nullable QueryType query) throws SchemaException {
         return Objects.requireNonNullElseGet(
-                PrismContext.get().getQueryConverter().createObjectQuery(objectType, query),
+                PrismContext.get().getQueryConverter().createObjectQuery(containerType, query),
                 () -> PrismContext.get().queryFactory().createQuery());
     }
 
-    private static @NotNull Class<?> determineObjectType(@NotNull ObjectSetSpecification set) {
+    private static @NotNull Class<?> determineContainerType(@NotNull ObjectSetSpecification set) {
         return getTypeFromName(
                 MoreObjects.firstNonNull(
                         set.getObjectType(), ObjectType.COMPLEX_TYPE));
     }
 
     private static @NotNull Class<?> getTypeFromName(@NotNull QName typeName) {
-        return ObjectTypes.getObjectTypeFromTypeQName(typeName).getClassDefinition();
+        Class<?> targetTypeClass = ObjectTypes.getObjectTypeClassIfKnown(typeName);
+        if (targetTypeClass == null) {
+            PrismContainerDefinition<Containerable> def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(typeName);
+            if (def == null) {
+                throw new IllegalArgumentException("Unsupported container type " + typeName);
+            }
+            targetTypeClass = def.getTypeClass();
+        }
+        return targetTypeClass;
     }
 
-    public Class<O> getObjectType() {
-        return objectType;
+    public Class<C> getType() {
+        return type;
     }
 
-    public void setObjectType(Class<O> objectType) {
-        this.objectType = objectType;
+    public void setType(Class<C> type) {
+        this.type = type;
     }
 
     public ObjectQuery getQuery() {
@@ -139,8 +149,8 @@ public class SearchSpecification<O extends ObjectType> implements DebugDumpable,
         this.useRepository = useRepository;
     }
 
-    public boolean concernsShadows() {
-        return ShadowType.class.equals(requireNonNull(objectType));
+    boolean concernsShadows() {
+        return ShadowType.class.equals(requireNonNull(type));
     }
 
     public boolean isNoFetch() {
@@ -155,14 +165,14 @@ public class SearchSpecification<O extends ObjectType> implements DebugDumpable,
         return SelectorOptions.findRootOptions(searchOptions);
     }
 
-    public void setNoFetchOption() {
+    void setNoFetchOption() {
         searchOptions = GetOperationOptions.updateToNoFetch(searchOptions);
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "objectType", objectType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "query", query, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "searchOptions", searchOptions, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "useRepository", useRepository, indent + 1);
@@ -171,7 +181,7 @@ public class SearchSpecification<O extends ObjectType> implements DebugDumpable,
 
     @SuppressWarnings({ "MethodDoesntCallSuperMethod" })
     @Override
-    public SearchSpecification<O> clone() {
+    public SearchSpecification<C> clone() {
         return new SearchSpecification<>(this);
     }
 }

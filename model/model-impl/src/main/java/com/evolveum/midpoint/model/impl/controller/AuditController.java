@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +76,18 @@ public class AuditController implements ModelAuditService {
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         authorize(ModelAuthorizationAction.AUDIT_READ, task, parentResult);
         return auditService.searchObjects(query, options, parentResult);
+    }
+
+    @Override
+    public void searchObjectsIterative(@Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull AuditResultHandler handler,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        authorize(ModelAuthorizationAction.AUDIT_READ, task, parentResult);
+        auditService.searchObjectsIterative(query, handler, options, parentResult);
     }
 
     @Override

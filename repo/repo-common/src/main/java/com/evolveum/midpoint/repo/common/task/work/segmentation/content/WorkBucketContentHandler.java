@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.task.work.segmentation.content;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -26,7 +28,7 @@ public interface WorkBucketContentHandler {
     // TODO experimental
     @NotNull
     List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
-            Class<? extends ObjectType> type, ItemDefinitionProvider itemDefinitionProvider)
+            Class<? extends Containerable> type, ItemDefinitionProvider itemDefinitionProvider)
             throws SchemaException;
 
 }

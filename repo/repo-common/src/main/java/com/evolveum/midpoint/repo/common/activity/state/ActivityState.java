@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -31,7 +32,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Objects;
@@ -45,10 +48,6 @@ public abstract class ActivityState implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityState.class);
 
-    public static final @NotNull ItemPath PROGRESS_COMMITTED_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_COMMITTED);
-    public static final @NotNull ItemPath PROGRESS_UNCOMMITTED_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_UNCOMMITTED);
-    public static final @NotNull ItemPath EXPECTED_IN_CURRENT_PROGRESS_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_EXPECTED_IN_CURRENT_BUCKET);
-    public static final @NotNull ItemPath EXPECTED_TOTAL_PATH = ItemPath.create(ActivityStateType.F_PROGRESS, ActivityProgressType.F_EXPECTED_TOTAL);
     private static final @NotNull ItemPath BUCKETING_ROLE_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKETS_PROCESSING_ROLE);
     private static final @NotNull ItemPath SCAVENGER_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
 
@@ -73,12 +72,18 @@ public abstract class ActivityState implements DebugDumpable {
         return getTask().getPropertyRealValue(getRealizationStateItemPath(), ActivityRealizationStateType.class);
     }
 
-    @NotNull ItemPath getRealizationStateItemPath() {
+    private @NotNull ItemPath getRealizationStateItemPath() {
         return stateItemPath.append(ActivityStateType.F_REALIZATION_STATE);
     }
 
     public boolean isComplete() {
         return getRealizationState() == ActivityRealizationStateType.COMPLETE;
+    }
+
+    public XMLGregorianCalendar getRealizationStartTimestamp() {
+        return getTask().getPropertyRealValue(
+                stateItemPath.append(ActivityStateType.F_REALIZATION_START_TIMESTAMP),
+                XMLGregorianCalendar.class);
     }
 
     OperationResultStatusType getResultStatusRaw() {
@@ -89,7 +94,7 @@ public abstract class ActivityState implements DebugDumpable {
         return OperationResultStatus.parseStatusType(getResultStatusRaw());
     }
 
-    @NotNull ItemPath getResultStatusItemPath() {
+    private @NotNull ItemPath getResultStatusItemPath() {
         return stateItemPath.append(ActivityStateType.F_RESULT_STATUS);
     }
     //endregion
@@ -131,6 +136,7 @@ public abstract class ActivityState implements DebugDumpable {
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
      */
+    @SuppressWarnings("unused") // maybe will be used in the future
     public void setItemRealValuesCollection(ItemPath path, Collection<?> values) throws ActivityExecutionException {
         convertException(
                 () -> setItemRealValuesInternal(path, values));
@@ -239,16 +245,18 @@ public abstract class ActivityState implements DebugDumpable {
         Task task = getTask();
         LOGGER.trace("setWorkStateItemRealValues: path={}, values={} in {}", path, values, task);
 
+        ItemDefinition<?> workStateItemDefinition = getWorkStateItemDefinition(path, explicitDefinition);
         task.modify(
                 PrismContext.get().deltaFor(TaskType.class)
-                        .item(getWorkStateItemPath().append(path), getWorkStateItemDefinition(path, explicitDefinition))
+                        .item(getWorkStateItemPath().append(path), workStateItemDefinition)
                         .replaceRealValues(values)
                         .asItemDelta());
     }
 
-    private @NotNull ItemDefinition<?> getWorkStateItemDefinition(ItemPath path, ItemDefinition<?> definition) throws SchemaException {
-        if (definition != null) {
-            return definition;
+    private @NotNull ItemDefinition<?> getWorkStateItemDefinition(ItemPath path, ItemDefinition<?> explicitDefinition)
+            throws SchemaException {
+        if (explicitDefinition != null) {
+            return explicitDefinition;
         }
         ComplexTypeDefinition workStateTypeDef = getWorkStateComplexTypeDefinition();
         //noinspection RedundantTypeArguments
@@ -265,7 +273,7 @@ public abstract class ActivityState implements DebugDumpable {
     //region Misc
     protected abstract @NotNull Task getTask();
 
-    void convertException(CheckedRunnable runnable) throws ActivityExecutionException {
+    private void convertException(CheckedRunnable runnable) throws ActivityExecutionException {
         convertException("Couldn't update activity state", runnable);
     }
 
@@ -305,6 +313,8 @@ public abstract class ActivityState implements DebugDumpable {
     //region Navigation
 
     /**
+     * Returns the state of the _parent activity_, e.g. operations completion sub-activity -> reconciliation activity.
+     *
      * Note: the caller must know the work state type name. This can be resolved somehow in the future, e.g. by requiring
      * that the work state already exists.
      */
@@ -343,17 +353,55 @@ public abstract class ActivityState implements DebugDumpable {
         return getActivityStateUpwards(activityPath, parentTask, workStateTypeName, level + 1, beans, result);
     }
 
+    /**
+     * Returns the state of the current activity in the parent task. Assumes that it exists.
+     *
+     * @param fresh true if we always need to load the parent task from repository; false if we can use
+     * cached version (created when the running task started)
+     *
+     * @param result Can be null if we are 100% sure it will not be used.
+     */
+    public @NotNull ActivityState getCurrentActivityStateInParentTask(boolean fresh, @NotNull QName workStateTypeName,
+            @Nullable OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        Task parentTask = getParentTask(fresh, result);
+        return new OtherActivityState(
+                parentTask,
+                parentTask.getActivitiesStateOrClone(),
+                getActivityPath(),
+                workStateTypeName,
+                beans);
+    }
+
+    /**
+     * @param fresh False if we are OK with the cached version of the parent task (if current task is RunningTask).
+     * @param result Can be null if we are 100% sure it will not be used.
+     */
+    private @NotNull Task getParentTask(boolean fresh, @Nullable OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        Task task = getTask();
+        Task parentTask;
+        if (!fresh && task instanceof RunningTask) {
+            parentTask = ((RunningTask) task).getParentTask();
+        } else {
+            parentTask = task.getParentTask(result);
+        }
+        return java.util.Objects.requireNonNull(parentTask, () -> "No parent task for " + task);
+    }
+
+    /**
+     * Gets the state of the given activity, starting from the `task` and going downwards.
+     *
+     * UNTESTED. Use with care.
+     *
+     * TODO cleanup and test thoroughly
+     */
     public static @NotNull ActivityState getActivityStateDownwards(@NotNull ActivityPath activityPath, @NotNull Task task,
             @NotNull QName workStateTypeName, @NotNull CommonTaskBeans beans, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return getActivityStateDownwards(activityPath, task, workStateTypeName, 0, beans, result);
     }
 
-    /**
-     * UNTESTED. Use with care.
-     *
-     * TODO cleanup and test thoroughly
-     */
     private static @NotNull ActivityState getActivityStateDownwards(@NotNull ActivityPath activityPath, @NotNull Task task,
             @NotNull QName workStateTypeName, int level, @NotNull CommonTaskBeans beans, OperationResult result)
             throws SchemaException, ObjectNotFoundException {

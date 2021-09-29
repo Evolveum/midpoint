@@ -15,8 +15,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -25,7 +23,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedTimeValidityTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -153,11 +150,11 @@ public class FocusValidityScanPartialExecution
     private ObjectFilter createFilterForItemTimestamp(ItemPath path,
             XMLGregorianCalendar lowerBound, XMLGregorianCalendar upperBound) {
         if (lowerBound == null) {
-            return PrismContext.get().queryFor(getObjectType())
+            return PrismContext.get().queryFor(getItemType())
                     .item(path).le(upperBound)
                     .buildFilter();
         } else {
-            return PrismContext.get().queryFor(getObjectType())
+            return PrismContext.get().queryFor(getItemType())
                     .item(path).gt(lowerBound)
                     .and().item(path).le(upperBound)
                     .buildFilter();
@@ -165,8 +162,8 @@ public class FocusValidityScanPartialExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<FocusType> object,
-            @NotNull ItemProcessingRequest<PrismObject<FocusType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull FocusType object,
+            @NotNull ItemProcessingRequest<FocusType> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
         LensContext<FocusType> lensContext = createLensContext(object, workerTask, result);
         LOGGER.trace("Recomputing of focus {}: context:\n{}", object, lensContext.debugDumpLazily());
@@ -174,7 +171,7 @@ public class FocusValidityScanPartialExecution
         return true;
     }
 
-    private LensContext<FocusType> createLensContext(@NotNull PrismObject<FocusType> focus,
+    private LensContext<FocusType> createLensContext(@NotNull FocusType focus,
             @NotNull RunningTask workerTask, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
@@ -184,7 +181,7 @@ public class FocusValidityScanPartialExecution
         ModelExecuteOptions options = new ModelExecuteOptions(PrismContext.get()).reconcile();
 
         LensContext<FocusType> lensContext = getModelBeans().contextFactory
-                .createRecomputeContext(focus, options, workerTask, result);
+                .createRecomputeContext(focus.asPrismObject(), options, workerTask, result);
         if (getValidityConstraint() != null) {
             addTriggeredPolicyRuleToContext(focus, lensContext, workerTask, result);
         }
@@ -192,7 +189,7 @@ public class FocusValidityScanPartialExecution
         return lensContext;
     }
 
-    private void addTriggeredPolicyRuleToContext(PrismObject<FocusType> focus, LensContext<FocusType> lensContext,
+    private void addTriggeredPolicyRuleToContext(FocusType focus, LensContext<FocusType> lensContext,
             RunningTask workerTask, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         TimeValidityPolicyConstraintType constraint = getValidityConstraint();
@@ -202,7 +199,7 @@ public class FocusValidityScanPartialExecution
 
         EvaluatedPolicyRuleImpl policyRule =
                 new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), ruleId, null, null);
-        policyRule.computeEnabledActions(null, focus, getModelBeans().expressionFactory, PrismContext.get(), workerTask, result);
+        policyRule.computeEnabledActions(null, focus.asPrismObject(), getModelBeans().expressionFactory, PrismContext.get(), workerTask, result);
         EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
                 Boolean.TRUE.equals(constraint.isAssignment()) ?
                         PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY :

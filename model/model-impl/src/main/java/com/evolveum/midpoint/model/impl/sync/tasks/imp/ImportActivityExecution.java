@@ -18,7 +18,6 @@ import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecificat
 import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
@@ -96,10 +95,10 @@ public class ImportActivityExecution
     }
 
     @Override
-    public boolean processObject(@NotNull PrismObject<ShadowType> object,
-            @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(@NotNull ShadowType object,
+            @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result)
             throws CommonException, ActivityExecutionException {
-        synchronizer.synchronize(object, request.getIdentifier(), workerTask, result);
+        synchronizer.synchronize(object.asPrismObject(), request.getIdentifier(), workerTask, result);
         return true;
     }
 

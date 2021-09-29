@@ -12,6 +12,8 @@ import static java.util.Collections.emptyList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +36,7 @@ public class NullWorkBucketContentHandler extends BaseWorkBucketContentHandler {
     @NotNull
     @Override
     public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket,
-            AbstractWorkSegmentationType configuration, Class<? extends ObjectType> type,
+            AbstractWorkSegmentationType configuration, Class<? extends Containerable> type,
             ItemDefinitionProvider itemDefinitionProvider) {
         return emptyList();
     }
