@@ -16,6 +16,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButto
 
 import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -48,10 +53,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(
         urls = {
@@ -131,7 +132,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
 
     @Override
     protected UserOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> wrapperModel) {
-        return new UserOperationalButtonsPanel(id, wrapperModel, getObjectDetailsModels().getDelegationsModel()) {
+        return new UserOperationalButtonsPanel(id, wrapperModel, getObjectDetailsModels().getDelegationsModel(), getObjectDetailsModels().getExecuteOptionsModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -278,4 +279,10 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
         }
     }
 
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> getOperationOptions() {
+        return getOperationOptionsBuilder()
+                .item(FocusType.F_JPEG_PHOTO).retrieve()
+                .build();
+    }
 }

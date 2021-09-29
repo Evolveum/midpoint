@@ -11,6 +11,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -19,8 +20,8 @@ public class UserOperationalButtonsPanel extends FocusOperationalButtonsPanel<Us
 
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
 
-    public UserOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> model, LoadableModel<List<AssignmentEditorDto>> delegationsModel) {
-        super(id, model);
+    public UserOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> model, LoadableModel<List<AssignmentEditorDto>> delegationsModel, LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel) {
+        super(id, model, executeOptionsModel);
         this.delegationsModel = delegationsModel;
     }
 
