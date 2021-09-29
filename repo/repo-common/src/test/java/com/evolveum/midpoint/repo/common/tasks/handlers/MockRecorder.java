@@ -52,7 +52,7 @@ public class MockRecorder implements DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, "MockRecorder", indent);
-        DebugUtil.debugDumpWithLabel(sb, "executions", executions, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "executions", executions, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "realization start timestamps", realizationStartTimestamps, indent + 1);
         return sb.toString();
     }
