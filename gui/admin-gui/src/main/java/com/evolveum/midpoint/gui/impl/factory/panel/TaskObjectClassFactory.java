@@ -12,11 +12,17 @@ import java.util.Collections;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -26,8 +32,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 //FIXME serializable
 @Component
@@ -40,13 +44,18 @@ public class TaskObjectClassFactory extends AbstractInputGuiComponentFactory<QNa
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
-        return new AutoCompleteQNamePanel<QName>(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {
+        return new AutoCompleteQNamePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {
 
             @Override
             public Collection<QName> loadChoices() {
 
                 PrismPropertyWrapper<QName> itemWrapper = panelCtx.unwrapWrapperModel();
-                PrismReferenceValue objectRef = WebPrismUtil.findSingleReferenceValue(itemWrapper, ItemPath.create(TaskType.F_OBJECT_REF));
+                PrismReferenceValue objectRef = findResourceReference(itemWrapper);
+
+                if (objectRef == null || objectRef.getOid() == null) {
+                    return Collections.emptyList();
+                }
+
                 Task task = panelCtx.getPageBase().createSimpleTask("load resource");
                 PrismObject<ResourceType> resourceType = WebModelServiceUtils.loadObject(objectRef, ResourceType.COMPLEX_TYPE, panelCtx.getPageBase(), task, task.getResult());
 
@@ -65,7 +74,40 @@ public class TaskObjectClassFactory extends AbstractInputGuiComponentFactory<QNa
 
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
-        return wrapper.getPath().equivalent(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+        PrismObjectWrapper<?> objectWrapper = wrapper.findObjectWrapper();
+        if (objectWrapper == null) {
+            return false;
+        }
+
+        ObjectType object = objectWrapper.getObject().asObjectable();
+        if (!(object instanceof TaskType)) {
+            return false;
+        }
+
+        TaskType task = (TaskType) object;
+        if (WebComponentUtil.isResourceRelatedTask(task) && wrapper.getPath().startsWith(ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK)) && wrapper.getPath().lastName().equivalent(ResourceObjectSetType.F_OBJECTCLASS)) {
+            return true;
+        }
+        return false;
+//        return wrapper.getPath().equivalent(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+    }
+
+    private PrismReferenceValue findResourceReference(PrismPropertyWrapper<QName> itemWrapper) {
+        PrismContainerValueWrapper<?> parent = itemWrapper.getParent();
+        if (parent == null) {
+            return null;
+        }
+        try {
+            PrismReferenceWrapper<Referencable> resourceRefWrapper = parent.findReference(ResourceObjectSetType.F_RESOURCE_REF);
+            if (resourceRefWrapper == null) {
+                return null;
+            }
+
+            return resourceRefWrapper.getValue().getNewValue();
+        } catch (SchemaException e) {
+            return null;
+        }
+//        WebPrismUtil.findSingleReferenceValue(itemWrapper, ItemPath.create(TaskType.F_OBJECT_REF))
     }
 
     @Override

@@ -228,14 +228,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         LOGGER.trace("returning from saveOrPreviewPerformed");
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
 
-        result.computeStatusIfUnknown();
         postProcessResult(result, executedDeltas);
-        showResult(result);
-        if (!previewOnly && result.isSuccess()) {
-            redirectBack();
-        } else {
-            target.add(getFeedbackPanel());
-        }
+
         return executedDeltas;
     }
 
@@ -256,7 +250,22 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 ////                result.recomputeStatus();
 ////            }
 
-        return getChangeExecutor().executeChanges(deltas, previewOnly, task, result, target);
+        //TODO this is just a quick hack.. for focus objects, feedback panel and results are processed by ProgressAware.finishProcessing()
+
+        ObjectChangeExecutor changeExecutor = getChangeExecutor();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas =  changeExecutor.executeChanges(deltas, previewOnly, task, result, target);
+
+        result.computeStatusIfUnknown();
+        if (changeExecutor instanceof ObjectChangesExecutorImpl) {
+            showResult(result);
+            if (!previewOnly && result.isSuccess()) {
+                redirectBack();
+            } else {
+                target.add(getFeedbackPanel());
+            }
+        }
+
+        return executedDeltas;
     }
 
 

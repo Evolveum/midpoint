@@ -72,7 +72,7 @@ public class CaseOperationalButtonsPanel extends AssignmentHolderOperationalButt
     }
 
     @Override
-    protected boolean getVisibilityForSaveButton() {
+    protected boolean isSaveButtonVisible() {
         return false;
     }
 }

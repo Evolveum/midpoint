@@ -11,14 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,18 +18,23 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.GuiProfileCompilable;
 import com.evolveum.midpoint.model.api.authentication.GuiProfileCompilerRegistry;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @Component
 public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
@@ -46,40 +43,39 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     @Autowired private PrismContext prismContext;
     @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
+    @SuppressWarnings("SpellCheckingInspection")
     private static final String[] PANEL_PACKAGES_TO_SCAN = {
-            "com.evolveum.midpoint.web.component.objectdetails", //Old panels
-            "com.evolveum.midpoint.web.component.assignment",  //Assignments
             "com.evolveum.midpoint.gui.impl.page.admin",
-            "com.evolveum.midpoint.gui.impl.page.admin.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component",
             "com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.focus.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.resource.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.task.component",
-            "com.evolveum.midpoint.gui.impl.component.assignment",
+            "com.evolveum.midpoint.gui.impl.page.admin.archetype.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component",
             "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment",
             "com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement",
-            "com.evolveum.midpoint.gui.impl.page.admin.org.component",
             "com.evolveum.midpoint.gui.impl.page.admin.cases.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.user.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.focus.component",
             "com.evolveum.midpoint.gui.impl.page.admin.objectcollection.component",
             "com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.archetype.component",
-            "com.evolveum.midpoint.gui.impl.page.admin.report.component"
+            "com.evolveum.midpoint.gui.impl.page.admin.org.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.report.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.resource.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.task.component",
+            "com.evolveum.midpoint.gui.impl.page.admin.user.component",
+            "com.evolveum.midpoint.web.component.assignment",  //Assignments
+            "com.evolveum.midpoint.web.component.objectdetails" //Old panels
     };
 
     private static final String[] COLLECTION_PACKAGES_TO_SCAN = {
-            "com.evolveum.midpoint.web.page.admin.users",
-            "com.evolveum.midpoint.web.page.admin.services",
-            "com.evolveum.midpoint.web.page.admin.tasks",
-            "com.evolveum.midpoint.web.page.admin.roles",
-            "com.evolveum.midpoint.web.page.admin.resources",
-            "com.evolveum.midpoint.web.page.admin.reports",
-            "com.evolveum.midpoint.web.page.admin.orgs",
-            "com.evolveum.midpoint.web.page.admin.objectTemplate",
-            "com.evolveum.midpoint.web.page.admin.objectCollection",
+            "com.evolveum.midpoint.web.page.admin.archetype",
             "com.evolveum.midpoint.web.page.admin.cases",
-            "com.evolveum.midpoint.web.page.admin.archetype"
+            "com.evolveum.midpoint.web.page.admin.objectCollection",
+            "com.evolveum.midpoint.web.page.admin.objectTemplate",
+            "com.evolveum.midpoint.web.page.admin.orgs",
+            "com.evolveum.midpoint.web.page.admin.reports",
+            "com.evolveum.midpoint.web.page.admin.resources",
+            "com.evolveum.midpoint.web.page.admin.roles",
+            "com.evolveum.midpoint.web.page.admin.services",
+            "com.evolveum.midpoint.web.page.admin.users"
     };
 
     private final Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
@@ -217,6 +213,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             if (isNotPanelTypeDefinition(clazz, panelType)) {
                 continue;
             }
+            //noinspection unchecked
             panelsMap.put(panelType.name(), (Class<? extends Panel>) clazz);
         }
     }
@@ -335,7 +332,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
 
         if (panelInstance.excludeTypes() != null && panelInstance.excludeTypes().length > 0) {
-            return Arrays.stream(panelInstance.excludeTypes()).anyMatch(o -> o.equals(objectType));
+            return Arrays.asList(panelInstance.excludeTypes()).contains(objectType);
         }
 
         return !panelInstance.applicableForType().isAssignableFrom(objectType);

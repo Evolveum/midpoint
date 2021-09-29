@@ -203,21 +203,6 @@ public class UserDelegationsPanel extends AbstractObjectMainPanel<UserType, User
         delegations.add(panel);
     }
 
-    public boolean isDelegationsModelChanged(){
-        if (getDelegationModel() == null && getDelegationModel().getObject() == null){
-            return false;
-        }
-        if (getDelegationModel().getObject().isEmpty()){
-            return false;
-        }
-        for (AssignmentEditorDto dto : getDelegationModel().getObject()){
-            if (UserDtoStatus.DELETE.equals(dto.getStatus()) || UserDtoStatus.ADD.equals(dto.getStatus())){
-                return true;
-            }
-        }
-        return false;
-    }
-
     private AssignmentTablePanel getDelegationsTablePanel(){
         return (AssignmentTablePanel) get(ID_DELEGATIONS_CONTAINER).get(ID_DELEGATIONS_PANEL);
     }

@@ -22,6 +22,7 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -188,6 +189,10 @@ public class QLookupTableMapping
                 }
                 @SuppressWarnings("rawtypes")
                 Expression path = rowMapping.itemMapper(ordering.getOrderBy().firstToQName()).itemOrdering(alias, null);
+                if (ItemPath.equivalent(LookupTableRowType.F_LABEL, ordering.getOrderBy())) {
+                    // old repository uses normalized form for ordering
+                    path = alias.labelNorm;
+                }
                 query.orderBy(new OrderSpecifier<>(direction, path));
             }
         }
