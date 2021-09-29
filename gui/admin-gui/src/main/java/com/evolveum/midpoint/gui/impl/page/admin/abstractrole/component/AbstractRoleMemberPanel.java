@@ -254,6 +254,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             @Override
+            protected boolean showNewObjectCreationPopup() {
+                return CollectionUtils.isNotEmpty(getNewObjectReferencesList(getObjectCollectionView(), null));
+            }
+
+            @Override
             protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView, AssignmentObjectRelation relation) {
                 List<ObjectReferenceType> refList = super.getNewObjectReferencesList(collectionView, relation);
                 if (refList == null) {

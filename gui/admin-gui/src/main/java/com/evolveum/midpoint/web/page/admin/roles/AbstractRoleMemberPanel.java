@@ -180,6 +180,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
+            protected boolean showNewObjectCreationPopup() {
+                return CollectionUtils.isNotEmpty(getNewObjectReferencesList(getObjectCollectionView(), null));
+            }
+
+            @Override
             protected List<Component> createToolbarButtonsList(String buttonId) {
                 List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
                 AjaxIconButton assignButton = createAssignButton(buttonId);
