@@ -12,6 +12,8 @@ import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
 import com.evolveum.midpoint.gui.api.component.FocusTypeAssignmentPopupTabPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
@@ -29,9 +31,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -238,4 +243,33 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
         getPageBase().showMainPopup(popupable, target);
     }
 
+    protected boolean isSaveButtonEnabled() {
+        //in case user isn't allowed to modify focus data but has
+        // e.g. #assign authorization, Save button is disabled on page load.
+        // Save button becomes enabled just if some changes are made
+        // on the Assignments tab (in the use case with #assign authorization)
+//                PrismContainerDefinition def = getObjectWrapper().getDefinition();
+        return !ItemStatus.NOT_CHANGED.equals(getModelObject().getStatus()) || getModelObject().canModify() ||
+                isAssignmentAddedOrRemoved();
+    }
+
+    //if the user has just #assign authorization (no #edit), we need to enable Save/Preview buttons
+    // when the assignments model is changed
+    public boolean isAssignmentAddedOrRemoved() {
+        try {
+            PrismContainerWrapper<AssignmentType> assignmentsWrapper = getModelObject().findContainer(AssignmentHolderType.F_ASSIGNMENT);
+            if (assignmentsWrapper != null) {
+                for (PrismContainerValueWrapper<AssignmentType> assignmentWrapper : assignmentsWrapper.getValues()) {
+                    if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
+                            ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+                        return true;
+                    }
+                }
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
+            return false;
+        }
+        return false;
+    }
 }
