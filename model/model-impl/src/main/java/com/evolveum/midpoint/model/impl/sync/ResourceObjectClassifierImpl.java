@@ -51,6 +51,7 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
                 .addParam("resource", resource)
                 .build();
         try {
+            provisioningService.applyDefinition(combinedObject, task, parentResult);  //To be sure that everything is in order (MID-7236)
             return doClassify(combinedObject, resource, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
