@@ -239,7 +239,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
         if (deltas.isEmpty()) {
-            //nothing to do;
+            result.recordWarning("PageAdminObjectDetails.noChangesSave");
+            showResult(result);
+            target.add(getFeedbackPanel());
+            redirectBack();
             return null;
         }
         //TODO force
