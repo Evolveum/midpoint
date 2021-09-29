@@ -91,7 +91,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     @Override
     protected FocusOperationalButtonsPanel<F> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> wrapperModel) {
-        return new FocusOperationalButtonsPanel<>(id, wrapperModel) {
+        return new FocusOperationalButtonsPanel<>(id, wrapperModel, getObjectDetailsModels().getExecuteOptionsModel()) {
 
             @Override
             protected void savePerformed(AjaxRequestTarget target) {

@@ -32,8 +32,11 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
 
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
-    public FocusOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> model) {
+    private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
+
+    public FocusOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<F>> model, LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel) {
         super(id, model);
+        this.executeOptionsModel = executeOptionsModel;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
     }
 
     private void initLayout() {
-        ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS) {
+        ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel) {
 
             @Override
             protected void reloadPanelOnOptionsUpdate(AjaxRequestTarget target) {
