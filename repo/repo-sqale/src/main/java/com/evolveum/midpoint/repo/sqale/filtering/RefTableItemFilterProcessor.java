@@ -45,11 +45,15 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
         SqlQueryContext<?, Q, R> refContext = context.subquery(referenceMapping);
         SQLQuery<?> subquery = refContext.sqlQuery();
         Q ref = refContext.path();
-        return subquery
+        subquery = subquery
                 .where(referenceMapping.correlationPredicate().apply(context.path(), ref))
                 .where(new RefItemFilterProcessor(
                         context, ref.targetOid, ref.targetType, ref.relationId, null)
-                        .process(filter))
-                .exists();
+                        .process(filter));
+        if (filter.getValues() == null) {
+            // If values == null, we search for all items without reference
+            return subquery.notExists();
+        }
+        return subquery.exists();
     }
 }
