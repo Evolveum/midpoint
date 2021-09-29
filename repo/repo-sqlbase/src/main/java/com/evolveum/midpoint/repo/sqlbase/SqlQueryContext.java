@@ -458,13 +458,21 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     /**
      * Transforms result page with (bean + extension columns) tuple to schema type.
      * JDBC session is provided as it may be needed for additional fetches.
+     * Instead of calling some transformation method row-by-row, transformer object is provided
+     * by the table mapper - which allows for potentially stateful processing.
+     * For example, row-by-row transformation can collect information for some additional processing
+     * which can be executed by implementing {@link ResultListRowTransformer#finishTransformation()}.
      */
     public PageOf<S> transformToSchemaType(PageOf<Tuple> result, JdbcSession jdbcSession)
             throws SchemaException, QueryException {
         try {
             ResultListRowTransformer<S, Q, R> rowTransformer =
                     entityPathMapping.createRowTransformer(this, jdbcSession);
-            return result.map(row -> rowTransformer.transform(row, root(), options));
+
+            PageOf<S> transformedResult = result.map(row -> rowTransformer.transform(row, root(), options));
+            rowTransformer.finishTransformation();
+
+            return transformedResult;
         } catch (RepositoryMappingException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SchemaException) {

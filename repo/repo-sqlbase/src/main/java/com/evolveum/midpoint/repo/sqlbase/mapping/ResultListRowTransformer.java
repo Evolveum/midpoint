@@ -27,4 +27,12 @@ public interface ResultListRowTransformer<S, Q extends FlexibleRelationalPathBas
 
     S transform(Tuple rowTuple, Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options);
+
+    /**
+     * This method is called after all the rows were transformed and allows for additional
+     * final shake-up for more complex stateful transformations.
+     */
+    default void finishTransformation() {
+        // nothing by default
+    }
 }
