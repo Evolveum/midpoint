@@ -8,16 +8,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.START;
-import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
+import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.*;
 
 class DetailsOutputFile {
 
-    private static final File FILE = new File(TARGET_DIR, START + "-details.txt");
     private final PrintWriter writer;
 
     DetailsOutputFile() throws IOException {
-        writer = new PrintWriter(new FileWriter(FILE));
+        writer = new PrintWriter(new FileWriter(getFile()));
+    }
+
+    private File getFile() {
+        return new File(TARGET_DIR, START + "-" + OTHER_PARAMETERS.label + "-details.txt");
     }
 
     void logTaskFinish(String testName, TaskType taskAfter) {

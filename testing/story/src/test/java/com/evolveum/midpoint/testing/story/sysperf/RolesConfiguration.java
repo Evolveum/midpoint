@@ -38,6 +38,7 @@ class RolesConfiguration {
     private static final String PROP_INDUCEMENTS_COUNT = PROP_INDUCEMENTS + ".count";
     private static final String PROP_INDUCEMENTS_MIN = PROP_INDUCEMENTS + ".min";
     private static final String PROP_INDUCEMENTS_MAX = PROP_INDUCEMENTS + ".max";
+    private static final String PROP_MEMBER_OF_COMPUTATION = PROP + ".memberOfComputation";
 
     private static final File BUSINESS_ROLE_TEMPLATE_FILE = new File(TEST_DIR, "role-business.vm.xml");
     private static final File TECHNICAL_ROLE_TEMPLATE_FILE = new File(TEST_DIR, "role-technical.vm.xml");
@@ -48,6 +49,8 @@ class RolesConfiguration {
     private final int numberOfAssignmentsMax;
     private final int numberOfInducementsMin;
     private final int numberOfInducementsMax;
+
+    private final boolean memberOfComputation;
 
     private final List<TestResource<RoleType>> generatedBusinessRoles;
     private final List<TestResource<RoleType>> generatedTechnicalRoles;
@@ -69,6 +72,7 @@ class RolesConfiguration {
             numberOfInducementsMin = Integer.parseInt(System.getProperty(PROP_INDUCEMENTS_MIN, "1"));
             numberOfInducementsMax = Integer.parseInt(System.getProperty(PROP_INDUCEMENTS_MAX, String.valueOf(numberOfInducementsMin)));
         }
+        memberOfComputation = Boolean.parseBoolean(System.getProperty(PROP_MEMBER_OF_COMPUTATION, "false"));
 
         generatedTechnicalRoles = generateTechnicalRoles();
         generatedBusinessRoles = generateBusinessRoles();
@@ -106,6 +110,10 @@ class RolesConfiguration {
         return generatedTechnicalRoles;
     }
 
+    boolean isMemberOfComputation() {
+        return memberOfComputation;
+    }
+
     @Override
     public String toString() {
         return "RolesConfiguration{" +
@@ -115,6 +123,7 @@ class RolesConfiguration {
                 ", numberOfAssignmentsMax=" + numberOfAssignmentsMax +
                 ", numberOfInducementsMin=" + numberOfInducementsMin +
                 ", numberOfInducementsMax=" + numberOfInducementsMax +
+                ", memberOfComputation=" + memberOfComputation +
                 '}';
     }
 
