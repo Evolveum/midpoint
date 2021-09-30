@@ -73,9 +73,7 @@ public class PcpGeneralHelper {
                 prismContext.deltaFor(CaseType.class)
                         .item(path, def).replace(deltasType)
                         .asItemDeltas(), result);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Stored deltas into case {}:\n{}", aCase, deltas);      // TODO debug dump
-        }
+        LOGGER.trace("Stored deltas into case {}:\n{}", aCase, deltas); // TODO debug dump
     }
 
     public ObjectTreeDeltas<?> retrieveResultingDeltas(CaseType aCase) throws SchemaException {

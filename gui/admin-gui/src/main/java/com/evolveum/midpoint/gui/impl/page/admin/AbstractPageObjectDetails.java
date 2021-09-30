@@ -224,26 +224,27 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         LOGGER.trace("returning from saveOrPreviewPerformed");
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
 
-        postProcessResult(result, executedDeltas);
+        postProcessResult(result, executedDeltas, target);
 
         return executedDeltas;
     }
 
-    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+        result.computeStatusIfUnknown();
 
+        if (allowRedirectBack() && !result.isError()) { // && allowRedirectBack()) {
+            redirectBack();
+        } else {
+            target.add(getFeedbackPanel());
+        }
     }
 
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
+        if (noChangesToExecute(deltas, options)) {
+            recordNoChangesWarning(result);
 
-        if (shouldBeStoppedProcessingOfChanges(deltas, options, previewOnly, target, result)) {
-            return null;
-        }
 
-        if (deltas.isEmpty()) {
-            result.recordWarning("PageAdminObjectDetails.noChangesSave");
             showResult(result);
-            target.add(getFeedbackPanel());
-            redirectBack();
             return null;
         }
         //TODO force
@@ -259,40 +260,23 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         ObjectChangeExecutor changeExecutor = getChangeExecutor();
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = changeExecutor.executeChanges(deltas, previewOnly, task, result, target);
 
-        result.computeStatusIfUnknown();
         if (changeExecutor instanceof ObjectChangesExecutorImpl) {
             showResult(result);
-            if (!previewOnly && result.isSuccess() && allowRedirectBack()) {
-                redirectBack();
-            } else {
-                target.add(getFeedbackPanel());
-            }
         }
 
         return executedDeltas;
     }
 
-    protected boolean allowRedirectBack() {
-        return true;
+    protected boolean noChangesToExecute(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options) {
+        return deltas.isEmpty();
     }
 
-    protected boolean shouldBeStoppedProcessingOfChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options, boolean previewOnly, AjaxRequestTarget target, OperationResult result){
-        if (ItemStatus.NOT_CHANGED == getObjectDetailsModels().getObjectStatus()) {
-            if (deltas.isEmpty() && !options.isReconcile()) {
-                if (!previewOnly) {
-                    result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
-                    showResult(result);
-                    if (allowRedirectBack()) {
-                        redirectBack();
-                    }
-                } else {
-                    warn(getString("PageAdminObjectDetails.noChangesPreview"));
-                    target.add(getFeedbackPanel());
-                }
-                return true;
-            }
-        }
-        return false;
+    protected void recordNoChangesWarning(OperationResult result) {
+        result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
+    }
+
+    protected boolean allowRedirectBack() {
+        return true;
     }
 
     protected ExecuteChangeOptionsDto getExecuteChangesOptionsDto() {

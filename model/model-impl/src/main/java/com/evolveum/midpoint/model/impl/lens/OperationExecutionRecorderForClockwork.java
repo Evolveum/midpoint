@@ -13,6 +13,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionWriter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import com.evolveum.midpoint.task.api.ExecutionSupport;
+
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,6 +182,13 @@ class OperationExecutionRecorderForClockwork {
             }
         }
         createTaskRef(record, ctx);
+
+        ExecutionSupport executionSupport = ctx.task.getExecutionSupport();
+        if (executionSupport != null) {
+            record.setActivityPath(
+                    executionSupport.getActivityPath().toBean());
+        }
+
         summaryResult.computeStatus();
         record.setStatus(summaryResult.getStatus().createStatusType());
         record.setMessage(summaryResult.getMessage());

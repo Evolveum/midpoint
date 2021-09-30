@@ -148,43 +148,18 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = saveOrPreviewPerformed(target, saveResult, false);
 
             if (!saveResult.isError()) {
-                OperationResult saveAndRunResult = new OperationResult(OPERATION_SAVE_AND_RUN_REPORT);
-                PrismObject<ReportType> report;
-                if (getModelObjectType().getOid() != null) {
-                    report = getModelPrismObject();
-                } else {
-                    report = (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
-                }
+                PrismObject<ReportType> report = getReport(executedDeltas);
                 if (!ReportOperationalButtonsPanel.hasParameters(report.asObjectable())) {
-                    try {
-                        Task task = createSimpleTask(OPERATION_RUN_REPORT);
-                        getReportManager().runReport(report, null, task, saveAndRunResult);
-                    } catch (Exception ex) {
-                        saveAndRunResult.recordFatalError(ex);
-                    } finally {
-                        saveAndRunResult.computeStatusIfUnknown();
-                        showResult(saveAndRunResult);
-                        redirectBack();
-                    }
-
+                    runReport(report, null);
                 } else {
 
                     RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report.asObjectable()) {
 
                         private static final long serialVersionUID = 1L;
 
-                        protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
-                            try {
-                                Task task = createSimpleTask(OPERATION_RUN_REPORT);
-                                getReportManager().runReport(reportType.asPrismObject(), reportParam, task, saveAndRunResult);
-                            } catch (Exception ex) {
-                                saveAndRunResult.recordFatalError(ex);
-                            } finally {
-                                saveAndRunResult.computeStatusIfUnknown();
-                            }
+                        protected void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> report, PrismContainer<ReportParameterType> reportParam) {
+                            runReport(report, reportParam);
                             hideMainPopup(target);
-                            showResult(saveAndRunResult);
-                            redirectBack();
                         }
                     };
                     showMainPopup(runReportPopupPanel, target);
@@ -192,6 +167,28 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
             }
         } finally {
             processingOfSaveAndRun = false;
+        }
+    }
+
+    private PrismObject<ReportType> getReport(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+        if (getModelObjectType().getOid() != null) {
+            return getModelPrismObject();
+        }
+        return (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
+
+    }
+
+    private void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> reportParam) {
+        Task task = createSimpleTask(OPERATION_RUN_REPORT);
+        OperationResult saveAndRunResult = task.getResult();
+        try {
+            getReportManager().runReport(report, reportParam, task, saveAndRunResult);
+        } catch (Exception ex) {
+            saveAndRunResult.recordFatalError(ex);
+        } finally {
+            saveAndRunResult.computeStatusIfUnknown();
+            saveAndRunResult.setBackgroundTaskOid(task.getOid());
+            redirectBack();
         }
     }
 

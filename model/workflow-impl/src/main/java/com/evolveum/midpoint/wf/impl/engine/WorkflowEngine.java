@@ -126,7 +126,7 @@ public class WorkflowEngine implements CaseEventListener {
                 result.recordFatalError(t);
                 throw t;
             } finally {
-                result.computeStatusIfUnknown();
+                result.close();
             }
         }
     }
