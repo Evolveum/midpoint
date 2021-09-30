@@ -285,9 +285,4 @@ public class TestCsvReportImportClassic extends TestCsvReport {
                 ref
         );
     }
-
-    @Override
-    protected ItemName getWorkDefinitionType() {
-        return WorkDefinitionsType.F_REPORT_IMPORT;
-    }
 }

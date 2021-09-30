@@ -52,6 +52,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         repoAdd(TASK_DISTRIBUTED_EXPORT_USERS, initResult);
         repoAdd(TASK_DISTRIBUTED_EXPORT_AUDIT, initResult);
         repoAdd(OBJECT_COLLECTION_ALL_AUDIT_RECORDS, initResult);
+        repoAdd(REPORT_OBJECT_COLLECTION_USERS, initResult);
+        repoAdd(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, initResult);
 
         createUsers(USERS, initTask, initResult);
     }
@@ -63,7 +65,6 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        addObject(REPORT_OBJECT_COLLECTION_USERS.file);
         runExportTask(TASK_DISTRIBUTED_EXPORT_USERS, REPORT_OBJECT_COLLECTION_USERS, result);
 
         when();
@@ -86,7 +87,7 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        basicCheckOutputFile(report, 1004, 2, null);
+        basicCheckOutputFile(report, 1008, 2, null);
     }
 
     @Test
@@ -154,7 +155,6 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        addObject(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.file);
         runExportTask(TASK_DISTRIBUTED_EXPORT_AUDIT, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, result);
 
         when();
