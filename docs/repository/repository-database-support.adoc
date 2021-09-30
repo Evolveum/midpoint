@@ -10,7 +10,7 @@
 :page-upkeep-status: green
 
 MidPoint was designed with a flexible implementation of its wiki:Repository+Subsystem[repository subsystem], which allows support for several types of storage technologies.
-The only storage technology that midPoint supports currently supports is relational database.
+The only storage technology that midPoint currently supports is relational database.
 Relational database always was, and it still is, the reliable workhorse of many identity management solutions, including midPoint.
 
 [TIP]
@@ -83,7 +83,7 @@ PostgreSQL is the recommended database, but other databases are still supported 
 The other databases will be supported until there is a clear migration path to PostgreSQL.
 There is no need to migrate your existing deployment right now.
 *Please wait until midPoint 4.4*. MidPoint 4.4 would be an ideal point for you to migrate your database.
-However, you can keep your existing database even a little bit longer.
+However, you can keep your existing database even a little longer.
 There is still time to prepare: both for you and midPoint.
 However, please keep in mind that you will probably need to migrate to PostgreSQL eventually.
 
@@ -94,7 +94,7 @@ This implementation will work only for PostgreSQL and it will take advantage of 
 This will come with a new and more efficient database schema.
 For now this is planned to be released in production-ready quality in midPoint 4.4.
 
-. We will create a migration plan (and a guide) from all of the supported databases to the new native PostgreSQL repository.
+. We will create a migration plan (and a guide) from all the supported databases to the new native PostgreSQL repository.
 The migration path will most likely involve XML export/import of the data.
 
 . Both the new native PostgreSQL repository and the old generic implementations will be supported in midPoint 4.4 LTS, planned for release in late 2021.
@@ -102,7 +102,7 @@ Expected lifetime of midPoint 4.4 LTS is until late 2024.
 Therefore you will have at least three-year migration period to PostgreSQL if you stick with midPoint 4.4 LTS.
 
 . The plans for database support beyond midPoint 4.4 LTS are still quite fuzzy.
-We have already dropped database support for MySQL and MariaDB, as there was almost no interest for this support in midPoint community.
+We have already dropped database support for MySQL and MariaDB, as there was almost no interest in this support in midPoint community.
 There are no specific plans for dropping support for Oracle and Microsoft SQL, but it may happen eventually.
 
 The new native PostgreSQL repository has a completely new database schema, designed to take full advantage of PostgreSQL capabilities.
@@ -132,7 +132,7 @@ You have to install the database engine yourself.
 You have to configure it.
 We may have some recommendations for you, but database configuration is your responsibility.
 There are lots of variables here, single-node databases, clustered databases, many performance and availability trade-offs.
-Those depends on your environment, your requirements and workloads.
+Those depend on your environment, your requirements and workloads.
 We cannot possibly make such decisions for you.
 We provide database schema that midPoint needs.
 But fine-tuning of the database is up to you.
@@ -181,4 +181,4 @@ Even though midPoint is tested in a variety of database configurations during de
 If you happen to experience an issue with midPoint operation, we have to reproduce the issue in order to have any realistic chance to fix it.
 Some issues can be reproduced in our testing environment.
 However, presence of database clustering makes reproduction of issues much harder.
-Therefore please be prepared that Evolveum team may request an access to your testing environment where the issue can be reproduced in order to diagnose and fix an issue.
+Therefore please be prepared that Evolveum team may request access to your testing environment where the issue can be reproduced in order to diagnose and fix an issue.

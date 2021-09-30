@@ -1,0 +1,168 @@
+= Using Native Repository (new)
+:page-toc: top
+
+== Changes from old to new repository
+
+What is similar and what is different when configuring midPoint for the new repository?
+
+* New repository supports *only PostgreSQL database*, preferably version 13 or 14, 12 is possible too.
+The database cannot be embedded and must be prepared
+link:/midpoint/reference/repository/db/postgresq[as documented here] (the procedure is fully
+described later in this document, no need to click).
+* Different schema SQL files are used, so stop before the *Run database script* step.
+* Basic repository configuration documented link:/midpoint/reference/repository/configuration[here]
+is working as before.
+* New repo doesn't use Hibernate, so any Hibernate related configuration is ignored.
+* Main difference in `config.xml` is to use `<type>generic</type>` instead of
+`<repositoryServiceFactoryClass>` element (which does not work with new repo).
+Definitely don't try to use both `<repositoryServiceFactoryClass>` and `<type>` simultaneously!
+* For audit replace old repository value in `auditServiceFactoryClass`
+with `com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory`.
+
+== Database setup
+
+=== Installation
+
+This guide does not cover the installation process as there are many possible combinations.
+To install PG 13 on Ubuntu 20.04 one can use https://gist.github.com/luizomf/1a7994cf4263e10dce416a75b9180f01[these steps] for an inspiration.
+Adjust the setup in `pg_hba.conf` to the real IP address of the server.
+Setup can be different if PG is used only on localhost, but we assume host-to-host communication
+which is typical for production setup.
+
+The short checklist:
+
+* Install PostgreSQL 13 on your OS or server or VM.
+* Setup `listen_addresses = '*'` in `postgresql.conf`.
+* While in `postgresql.conf` it's also good to add statements statistics extension and query logging
+for better visibility (the latter may not be a good option for production and small disks).
+See the snippet lower.
+* Setup `host...md5` line in `pg_hba.conf`, otherwise you (and JDBC driver) will not be able to
+connect to the database remotely.
+* Restart PostgreSQL.
+
+In short, this can all be added to the end `postgresql.conf` (then restart the server):
+
+----
+listen_addresses = '*'
+
+# this is necessary for pg_stat_statements extension
+shared_preload_libraries = 'pg_stat_statements'
+
+# this is to log all the queries, just be aware of the free disk space
+log_directory = 'pg_log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_statement = 'all'
+logging_collector = on
+----
+
+[NOTE]
+Sizing the database server and adjust PostgreSQL configuration parameters is not part
+of this document at this moment - but we plan to add it.
+In the meantime rely on other online resources.
+Be aware that default Postgres server sizing is rather small.
+
+=== Database preparation
+
+This roughly copies the link:/midpoint/reference/repository/db/postgresq[docs for old repository].
+
+First command is to be executed in `bash` on the server with Postgres, the rest is executed inside `psql`:
+
+----
+sudo -i -u postgres psql
+
+CREATE USER midpoint WITH PASSWORD 'password' LOGIN SUPERUSER;
+CREATE DATABASE midpoint WITH OWNER = midpoint ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;
+----
+
+To initialize the database connect to `midpoint` database as `midpoint` user and execute
+the content of the following schema files provided with the distribution package
+under the `doc/config/sql/native-new` directory:
+
+* `postgres-new.sql` is the content of the main repository schema without audit tables.
+This file also creates `public` schema if missing - dropping the whole `public` schema is often
+the fastest way to replace any previous schema (obviously, not recommended for production).
+* `postgres-new-audit.sql` is the content of audit schema.
+It can be applied on top of the main repository schema or separately to another database.
+If both schemas are to be applied, first apply main repository schema followed by audit schema.
+
+See link:/midpoint/reference/security/audit/configuration/[Audit configuration] for details how
+to set it up in a database separate from the main repository.
+Be aware that with new repository *both databases have to be PostgreSQL databases.*
+It is possible to use different versions for each database as long as they are supported (12 or higher).
+
+The location of the files will likely change, and it will be packed in the distribution as well.
+
+You can use any client to do this, or we can download the file on the VM and use it like this:
+
+----
+wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/native-new/postgres-new.sql
+wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/native-new/postgres-new-audit.sql
+# without this export psql will prompt for the password
+export PGPASSWORD=password
+# If you want to replace any previous tables in the schema, uncomment this drop too:
+#psql -h localhost midpoint midpoint -c "drop schema public cascade"
+psql -h localhost midpoint midpoint -f postgres-new.sql
+psql -h localhost midpoint midpoint -f postgres-new-audit.sql
+----
+
+If you plan to use https://www.postgresql.org/docs/13/pgstatstatements.html[statement statistics extension]
+(not discussed here), initialize it like this:
+
+----
+psql -h localhost midpoint midpoint -c "create extension pg_stat_statements"
+----
+
+=== Quartz tables
+
+Quartz scheduler in midPoint can be configured to use a database with `taskManager/jdbcJobStore`
+option in `config.xml` set to `true`.
+This is also the default if `clustered` is set to `true`.
+See link:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
+for further details.
+
+In that case Quartz requires that its tables are ready in the database.
+By default, the same database is used for repository and for Quartz, which can be changed by
+using `jdbcUrl` and other options inside `taskManager` section (see the link above).
+
+Let's simplify things and assume that we need the tables, and the same database is used.
+Connect to the `midpoint` database with `midpoint` user and execute the commands stored in
+`repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql`
+from the midPoint sources.
+
+The following commands can be used in the bash on the database VM:
+
+----
+wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/native-new/postgres-new-quartz.sql
+psql -h localhost midpoint midpoint -f postgres-new-quartz.sql
+----
+
+== Example `config.xml`
+
+Example `config.xml` is https://github.com/virgo47/midpoint-vagrantboxes/blob/master/vagrant-midpoint-db-pg-new-repo/config.xml[here].
+The main difference is using the `type` element instead of `repositoryServiceFactoryClass` which does not work for new repository anymore.
+Set the value of `type` element to `native`, values `sqale` or `scale` are also supported.
+Do not use `sql` which indicates old repo!
+
+Native repository comes with native SQL audit, so we need to change the audit factory class in
+`auditServiceFactoryClass` element from old repository value containing
+`...SqlAuditServiceFactory` to `com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory`.
+
+With this `config.xml` you can start midPoint as usual.
+
+== Versioning and upgrading
+
+Long story short, just run the provided `postgres-new-upgrade.sql` anytime, it should be safe.
+It always runs only the missing parts of the upgrade process.
+
+// TODO details
+
+== See also
+
+* link:/midpoint/reference/repository/repository-database-support/[Repository Database Support]
+descusses old and new repository and our support strategy.
+* TODO: Migration guide
+* link:/midpoint/reference/repository/db/postgresq[PostgreSQL - old repo], see parts about
+separate audit and Performance tuning.
+// TODO and migrate them here
+* link:/midpoint/reference/repository/configuration[Repository Configuration]
+* link:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

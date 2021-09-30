@@ -9,7 +9,8 @@
 
 [TIP]
 ====
-The following information applies to the SQL repository implementation (currently the only one).
+The following information applies to the "Generic" (old) SQL repository implementation.
+New Native repository uses different upgrade mechanism
 ====
 
 _Database schema version_ is an indication of a version of the database schema, i.e. the structure of database tables, indices, constraints, and so on.
