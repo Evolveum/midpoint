@@ -7,9 +7,13 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.report.api.ReportService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,14 +41,22 @@ class AuditReportSegmentation {
 
     private static final Trace LOGGER = TraceManager.getTrace(AuditReportSegmentation.class);
 
-    @NotNull private final XMLGregorianCalendar reportFrom;
-    @NotNull private final XMLGregorianCalendar reportTo;
+    private final XMLGregorianCalendar reportFromFromFilter;
+    private final XMLGregorianCalendar reportToFromFilter;
+    @NotNull private final XMLGregorianCalendar reportToRealizedTime;
+    @NotNull private final XMLGregorianCalendar reportFromFirstAuditRecord;
 
     private ExplicitWorkSegmentationType explicitSegmentation;
 
-    AuditReportSegmentation(@NotNull XMLGregorianCalendar reportFrom, @NotNull XMLGregorianCalendar reportTo) {
-        this.reportFrom = reportFrom;
-        this.reportTo = reportTo;
+    AuditReportSegmentation(
+            XMLGregorianCalendar reportFrom,
+            XMLGregorianCalendar reportTo,
+            @NotNull XMLGregorianCalendar reportToRealizedTime,
+            @NotNull XMLGregorianCalendar reportFromFirstAuditRecord) {
+        this.reportFromFromFilter = reportFrom;
+        this.reportToFromFilter = reportTo;
+        this.reportToRealizedTime = reportToRealizedTime;
+        this.reportFromFirstAuditRecord = reportFromFirstAuditRecord;
     }
 
     /**
@@ -67,17 +79,83 @@ class AuditReportSegmentation {
         argCheck(segmentation.getMatchingRule() == null, "Matching rule specification is not supported");
         argCheck(segmentation.getNumberOfBuckets() != null, "Number of buckets must be specified");
 
-        long reportFromMillis = XmlTypeConverter.toMillis(reportFrom);
-        long reportToMillis = XmlTypeConverter.toMillis(reportTo);
-        long step = (reportToMillis - reportFromMillis) / segmentation.getNumberOfBuckets();
+        XMLGregorianCalendar reportFrom = reportFromFromFilter;
+        XMLGregorianCalendar reportTo = reportToFromFilter;
 
-        LOGGER.trace("Creating segmentation: from = {}, to = {}, step = {}",
-                reportFrom, reportTo, step);
+        if (reportFrom == null && reportTo == null) {
+            reportTo = reportToRealizedTime;
+            reportFrom = reportFromFirstAuditRecord;
+        } else if (reportFrom == null) {
+            reportFrom = reportFromFirstAuditRecord;
+            if (reportToRealizedTime.toGregorianCalendar().compareTo(reportTo.toGregorianCalendar()) < 0) {
+                reportTo = reportToRealizedTime;
+            }
+        } else {
+            reportTo = reportToRealizedTime;
+            if (reportFromFirstAuditRecord.toGregorianCalendar().compareTo(reportFrom.toGregorianCalendar()) > 0) {
+                reportFrom = reportFromFirstAuditRecord;
+            }
+        }
 
-        explicitSegmentation = new ExplicitWorkSegmentationType(PrismContext.get());
-        for (long bucketFromMillis = reportFromMillis; bucketFromMillis < reportToMillis; bucketFromMillis += step) {
-            explicitSegmentation.getContent().add(
-                    createBucketContent(bucketFromMillis, step, reportToMillis));
+        int result =
+                reportFrom.toGregorianCalendar().compareTo(reportTo.toGregorianCalendar());
+
+        if (result < 0) {
+            long reportFromMillis = XmlTypeConverter.toMillis(reportFrom);
+            long reportToMillis = XmlTypeConverter.toMillis(reportTo);
+            long step = (reportToMillis - reportFromMillis) / segmentation.getNumberOfBuckets();
+            if (step < 0) {
+                step = 0;
+            }
+
+            LOGGER.trace("Creating segmentation: from = {}, to = {}, step = {}",
+                    reportFrom, reportTo, step);
+
+            explicitSegmentation = new ExplicitWorkSegmentationType(PrismContext.get());
+            for (long bucketFromMillis = reportFromMillis; bucketFromMillis < reportToMillis; bucketFromMillis += step) {
+                explicitSegmentation.getContent().add(
+                        createBucketContent(bucketFromMillis, step, reportToMillis));
+            }
+            if (reportFromMillis + segmentation.getNumberOfBuckets() * step < reportToMillis) {
+                explicitSegmentation.getContent().add(
+                        createBucketContent(reportFromMillis + segmentation.getNumberOfBuckets() * step, step, reportToMillis));
+            }
+        } else {
+            long reportFromMillis = XmlTypeConverter.toMillis(reportFrom);
+            long reportToMillis = XmlTypeConverter.toMillis(reportTo);
+            long reportFromMillisFirstRecord = XmlTypeConverter.toMillis(reportFromFirstAuditRecord);
+            long reportToMillisRealizedTime = XmlTypeConverter.toMillis(reportToRealizedTime);
+            long step = ((reportToMillis - reportFromMillisFirstRecord) + (reportToMillisRealizedTime - reportFromMillis))
+                    / segmentation.getNumberOfBuckets();
+
+            explicitSegmentation = new ExplicitWorkSegmentationType(PrismContext.get());
+            long bucketFromMillis = reportFromMillisFirstRecord;
+            while (bucketFromMillis + step < reportToMillis) {
+                explicitSegmentation.getContent().add(
+                        createBucketContent(bucketFromMillis, step, reportToMillis));
+                bucketFromMillis += step;
+            }
+            if ((bucketFromMillis + step / 2) < reportToMillis) {
+                explicitSegmentation.getContent().add(
+                        createBucketContent(bucketFromMillis, step * 2, reportToMillis));
+                bucketFromMillis = reportFromMillis;
+            } else {
+                explicitSegmentation.getContent().add(
+                        createBucketContent(bucketFromMillis, step, reportToMillis));
+                bucketFromMillis = bucketFromMillis + step;
+                explicitSegmentation.getContent().add(
+                        createBucketContent(bucketFromMillis, step, reportToMillis));
+                long firstStep = bucketFromMillis + step - reportToMillis + step;
+                explicitSegmentation.getContent().add(
+                        createBucketContent(reportFromMillis, firstStep, reportToMillisRealizedTime));
+                bucketFromMillis = reportFromMillis + firstStep;
+            }
+
+            while (bucketFromMillis + step < reportToMillis) {
+                explicitSegmentation.getContent().add(
+                        createBucketContent(bucketFromMillis, step, reportToMillis));
+                bucketFromMillis += step;
+            }
         }
         return explicitSegmentation;
     }
@@ -94,20 +172,13 @@ class AuditReportSegmentation {
         if (bucketFromMillis + step < reportToMillis) {
             bucketTo = XmlTypeConverter.createXMLGregorianCalendar(bucketFromMillis + step);
         } else {
-            bucketTo = null;
+            bucketTo = XmlTypeConverter.createXMLGregorianCalendar(reportToMillis);
         }
 
-        ObjectFilter filter;
-        if (bucketTo != null) {
-            filter = PrismContext.get().queryFor(AuditEventRecordType.class)
+        ObjectFilter filter = PrismContext.get().queryFor(AuditEventRecordType.class)
                     .item(AuditEventRecordType.F_TIMESTAMP).ge(bucketFrom) // inclusive
-                    .and().item(AuditEventRecordType.F_TIMESTAMP).lt(bucketTo) // exclusive
+                    .and().item(AuditEventRecordType.F_TIMESTAMP).le(bucketTo) // exclusive
                     .buildFilter();
-        } else {
-            filter = PrismContext.get().queryFor(AuditEventRecordType.class)
-                    .item(AuditEventRecordType.F_TIMESTAMP).ge(bucketFrom)
-                    .buildFilter();
-        }
         SearchFilterType filterBean;
         try {
             filterBean = PrismContext.get().getQueryConverter().createSearchFilterType(filter);

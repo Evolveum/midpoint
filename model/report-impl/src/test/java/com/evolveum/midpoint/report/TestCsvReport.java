@@ -6,26 +6,25 @@
  */
 package com.evolveum.midpoint.report;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.report;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -283,5 +284,10 @@ public class TestCsvReportImportClassic extends TestCsvReport {
                 task.getResult(),
                 ref
         );
+    }
+
+    @Override
+    protected ItemName getWorkDefinitionType() {
+        return WorkDefinitionsType.F_REPORT_IMPORT;
     }
 }
