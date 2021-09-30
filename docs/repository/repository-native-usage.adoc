@@ -1,6 +1,10 @@
 = Using Native Repository (new)
 :page-toc: top
 
+++++
+{% include since.html since="4.4" %}
+++++
+
 == Changes from old to new repository
 
 What is similar and what is different when configuring midPoint for the new repository?
