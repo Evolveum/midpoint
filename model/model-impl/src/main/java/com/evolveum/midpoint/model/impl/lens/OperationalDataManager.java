@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.Channel;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -333,7 +334,7 @@ public class OperationalDataManager {
      */
     private static @Nullable ObjectReferenceType createRootTaskRef(@NotNull Task task) {
         if (task instanceof RunningTask) {
-            return ((RunningTask) task).getRootTask().getSelfReference();
+            return ObjectTypeUtil.createObjectRef(((RunningTask) task).getRootTaskOid(), ObjectTypes.TASK);
         } else if (task.isPersistent()) {
             // Actually this should not occur in real life. If a task is persistent, it should be a RunningTask.
             return task.getSelfReference();
