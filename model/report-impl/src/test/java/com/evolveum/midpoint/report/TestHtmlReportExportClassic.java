@@ -81,7 +81,7 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         repoAdd(DASHBOARD_WITH_TRIPLE_VIEW, initResult);
         repoAdd(DASHBOARD_EMPTY, initResult);
 
-        createUsers(USERS, initResult);
+        createUsers(USERS, initTask, initResult);
     }
 
     @Test

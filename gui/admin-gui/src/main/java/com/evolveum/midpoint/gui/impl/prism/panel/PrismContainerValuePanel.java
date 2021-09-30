@@ -69,6 +69,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     protected void onInitialize() {
         super.onInitialize();
 
+        setOutputMarkupId(true);
+
         add(AttributeModifier.append("class", () -> {
             String cssClasses = "";
             if (getModelObject() != null && ValueStatus.ADDED == getModelObject().getStatus()) {
@@ -220,8 +222,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private void prepareNewContainers(AjaxRequestTarget target, List<PrismContainerDefinition<?>> containers) {
-        getPageBase().hideMainPopup(target);
-
         Task task = getPageBase().createSimpleTask("Create child containers");
         WrapperContext ctx = new WrapperContext(task, task.getResult());
         containers.forEach(container -> {
@@ -258,7 +258,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private void refreshPanel(AjaxRequestTarget target) {
-        target.add(PrismContainerValuePanel.this);
+        target.add(PrismContainerValuePanel.this.findParent(ItemPanel.class));
         target.add(getPageBase().getFeedbackPanel());
     }
 

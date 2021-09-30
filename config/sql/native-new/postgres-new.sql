@@ -15,7 +15,7 @@
 -- Other notes:
 -- TEXT is used instead of VARCHAR, see: https://dba.stackexchange.com/a/21496/157622
 --
--- For Audit tables see 'pgnew-repo-audit.sql' right next to this file.
+-- For Audit tables see 'postgres-new-audit.sql' right next to this file.
 --
 -- For Quartz tables see:
 -- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
@@ -1786,7 +1786,7 @@ BEGIN
         IF lastChange IS NULL THEN
             INSERT INTO m_global_metadata (name, value) VALUES ('schemaChangeNumber', changeNumber);
         ELSIF changeNumber > lastChange THEN
-            -- even with force we never want to set lower change number, hence the IF above
+            -- even with force we never want to set lower-or-equal change number, hence the IF above
             UPDATE m_global_metadata SET value = changeNumber WHERE name = 'schemaChangeNumber';
         END IF;
         COMMIT;
@@ -1795,6 +1795,9 @@ BEGIN
     END IF;
 END $$;
 -- endregion
+
+-- Initializing the last change number used in postgres-new-upgrade.sql.
+call apply_change(0, $$ SELECT 1 $$);
 
 -- For Quartz tables see:
 -- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql

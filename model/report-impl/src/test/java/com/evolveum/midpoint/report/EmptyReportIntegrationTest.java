@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -169,7 +171,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         login(userAdministrator);
     }
 
-    void createUsers(int users, OperationResult initResult) throws CommonException {
+    void createUsers(int users, Task initTask, OperationResult initResult) throws CommonException {
         for (int i = 0; i < users; i++) {
             UserType user = new UserType(prismContext)
                     .name(String.format("u%06d", i))
@@ -177,7 +179,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
                     .familyName(String.format("FamilyNameU%06d", i))
                     .fullName(String.format("FullNameU%06d", i))
                     .emailAddress(String.format("EmailU%06d@test.com", i));
-            repositoryService.addObject(user.asPrismObject(), null, initResult);
+            addObject(user.asPrismObject(), initTask, initResult);
         }
         System.out.printf("%d users created", users);
     }
@@ -250,11 +252,15 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         changeTaskReport(reportResource,
                 ItemPath.create(TaskType.F_ACTIVITY,
                         ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_REPORT_EXPORT,
+                        getWorkDefinitionType(),
                         ClassicReportImportWorkDefinitionType.F_REPORT_REF
                 ),
                 taskResource);
         rerunTask(taskResource.oid, result);
+    }
+
+    protected ItemName getWorkDefinitionType() {
+        return WorkDefinitionsType.F_REPORT_EXPORT;
     }
 
     protected abstract FileFormatConfigurationType getFileFormatConfiguration();

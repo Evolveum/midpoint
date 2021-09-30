@@ -69,6 +69,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private void initLayout() {
         MidpointForm<VW> form = new MidpointForm<>(ID_VALUE_FORM);
+        form.setOutputMarkupId(true);
         add(form);
         form.add(createHeaderPanel());
 
@@ -291,7 +292,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    private MidpointForm<VW> getForm() {
+    protected MidpointForm<VW> getForm() {
         return (MidpointForm) get(ID_VALUE_FORM);
     }
 
@@ -301,6 +302,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     protected Component getValuePanel() {
         return (Component) get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER, ID_INPUT));
+    }
+
+    protected Component getValueContainer() {
+        return (Component) get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER));
     }
 
     private ValueMetadataWrapperImpl getValueMetadata() {
