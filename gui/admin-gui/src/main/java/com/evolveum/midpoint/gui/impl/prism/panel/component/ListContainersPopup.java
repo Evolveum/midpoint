@@ -47,6 +47,7 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
     private static final String ID_DEFINITION = "definition";
     private static final String ID_SELECT = "select";
     private static final String ID_CONTAINERS = "containers";
+    private static final String ID_BUTTON_CANCEL = "cancelButton";
 
     public ListContainersPopup(String id, IModel<CV> model) {
         super(id, model);
@@ -118,6 +119,8 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+
                 ListView<ContainersPopupDto> listView = (ListView<ContainersPopupDto>) ListContainersPopup.this.get(ID_CONTAINERS);
                 List<PrismContainerDefinition<?>> selected = new ArrayList<>();
                 listView.getModelObject().forEach(child -> {
@@ -131,6 +134,17 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
         };
         select.setOutputMarkupId(true);
         add(select);
+
+        AjaxButton cancel = new AjaxButton(ID_BUTTON_CANCEL,
+                createStringResource("PageBase.button.cancel")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+            }
+        };
+        add(cancel);
     }
 
     protected abstract void processSelectedChildren(AjaxRequestTarget target, List<PrismContainerDefinition<?>> selected);

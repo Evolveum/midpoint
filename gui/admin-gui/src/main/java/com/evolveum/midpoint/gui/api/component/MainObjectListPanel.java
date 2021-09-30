@@ -9,12 +9,10 @@ package com.evolveum.midpoint.gui.api.component;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -204,7 +202,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     }
                 }
 
-                if (getNewObjectInfluencesList().size() <= 1) {
+                if (!showNewObjectCreationPopup()) {
                     newObjectPerformed(target, null, getObjectCollectionView());
                     return;
                 }
@@ -226,6 +224,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
         createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return createNewObjectButton;
+    }
+
+    protected boolean showNewObjectCreationPopup() {
+        return getNewObjectInfluencesList() != null && getNewObjectInfluencesList().size() > 1;
     }
 
     protected boolean isViewForObjectCollectionType(CompiledObjectCollectionView collectionView, String oid, QName type) {
