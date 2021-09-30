@@ -64,14 +64,7 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
 
     @Override
     protected Panel createLink(String id, IModel<PrismValueWrapper<R>> object) {
-        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id, new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return createLabel(object.getObject());
-            }
-
-        }) {
+        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id, (IModel<String>) () -> createLabel(object.getObject())) {
             private static final long serialVersionUID = 1L;
 
             @Override

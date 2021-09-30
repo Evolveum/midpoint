@@ -41,9 +41,6 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapperImpl.class);
 
-    private ResourceType resource;
-    private Collection<RefinedAssociationDefinition> refinedAssociationDefinitions;
-
     public ShadowAssociationWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<ShadowAssociationType> item, ItemStatus status) {
         super(parent, item, status);
     }
@@ -79,7 +76,7 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
                     ShadowAssociationType shadowAssociationType = new ShadowAssociationType();
                     shadowAssociationType.asPrismContainerValue().applyDefinition(getItemDefinition());
                     shadowAssociationType.setName(refWrapper.getItemName());
-                    shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef((PrismReferenceValue) updatedRefValue.getNewValue()));
+                    shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef(updatedRefValue.getNewValue()));
                     delta.addValueToAdd(shadowAssociationType.asPrismContainerValue());
                 }
 
@@ -107,7 +104,7 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
                     ShadowAssociationType shadowAssociationType = new ShadowAssociationType();
                     shadowAssociationType.asPrismContainerValue().applyDefinition(getItemDefinition());
                     shadowAssociationType.setName(refWrapper.getItemName());
-                    shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef((PrismReferenceValue) updatedRefValue.getNewValue()));
+                    shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef(updatedRefValue.getNewValue()));
 
                     switch (updatedRefValue.getStatus()) {
                     case ADDED:
@@ -157,21 +154,5 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
 
         return deltas;
     }
-
-    public ResourceType getResource() {
-        return resource;
-    }
-
-    public void setResource(ResourceType resource) {
-        this.resource = resource;
-    }
-
-    public Collection<RefinedAssociationDefinition> getRefinedAssociationDefinitions() {
-        return refinedAssociationDefinitions;
-    }
-
-    public void setRefinedAssociationDefinitions(Collection<RefinedAssociationDefinition> refinedAssociationDefinitions) {
-        this.refinedAssociationDefinitions = refinedAssociationDefinitions;
-    }
-
+    
 }

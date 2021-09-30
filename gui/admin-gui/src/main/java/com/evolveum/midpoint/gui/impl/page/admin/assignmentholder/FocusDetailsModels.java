@@ -127,7 +127,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
 
     private Collection<SelectorOptions<GetOperationOptions>> createLoadOptionForShadowWrapper() {
         return getPageBase().getOperationOptionsBuilder()
-                .item(ShadowType.F_RESOURCE_REF).resolve().readOnly()
+                .resolveNames()
                 .build();
     }
 
