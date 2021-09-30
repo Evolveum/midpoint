@@ -115,7 +115,7 @@ public interface MidpointConfiguration {
      * </ul>
      *
      * @param key key from configuration, starting at {@code configuration} element (root),
-     * can be complex, e.g. @code midpoint.repository.repositoryServiceFactoryClass.
+     * can be complex, e.g. {@code midpoint.repository.type}.
      * @param regexPatterns regular expression patterns that must match the whole value.
      * It is possible to match {@code null} too, if no regex pattern is used, or if the first
      * pattern itself is null.

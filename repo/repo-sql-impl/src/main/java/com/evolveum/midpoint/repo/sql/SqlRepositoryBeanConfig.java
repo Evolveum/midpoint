@@ -39,7 +39,7 @@ import com.evolveum.midpoint.schema.SchemaService;
 
 /**
  * SQL repository related configuration from {@link DataSourceFactory} through ORM with
- * {@link TransactionManager} all the way to to {@link SqlRepositoryServiceImpl}.
+ * {@link TransactionManager} all the way to {@link SqlRepositoryServiceImpl}.
  * {@link ConditionalOnMissingBean} annotations are used to avoid duplicate bean acquirement that
  * would happen when combined with alternative configurations (e.g. context XMLs for test).
  * {@link ConditionalOnExpression} class annotation activates this configuration only if midpoint
@@ -48,7 +48,7 @@ import com.evolveum.midpoint.schema.SchemaService;
  * With current initialization not relying on system-init directly anymore, there is in fact
  * no "repository service factory" class and value of {@code com.evolveum.midpoint.repo.sql.}
  * for it is enough to initialize this SQL repository implementation.
- * Alternatively just value "sql" can be used.
+ * Alternatively just value `sql` or `generic` (named used in docs) can be used.
  * Both values are now case-insensitive.
  *
  * Any of the values also work with alternative key element {@code type}.
@@ -57,10 +57,10 @@ import com.evolveum.midpoint.schema.SchemaService;
 @Configuration
 @ConditionalOnExpression("#{midpointConfiguration.keyMatches("
         + "'midpoint.repository.repositoryServiceFactoryClass',"
-        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sql\\..*', '(?i)sql')"
+        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sql\\..*', '(?i)sql|generic')"
         + "|| midpointConfiguration.keyMatches("
         + "'midpoint.repository.type',"
-        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sql\\..*', '(?i)sql')"
+        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sql\\..*', '(?i)sql|generic')"
         + "}")
 @ComponentScan
 public class SqlRepositoryBeanConfig {
