@@ -192,7 +192,7 @@ public class ReportDataCreationActivityExecution
         } else if (!greaterOrLess && filter instanceof LessFilter
                 && AuditEventRecordType.F_TIMESTAMP.equivalent(((LessFilter) filter).getFullPath())) {
             return ((LessFilter) filter).getValues();
-        } else if (filter instanceof AndFilter) {
+        } else if (filter instanceof AndFilter || filter instanceof OrFilter) {
             return getTimestampsFromFilter(((NaryLogicalFilter) filter).getConditions(), greaterOrLess);
         } else if (filter instanceof TypeFilter) {
             return getTimestampsFromFilter(((TypeFilter) filter).getFilter(), greaterOrLess);

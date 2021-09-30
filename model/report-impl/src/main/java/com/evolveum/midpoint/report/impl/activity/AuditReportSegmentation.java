@@ -90,7 +90,7 @@ class AuditReportSegmentation {
             if (reportToRealizedTime.toGregorianCalendar().compareTo(reportTo.toGregorianCalendar()) < 0) {
                 reportTo = reportToRealizedTime;
             }
-        } else {
+        } else if (reportTo == null){
             reportTo = reportToRealizedTime;
             if (reportFromFirstAuditRecord.toGregorianCalendar().compareTo(reportFrom.toGregorianCalendar()) > 0) {
                 reportFrom = reportFromFirstAuditRecord;

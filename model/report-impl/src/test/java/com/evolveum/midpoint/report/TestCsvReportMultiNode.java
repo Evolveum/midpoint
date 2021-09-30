@@ -29,6 +29,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 
+import static org.testng.AssertJUnit.assertTrue;
+
 public class TestCsvReportMultiNode extends TestCsvReport {
 
     private static final File TEST_DIR = new File("src/test/resources/reports");
@@ -87,19 +89,19 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        basicCheckOutputFile(report, 1008, 2, null);
+        List<String> rows = basicCheckOutputFile(report, -1, 8, null);
+        assertTrue("Unexpected number of rows in report. Expected:1000-1010, Actual:" + rows.size(), rows.size() > 1000 && rows.size() <= 10010);
     }
 
     @Test
     public void test102ExportAuditRecordsInsideTwoTimestamps() throws Exception {
-//        checkSqaleRepo();
+        checkSqaleRepo();
 
         List<AuditEventRecordType> auditRecords = getAllAuditRecords(getTestTask(), getTestTask().getResult());
         SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(
                 PrismContext.get().queryFor(AuditEventRecordType.class)
-                        .item(AuditEventRecordType.F_EVENT_STAGE).eq(AuditEventStageType.EXECUTION).and()
-                        .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(200).getTimestamp()).and()
-                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(800).getTimestamp()).buildFilter()
+                        .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(500).getTimestamp()).and()
+                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(1300).getTimestamp()).buildFilter()
         );
         modifyObjectReplaceProperty(
                 ObjectCollectionType.class,
@@ -113,7 +115,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        basicCheckOutputFile(report, 1008, 2, null);
+        List<String> rows = basicCheckOutputFile(report, -1, 8, null);
+        assertTrue("Unexpected number of rows in report. Expected:800-810, Actual:" + rows.size(), rows.size() > 800 && rows.size() <= 810);
     }
 
     @Test
@@ -123,9 +126,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         List<AuditEventRecordType> auditRecords = getAllAuditRecords(getTestTask(), getTestTask().getResult());
         SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(
                 PrismContext.get().queryFor(AuditEventRecordType.class)
-                        .item(AuditEventRecordType.F_EVENT_STAGE).eq(AuditEventStageType.EXECUTION).and()
-                        .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(800).getTimestamp()).and()
-                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(200).getTimestamp()).buildFilter()
+                        .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(1300).getTimestamp()).or()
+                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(500).getTimestamp()).buildFilter()
         );
         modifyObjectReplaceProperty(
                 ObjectCollectionType.class,
@@ -140,7 +142,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        basicCheckOutputFile(report, 408, 2, null);
+        List<String> rows = basicCheckOutputFile(report, -1, 8, null);
+        assertTrue("Unexpected number of rows in report. Expected:1200-1215, Actual:" + rows.size(), rows.size() > 1200 && rows.size() <= 1215);
     }
 
     private void checkSqaleRepo() {
