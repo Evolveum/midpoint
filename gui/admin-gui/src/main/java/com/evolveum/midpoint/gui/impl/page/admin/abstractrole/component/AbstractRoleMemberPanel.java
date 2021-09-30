@@ -64,6 +64,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
+import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -76,6 +77,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -250,7 +252,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         && getSearchModel().getObject().isTypeChanged()) {
                     clearCache();
                 }
-                super.refreshTable(target);
+                if (reloadPageOnRefresh()) {
+                    throw new RestartResponseException(getPage().getClass());
+                } else {
+                    super.refreshTable(target);
+                }
             }
 
             @Override
@@ -285,6 +291,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
+    }
+
+    protected boolean reloadPageOnRefresh() {
+        return false;
     }
 
     private  <AH extends AssignmentHolderType> IColumn<SelectableBean<AH>, String> createRelationColumn() {
@@ -1050,6 +1060,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             return;
         }
         MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
+        target.add(AbstractRoleMemberPanel.this.findParent(TreeTablePanel.class));
     }
 
     protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
