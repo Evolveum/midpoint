@@ -38,16 +38,16 @@ Parameters:
         <distribution>
             <workerThreads>$workerThreads</workerThreads>
         </distribution>
-        <reporting>
-            <tracing>
-                <interval>1</interval>
-                <tracingProfile>
-                    <fileNamePattern>trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>
-                    <tracingTypeProfile>
-                        <level>off</level>
-                    </tracingTypeProfile>
-                </tracingProfile>
-            </tracing>
-        </reporting>
+        <!--<reporting>-->
+        <!--    <tracing>-->
+        <!--        <interval>1</interval>-->
+        <!--        <tracingProfile>-->
+        <!--            <fileNamePattern>trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>-->
+        <!--            <tracingTypeProfile>-->
+        <!--                <level>off</level>-->
+        <!--            </tracingTypeProfile>-->
+        <!--        </tracingProfile>-->
+        <!--    </tracing>-->
+        <!--</reporting>-->
     </activity>
 </task>
