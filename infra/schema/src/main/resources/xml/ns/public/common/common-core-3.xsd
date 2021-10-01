@@ -3452,6 +3452,13 @@
                 provides a combination of several functions (e.g.
                 both provisioning and authoritative data for some attributes).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:namespace</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
@@ -5863,6 +5870,11 @@
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaMigration>
+                    <a:element>tns:passwordPolicyRef</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
