@@ -24,7 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -2911,7 +2914,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         // Make sure caseBefore contains also container id, otherwise serialization will be different
         caseBefore.setId(aRow.cid);
-        String caseBeforeStr = prismContext.serializerFor(PrismContext.LANG_XML)
+        String caseBeforeStr = prismContext.serializerFor(repositoryConfiguration.getFullObjectFormat())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
                         .skipIndexOnly(true)
@@ -2973,7 +2976,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         // Check that case (container) fullObject was updated, as opposed to campaign (object) fullObject
         PrismContainerValue<AccessCertificationCaseType> fullObjectCval = prismContext
                 .parserFor(new String(aRow.fullObject, StandardCharsets.UTF_8))
-                .xml()
                 .parseItemValue();
 
         // Unchanged
