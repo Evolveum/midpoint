@@ -148,7 +148,7 @@ Do not use `sql` which indicates old repo!
 
 Native repository comes with native SQL audit, so we need to change the audit factory class in
 `auditServiceFactoryClass` element from old repository value containing
-`...SqlAuditServiceFactory` to `com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory`.
+`...SqlAuditServiceFactory` to `com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
 
 With this `config.xml` you can start midPoint as usual.
 
