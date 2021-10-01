@@ -62,19 +62,19 @@ Parameters:
             <!--        </tracingTypeProfile>-->
             <!--    </tracingProfile>-->
             <!--</tracing>-->
-            <tracing>
-                <order>3</order>
-                <beforeItemCondition>
-                    <interval>1</interval>
-                </beforeItemCondition>
-                <tracingProfile>
-                    <fileNamePattern>trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>
-                    <operationMonitoring/>
-                    <tracingTypeProfile>
-                        <level>off</level>
-                    </tracingTypeProfile>
-                </tracingProfile>
-            </tracing>
+            <!--<tracing>-->
+            <!--    <order>3</order>-->
+            <!--    <beforeItemCondition>-->
+            <!--        <interval>1</interval>-->
+            <!--    </beforeItemCondition>-->
+            <!--    <tracingProfile>-->
+            <!--        <fileNamePattern>trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>-->
+            <!--        <operationMonitoring/>-->
+            <!--        <tracingTypeProfile>-->
+            <!--            <level>off</level>-->
+            <!--        </tracingTypeProfile>-->
+            <!--    </tracingProfile>-->
+            <!--</tracing>-->
         </reporting>
     </activity>
 </task>

@@ -7,13 +7,20 @@
 package com.evolveum.midpoint.report;
 
 import java.io.File;
+import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.testng.SkipException;
 import org.testng.annotations.Test;
@@ -21,6 +28,8 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
+
+import static org.testng.AssertJUnit.assertTrue;
 
 public class TestCsvReportMultiNode extends TestCsvReport {
 
@@ -45,8 +54,10 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         repoAdd(TASK_DISTRIBUTED_EXPORT_USERS, initResult);
         repoAdd(TASK_DISTRIBUTED_EXPORT_AUDIT, initResult);
         repoAdd(OBJECT_COLLECTION_ALL_AUDIT_RECORDS, initResult);
+        repoAdd(REPORT_OBJECT_COLLECTION_USERS, initResult);
+        repoAdd(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, initResult);
 
-        createUsers(USERS, initResult);
+        createUsers(USERS, initTask, initResult);
     }
 
     @Test
@@ -56,7 +67,6 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        addObject(REPORT_OBJECT_COLLECTION_USERS.file);
         runExportTask(TASK_DISTRIBUTED_EXPORT_USERS, REPORT_OBJECT_COLLECTION_USERS, result);
 
         when();
@@ -75,16 +85,79 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
     @Test
     public void test101ExportAuditRecords() throws Exception {
+        checkSqaleRepo();
+        auditTest();
+
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
+        List<String> rows = basicCheckOutputFile(report, -1, 8, null);
+        assertTrue("Unexpected number of rows in report. Expected:1000-1010, Actual:" + rows.size(), rows.size() > 1000 && rows.size() <= 10010);
+    }
+
+    @Test
+    public void test102ExportAuditRecordsInsideTwoTimestamps() throws Exception {
+        checkSqaleRepo();
+
+        List<AuditEventRecordType> auditRecords = getAllAuditRecords(getTestTask(), getTestTask().getResult());
+        SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(
+                PrismContext.get().queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(500).getTimestamp()).and()
+                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(1300).getTimestamp()).buildFilter()
+        );
+        modifyObjectReplaceProperty(
+                ObjectCollectionType.class,
+                OBJECT_COLLECTION_ALL_AUDIT_RECORDS.oid,
+                ObjectCollectionType.F_FILTER,
+                getTestTask(),
+                getTestTask().getResult(),
+                filter
+                );
+
+        auditTest();
+
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
+        List<String> rows = basicCheckOutputFile(report, -1, 8, null);
+        assertTrue("Unexpected number of rows in report. Expected:800-810, Actual:" + rows.size(), rows.size() > 800 && rows.size() <= 810);
+    }
+
+    @Test
+    public void test103ExportAuditRecordsOutsideTwoTimestamps() throws Exception {
+        checkSqaleRepo();
+
+        List<AuditEventRecordType> auditRecords = getAllAuditRecords(getTestTask(), getTestTask().getResult());
+        SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(
+                PrismContext.get().queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_TIMESTAMP).ge(auditRecords.get(1300).getTimestamp()).or()
+                        .item(AuditEventRecordType.F_TIMESTAMP).le(auditRecords.get(500).getTimestamp()).buildFilter()
+        );
+        modifyObjectReplaceProperty(
+                ObjectCollectionType.class,
+                OBJECT_COLLECTION_ALL_AUDIT_RECORDS.oid,
+                ObjectCollectionType.F_FILTER,
+                getTestTask(),
+                getTestTask().getResult(),
+                filter
+        );
+
+
+        auditTest();
+
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
+        List<String> rows = basicCheckOutputFile(report, -1, 8, null);
+        assertTrue("Unexpected number of rows in report. Expected:1200-1250, Actual:" + rows.size(), rows.size() > 1200 && rows.size() <= 1250);
+    }
+
+    private void checkSqaleRepo() {
         if (!(plainRepositoryService instanceof SqaleRepositoryService)) {
             throw new SkipException("Skipping test before it is relevant only for sqale repo");
         }
+    }
 
+    private void auditTest() throws Exception{
         given();
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        addObject(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.file);
         runExportTask(TASK_DISTRIBUTED_EXPORT_AUDIT, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, result);
 
         when();
@@ -96,22 +169,10 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         assertTask(TASK_DISTRIBUTED_EXPORT_AUDIT.oid, "after")
                 .assertSuccess()
                 .display();
-
-        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        basicCheckOutputFile(report, 1004, 2, null);
     }
 
-    // TODO maybe we no longer need to override the method in the superclass
     @Override
-    void runExportTask(TestResource<TaskType> taskResource, TestResource<ReportType> reportResource,
-            OperationResult result) throws CommonException {
-        changeTaskReport(reportResource,
-                ItemPath.create(TaskType.F_ACTIVITY,
-                        ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_DISTRIBUTED_REPORT_EXPORT,
-                        ClassicReportImportWorkDefinitionType.F_REPORT_REF
-                ),
-                taskResource);
-        rerunTask(taskResource.oid, result);
+    protected ItemName getWorkDefinitionType() {
+        return WorkDefinitionsType.F_DISTRIBUTED_REPORT_EXPORT;
     }
 }

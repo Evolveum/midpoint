@@ -34,6 +34,9 @@ import org.apache.wicket.core.util.objects.checker.NotDetachedModelChecker;
 import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
+import org.apache.wicket.devutils.inspector.InspectorPage;
+import org.apache.wicket.devutils.inspector.LiveSessionsPage;
+import org.apache.wicket.devutils.pagestore.PageStorePage;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
@@ -249,6 +252,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             getDebugSettings().setAjaxDebugModeEnabled(true);
             getDebugSettings().setDevelopmentUtilitiesEnabled(true);
             initializeDevelopmentSerializers();
+            mount(new MountedMapper("/inspector", InspectorPage.class, new PageParametersEncoder()));
+            mount(new MountedMapper("/liveSession", LiveSessionsPage.class, new PageParametersEncoder()));
+            mount(new MountedMapper("/pageStore", PageStorePage.class, new PageParametersEncoder()));
         }
 
         //pretty url for resources (e.g. images)

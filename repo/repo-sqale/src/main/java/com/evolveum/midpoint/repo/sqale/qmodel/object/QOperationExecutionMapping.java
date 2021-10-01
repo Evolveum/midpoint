@@ -18,6 +18,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
@@ -111,5 +113,24 @@ public class QOperationExecutionMapping<OR extends MObject>
 
         insert(row, jdbcSession);
         return row;
+    }
+
+    @Override
+    public OperationExecutionType toSchemaObject(MOperationExecution row) {
+        return new OperationExecutionType(prismContext())
+                .status(row.status)
+                .recordType(row.recordType)
+                .initiatorRef(objectReference(row.initiatorRefTargetOid,
+                        row.initiatorRefTargetType, row.initiatorRefRelationId))
+                .taskRef(objectReference(row.taskRefTargetOid,
+                        row.taskRefTargetType, row.taskRefRelationId))
+                .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp));
+    }
+
+    @Override
+    public ResultListRowTransformer<OperationExecutionType, QOperationExecution<OR>, MOperationExecution>
+    createRowTransformer(SqlQueryContext<OperationExecutionType, QOperationExecution<OR>,
+            MOperationExecution> sqlQueryContext, JdbcSession jdbcSession) {
+        return super.createRowTransformer(sqlQueryContext, jdbcSession);
     }
 }

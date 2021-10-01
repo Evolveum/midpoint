@@ -124,7 +124,7 @@ public class PageOrgs extends PageAdmin {
 
     private Collection<SelectorOptions<GetOperationOptions>> getQueryOptions() {
         return getOperationOptionsBuilder()
-                .item(ObjectType.F_PARENT_ORG_REF).resolve()
+                .resolveNames()
                 .build();
     }
 

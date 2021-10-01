@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.*;
@@ -69,6 +70,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private AuditService auditService;
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private FunctionLibrary logFunctionLibrary;
     @Autowired private FunctionLibrary basicFunctionLibrary;
@@ -346,6 +348,10 @@ public class ReportServiceImpl implements ReportService {
 
     public ModelAuditService getModelAuditService() {
         return modelAuditService;
+    }
+
+    public AuditService getAuditService() {
+        return auditService;
     }
 
     public ModelInteractionService getModelInteractionService() {

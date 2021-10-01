@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,6 +45,9 @@ public class WrapperContext {
     //Shadow related attributes
     private ResourceType resource;
     private ResourceShadowDiscriminator discriminator;
+
+    //Association related attributes
+    private Collection<RefinedAssociationDefinition> refinedAssociationDefinitions;
 
     //used e.g. for metadata - opertionsla attributes but want to create wrappers for them
     private boolean createOperational;
@@ -110,6 +115,14 @@ public class WrapperContext {
 
     public void setResource(ResourceType resource) {
         this.resource = resource;
+    }
+
+    public Collection<RefinedAssociationDefinition> getRefinedAssociationDefinitions() {
+        return refinedAssociationDefinitions;
+    }
+
+    public void setRefinedAssociationDefinitions(Collection<RefinedAssociationDefinition> refinedAssociationDefinitions) {
+        this.refinedAssociationDefinitions = refinedAssociationDefinitions;
     }
 
     public void setDiscriminator(ResourceShadowDiscriminator discriminator) {

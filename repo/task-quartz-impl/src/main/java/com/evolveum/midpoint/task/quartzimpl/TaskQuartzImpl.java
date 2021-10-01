@@ -354,10 +354,15 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void modify(ItemDelta<?, ?> delta) throws SchemaException {
+    public void modify(@NotNull ItemDelta<?, ?> delta) throws SchemaException {
         LOGGER.debug("Applying {} to {}", delta, this);
         if (isPersistent()) {
-            addPendingModification(delta);
+            // If we not cloned the delta, another thread might attempt to modify it, failing with CME
+            // (conflicting with delta.applyTo below). Note that deltas are not thread-safe. See MID-7264.
+            // An alternative would be to guard this code by prismAccess, along with the delta application below.
+            // But it would make delta accessible to a different thread nevertheless. The caller should be cautious
+            // not to access the delta after the call. We don't want to impose this restriction to the callers.
+            addPendingModification(delta.clone());
         }
         synchronized (prismAccess) {
             delta.applyTo(taskPrism);

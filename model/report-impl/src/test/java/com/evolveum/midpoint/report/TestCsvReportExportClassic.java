@@ -77,7 +77,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         repoAdd(DASHBOARD_DEFAULT_COLUMNS, initResult);
         repoAdd(DASHBOARD_EMPTY, initResult);
 
-        createUsers(USERS, initResult);
+        createUsers(USERS, initTask, initResult);
     }
 
     @Test

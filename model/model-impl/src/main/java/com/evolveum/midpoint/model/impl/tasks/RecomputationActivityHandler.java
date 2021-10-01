@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
 import org.jetbrains.annotations.NotNull;
@@ -135,22 +136,26 @@ public class RecomputationActivityHandler
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
-        private final ObjectSetType objects;
-        private final ModelExecuteOptions executionOptions;
+        @NotNull private final ObjectSetType objects;
+        @NotNull private final ModelExecuteOptions executionOptions;
 
         MyWorkDefinition(WorkDefinitionSource source) {
+            ModelExecuteOptions rawExecutionOptions;
             if (source instanceof LegacyWorkDefinitionSource) {
                 LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
                 objects = ObjectSetUtil.fromLegacySource(legacy);
-                executionOptions = ModelImplUtils.getModelExecuteOptions(legacy.getTaskExtension());
+                rawExecutionOptions = ModelImplUtils.getModelExecuteOptions(legacy.getTaskExtension());
                 ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_LEGACY_SPEC);
             } else {
                 RecomputationWorkDefinitionType typedDefinition = (RecomputationWorkDefinitionType)
                         ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
                 objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
-                executionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
+                rawExecutionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
                 ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC);
             }
+            executionOptions = java.util.Objects.requireNonNullElseGet(
+                    rawExecutionOptions,
+                    () -> ModelExecuteOptions.create(PrismContext.get()).reconcile()); // Default for compatibility reasons
         }
 
         @Override
@@ -158,7 +163,7 @@ public class RecomputationActivityHandler
             return objects;
         }
 
-        public ModelExecuteOptions getExecutionOptions() {
+        public @NotNull ModelExecuteOptions getExecutionOptions() {
             return executionOptions;
         }
 

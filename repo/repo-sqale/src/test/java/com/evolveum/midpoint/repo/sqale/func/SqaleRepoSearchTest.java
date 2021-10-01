@@ -50,10 +50,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+@SuppressWarnings("ConstantConditions")
 public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     // org structure
@@ -152,6 +154,20 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         repositoryService.addObject(
                 new ShadowType(prismContext).name("shadow-2").asPrismObject(), null, result);
 
+        // tasks
+        task1Oid = repositoryService.addObject(
+                new TaskType(prismContext).name("task-1")
+                        .executionState(TaskExecutionStateType.RUNNABLE)
+                        .asPrismObject(),
+                null, result);
+        task2Oid = repositoryService.addObject(
+                new TaskType(prismContext).name("task-2")
+                        .executionState(TaskExecutionStateType.CLOSED)
+                        .schedule(new ScheduleType(prismContext)
+                                .recurrence(TaskRecurrenceType.RECURRING))
+                        .asPrismObject(),
+                null, result);
+
         // users
         creatorOid = repositoryService.addObject(
                 new UserType(prismContext).name("creator").asPrismObject(),
@@ -186,6 +202,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType(prismContext)
                         .lifecycleState("assignment1-2")
                         .order(1))
+                .operationExecution(new OperationExecutionType(prismContext)
+                        .taskRef(task2Oid, TaskType.COMPLEX_TYPE)
+                        .status(OperationResultStatusType.FATAL_ERROR)
+                        .timestamp("2021-09-01T00:00:00Z"))
+                .operationExecution(new OperationExecutionType(prismContext)
+                        .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
+                        .status(OperationResultStatusType.SUCCESS)
+                        .timestamp("2021-10-01T00:00:00Z"))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
@@ -227,6 +251,18 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .validTo("2022-07-04T00:00:00Z"))
                 .metadata(new MetadataType(prismContext)
                         .createTimestamp(asXMLGregorianCalendar(2L)))
+                .operationExecution(new OperationExecutionType(prismContext)
+                        .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
+                        .status(OperationResultStatusType.FATAL_ERROR)
+                        .timestamp("2021-11-01T00:00:00Z"))
+                .operationExecution(new OperationExecutionType(prismContext)
+                        .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
+                        .status(OperationResultStatusType.SUCCESS)
+                        .timestamp("2021-12-01T00:00:00Z"))
+                .operationExecution(new OperationExecutionType(prismContext)
+                        .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
+                        .status(OperationResultStatusType.PARTIAL_ERROR)
+                        .timestamp("2022-01-01T00:00:00Z"))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user2Extension = user2.getExtension();
         addExtensionValue(user2Extension, "string", "other-value...");
@@ -261,6 +297,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType(prismContext)
                         .activation(new ActivationType(prismContext)
                                 .validTo("2022-01-01T00:00:00Z")))
+                .operationExecution(new OperationExecutionType(prismContext)
+                        .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
+                        .status(OperationResultStatusType.WARNING)
+                        .timestamp("2021-08-01T00:00:00Z"))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user3Extension = user3.getExtension();
         addExtensionValue(user3Extension, "int", 10);
@@ -284,19 +324,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 null, result);
 
         // other objects
-        task1Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-1")
-                        .executionState(TaskExecutionStateType.RUNNABLE)
-                        .asPrismObject(),
-                null, result);
-        task2Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-2")
-                        .executionState(TaskExecutionStateType.CLOSED)
-                        .schedule(new ScheduleType(prismContext)
-                                .recurrence(TaskRecurrenceType.RECURRING))
-                        .asPrismObject(),
-                null, result);
-
         case1Oid = repositoryService.addObject(
                 new CaseType(prismContext).name("case-1")
                         .state("closed")
@@ -1770,6 +1797,32 @@ AND(
         assertThat(result)
                 .singleElement()
                 .matches(a -> a.getLifecycleState().equals("ls-user3-ass1"));
+    }
+
+    @Test
+    public void test690SearchErrorOperationExecutionForTask() throws SchemaException {
+        SearchResultList<OperationExecutionType> result = searchContainerTest(
+                "with errors related to the task", OperationExecutionType.class,
+                f -> f.item(OperationExecutionType.F_TASK_REF).ref(task1Oid)
+                        .and()
+                        // new repo allows EQ with multiple values meaning IN
+                        .item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR,
+                                OperationResultStatusType.PARTIAL_ERROR, OperationResultStatusType.WARNING)
+                        // this is alternative old style code (still valid, of course)
+                        //.block().item(OperationExecutionType.F_STATUS)
+                        //.eq(OperationResultStatusType.FATAL_ERROR)
+                        //.or().item(OperationExecutionType.F_STATUS)
+                        //.eq(OperationResultStatusType.PARTIAL_ERROR)
+                        //.or().item(OperationExecutionType.F_STATUS)
+                        //.eq(OperationResultStatusType.WARNING)
+                        //.endBlock()
+                        .desc(OperationExecutionType.F_TIMESTAMP));
+
+        assertThat(result).extracting(opex -> MiscUtil.asInstant(opex.getTimestamp()).toString())
+                .containsExactly("2022-01-01T00:00:00Z", "2021-11-01T00:00:00Z", "2021-08-01T00:00:00Z");
+        OperationExecutionType user2NovemberOpex = result.get(0);
+        // TODO
+//        assertThat(user2NovemberOpex.asPrismContainerValue().getParent()).isNotNull(); // we have the owner too
     }
     // endregion
 

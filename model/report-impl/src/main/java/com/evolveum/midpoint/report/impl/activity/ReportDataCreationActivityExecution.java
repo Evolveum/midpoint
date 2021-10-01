@@ -12,21 +12,29 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionTypeType.EXPORT;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.report.impl.controller.*;
 
 import com.evolveum.midpoint.repo.common.task.*;
 
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
@@ -40,6 +48,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 /**
  * Executes parts of distributed report data creation activity:
@@ -123,18 +132,83 @@ public class ReportDataCreationActivityExecution
         stateCheck(searchSpecificationHolder.searchSpecification != null, "No search specification was provided");
         masterSearchSpecification = searchSpecificationHolder.searchSpecification;
 
-        if (AuditEventRecordType.class.equals(masterSearchSpecification.getType())) {
-            initializeAuditReportBucketing(result);
-        }
+//        if (AuditEventRecordType.class.equals(masterSearchSpecification.getType())) {
+        initializeAuditReportBucketing(result);
+//        }
     }
 
     private void initializeAuditReportBucketing(OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        @NotNull XMLGregorianCalendar reportFrom = XmlTypeConverter.createXMLGregorianCalendar("2020-01-01T00:00:00.000+02:00");
-        @NotNull XMLGregorianCalendar reportTo = Objects.requireNonNull(
+        ObjectFilter filter = masterSearchSpecification.getQuery().getFilter();
+        XMLGregorianCalendar reportFrom = null;
+        XMLGregorianCalendar reportTo = null;
+        if (filter != null) {
+            reportTo = getTimestampFromFilter(filter, false);
+            reportFrom = getTimestampFromFilter(filter, true);
+        }
+
+        XMLGregorianCalendar reportToRealizedTime = Objects.requireNonNull(
                 activityState.getRealizationStartTimestamp(),
                 "no realization start timestamp for " + this);
-        auditReportSegmentation = new AuditReportSegmentation(reportFrom, reportTo);
+
+        ObjectQuery query = PrismContext.get().queryFor(AuditEventRecordType.class).build();
+        query.setPaging(PrismContext.get().queryFactory().createPaging(0, 1));
+        @NotNull SearchResultList<AuditEventRecordType> firstAudit = reportService.getAuditService().searchObjects(query, null, result);
+        XMLGregorianCalendar reportFromFirstAuditRecords;
+        if (firstAudit.size() == 1) {
+            reportFromFirstAuditRecords = firstAudit.iterator().next().getTimestamp();
+        } else {
+            LOGGER.debug("Couldn't find fist audit record in repository.");
+            return;
+        }
+        int compareOfFirstWithLastDate =
+                reportFromFirstAuditRecords.toGregorianCalendar().compareTo(reportToRealizedTime.toGregorianCalendar());
+        if ((compareOfFirstWithLastDate >= 0)
+                || (reportFrom != null && reportTo != null
+                && reportFrom.toGregorianCalendar().compareTo(reportTo.toGregorianCalendar()) == 0)) {
+            LOGGER.debug("Couldn't report any audit records.");
+            return;
+        }
+
+        auditReportSegmentation = new AuditReportSegmentation(
+                reportFrom, reportTo, reportToRealizedTime, reportFromFirstAuditRecords);
+    }
+
+    private static XMLGregorianCalendar getTimestampFromFilter(ObjectFilter filter, boolean greaterOrLess) throws SchemaException {
+        Collection<PrismValue> values = getTimestampsFromFilter(filter, greaterOrLess);
+        if (values == null || values.size() == 0) {
+            return null;
+        } else if (values.size() > 1) {
+            throw new SchemaException("More than one " + AuditEventRecordType.F_TIMESTAMP + " defined in the search query.");
+        } else {
+            return values.iterator().next().getRealValue();
+        }
+    }
+
+    private static <T extends PrismValue> Collection<T> getTimestampsFromFilter(ObjectFilter filter, boolean greaterOrLess) {
+        if (greaterOrLess && filter instanceof GreaterFilter
+                && AuditEventRecordType.F_TIMESTAMP.equivalent(((GreaterFilter) filter).getFullPath())) {
+            return ((GreaterFilter) filter).getValues();
+        } else if (!greaterOrLess && filter instanceof LessFilter
+                && AuditEventRecordType.F_TIMESTAMP.equivalent(((LessFilter) filter).getFullPath())) {
+            return ((LessFilter) filter).getValues();
+        } else if (filter instanceof AndFilter || filter instanceof OrFilter) {
+            return getTimestampsFromFilter(((NaryLogicalFilter) filter).getConditions(), greaterOrLess);
+        } else if (filter instanceof TypeFilter) {
+            return getTimestampsFromFilter(((TypeFilter) filter).getFilter(), greaterOrLess);
+        } else {
+            return null;
+        }
+    }
+
+    private static <T extends PrismValue> Collection<T> getTimestampsFromFilter(List<? extends ObjectFilter> conditions, boolean greaterOrLess) {
+        for (ObjectFilter f : conditions) {
+            Collection<T> values = getTimestampsFromFilter(f, greaterOrLess);
+            if (values != null) {
+                return values;
+            }
+        }
+        return null;
     }
 
     /**
