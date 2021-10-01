@@ -137,6 +137,11 @@ public class ReportDataCreationActivityExecution
 //        }
     }
 
+    @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return support.getReportRef();
+    }
+
     private void initializeAuditReportBucketing(OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         ObjectFilter filter = masterSearchSpecification.getQuery().getFilter();

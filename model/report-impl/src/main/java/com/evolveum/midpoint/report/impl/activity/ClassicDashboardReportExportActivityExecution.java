@@ -112,6 +112,11 @@ public class ClassicDashboardReportExportActivityExecution
     }
 
     @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return support.getReportRef();
+    }
+
+    @Override
     public Integer determineOverallSize(OperationResult result) throws CommonException {
         int expectedTotal = support.getDashboard().getWidget().size();
         for (DashboardWidgetHolder holder : mapOfWidgetsController.values()) {

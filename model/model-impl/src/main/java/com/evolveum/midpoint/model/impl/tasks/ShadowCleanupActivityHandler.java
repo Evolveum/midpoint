@@ -138,6 +138,11 @@ public class ShadowCleanupActivityHandler
         }
 
         @Override
+        protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+            return resourceObjectClassSpecification.getResourceRef();
+        }
+
+        @Override
         public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
 
             Duration notUpdatedDuration = getWorkDefinition().getInterval();

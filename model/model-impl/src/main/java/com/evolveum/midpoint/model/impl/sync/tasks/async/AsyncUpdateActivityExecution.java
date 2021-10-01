@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -25,10 +27,6 @@ import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemCountingOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 public class AsyncUpdateActivityExecution
         extends PlainIterativeActivityExecution
@@ -63,6 +61,11 @@ public class AsyncUpdateActivityExecution
                 .createObjectClassSpec(resourceObjectSet, runningTask, result);
 
         objectClassSpecification.checkNotInMaintenance();
+    }
+
+    @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return objectClassSpecification.getResourceRef();
     }
 
     @Override

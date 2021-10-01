@@ -275,6 +275,10 @@ public class ObjectTypeUtil {
         return createObjectRefWithFullObject(objectType.asPrismObject(), prismContext);
     }
 
+    public static ObjectReferenceType createObjectRef(ObjectType object) {
+        return createObjectRef(object, PrismContext.get());
+    }
+
     public static ObjectReferenceType createObjectRef(ObjectType object, PrismContext prismContext) {
         if (object == null) {
             return null;
@@ -309,6 +313,10 @@ public class ObjectTypeUtil {
             return null;
         }
         return createObjectRef(objectType.asPrismObject(), relation);
+    }
+
+    public static ObjectReferenceType createObjectRef(PrismObject<?> object) {
+        return createObjectRef(object, PrismContext.get());
     }
 
     public static ObjectReferenceType createObjectRef(PrismObject<?> object, PrismContext prismContext) {

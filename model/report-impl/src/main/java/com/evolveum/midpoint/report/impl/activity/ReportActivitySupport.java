@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -17,12 +16,14 @@ import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExec
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -84,6 +85,13 @@ class ReportActivitySupport {
      */
     public @NotNull ReportType getReport() {
         return requireNonNull(report);
+    }
+
+    /**
+     * Should be called only after initialization.
+     */
+    public @NotNull ObjectReferenceType getReportRef() {
+        return ObjectTypeUtil.createObjectRef(getReport());
     }
 
     public ReportParameterType getReportParameters() {
