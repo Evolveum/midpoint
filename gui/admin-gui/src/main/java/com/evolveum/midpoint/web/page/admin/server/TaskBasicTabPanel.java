@@ -101,7 +101,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                         }
                     }
 
-                } catch (SchemaException e) {
+                } catch (SchemaException | IllegalArgumentException e) {
                     LOGGER.error("Unexpected problem occurs during updating wrapper. Reason: {}", e.getMessage(), e);
                 }
 
