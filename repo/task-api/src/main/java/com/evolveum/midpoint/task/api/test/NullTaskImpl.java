@@ -614,7 +614,7 @@ public class NullTaskImpl implements Task {
         return null;
     }
 
-    @Override public void modify(ItemDelta<?, ?> delta) {
+    @Override public void modify(@NotNull ItemDelta<?, ?> delta) {
     }
 
     public void modifyAndFlush(ItemDelta<?, ?> delta, OperationResult result) {
