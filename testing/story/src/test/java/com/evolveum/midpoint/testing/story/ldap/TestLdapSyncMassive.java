@@ -237,7 +237,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
     private String goblinUsername(int i) {
         return String.format("goblin%05d", i);
     }
-    
+
     // this runs for ~20+ minutes
     @Test
     public void test230UserRecomputeSequential() throws Exception {

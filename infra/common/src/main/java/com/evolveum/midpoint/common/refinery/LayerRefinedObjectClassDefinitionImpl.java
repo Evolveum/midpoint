@@ -354,12 +354,6 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     }
 
     @Override
-    @Deprecated // Remove in 4.4
-    public ObjectReferenceType getPasswordPolicy() {
-        return refinedObjectClassDefinition.getPasswordPolicy();
-    }
-
-    @Override
     public ObjectReferenceType getSecurityPolicyRef() {
         return refinedObjectClassDefinition.getSecurityPolicyRef();
     }

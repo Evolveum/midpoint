@@ -5897,23 +5897,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Reference to the account type password policy settings.
-                        </p>
-                        <p>
-                            DEPRECATED: use securityPolicyRef in objectType element instead.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="caching" type="tns:CachingPolicyType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
