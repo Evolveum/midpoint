@@ -55,9 +55,6 @@ public class ItemLimitationsChecker {
     private <O extends ObjectType> void checkItemLimitations(PrismObject<O> object, ItemPath path, PropertyLimitationsType limitation)
             throws SchemaException {
         Object item = object.find(path);
-        if (isTrue(limitation.isIgnore())) {
-            return;
-        }
         int count = getValueCount(item);
         Integer min = DefinitionUtil.parseMultiplicity(limitation.getMinOccurs());
         if (min != null && min > 0 && count < min) {

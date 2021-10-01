@@ -5529,6 +5529,13 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:ignore</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="layer" type="tns:LayerType" minOccurs="0" maxOccurs="unbounded">
@@ -5551,17 +5558,6 @@
                     <xsd:documentation>
                         Override of schema maxOccurs specification.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:ignore" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED. Use "processing" element instead.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="processing" type="tns:ItemProcessingType" minOccurs="0" default="auto">
