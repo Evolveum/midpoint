@@ -13,18 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.application.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -65,22 +53,28 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -485,10 +479,8 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     return new WebMarkupContainer(componentId);
                 }
                 List<PrismValueWrapper<PendingOperationType>> values = object.getValues();
-                List<PendingOperationType> pendingOperations = new ArrayList<>();
-                values.forEach(value -> pendingOperations.add(value.getRealValue()));
-                return new PendingOperationPanel(componentId,
-                        (IModel<List<PendingOperationType>>) () -> pendingOperations);
+                List<PendingOperationType> pendingOperations = values.stream().map(operation -> operation.getRealValue()).collect(Collectors.toList());
+                return new PendingOperationPanel(componentId, Model.ofList(pendingOperations));
             }
         });
 
@@ -957,7 +949,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
     private Collection<SelectorOptions<GetOperationOptions>> createLoadOptionForShadowWrapper() {
         return getPageBase().getOperationOptionsBuilder()
-                .item(ShadowType.F_RESOURCE_REF).resolve().readOnly()
+                .resolveNames()
                 .build();
     }
 

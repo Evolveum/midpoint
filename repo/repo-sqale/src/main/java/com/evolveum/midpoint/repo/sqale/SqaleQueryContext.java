@@ -33,7 +33,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
+    /**
+     * Flag guarding whether we need to refresh organization closure before executing
+     * the actual query.
+     */
     private boolean containsOrgFilter = false;
+
+    /**
+     * Enables {@link #loadObject} method that is used to fetch additional objects,
+     * e.g. container owners (parents) or references targets.
+     */
     private final SqaleObjectLoader objectLoader;
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(

@@ -70,22 +70,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * {@link ConditionalOnExpression} class annotation activates this configuration only if midpoint
  * {@code config.xml} specifies the repository factory class from SQL package.
  *
- * To choose this "new SQL" repository set {@code repositoryServiceFactoryClass} to a value starting
- * with (or equal to) {@code com.evolveum.midpoint.repo.sqale.} (including the dot at the end).
- * Alternatively simple {@code sqale} or {@code scale} will work too.
+ * To choose this "new SQL" repository set `type` element under `repository` to contain either
+ * `sqale`, `scale` or `native` (name used in docs).
  * All values are case-insensitive.
- *
- * Any of the values also work with alternative key element {@code type}.
- * The shortest form then looks like {@code <type>sqale</type>}.
  */
 @Configuration
-@ConditionalOnExpression("#{midpointConfiguration.keyMatches("
-        + "'midpoint.repository.repositoryServiceFactoryClass',"
-        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sqale\\..*', '(?i)s[qc]ale')"
-        + "|| midpointConfiguration.keyMatches("
-        + "'midpoint.repository.type',"
-        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sqale\\..*', '(?i)s[qc]ale')"
-        + "}")
+@ConditionalOnExpression(
+        "#{midpointConfiguration.keyMatches('midpoint.repository.type', '(?i)s[qc]ale|native')}")
 @ComponentScan
 public class SqaleRepositoryBeanConfig {
 

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.security;
 import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 import static com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration.AUTH_CONFIGURATION_ALL;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.application.AuthorizationActionValue;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
@@ -191,7 +192,21 @@ public enum PageUrlMapping {
                     "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
     REST3("/api/**",
             new AuthorizationActionValue(AUTZ_REST_ALL_URL,
-                    "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description"));
+                    "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
+
+
+    INSPECTOR("/inspector/**",
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "WicketDebugInfo.authUri.guiAll.label", "WicketDebugInfo.authUri.guiAll.description")),
+    LIVE_SESSION("/liveSession/**",
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "WicketDebugInfo.authUri.guiAll.label", "WicketDebugInfo.authUri.guiAll.description")),
+    PAGE_STORE("/pageStore/**",
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "WicketDebugInfo.authUri.guiAll.label", "WicketDebugInfo.authUri.guiAll.description")),
+    WICKET_PAGE("/wicket/**",
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "WicketDebugInfo.authUri.guiAll.label", "WicketDebugInfo.authUri.guiAll.description"));
 
     private final String url;
 
