@@ -132,9 +132,9 @@ public class ReportDataCreationActivityExecution
         stateCheck(searchSpecificationHolder.searchSpecification != null, "No search specification was provided");
         masterSearchSpecification = searchSpecificationHolder.searchSpecification;
 
-//        if (AuditEventRecordType.class.equals(masterSearchSpecification.getType())) {
-        initializeAuditReportBucketing(result);
-//        }
+        if (AuditEventRecordType.class.equals(masterSearchSpecification.getType())) {
+            initializeAuditReportBucketing(result);
+        }
     }
 
     @Override
