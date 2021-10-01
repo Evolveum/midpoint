@@ -243,6 +243,11 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
+    public @NotNull String getRepositoryType() {
+        return repositoryService.getRepositoryType();
+    }
+
+    @Override
     public void repositorySelfTest(OperationResult parentResult) {
         Long startTime = repoOpStart();
         try {

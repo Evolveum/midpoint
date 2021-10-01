@@ -287,6 +287,11 @@ public class MockFactory {
             }
 
             @Override
+            public @NotNull String getRepositoryType() {
+                return "mock";
+            }
+
+            @Override
             public void repositorySelfTest(OperationResult parentResult) {
 
             }
