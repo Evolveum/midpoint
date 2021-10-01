@@ -143,7 +143,7 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
         List<String> rows = basicCheckOutputFile(report, -1, 8, null);
-        assertTrue("Unexpected number of rows in report. Expected:1200-1215, Actual:" + rows.size(), rows.size() > 1200 && rows.size() <= 1215);
+        assertTrue("Unexpected number of rows in report. Expected:1200-1250, Actual:" + rows.size(), rows.size() > 1200 && rows.size() <= 1250);
     }
 
     private void checkSqaleRepo() {
