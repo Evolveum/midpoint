@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,18 +14,11 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
-import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
-
-import com.evolveum.midpoint.web.application.SimpleCounter;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.*;
-import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -52,13 +45,13 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
+import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
@@ -75,6 +68,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
@@ -91,14 +85,16 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.common.activity.CounterManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.activity.CounterManager;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -123,6 +119,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
+import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -130,14 +127,17 @@ import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.menu.*;
+import com.evolveum.midpoint.web.component.menu.BaseMenuItem;
+import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
+import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.self.*;
+import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
+import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
@@ -340,7 +340,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void createBreadcrumb() {
-        BreadcrumbPageClass bc = new BreadcrumbPageClass(new IModel<String>() {
+        BreadcrumbPageClass bc = new BreadcrumbPageClass(new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -353,7 +353,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void createInstanceBreadcrumb() {
-        BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new IModel<String>() {
+        BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -688,7 +688,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
         pageTitleContainer.add(pageTitle);
 
-        IModel<String> deploymentNameModel = new IModel<String>() {
+        IModel<String> deploymentNameModel = new IModel<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -712,7 +712,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 
-        IModel<List<Breadcrumb>> breadcrumbsModel = new IModel<List<Breadcrumb>>() {
+        IModel<List<Breadcrumb>> breadcrumbsModel = new IModel<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -722,7 +722,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        ListView<Breadcrumb> breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB, breadcrumbsModel) {
+        ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, breadcrumbsModel) {
 
             private static final long serialVersionUID = 1L;
 
@@ -730,7 +730,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             protected void populateItem(ListItem<Breadcrumb> item) {
                 final Breadcrumb dto = item.getModelObject();
 
-                AjaxLink<String> bcLink = new AjaxLink<String>(ID_BC_LINK) {
+                AjaxLink<String> bcLink = new AjaxLink<>(ID_BC_LINK) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -785,7 +785,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                navigateToNext(new PageAssignmentsList(true));
+                navigateToNext(new PageAssignmentsList<>(true));
             }
         };
         cartButton.setOutputMarkupId(true);
@@ -835,7 +835,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         mainHeader.setOutputMarkupId(true);
         add(mainHeader);
 
-        AjaxLink<String> logo = new AjaxLink<String>(ID_LOGO) {
+        AjaxLink<String> logo = new AjaxLink<>(ID_LOGO) {
 
             private static final long serialVersionUID = 1L;
 
@@ -861,7 +861,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         });
         mainHeader.add(logo);
 
-        AjaxLink<String> customLogo = new AjaxLink<String>(ID_CUSTOM_LOGO) {
+        AjaxLink<String> customLogo = new AjaxLink<>(ID_CUSTOM_LOGO) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -886,7 +886,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         navigation.setOutputMarkupId(true);
         mainHeader.add(navigation);
 
-        IModel<IconType> logoModel = new IModel<IconType>() {
+        IModel<IconType> logoModel = new IModel<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -1143,7 +1143,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected IModel<String> createPageTitleModel() {
-        return (IModel<String>) () -> {
+        return () -> {
             BaseMenuItem activeMenu = getActiveMenu();
             String pageTitleKey = null;
             if (activeMenu != null) {
@@ -1194,7 +1194,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public IModel<String> getPageTitleModel() {
-        return (IModel) get(ID_TITLE).getDefaultModel();
+        return (IModel<String>) get(ID_TITLE).getDefaultModel();
     }
 
     public String getString(String resourceKey, Object... objects) {
@@ -1848,7 +1848,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <C extends Containerable> Panel initContainerValuePanel(String id, IModel<PrismContainerValueWrapper<C>> model,
             ItemPanelSettings settings) {
         //TODO find from registry first
-        return new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>(id, model, settings) {
+        return new PrismContainerValuePanel<>(id, model, settings) {
             @Override
             protected boolean isRemoveButtonVisible() {
                 return false;
@@ -1874,5 +1874,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public SimpleCounter getCounterProvider(String identifier) {
         return guiConfigurationRegistry.findCounter(identifier);
+    }
+
+    public boolean isNewRepo() {
+        return getRepositoryService().getRepositoryType().equals("Native");
     }
 }
