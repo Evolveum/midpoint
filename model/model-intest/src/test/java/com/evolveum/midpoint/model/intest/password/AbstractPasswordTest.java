@@ -501,10 +501,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         then();
         assertTask(TASK_CHANGE_JACK_ACCOUNT_PASSWORD.oid, "after")
                 .assertClosed()
-                .assertSuccess()
-                .rootActivityState()
-                    .progress()
-                        .assertSuccessCount(0, 1);
+                .assertSuccess();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
