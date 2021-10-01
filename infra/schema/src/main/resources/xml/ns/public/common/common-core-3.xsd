@@ -21138,18 +21138,6 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="reportOutput" type="tns:ReportDataType" substitutionGroup="c:object">
-        <xsd:annotation>
-            <xsd:documentation>
-                DEPRECATED. Used only for compatibility back when there was an ReportOutputType.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:deprecated>true</a:deprecated>
-                <a:plannedRemoval>4.4</a:plannedRemoval>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
-
     <xsd:element name="reportData" type="tns:ReportDataType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="SequenceType">
