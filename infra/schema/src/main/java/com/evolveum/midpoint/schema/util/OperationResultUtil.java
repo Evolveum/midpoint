@@ -27,7 +27,6 @@ public class OperationResultUtil {
         clone.setOperationKind(result.getOperationKind());
         clone.setStatus(result.getStatus());
         clone.setImportance(result.getImportance());
-        clone.setMinor(result.isMinor());
         clone.setAsynchronousOperationReference(result.getAsynchronousOperationReference());
         clone.setStart(CloneUtil.clone(result.getStart()));
         clone.setEnd(CloneUtil.clone(result.getEnd()));

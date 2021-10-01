@@ -13615,6 +13615,13 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:minor</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="operation" type="xsd:string" minOccurs="0"/>
@@ -13651,15 +13658,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="minor" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.0</a:deprecatedSince>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
