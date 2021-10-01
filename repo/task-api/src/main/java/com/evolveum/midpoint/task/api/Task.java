@@ -807,7 +807,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /**
      * Changes in-memory representation immediately and schedules a corresponding batched modification.
      */
-    void modify(ItemDelta<?, ?> delta) throws SchemaException;
+    void modify(@NotNull ItemDelta<?, ?> delta) throws SchemaException;
 
     /**
      * Applies given collection of deltas.
