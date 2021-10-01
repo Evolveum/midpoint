@@ -97,10 +97,15 @@ class AuditReportSegmentation {
             }
         }
 
+
+        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX REPORT_FROM: " + reportFrom + " ||||| REPORT_TO : " + reportTo + " XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX REPORT_FROM_FIRST_RECORD: " + reportFromFirstAuditRecord + " ||||| REPORT_TO_REALIZED_TIME : " + reportToRealizedTime + " XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        System.out.println("_______________________________________________________________________________");
         int result =
                 reportFrom.toGregorianCalendar().compareTo(reportTo.toGregorianCalendar());
 
         if (result < 0) {
+            //timeFrom is less as timeTo
             long reportFromMillis = XmlTypeConverter.toMillis(reportFrom);
             long reportToMillis = XmlTypeConverter.toMillis(reportTo);
             long step = (reportToMillis - reportFromMillis) / segmentation.getNumberOfBuckets();
@@ -121,21 +126,23 @@ class AuditReportSegmentation {
                         createBucketContent(reportFromMillis + segmentation.getNumberOfBuckets() * step, step, reportToMillis));
             }
         } else {
+            //timeTo is greater as timeFrom
             long reportFromMillis = XmlTypeConverter.toMillis(reportFrom);
             long reportToMillis = XmlTypeConverter.toMillis(reportTo);
             long reportFromMillisFirstRecord = XmlTypeConverter.toMillis(reportFromFirstAuditRecord);
             long reportToMillisRealizedTime = XmlTypeConverter.toMillis(reportToRealizedTime);
             long step = ((reportToMillis - reportFromMillisFirstRecord) + (reportToMillisRealizedTime - reportFromMillis))
                     / segmentation.getNumberOfBuckets();
-
             explicitSegmentation = new ExplicitWorkSegmentationType(PrismContext.get());
+
             long bucketFromMillis = reportFromMillisFirstRecord;
-            while (bucketFromMillis + step < reportToMillis) {
+            //segmentations for one part to timeTo
+            while (bucketFromMillis + (2 * step) < reportToMillis) {
                 explicitSegmentation.getContent().add(
                         createBucketContent(bucketFromMillis, step, reportToMillis));
                 bucketFromMillis += step;
             }
-            if ((bucketFromMillis + step / 2) < reportToMillis) {
+            if ((bucketFromMillis + step + (step / 2)) > reportToMillis) {
                 explicitSegmentation.getContent().add(
                         createBucketContent(bucketFromMillis, step * 2, reportToMillis));
                 bucketFromMillis = reportFromMillis;
@@ -145,15 +152,14 @@ class AuditReportSegmentation {
                 bucketFromMillis = bucketFromMillis + step;
                 explicitSegmentation.getContent().add(
                         createBucketContent(bucketFromMillis, step, reportToMillis));
-                long firstStep = bucketFromMillis + step - reportToMillis + step;
+                long firstStep = (reportToMillis - bucketFromMillis + step) + step;
                 explicitSegmentation.getContent().add(
                         createBucketContent(reportFromMillis, firstStep, reportToMillisRealizedTime));
                 bucketFromMillis = reportFromMillis + firstStep;
             }
-
-            while (bucketFromMillis + step < reportToMillis) {
+            while (bucketFromMillis < reportToMillisRealizedTime) {
                 explicitSegmentation.getContent().add(
-                        createBucketContent(bucketFromMillis, step, reportToMillis));
+                        createBucketContent(bucketFromMillis, step, reportToMillisRealizedTime));
                 bucketFromMillis += step;
             }
         }
@@ -175,6 +181,7 @@ class AuditReportSegmentation {
             bucketTo = XmlTypeConverter.createXMLGregorianCalendar(reportToMillis);
         }
 
+        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX FROM: " + bucketFrom + " ||||| TO : " + bucketTo + " XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
         ObjectFilter filter = PrismContext.get().queryFor(AuditEventRecordType.class)
                     .item(AuditEventRecordType.F_TIMESTAMP).ge(bucketFrom) // inclusive
                     .and().item(AuditEventRecordType.F_TIMESTAMP).le(bucketTo) // exclusive
