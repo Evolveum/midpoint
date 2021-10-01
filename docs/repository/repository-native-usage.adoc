@@ -130,8 +130,7 @@ using `jdbcUrl` and other options inside `taskManager` section (see the link abo
 
 Let's simplify things and assume that we need the tables, and the same database is used.
 Connect to the `midpoint` database with `midpoint` user and execute the commands stored in
-`repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql`
-from the midPoint sources.
+`doc/config/sql/native-new/postgres-new-quartz.sql` in the distribution package.
 
 The following commands can be used in the bash on the database VM:
 
