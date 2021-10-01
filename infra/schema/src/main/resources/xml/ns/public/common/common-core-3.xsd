@@ -15387,6 +15387,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaMigration>
+                    <a:element>tns:subresultStripThreshold</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -15419,27 +15424,6 @@
                     <xsd:appinfo>
                         <a:since>3.8</a:since>
                         <a:displayName>InternalsConfigurationType.polyStringNormalizer</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="subresultStripThreshold" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When aggregation of the same subresults (same operation and status) is to be applied,
-                        during operation result "summarize" operation.
-                        (Default: 10.)
-
-                        TEMPORARY/EXPERIMENTAL. We plan to provide more elaborate operation result aggregation strategies.
-                        This is just a quick way how to reduce large operation results for some deployments.
-
-                        DEPRECATED. Use operationResultHandlingStrategy instead.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:experimental>true</a:experimental>
-                        <a:displayName>InternalsConfigurationType.subresultStripThreshold</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.0</a:deprecatedSince>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
