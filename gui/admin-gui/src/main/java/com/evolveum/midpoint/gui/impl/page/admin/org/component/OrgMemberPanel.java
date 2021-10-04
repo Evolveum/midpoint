@@ -131,6 +131,11 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
+    protected boolean reloadPageOnRefresh() {
+        return true;
+    }
+
+    @Override
     protected String getStorageKeyTabSuffix() {
         if (getPanelConfiguration() == null) {
             return "orgTreeMembers";

@@ -16,7 +16,6 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.activity.state.OtherActivityState;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.task.reports.ConnIdOperationsReport;
@@ -192,7 +191,10 @@ public abstract class IterativeActivityExecution<
             transientExecutionStatistics.recordExecutionStart();
 
             beforeExecution(result);
+            setTaskObjectRef(result); // requires custom initialization of the execution
+
             doExecute(result);
+
             afterExecution(result);
 
             ActivityExecutionResult executionResult = createExecutionResult();

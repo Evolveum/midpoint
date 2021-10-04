@@ -11,6 +11,9 @@ import static java.util.Objects.requireNonNull;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,6 +67,10 @@ public class ResourceObjectClassSpecification implements DebugDumpable {
 
     public @NotNull ResourceType getResource() {
         return resource;
+    }
+
+    public @NotNull ObjectReferenceType getResourceRef() {
+        return ObjectTypeUtil.createObjectRef(resource);
     }
 
     public @NotNull RefinedResourceSchema getRefinedResourceSchema() {

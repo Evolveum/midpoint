@@ -99,13 +99,13 @@ public class QLookupTableMapping
     }
 
     @Override
-    public LookupTableType toSchemaObject(Tuple row, QLookupTable entityPath,
+    public LookupTableType toSchemaObject(Tuple rowTuple, QLookupTable entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession session, boolean forceFull) throws SchemaException {
-        LookupTableType base = super.toSchemaObject(row, entityPath, options, session, forceFull);
+        LookupTableType base = super.toSchemaObject(rowTuple, entityPath, options, session, forceFull);
 
         if (forceFull || SelectorOptions.hasToLoadPath(F_ROW, options)) {
             @Nullable GetOperationOptions rowOptions = findLookupTableGetOption(options);
-            appendLookupTableRows(row.get(0, UUID.class), base, rowOptions, session);
+            appendLookupTableRows(rowTuple.get(0, UUID.class), base, rowOptions, session);
         }
 
         return base;

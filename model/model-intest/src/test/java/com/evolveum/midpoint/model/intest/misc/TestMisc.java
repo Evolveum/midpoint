@@ -95,7 +95,7 @@ public class TestMisc extends AbstractMiscTest {
         displayValue("Diag", diag);
         assertSuccess(result);
 
-        assertThat(diag.getImplementationShortName()).isIn("SQL", "SQaLe");
+        assertThat(diag.getImplementationShortName()).isIn("SQL", "Native");
         assertNotNull("Missing implementationDescription", diag.getImplementationDescription());
     }
 

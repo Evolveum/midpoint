@@ -96,6 +96,7 @@ public class GuiDisplayTypeUtil {
         }
 
         String typeTitle = "";
+        String typeValue = "";
         if (CollectionUtils.isNotEmpty(assignmentTargetRelation.getArchetypeRefs())) {
             OperationResult result = new OperationResult(pageBase.getClass().getSimpleName() + "." + "loadArchetypeObject");
             try {
@@ -108,6 +109,7 @@ public class GuiDisplayTypeUtil {
                             archetypeDisplayType.getLabel().getOrig() :
                             (archetype.getName() != null && StringUtils.isNotEmpty(archetype.getName().getOrig()) ?
                                     archetype.getName().getOrig() : null);
+                    typeValue = archetypeTooltip;
                     typeTitle = StringUtils.isNotEmpty(archetypeTooltip) ?
                             pageBase.createStringResource("abstractRoleMemberPanel.withType", archetypeTooltip).getString() : "";
                 }
@@ -117,7 +119,8 @@ public class GuiDisplayTypeUtil {
         } else if (CollectionUtils.isNotEmpty(assignmentTargetRelation.getObjectTypes())) {
             QName type = !CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) ?
                     assignmentTargetRelation.getObjectTypes().get(0) : null;
-            String typeName = type != null ? pageBase.createStringResource("ObjectTypeLowercase." + type.getLocalPart()).getString() : null;
+            String typeName = type != null ? pageBase.createStringResource("ObjectType." + type.getLocalPart()).getString() : null;
+            typeValue = typeName;
             typeTitle = StringUtils.isNotEmpty(typeName) ?
                     pageBase.createStringResource("abstractRoleMemberPanel.withType", typeName).getString() : "";
         }
@@ -140,10 +143,9 @@ public class GuiDisplayTypeUtil {
                         displayType.getIcon().setCssClass(def.getDisplay().getIcon().getCssClass());
                         displayType.getIcon().setColor(def.getDisplay().getIcon().getColor());
                     }
-                    displayType.setLabel(def.getDisplay().getLabel());
                 }
-                if (displayType.getLabel() != null) {
-                    relationValue = WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
+                if (def.getDisplay().getLabel() != null) {
+                    relationValue = WebComponentUtil.getTranslatedPolyString(def.getDisplay().getLabel());
                 } else {
                     String relationKey = "RelationTypes." + RelationTypes.getRelationTypeByRelationValue(relation);
                     relationValue = pageBase.createStringResource(relationKey).getString();
@@ -151,6 +153,7 @@ public class GuiDisplayTypeUtil {
                         relationValue = relation.getLocalPart();
                     }
                 }
+                displayType.setLabel(new PolyStringType(typeValue + " " + relationValue));
 
                 relationTitle = pageBase.createStringResource("abstractRoleMemberPanel.withRelation", relationValue).getString();
 

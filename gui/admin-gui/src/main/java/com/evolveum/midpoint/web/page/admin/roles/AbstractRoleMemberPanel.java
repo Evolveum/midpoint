@@ -15,6 +15,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -225,7 +226,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         && getSearchModel().getObject().isTypeChanged()) {
                     clearCache();
                 }
-                super.refreshTable(target);
+                if (reloadPageOnRefresh()) {
+                    throw new RestartResponseException(getPage().getClass());
+                } else {
+                    super.refreshTable(target);
+                }
             }
 
             @Override
@@ -251,6 +256,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
+    }
+
+    protected boolean reloadPageOnRefresh() {
+        return false;
     }
 
     private  <AH extends AssignmentHolderType> IColumn<SelectableBean<AH>, String> createRelationColumn() {
@@ -960,6 +969,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             return;
         }
         MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
+//        TabbedPanel treeTablePanel = AbstractRoleMemberPanel.this.findParent(TabbedPanel.class);
+//        target.add(treeTablePanel);
+//        treeTablePanel.setSelectedTreeItem(null);
+//        treeTablePanel.getTreePanel().getOrgTreeStateStorage().setSelectedTabId(-1);
+//        throw new RestartResponseException(getPage().getClass());
     }
 
     protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {

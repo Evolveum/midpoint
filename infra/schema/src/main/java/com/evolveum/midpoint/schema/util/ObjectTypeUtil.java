@@ -1,11 +1,25 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.schema.util;
+
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+
+import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -29,19 +43,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * Methods that would belong to the ObjectType class but cannot go there because
@@ -94,12 +95,11 @@ public class ObjectTypeUtil {
             return null;
         }
         Collection<Referencable> refs = new ArrayList<>(property.getValues().size());
-        for (PrismReferenceValue refVal : property.getValues()){
+        for (PrismReferenceValue refVal : property.getValues()) {
             refs.add(refVal.asReferencable());
         }
         return refs;
     }
-
 
     public static ObjectReferenceType findRef(String oid, List<ObjectReferenceType> refs) {
         for (ObjectReferenceType ref : refs) {
@@ -151,7 +151,6 @@ public class ObjectTypeUtil {
         sb.append(")");
         return sb.toString();
     }
-
 
     public static String dump(ObjectType object) {
         if (object == null) {
@@ -276,6 +275,10 @@ public class ObjectTypeUtil {
         return createObjectRefWithFullObject(objectType.asPrismObject(), prismContext);
     }
 
+    public static ObjectReferenceType createObjectRef(ObjectType object) {
+        return createObjectRef(object, PrismContext.get());
+    }
+
     public static ObjectReferenceType createObjectRef(ObjectType object, PrismContext prismContext) {
         if (object == null) {
             return null;
@@ -310,6 +313,10 @@ public class ObjectTypeUtil {
             return null;
         }
         return createObjectRef(objectType.asPrismObject(), relation);
+    }
+
+    public static ObjectReferenceType createObjectRef(PrismObject<?> object) {
+        return createObjectRef(object, PrismContext.get());
     }
 
     public static ObjectReferenceType createObjectRef(PrismObject<?> object, PrismContext prismContext) {
@@ -355,7 +362,7 @@ public class ObjectTypeUtil {
         }
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(object.getOid());
-        if (nameAsDescription){
+        if (nameAsDescription) {
             ref.setDescription(object.getBusinessDisplayName());
         }
         PrismObjectDefinition<T> definition = object.getDefinition();
@@ -419,7 +426,7 @@ public class ObjectTypeUtil {
     }
 
     public static ObjectReferenceType createObjectRef(String oid, ObjectTypes type) {
-       return createObjectRef(oid, null, type);
+        return createObjectRef(oid, null, type);
     }
 
     public static ObjectReferenceType createObjectRef(String oid, PolyStringType name, ObjectTypes type) {
@@ -433,7 +440,6 @@ public class ObjectTypeUtil {
 
         return reference;
     }
-
 
     /**
      * Returns the &lt;xsd:schema&gt; element from the XmlSchemaType.
@@ -488,11 +494,29 @@ public class ObjectTypeUtil {
     public static void assertConcreteType(Class<? extends Objectable> type) {
         // The abstract object types are enumerated here. It should be switched to some flag later on
         if (type.equals(ObjectType.class)) {
-            throw new IllegalArgumentException("The type "+type.getName()+" is abstract");
+            throw new IllegalArgumentException("The type " + type.getName() + " is abstract");
         }
     }
 
-    public static PrismObject getParentObject(Containerable containerable) {
+    /**
+     * Returns parent object, potentially traversing multiple parent links to get there.
+     */
+    @Nullable
+    public static <O extends Objectable> O getParentObject(@NotNull Containerable containerable) {
+        PrismObject<?> object = PrismValueUtil.getParentObject(containerable.asPrismContainerValue());
+        //noinspection unchecked
+        return object != null ? (O) object.asObjectable() : null;
+    }
+
+    /*
+    TODO: This one is funny, it takes non-prism in and returns prism.
+     It has a single caller, which uses the returned object as prism, but still...
+     Only benefit of this method is better information, but try to use @Nullable getParentObject
+     and check the return value if non-null is critical.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Deprecated
+    public static <O extends Objectable> PrismObject<O> getParentObjectOld(Containerable containerable) {
         if (containerable == null) {
             return null;
         }
@@ -588,8 +612,7 @@ public class ObjectTypeUtil {
 
     // Hack: because DeltaBuilder cannot provide ObjectDelta<? extends ObjectType> (it is from schema)
     public static Collection<ObjectDelta<? extends ObjectType>> cast(Collection<ObjectDelta<?>> deltas) {
-        @SuppressWarnings("unchecked")
-        final Collection<ObjectDelta<? extends ObjectType>> deltas1 = (Collection) deltas;
+        @SuppressWarnings("unchecked") final Collection<ObjectDelta<? extends ObjectType>> deltas1 = (Collection) deltas;
         return deltas1;
     }
 
@@ -704,7 +727,7 @@ public class ObjectTypeUtil {
     }
 
     public static RelationDefinitionType findRelationDefinition(List<RelationDefinitionType> relationDefinitions, QName qname) {
-        for (RelationDefinitionType relation: relationDefinitions) {
+        for (RelationDefinitionType relation : relationDefinitions) {
             if (QNameUtil.match(qname, relation.getRef())) {
                 return relation;
             }
@@ -749,8 +772,8 @@ public class ObjectTypeUtil {
     }
 
     public static void mergeExtension(PrismContainerValue<?> dstExtensionContainerValue, PrismContainerValue<?> srcExtensionContainerValue) throws SchemaException {
-        for (Item<?,?> srcExtensionItem: emptyIfNull(srcExtensionContainerValue.getItems())) {
-            Item<?,?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
+        for (Item<?, ?> srcExtensionItem : emptyIfNull(srcExtensionContainerValue.getItems())) {
+            Item<?, ?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
             if (magicItem == null) {
                 //noinspection unchecked
                 dstExtensionContainerValue.add(srcExtensionItem.clone());
@@ -804,9 +827,9 @@ public class ObjectTypeUtil {
     public static LocalizableMessage createTypeDisplayInformation(String objectClassName, boolean startsWithUppercase) {
         String prefix = startsWithUppercase ? SchemaConstants.OBJECT_TYPE_KEY_PREFIX : SchemaConstants.OBJECT_TYPE_LOWERCASE_KEY_PREFIX;
         return new LocalizableMessageBuilder()
-                        .key(prefix + objectClassName)
-                        .fallbackMessage(objectClassName)
-                        .build();
+                .key(prefix + objectClassName)
+                .fallbackMessage(objectClassName)
+                .build();
     }
 
     public static <O extends ObjectType> XMLGregorianCalendar getLastTouchTimestamp(PrismObject<O> object) {
@@ -914,7 +937,7 @@ public class ObjectTypeUtil {
     }
 
     public static <AH extends AssignmentHolderType> boolean hasArchetype(AH objectable, String oid) {
-        for (ObjectReferenceType orgRef: objectable.getArchetypeRef()) {
+        for (ObjectReferenceType orgRef : objectable.getArchetypeRef()) {
             if (oid.equals(orgRef.getOid())) {
                 return true;
             }
@@ -922,8 +945,8 @@ public class ObjectTypeUtil {
         return false;
     }
 
-    public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
-        if (customColumns == null || customColumns.size() == 0){
+    public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns) {
+        if (customColumns == null || customColumns.size() == 0) {
             return new ArrayList<>();
         }
         List<GuiObjectColumnType> customColumnsList = new ArrayList<>(customColumns);
@@ -932,28 +955,28 @@ public class ObjectTypeUtil {
         previousColumnValues.add("");
 
         Map<String, String> columnRefsMap = new HashMap<>();
-        for (GuiObjectColumnType column : customColumns){
+        for (GuiObjectColumnType column : customColumns) {
             columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
         }
 
-        List<String> temp = new ArrayList<> ();
+        List<String> temp = new ArrayList<>();
         int index = 0;
-        while (index < customColumns.size()){
+        while (index < customColumns.size()) {
             int sortFrom = index;
-            for (int i = index; i < customColumnsList.size(); i++){
+            for (int i = index; i < customColumnsList.size(); i++) {
                 GuiObjectColumnType column = customColumnsList.get(i);
                 if (previousColumnValues.contains(column.getPreviousColumn()) ||
-                        !columnRefsMap.containsKey(column.getPreviousColumn())){
+                        !columnRefsMap.containsKey(column.getPreviousColumn())) {
                     Collections.swap(customColumnsList, index, i);
                     index++;
                     temp.add(column.getName());
                 }
             }
-            if (temp.size() == 0){
+            if (temp.size() == 0) {
                 temp.add(customColumnsList.get(index).getName());
                 index++;
             }
-            if (index - sortFrom > 1){
+            if (index - sortFrom > 1) {
                 customColumnsList.subList(sortFrom, index - 1)
                         .sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
             }

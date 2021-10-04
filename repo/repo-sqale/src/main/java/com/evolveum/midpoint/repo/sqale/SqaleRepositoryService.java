@@ -92,7 +92,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  */
 public class SqaleRepositoryService extends SqaleServiceBase implements RepositoryService {
 
-    public static final String REPOSITORY_IMPL_NAME = "SQaLe";
+    public static final String REPOSITORY_IMPL_NAME = "Native";
 
     public static final int INITIAL_VERSION_NUMBER = 0;
     public static final String INITIAL_VERSION_STRING = String.valueOf(INITIAL_VERSION_NUMBER);
@@ -1558,6 +1558,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         details.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel()));
 
         return diag;
+    }
+
+    @Override
+    public @NotNull String getRepositoryType() {
+        return REPOSITORY_IMPL_NAME;
     }
 
     private String getTransactionIsolation(

@@ -128,7 +128,7 @@ public class SchemaTransformer {
             if (originalId == null) {
                 throw new SchemaException("No ID in container value " + value);
             }
-            PrismObject<T> parent = ObjectTypeUtil.getParentObject(value);
+            PrismObject<T> parent = ObjectTypeUtil.getParentObjectOld(value);
             boolean wasProcessed;
             if (parent != null) {
                 wasProcessed = processedParents.containsKey(parent);

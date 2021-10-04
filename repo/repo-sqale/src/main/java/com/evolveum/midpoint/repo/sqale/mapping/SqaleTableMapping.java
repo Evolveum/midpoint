@@ -510,15 +510,27 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     public S toSchemaObject(
-            Tuple result,
-            Q root,
+            Tuple rowTuple,
+            Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
-        S ret = toSchemaObject(result, root, options);
+        S ret = toSchemaObject(rowTuple, entityPath, options);
         ret = resolveNames(ret, jdbcSession, options);
         return ret;
+    }
 
+    public S toSchemaObjectSafe(
+            Tuple tuple,
+            Q entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull JdbcSession jdbcSession,
+            boolean forceFull) {
+        try {
+            return toSchemaObject(tuple, entityPath, options, jdbcSession, forceFull);
+        } catch (SchemaException e) {
+            throw new RepositoryMappingException(e);
+        }
     }
 
     protected S resolveNames(S object, JdbcSession session, Collection<SelectorOptions<GetOperationOptions>> options) {
@@ -527,14 +539,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     @Override
-    public ResultListRowTransformer<S, Q, R> createRowTransformer(SqlQueryContext<S, Q, R> sqlQueryContext,
-            JdbcSession jdbcSession) {
-        return (tuple, entityPath, options) -> {
-            try {
-                return toSchemaObject(tuple, entityPath, options, jdbcSession, false);
-            } catch (SchemaException e) {
-                throw new RepositoryMappingException(e);
-            }
-        };
+    public ResultListRowTransformer<S, Q, R> createRowTransformer(
+            SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
+        return (tuple, entityPath, options) ->
+                toSchemaObjectSafe(tuple, entityPath, options, jdbcSession, false);
     }
 }

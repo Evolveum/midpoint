@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -56,6 +58,11 @@ public abstract class PartialReconciliationActivityExecution
         objectClassSpec.checkNotInMaintenance();
 
         setContextDescription(getShortName() + " on " + objectClassSpec.getContextDescription()); // TODO?
+    }
+
+    @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return objectClassSpec.getResourceRef();
     }
 
     protected @NotNull ResourceObjectSetType getResourceObjectSet() {

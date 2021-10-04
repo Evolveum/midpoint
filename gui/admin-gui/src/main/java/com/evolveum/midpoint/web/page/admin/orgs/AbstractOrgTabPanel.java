@@ -62,7 +62,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
     }
 
     private void initLayout() {
-        final IModel<List<ITab>> tabModel = new LoadableModel<>(false) {
+        final IModel<List<ITab>> tabModel = new LoadableModel<>(true) {
             private static final long serialVersionUID = 1L;
 
             @Override

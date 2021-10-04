@@ -6,18 +6,15 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
-import java.io.*;
-import java.util.*;
-import java.util.Objects;
-import javax.xml.namespace.QName;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
-import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
-import com.evolveum.midpoint.util.exception.IndestructibilityViolationException;
+import java.io.*;
+import java.util.Objects;
+import java.util.*;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -37,11 +34,11 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
@@ -56,12 +53,13 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
+import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -939,25 +937,29 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     private class ContainerOperationContext<T extends Containerable> {
         final boolean isCertCase;
         final boolean isCaseMgmtWorkItem;
+        final boolean isOperationExecution;
         final ObjectTypes.ObjectManager manager;
         final ObjectQuery refinedQuery;
 
         // TODO: task and result here are ugly and probably wrong
-        ContainerOperationContext(Class<T> type, ObjectQuery query, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        ContainerOperationContext(Class<T> type, ObjectQuery query, Task task, OperationResult result)
+                throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+                ExpressionEvaluationException, CommunicationException, ConfigurationException {
+
             isCertCase = AccessCertificationCaseType.class.equals(type);
             isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
+            isOperationExecution = OperationExecutionType.class.equals(type);
 
-            if (!isCertCase && !isCaseMgmtWorkItem) {
+            if (!isCertCase && !isCaseMgmtWorkItem && !isOperationExecution) {
                 throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType and CaseWorkItemType classes");
             }
 
+            manager = ObjectTypes.ObjectManager.REPOSITORY;
             if (isCertCase) {
-                refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
-                manager = ObjectTypes.ObjectManager.REPOSITORY;
+                refinedQuery = preProcessSubobjectQuerySecurity(
+                        AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
             } else {
-                assert isCaseMgmtWorkItem;
-                refinedQuery = query; // TODO
-                manager = ObjectTypes.ObjectManager.REPOSITORY;
+                refinedQuery = query;
             }
         }
     }
@@ -1032,7 +1034,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         if (ctx.isCertCase) {
             list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
                     AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
-        } else if (ctx.isCaseMgmtWorkItem) {
+        } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution) {
             // TODO implement security post processing for CaseWorkItems
         } else {
             throw new IllegalStateException();
@@ -1056,7 +1058,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
 
         final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-        final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
         query = ctx.refinedQuery;
 
@@ -1108,25 +1109,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 //        }
 //        return retval;
 //    }
-
-    private ObjectQuery preProcessWorkItemSecurity(ObjectQuery query) throws SchemaException, SecurityViolationException {
-        // TODO uncomment the following, after our "query interpreter" will be able to interpret OR-clauses
-        return query;
-
-//        if (securityEnforcer.isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl(), null, null, null, null, null)) {
-//            return query;
-//        }
-//        ObjectFilter filter = query != null ? query.getFilter() : null;
-//        UserType currentUser = securityEnforcer.getPrincipal().getUser();
-//
-//        ObjectFilter secFilter = QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
-//                .item(CaseWorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser))
-//                .or().item(CaseWorkItemType.F_ASSIGNEE_REF).ref(ObjectTypeUtil.createObjectRef(currentUser).asReferenceValue())
-//                .buildFilter();
-//
-//        return updateObjectQuery(query,
-//                filter != null ? AndFilter.createAnd(filter, secFilter) : secFilter);
-    }
 
     protected boolean isFilterNone(ObjectQuery query, OperationResult result) {
         if (query != null && query.getFilter() != null && query.getFilter() instanceof NoneFilter) {
@@ -1975,7 +1957,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Override
     public void reconcileWorkers(String oid, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            ConfigurationException, ExpressionEvaluationException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, opTask, result);
         activityManager.reconcileWorkers(oid, result);
     }

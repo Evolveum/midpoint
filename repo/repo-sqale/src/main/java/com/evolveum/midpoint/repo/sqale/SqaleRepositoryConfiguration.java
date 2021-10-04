@@ -95,7 +95,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
         useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
-        fullObjectFormat = configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML)
+        fullObjectFormat = configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_JSON)
                 .toLowerCase(); // all language string constants are lower-cases
 
         performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
