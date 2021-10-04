@@ -10,23 +10,27 @@ import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.
 
 class SummaryOutputFile {
 
-    private static final File FILE = new File(TARGET_DIR, START + "-summary.txt");
     private final PrintWriter writer;
 
     SummaryOutputFile() throws IOException {
-        writer = new PrintWriter(new FileWriter(FILE));
+        writer = new PrintWriter(new FileWriter(getFile()));
+    }
+
+    private File getFile() {
+        return new File(TARGET_DIR, START + "-" + OTHER_PARAMETERS.label + "-summary.txt");
     }
 
     void logStart() {
         writer.println("Started: " + new Date(START) + " (" + START + ")");
+        writer.println("Label: " + OTHER_PARAMETERS.label);
+        writer.println();
         writer.printf("Schema: %s\n", SCHEMA_CONFIGURATION);
         writer.printf("Sources: %s\n", SOURCES_CONFIGURATION);
         writer.printf("Targets: %s\n", TARGETS_CONFIGURATION);
         writer.printf("Roles: %s\n", ROLES_CONFIGURATION);
         writer.printf("Import: %s\n", IMPORTS_CONFIGURATION);
         writer.printf("Reconciliation: %s\n", RECONCILIATIONS_CONFIGURATION);
-        writer.printf("Recomputation: %s\n", RECOMPUTATION_CONFIGURATION);
-        writer.printf("Progress file: %s\n\n", ProgressOutputFile.FILE);
+        writer.printf("Recomputation: %s\n\n", RECOMPUTATION_CONFIGURATION);
         writer.flush();
     }
 
@@ -34,6 +38,15 @@ class SummaryOutputFile {
         writer.printf("********** FINISHED: %s **********\n\n", desc);
         writer.printf("Task execution time: %,d ms\n", executionTime);
         writer.printf("Time per account: %,.1f ms\n\n", timePerAccount);
+        writer.flush();
+    }
+
+    void logFinish() {
+        long end = System.currentTimeMillis();
+        writer.printf("Finished at: %s\n", new Date(end));
+        long millis = end - START;
+        writer.printf("Took: %,.1f seconds = %.1f minutes\n", millis / 1000.0, millis / 60000.0);
+        writer.printf("Accounts: %,d\n", SOURCES_CONFIGURATION.getNumberOfAccounts());
         writer.flush();
     }
 }

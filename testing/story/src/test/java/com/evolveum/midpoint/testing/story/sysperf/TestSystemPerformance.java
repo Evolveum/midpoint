@@ -16,13 +16,14 @@ import static com.evolveum.midpoint.tools.testng.TestMonitor.PERF_REPORT_PREFIX_
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
 
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -67,6 +67,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
+    private static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/test/system-perf";
+    private static final ItemName EXT_MEMBER_OF = new ItemName(NS_EXT, "memberOf");
+
     static final SchemaConfiguration SCHEMA_CONFIGURATION;
     static final SourcesConfiguration SOURCES_CONFIGURATION;
     static final TargetsConfiguration TARGETS_CONFIGURATION;
@@ -75,13 +78,16 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     static final ReconciliationConfiguration RECONCILIATIONS_CONFIGURATION;
     static final RecomputationConfiguration RECOMPUTATION_CONFIGURATION;
 
-    private static final OtherParameters OTHER_PARAMETERS;
+    static final OtherParameters OTHER_PARAMETERS;
 
     private static final List<DummyTestResource> RESOURCE_SOURCE_LIST;
     private static final List<DummyTestResource> RESOURCE_TARGET_LIST;
 
     private static final TestResource<ArchetypeType> ARCHETYPE_BASIC_USER =
             new TestResource<>(TEST_DIR, "archetype-basic-user.xml", "463e21c5-9959-48e9-bc2a-5356eafb0589");
+
+    private static final TestResource<RoleType> METAROLE_TECHNICAL =
+            new TestResource<>(TEST_DIR, "metarole-technical.xml", "7c359aa0-d798-4781-a58b-d6336cb9b1ee");
 
     static final TestResource<RoleType> ROLE_TARGETS = new TestResource<>(TARGET_DIR, "generated-role-targets.xml", "3b65aad7-7d6b-412e-bfc7-2cee44d22c32");
     private static final TestResource<RoleType> TEMPLATE_USER = new TestResource<>(TEST_DIR, "template-user.xml", "0c77fde5-4ad5-49ce-8ee9-14f330660d8e");
@@ -94,7 +100,6 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
     static final long START = System.currentTimeMillis();
 
-    private static final String REPORT_FILE_PREFIX = TARGET_DIR_PATH + "/" + START + "-report";
     private static final String REPORT_SECTION_SUMMARY_NAME = "summary";
     private static final String REPORT_SECTION_TASK_EXECUTION_NAME = "taskExecution";
     private static final String REPORT_SECTION_TASK_EXECUTION_DENORMALIZED_NAME = "taskExecutionDenormalized";
@@ -130,7 +135,11 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         TASK_RECONCILIATION_LIST = RECONCILIATIONS_CONFIGURATION.getGeneratedTasks();
         TASK_RECOMPUTE = RECOMPUTATION_CONFIGURATION.getGeneratedTask();
 
-        System.setProperty(PERF_REPORT_PREFIX_PROPERTY_NAME, REPORT_FILE_PREFIX);
+        System.setProperty(PERF_REPORT_PREFIX_PROPERTY_NAME, createReportFilePrefix());
+    }
+
+    private static String createReportFilePrefix() {
+        return TARGET_DIR_PATH + "/" + START + "-" + OTHER_PARAMETERS.label + "-report";
     }
 
     public TestSystemPerformance() throws IOException {
@@ -153,6 +162,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         repoAdd(ARCHETYPE_BASIC_USER, initResult);
         repoAdd(ROLE_TARGETS, initResult);
         repoAdd(TEMPLATE_USER, initResult);
+        if (ROLES_CONFIGURATION.isMemberOfComputation()) {
+            repoAdd(METAROLE_TECHNICAL, initResult);
+        }
 
         for (TestResource<?> resource : TECHNICAL_ROLE_LIST) {
             addObject(resource, initTask, initResult); // creates resource objects
@@ -174,6 +186,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         "sources", "accounts", "singleValuedInboundMappings", "multiValuedInboundMappings", "attributeValues",
                         "targets", "singleValuedOutboundMappings", "multiValuedOutboundMappings",
                         "businessRoles", "technicalRoles", "assignmentsMin", "assignmentsMax", "inducementsMin", "inducementsMax",
+                        "memberOfComputation",
                         "schemaSingleValuedProperties", "schemaMultiValuedProperties", "schemaIndexedPercentage",
                         "importTaskThreads",
                         "reconciliationTaskThreads",
@@ -200,6 +213,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         ROLES_CONFIGURATION.getNumberOfAssignmentsMax(),
                         ROLES_CONFIGURATION.getNumberOfInducementsMin(),
                         ROLES_CONFIGURATION.getNumberOfInducementsMax(),
+                        ROLES_CONFIGURATION.isMemberOfComputation(),
 
                         SCHEMA_CONFIGURATION.getSingleValuedProperties(),
                         SCHEMA_CONFIGURATION.getMultiValuedProperties(),
@@ -247,7 +261,6 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         logger.info("Import: {}", IMPORTS_CONFIGURATION);
         logger.info("Reconciliation: {}", RECONCILIATIONS_CONFIGURATION);
         logger.info("Recomputation: {}", RECOMPUTATION_CONFIGURATION);
-        logger.info("Progress file: {}", ProgressOutputFile.FILE);
 
         summaryOutputFile.logStart();
     }
@@ -294,7 +307,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                     .display()
                     .getObject();
 
-            logTaskFinish(taskAfter, label);
+            logTaskFinish(taskAfter, label, result);
         }
 
         String accountName = SourceInitializer.getAccountName(0);
@@ -313,11 +326,14 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .collect(Collectors.toSet());
         displayValue("Technical roles for " + accountName, technicalRoles);
 
+        boolean memberOf = ROLES_CONFIGURATION.isMemberOfComputation();
         PrismObject<UserType> user = assertUserAfterByUsername(accountName)
                 .assertAssignments(roles.size() + 1) // 1. archetype
                 .assertLinks(SOURCES_CONFIGURATION.getNumberOfResources() + TARGETS_CONFIGURATION.getNumberOfResources(), 0)
                 .extension()
-                    .assertSize(SOURCES_CONFIGURATION.getSingleValuedMappings() + SOURCES_CONFIGURATION.getMultiValuedMappings())
+                    .assertSize(SOURCES_CONFIGURATION.getSingleValuedMappings() +
+                            SOURCES_CONFIGURATION.getMultiValuedMappings() +
+                            (memberOf ? 1 : 0))
                     .property(ItemPath.create(getSingleValuedPropertyName(0)))
                         .assertSize(1)
                         .end()
@@ -326,6 +342,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         .end()
                     .end()
                 .getObject();
+
+        if (memberOf) {
+            Collection<String> memberOfValue = ObjectTypeUtil.getExtensionPropertyValues(user.asObjectable(), EXT_MEMBER_OF);
+            displayValue("memberOf", memberOfValue);
+            assertThat(memberOfValue).as("memberOf").hasSize(memberships.size());
+        }
 
         // temporarily disabled
 //        if (TARGETS_CONFIGURATION.getNumberOfResources() > 0) {
@@ -390,7 +412,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         .display()
                         .getObject();
 
-                logTaskFinish(taskAfter, label);
+                logTaskFinish(taskAfter, label, result);
             }
         }
     }
@@ -429,7 +451,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         .display()
                         .getObject();
 
-                logTaskFinish(taskAfter, label);
+                logTaskFinish(taskAfter, label, result);
             }
         }
     }
@@ -454,7 +476,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .display()
                 .getObject();
 
-        logTaskFinish(taskAfter, "");
+        logTaskFinish(taskAfter, "", result);
+    }
+
+    @Test
+    public void test999Finish() {
+        logFinish();
     }
 
     private long getExecutionTime(PrismObject<TaskType> taskAfter) {
@@ -473,7 +500,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         return String.format("p-multi-%04d", i);
     }
 
-    private void logTaskFinish(PrismObject<TaskType> taskAfter, String label) {
+    private void logTaskFinish(PrismObject<TaskType> taskAfter, String label, OperationResult result) {
         String desc = label + taskAfter.getName().getOrig();
 
         TaskPerformanceInformation performanceInformation = TaskPerformanceInformation.fromTaskTree(taskAfter.asObjectable());
@@ -494,6 +521,10 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .addRow(dataRow.toArray());
         taskExecutionDenormalizedReportSection
                 .addRow(ListUtils.union(summaryReportDataRow, dataRow).toArray());
+    }
+
+    private void logFinish() {
+        summaryOutputFile.logFinish();
     }
 
     private void recordProgress(String label, Task task) {
