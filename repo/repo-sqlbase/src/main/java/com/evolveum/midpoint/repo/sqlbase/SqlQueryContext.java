@@ -304,11 +304,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 .select(buildSelectExpressions(entity, query))
                 .fetch();
 
+        // TODO: Rework to ResultListRowTransformer.beforeTransformation
         entityPathMapping.processResult(data, entity, jdbcSession, options);
         // TODO: This is currently used for old audit only.
         //  New audit would work too as the ID there is unique, but we want to use timestamp column
         //  which is a partition key. Fetchers are not suitable to do that.
-        //  Instead the mechanism used above is more flexible, just let the mapper do it.
         Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers =
                 entityPathMapping.detailFetchMappers();
         if (!detailFetchMappers.isEmpty()) {
@@ -460,8 +460,6 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * JDBC session is provided as it may be needed for additional fetches.
      * Instead of calling some transformation method row-by-row, transformer object is provided
      * by the table mapper - which allows for potentially stateful processing.
-     * For example, row-by-row transformation can collect information for some additional processing
-     * which can be executed by implementing {@link ResultListRowTransformer#finishTransformation()}.
      */
     public PageOf<S> transformToSchemaType(PageOf<Tuple> result, JdbcSession jdbcSession)
             throws SchemaException, QueryException {
@@ -469,7 +467,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             ResultListRowTransformer<S, Q, R> rowTransformer =
                     entityPathMapping.createRowTransformer(this, jdbcSession);
 
-            PageOf<S> transformedResult = result.map(row -> rowTransformer.transform(row, root(), options));
+            rowTransformer.beforeTransformation(result, entityPath);
+            PageOf<S> transformedResult = result.map(row -> rowTransformer.transform(row, entityPath, options));
             rowTransformer.finishTransformation();
 
             return transformedResult;

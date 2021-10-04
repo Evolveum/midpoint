@@ -99,6 +99,11 @@ public class ClassicCollectionReportExportActivityExecution
     }
 
     @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return support.getReportRef();
+    }
+
+    @Override
     public @Nullable Integer determineOverallSize(OperationResult result) throws CommonException {
         return support.countRecords(
                 searchSpecificationHolder.getType(),

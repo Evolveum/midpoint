@@ -8,11 +8,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType.*;
 
-import java.util.Objects;
+import java.util.*;
 
+import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
@@ -21,7 +24,12 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 
 /**
@@ -128,9 +136,53 @@ public class QOperationExecutionMapping<OR extends MObject>
     }
 
     @Override
-    public ResultListRowTransformer<OperationExecutionType, QOperationExecution<OR>, MOperationExecution>
-    createRowTransformer(SqlQueryContext<OperationExecutionType, QOperationExecution<OR>,
-            MOperationExecution> sqlQueryContext, JdbcSession jdbcSession) {
-        return super.createRowTransformer(sqlQueryContext, jdbcSession);
+    public ResultListRowTransformer<OperationExecutionType, QOperationExecution<OR>, MOperationExecution> createRowTransformer(
+            SqlQueryContext<OperationExecutionType, QOperationExecution<OR>, MOperationExecution> sqlQueryContext,
+            JdbcSession jdbcSession) {
+        Map<UUID, ObjectType> owners = new HashMap<>();
+        return new ResultListRowTransformer<>() {
+            @Override
+            public void beforeTransformation(Iterable<Tuple> rowTuples, QOperationExecution<OR> entityPath)
+                    throws SchemaException {
+                // TODO do we need get options here as well? Is there a scenario where we load container
+                //  and define what to load for referenced/owner object?
+                Set<UUID> ownerOids = new HashSet<>();
+                for (Tuple rowTuple : rowTuples) {
+                    MOperationExecution row = Objects.requireNonNull(rowTuple.get(entityPath));
+                    ownerOids.add(row.ownerOid);
+                }
+
+                QObject<?> o = QObjectMapping.getObjectMapping().defaultAlias();
+                List<Tuple> result = jdbcSession.newQuery()
+                        .select(o.oid, o.fullObject)
+                        .from(o)
+                        .where(o.oid.in(ownerOids))
+                        .fetch();
+                for (Tuple row : result) {
+                    UUID oid = Objects.requireNonNull(row.get(o.oid));
+                    ObjectType owner = parseSchemaObject(row.get(o.fullObject), oid.toString(), ObjectType.class);
+                    owners.put(oid, owner);
+                }
+            }
+
+            @Override
+            public OperationExecutionType transform(Tuple rowTuple,
+                    QOperationExecution<OR> entityPath, Collection<SelectorOptions<GetOperationOptions>> options) {
+                MOperationExecution row = Objects.requireNonNull(rowTuple.get(entityPath));
+                ObjectType object = Objects.requireNonNull(owners.get(row.ownerOid),
+                        () -> "Missing owner with OID " + row.ownerOid + " for OperationExecution with ID " + row.cid);
+
+                PrismContainer<OperationExecutionType> opexContainer =
+                        object.asPrismObject().findContainer(ObjectType.F_OPERATION_EXECUTION);
+                if (opexContainer == null) {
+                    throw new SystemException("Object " + object + " has no operation execution as expected from " + row);
+                }
+                PrismContainerValue<OperationExecutionType> pcv = opexContainer.findValue(row.cid);
+                if (pcv == null) {
+                    throw new SystemException("Object " + object + " has no operation execution with ID " + row.cid);
+                }
+                return pcv.asContainerable();
+            }
+        };
     }
 }

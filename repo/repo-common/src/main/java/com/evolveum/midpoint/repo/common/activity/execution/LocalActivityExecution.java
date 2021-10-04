@@ -12,17 +12,22 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.repo.common.task.IterativeActivityExecutionSpecifics;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -43,6 +48,8 @@ public abstract class LocalActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         BS extends AbstractActivityWorkStateType> extends AbstractActivityExecution<WD, AH, BS> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(LocalActivityExecution.class);
 
     private static final long DEFAULT_TREE_PROGRESS_UPDATE_INTERVAL_FOR_STANDALONE = 9000;
     private static final long DEFAULT_TREE_PROGRESS_UPDATE_INTERVAL_FOR_WORKERS = 60000;
@@ -193,5 +200,54 @@ public abstract class LocalActivityExecution<
     /** True if the task is excluded from staleness checking while running this activity. */
     public boolean isExcludedFromStalenessChecking() {
         return false;
+    }
+
+    /**
+     * Updates task objectRef. This is e.g. to allow displaying of all tasks related to given resource.
+     * Conditions:
+     *
+     * 1. task.objectRef has no value yet,
+     * 2. the value provided by {@link #getDesiredTaskObjectRef()} is non-null.
+     *
+     * The method does this recursively towards the root of the task tree.
+     */
+    @Experimental
+    protected final void setTaskObjectRef(OperationResult result) throws CommonException {
+        RunningTask task = getRunningTask();
+        if (task.getObjectOid() != null) {
+            LOGGER.trace("Task.objectRef is already set for the current task. We assume it is also set for parent tasks.");
+            return;
+        }
+
+        ObjectReferenceType desiredObjectRef = getDesiredTaskObjectRef();
+        LOGGER.trace("Desired task object ref: {}", desiredObjectRef);
+        if (desiredObjectRef == null) {
+            return;
+        }
+        setObjectRefRecursivelyUpwards(task, desiredObjectRef, result);
+    }
+
+    /**
+     * Returns the value that should be put into task.objectRef.
+     *
+     * Should be overridden by subclasses.
+     *
+     * It should be called _after_ {@link IterativeActivityExecutionSpecifics#beforeExecution(OperationResult)} method,
+     * in order to give the execution a chance to prepare data for this method.
+     */
+    protected @Nullable ObjectReferenceType getDesiredTaskObjectRef() {
+        return null; // By default, we don't try to set up that item.
+    }
+
+    /** Sets objectRef on the given task and its ancestors (if not already set). */
+    private void setObjectRefRecursivelyUpwards(@NotNull Task task, @NotNull ObjectReferenceType desiredObjectRef,
+            @NotNull OperationResult result)
+            throws CommonException {
+        task.setObjectRef(desiredObjectRef);
+        task.flushPendingModifications(result);
+        Task parent = task.getParentTask(result);
+        if (parent != null && parent.getObjectOid() != null) {
+            setObjectRefRecursivelyUpwards(parent, desiredObjectRef, result);
+        }
     }
 }

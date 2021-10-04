@@ -143,10 +143,10 @@ public class QAccessCertificationCampaignMapping
     }
 
     @Override
-    public AccessCertificationCampaignType toSchemaObject(Tuple result, QAccessCertificationCampaign root,
+    public AccessCertificationCampaignType toSchemaObject(Tuple rowTuple, QAccessCertificationCampaign entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
-        AccessCertificationCampaignType base = super.toSchemaObject(result, root, options, jdbcSession, forceFull);
+        AccessCertificationCampaignType base = super.toSchemaObject(rowTuple, entityPath, options, jdbcSession, forceFull);
         if (forceFull || shouldLoadCases(options)) {
             loadCases(base, options, jdbcSession, forceFull);
         }

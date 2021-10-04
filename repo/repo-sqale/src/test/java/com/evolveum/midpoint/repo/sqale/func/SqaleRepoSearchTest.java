@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
@@ -48,6 +47,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -1820,9 +1820,26 @@ AND(
 
         assertThat(result).extracting(opex -> MiscUtil.asInstant(opex.getTimestamp()).toString())
                 .containsExactly("2022-01-01T00:00:00Z", "2021-11-01T00:00:00Z", "2021-08-01T00:00:00Z");
-        OperationExecutionType user2NovemberOpex = result.get(0);
-        // TODO
-//        assertThat(user2NovemberOpex.asPrismContainerValue().getParent()).isNotNull(); // we have the owner too
+        assertThat(result).allMatch(opex -> opex.asPrismContainerValue().getParent() != null);
+        // the same parent should be the same object too
+        assertThatObject(ObjectTypeUtil.getParentObject(result.get(0)))
+                .isNotNull()
+                .isSameAs(ObjectTypeUtil.getParentObject(result.get(1)));
+    }
+
+    @Test
+    public void test691SearchErrorOperationExecutionForTaskOrderByObjectName() throws SchemaException {
+        SearchResultList<OperationExecutionType> result = searchContainerTest(
+                "with errors related to the task order by object name", OperationExecutionType.class,
+                f -> f.item(OperationExecutionType.F_TASK_REF).ref(task1Oid)
+                        .and()
+                        .item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR,
+                                OperationResultStatusType.PARTIAL_ERROR, OperationResultStatusType.WARNING)
+                        // order traversing to container owner
+                        .desc(PrismConstants.T_PARENT, ObjectType.F_NAME));
+
+        assertThat(result).extracting(opex -> ObjectTypeUtil.getParentObject(opex).getName().getOrig())
+                .containsExactly("user-3", "user-2", "user-2");
     }
     // endregion
 

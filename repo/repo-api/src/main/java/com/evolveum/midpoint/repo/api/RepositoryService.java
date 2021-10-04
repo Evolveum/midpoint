@@ -544,8 +544,15 @@ public interface RepositoryService {
 
     /**
      * Provide repository run-time configuration and diagnostic information.
+     * May execute diagnostic query on the database.
      */
     RepositoryDiag getRepositoryDiag();
+
+    /**
+     * Returns short type identifier of the repository implementation.
+     * This should be the same as {@link RepositoryDiag#getImplementationShortName()}.
+     */
+    @NotNull String getRepositoryType();
 
     /**
      * Runs a short, non-destructive repository self test.

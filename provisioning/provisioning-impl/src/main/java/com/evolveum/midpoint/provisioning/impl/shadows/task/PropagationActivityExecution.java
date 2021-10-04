@@ -9,7 +9,10 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 import java.util.List;
 
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -59,6 +62,11 @@ public class PropagationActivityExecution
         resource = getActivityHandler().provisioningService
                 .getObject(ResourceType.class, resourceOid, null, getRunningTask(), result);
         setContextDescription("to " + resource);
+    }
+
+    @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return ObjectTypeUtil.createObjectRef(resource);
     }
 
     @Override

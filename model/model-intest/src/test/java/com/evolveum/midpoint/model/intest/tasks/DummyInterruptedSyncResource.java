@@ -24,7 +24,7 @@ public class DummyInterruptedSyncResource extends AbstractResourceDummyInterrupt
     private static final File TEST_DIR = new File("src/test/resources/tasks/livesync"); // TODO
 
     private static final File FILE = new File(TEST_DIR, "resource-dummy-interrupted-sync.xml");
-    private static final String OID = "7a58233a-1cfb-46d1-a404-08cdf4626ebb";
+    static final String OID = "7a58233a-1cfb-46d1-a404-08cdf4626ebb";
     private static final String NAME = "interruptedSync";
 
     public static DummyInterruptedSyncResource create(DummyResourceCollection collection, Task task, OperationResult result)

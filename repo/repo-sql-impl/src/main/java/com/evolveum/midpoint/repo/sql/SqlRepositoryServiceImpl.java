@@ -743,6 +743,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return diag;
     }
 
+    @Override
+    public @NotNull String getRepositoryType() {
+        return IMPLEMENTATION_SHORT_NAME;
+    }
+
     private void readDetailsFromConnection(RepositoryDiag diag, final SqlRepositoryConfiguration config) {
         final List<LabeledString> details = diag.getAdditionalDetails();
 
@@ -1050,7 +1055,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .addParam("oid", oid)
                 .build();
 
-        if (LOGGER.isTraceEnabled()) { LOGGER.trace("Advancing sequence {}", oid); }
+        if (LOGGER.isTraceEnabled()) {LOGGER.trace("Advancing sequence {}", oid);}
 
         // TODO executeAttempts
         int attempt = 1;

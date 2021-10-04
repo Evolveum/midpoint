@@ -82,6 +82,11 @@ public class LiveSyncActivityExecution
     }
 
     @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return objectClassSpecification.getResourceRef();
+    }
+
+    @Override
     public void afterExecution(OperationResult result) throws SchemaException {
         int itemsProcessed = transientExecutionStatistics.getItemsProcessed();
         LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {}); changes processed: {}",

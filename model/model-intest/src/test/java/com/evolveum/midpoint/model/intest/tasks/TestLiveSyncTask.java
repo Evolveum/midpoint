@@ -263,6 +263,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         assertEquals("Wrong token value", (Integer) 0, getIntToken(taskAfter));
+        assertThat(taskAfter.getObjectOid())
+                .as("object OID")
+                .isEqualTo(DummyInterruptedSyncResource.OID);
     }
 
     /**

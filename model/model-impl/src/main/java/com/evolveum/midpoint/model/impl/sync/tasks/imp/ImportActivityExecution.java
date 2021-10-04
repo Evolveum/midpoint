@@ -11,6 +11,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -30,10 +32,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ImportActivityExecution
         extends SearchBasedActivityExecution<ShadowType, ImportWorkDefinition, ImportActivityHandler, AbstractActivityWorkStateType> {
@@ -63,6 +61,11 @@ public class ImportActivityExecution
         synchronizer = createSynchronizer();
 
         resourceObjectClassSpecification.checkNotInMaintenance();
+    }
+
+    @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return resourceObjectClassSpecification.getResourceRef();
     }
 
     private Synchronizer createSynchronizer() {
