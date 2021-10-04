@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -96,11 +97,26 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
             @NotNull Function<Q, EnumPath<MObjectType>> rootToTypePath,
             @NotNull Function<Q, NumberPath<Integer>> rootToRelationIdPath,
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
+        return addRefMapping(itemName,
+                rootToOidPath, rootToTypePath, rootToRelationIdPath, targetMappingSupplier, null);
+    }
+
+    /**
+     * Defines single-value reference mapping for both query and modifications, columns embedded in the table.
+     * This allows defining placeholder value to be stored in DB when target OID is null.
+     */
+    default <TS, TQ extends QObject<TR>, TR extends MObject> SqaleMappingMixin<S, Q, R> addRefMapping(
+            @NotNull QName itemName,
+            @NotNull Function<Q, UuidPath> rootToOidPath,
+            @NotNull Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            @NotNull Function<Q, NumberPath<Integer>> rootToRelationIdPath,
+            @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier,
+            @Nullable UUID nullOidPlaceholder) {
         ItemSqlMapper<Q, R> referenceMapping = new SqaleItemSqlMapper<>(
                 ctx -> new RefItemFilterProcessor(ctx,
-                        rootToOidPath, rootToTypePath, rootToRelationIdPath, null),
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath, null, nullOidPlaceholder),
                 ctx -> new RefItemDeltaProcessor(ctx,
-                        rootToOidPath, rootToTypePath, rootToRelationIdPath));
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath, nullOidPlaceholder));
         addItemMapping(itemName, referenceMapping);
 
         // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @
@@ -119,7 +135,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
         ItemSqlMapper<Q, R> referenceMapping = new DefaultItemSqlMapper<>(
                 ctx -> new RefItemFilterProcessor(ctx,
-                        rootToOidPath, rootToTypePath, null, rootToTargetNamePath));
+                        rootToOidPath, rootToTypePath, null, rootToTargetNamePath, null));
         addItemMapping(itemName, referenceMapping);
 
         // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @

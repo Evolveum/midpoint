@@ -24,6 +24,7 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
     private final UuidPath oidPath;
     private final EnumPath<MObjectType> typePath;
     private final NumberPath<Integer> relationIdPath;
+    private final UUID nullOidPlaceholder;
 
     /**
      * @param <Q> entity query type from which the attribute is resolved
@@ -33,24 +34,13 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
             SqaleUpdateContext<?, Q, R> context,
             Function<Q, UuidPath> rootToOidPath,
             Function<Q, EnumPath<MObjectType>> rootToTypePath,
-            Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
-        this(context,
-                rootToOidPath.apply(context.entityPath()),
-                rootToTypePath != null ? rootToTypePath.apply(context.entityPath()) : null,
-                rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.entityPath()) : null);
-    }
-
-    /**
-     * @param <Q> entity query type from which the attribute is resolved
-     * @param <R> row type related to {@link Q}
-     */
-    private <Q extends FlexibleRelationalPathBase<R>, R> RefItemDeltaProcessor(
-            SqaleUpdateContext<?, Q, R> context,
-            UuidPath oidPath, EnumPath<MObjectType> typePath, NumberPath<Integer> relationIdPath) {
+            Function<Q, NumberPath<Integer>> rootToRelationIdPath,
+            UUID nullOidPlaceholder) {
         super(context);
-        this.oidPath = oidPath;
-        this.typePath = typePath;
-        this.relationIdPath = relationIdPath;
+        this.oidPath = rootToOidPath.apply(context.entityPath());
+        this.typePath = rootToTypePath != null ? rootToTypePath.apply(context.entityPath()) : null;
+        this.relationIdPath = rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.entityPath()) : null;
+        this.nullOidPlaceholder = nullOidPlaceholder;
     }
 
     @Override
@@ -64,7 +54,11 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
 
     @Override
     public void delete() {
-        context.setNull(oidPath);
+        if (nullOidPlaceholder != null) {
+            context.set(oidPath, nullOidPlaceholder);
+        } else {
+            context.setNull(oidPath);
+        }
         context.setNull(typePath);
         context.setNull(relationIdPath);
     }

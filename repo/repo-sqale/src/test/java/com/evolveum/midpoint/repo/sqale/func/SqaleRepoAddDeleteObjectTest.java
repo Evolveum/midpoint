@@ -41,10 +41,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
-import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnector;
-import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnectorHost;
-import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
-import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
@@ -1338,7 +1335,52 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test812ConnectorHost() throws Exception {
+    public void test812ConnectorWithNullConnectorHost() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("connector with no connector host reference");
+        String objectName = "conn" + getTestNumber();
+        ConnectorType connector = new ConnectorType(prismContext)
+                .name(objectName)
+                .connectorBundle("com.connector.package")
+                .connectorType("ConnectorTypeClass")
+                .connectorVersion("1.2.3")
+                .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
+
+        when("adding it to the repository");
+        repositoryService.addObject(connector.asPrismObject(), null, result);
+
+        then("it is stored and null reference is replaced with UUID placeholder");
+        assertThatOperationResult(result).isSuccess();
+
+        MConnector row = selectObjectByOid(QConnector.class, connector.getOid());
+        assertThat(row.connectorHostRefTargetOid).isEqualTo(QConnectorMapping.NULL_CONNECTOR_HOST_OID);
+    }
+
+    @Test
+    public void test813NonUniqueConnector() {
+        OperationResult result = createOperationResult();
+
+        given("connector already existing in the repository");
+        String objectName = "conn" + getTestNumber(); // name is unique, but that's not what we test
+        ConnectorType connector = new ConnectorType(prismContext)
+                .name(objectName)
+                .connectorBundle("com.connector.package")
+                // We need unique connectorType + connectorVersion + connectorHostRef.oid (even if NULL)
+                .connectorType("ConnectorTypeClass")
+                .connectorVersion("1.2.3")
+                .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
+
+        expect("adding it to the repository fails");
+        assertThatThrownBy(() -> repositoryService.addObject(connector.asPrismObject(), null, result))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
+
+        assertThatOperationResult(result).isFatalError()
+                .hasMessageContaining("m_connector_typeversionhost_key");
+    }
+
+    @Test
+    public void test814ConnectorHost() throws Exception {
         OperationResult result = createOperationResult();
 
         given("connector host");
@@ -1360,7 +1402,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test813Report() throws Exception {
+    public void test815Report() throws Exception {
         OperationResult result = createOperationResult();
 
         given("report");
@@ -1378,7 +1420,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test814ReportData() throws Exception {
+    public void test816ReportData() throws Exception {
         OperationResult result = createOperationResult();
 
         given("report data");

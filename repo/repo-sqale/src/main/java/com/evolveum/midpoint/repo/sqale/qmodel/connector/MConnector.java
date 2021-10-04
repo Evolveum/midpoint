@@ -20,6 +20,8 @@ public class MConnector extends MObject {
     public String connectorType;
     public String connectorVersion;
     public Integer frameworkId;
+
+    // null ref OID is replaced with QConnectorMapping.NULL_CONNECTOR_HOST_OID
     public UUID connectorHostRefTargetOid;
     public MObjectType connectorHostRefTargetType;
     public Integer connectorHostRefRelationId;

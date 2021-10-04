@@ -41,6 +41,8 @@ import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
@@ -59,6 +61,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -1707,6 +1710,40 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("column with subtypes is set to null");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.organizations).isNull();
+    }
+
+    @Test
+    public void test195ConnectorUpdateToNullConnectorHost() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("connector with non-null connector host");
+        String oid = repositoryService.addObject(
+                new ConnectorType(prismContext)
+                        .name("conn-1")
+                        .connectorBundle("com.connector.package")
+                        .connectorType("ConnectorTypeClass")
+                        .connectorVersion("1.2.3")
+                        .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
+                        .connectorHostRef(UUID.randomUUID().toString(), ConnectorHostType.COMPLEX_TYPE)
+                        .targetSystemType("type1")
+                        .targetSystemType("type2")
+                        .asPrismObject(), null, result);
+        assertThat(selectObjectByOid(QConnector.class, oid).connectorHostRefTargetOid).isNotNull();
+
+        and("delta setting null connector host reference");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(ConnectorType.class)
+                .item(ConnectorType.F_CONNECTOR_HOST_REF).replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(ConnectorType.class, oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("reference OID in DB is set to null placeholder value");
+        assertThat(selectObjectByOid(QConnector.class, oid).connectorHostRefTargetOid)
+                .isEqualTo(QConnectorMapping.NULL_CONNECTOR_HOST_OID);
     }
     // endregion
 

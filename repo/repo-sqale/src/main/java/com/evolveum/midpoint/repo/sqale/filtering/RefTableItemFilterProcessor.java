@@ -48,7 +48,7 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
         subquery = subquery
                 .where(referenceMapping.correlationPredicate().apply(context.path(), ref))
                 .where(new RefItemFilterProcessor(
-                        context, ref.targetOid, ref.targetType, ref.relationId, null)
+                        context, ref.targetOid, ref.targetType, ref.relationId, null, null)
                         .process(filter));
         if (filter.getValues() == null) {
             // If values == null, we search for all items without reference

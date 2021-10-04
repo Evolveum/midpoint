@@ -1095,10 +1095,10 @@ CREATE TABLE m_connector (
     objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR') STORED
         CHECK (objectType = 'CONNECTOR'),
     connectorBundle TEXT, -- typically a package name
-    connectorType TEXT, -- typically a class name
-    connectorVersion TEXT,
+    connectorType TEXT NOT NULL, -- typically a class name
+    connectorVersion TEXT NOT NULL,
     frameworkId INTEGER REFERENCES m_uri(id),
-    connectorHostRefTargetOid UUID,
+    connectorHostRefTargetOid UUID NOT NULL,
     connectorHostRefTargetType ObjectType,
     connectorHostRefRelationId INTEGER REFERENCES m_uri(id),
     targetSystemTypes INTEGER[]
@@ -1112,9 +1112,10 @@ CREATE TRIGGER m_connector_update_tr BEFORE UPDATE ON m_connector
 CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
+ALTER TABLE m_connector ADD CONSTRAINT m_connector_typeVersionHost_key
+    UNIQUE (connectorType, connectorVersion, connectorHostRefTargetOid);
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
--- TODO: wasn't unique but duplicates caused problems
---  Also, perhaps unique constraint on type+version would be handy?
+-- TODO: wasn't unique but duplicates caused problems, is it fixed by unique index above?
 CREATE INDEX m_connector_nameNorm_idx ON m_connector (nameNorm);
 CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
 CREATE INDEX m_connector_policySituation_idx

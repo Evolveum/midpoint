@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +25,13 @@ public class QConnectorMapping
         extends QAssignmentHolderMapping<ConnectorType, QConnector, MConnector> {
 
     public static final String DEFAULT_ALIAS_NAME = "con";
+
+    /**
+     * Placeholder non-null value for null reference to connector host.
+     * This allows for reliable unique index encompassing this column as well.
+     */
+    public static final UUID NULL_CONNECTOR_HOST_OID =
+            UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     private static QConnectorMapping instance;
 
@@ -50,7 +58,8 @@ public class QConnectorMapping
                 q -> q.connectorHostRefTargetOid,
                 q -> q.connectorHostRefTargetType,
                 q -> q.connectorHostRefRelationId,
-                QConnectorHostMapping::get);
+                QConnectorHostMapping::get,
+                NULL_CONNECTOR_HOST_OID);
 
         addItemMapping(F_TARGET_SYSTEM_TYPE, multiUriMapper(q -> q.targetSystemTypes));
     }
@@ -78,7 +87,8 @@ public class QConnectorMapping
         setReference(schemaObject.getConnectorHostRef(),
                 o -> row.connectorHostRefTargetOid = o,
                 t -> row.connectorHostRefTargetType = t,
-                r -> row.connectorHostRefRelationId = r);
+                r -> row.connectorHostRefRelationId = r,
+                NULL_CONNECTOR_HOST_OID);
 
         row.targetSystemTypes = processCacheableUris(schemaObject.getTargetSystemType());
 

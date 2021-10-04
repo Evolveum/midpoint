@@ -12,6 +12,7 @@ import java.util.function.Function;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -32,6 +33,8 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Filter processor for reference item paths embedded in table as three columns.
  * OID is represented by UUID column, type by ID (see {@link MObjectType} and relation
  * by Integer (foreign key) to {@link QUri}.
+ *
+ * Optionally, this processor supports null OID placeholder value.
  */
 public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> {
 
@@ -40,18 +43,21 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
     @Nullable private final EnumPath<MObjectType> typePath;
     @Nullable private final NumberPath<Integer> relationIdPath;
     @Nullable private final StringPath targetNamePath;
+    @Nullable private final UUID nullOidPlaceholder;
 
     public <Q extends FlexibleRelationalPathBase<R>, R> RefItemFilterProcessor(
             SqlQueryContext<?, Q, R> context,
             Function<Q, UuidPath> rootToOidPath,
             @Nullable Function<Q, EnumPath<MObjectType>> rootToTypePath,
             @Nullable Function<Q, NumberPath<Integer>> rootToRelationIdPath,
-            @Nullable Function<Q, StringPath> rootToTargetNamePath) {
+            @Nullable Function<Q, StringPath> rootToTargetNamePath,
+            @Nullable UUID nullOidPlaceholder) {
         this(context,
                 rootToOidPath.apply(context.path()),
                 rootToTypePath != null ? rootToTypePath.apply(context.path()) : null,
                 rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.path()) : null,
-                rootToTargetNamePath != null ? rootToTargetNamePath.apply(context.path()) : null);
+                rootToTargetNamePath != null ? rootToTargetNamePath.apply(context.path()) : null,
+                nullOidPlaceholder);
     }
 
     // exposed mainly for RefTableItemFilterProcessor
@@ -60,19 +66,21 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
             UuidPath oidPath,
             @Nullable EnumPath<MObjectType> typePath,
             @Nullable NumberPath<Integer> relationIdPath,
-            @Nullable StringPath targetNamePath) {
+            @Nullable StringPath targetNamePath,
+            @Nullable UUID nullOidPlaceholder) {
         super(context);
         this.oidPath = oidPath;
         this.typePath = typePath;
         this.relationIdPath = relationIdPath;
         this.targetNamePath = targetNamePath;
+        this.nullOidPlaceholder = nullOidPlaceholder;
     }
 
     @Override
     public Predicate process(RefFilter filter) {
         List<PrismReferenceValue> values = filter.getValues();
         if (values == null || values.isEmpty()) {
-            return filter.isOidNullAsAny() ? null : oidPath.isNull();
+            return filter.isOidNullAsAny() ? null : oidIsNullPredicate();
         }
         if (values.size() == 1) {
             return processSingleValue(filter, values.get(0));
@@ -91,7 +99,7 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
             predicate = predicateWithNotTreated(oidPath,
                     oidPath.eq(UUID.fromString(ref.getOid())));
         } else if (!filter.isOidNullAsAny()) {
-            predicate = oidPath.isNull();
+            predicate = oidIsNullPredicate();
         }
 
         // Audit sometimes does not use target type path
@@ -122,5 +130,12 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
         }
 
         return predicate;
+    }
+
+    /** Target OID is null predicate, using placeholder value if configured. */
+    private BooleanExpression oidIsNullPredicate() {
+        return nullOidPlaceholder != null
+                ? oidPath.eq(nullOidPlaceholder)
+                : oidPath.isNull();
     }
 }
