@@ -139,6 +139,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerStaticNamespace(XMLConstants.W3C_XML_SCHEMA_NS_URI, DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
         schemaRegistry.registerStaticNamespace("http://www.w3.org/2001/XMLSchema-instance", "xsi", false);
 
+        // MID-6983: XSI Namespace is emmited by default
+        schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault("xsi");
 
         // Prism Schemas
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-3.xsd", "a");
