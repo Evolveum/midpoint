@@ -12,19 +12,18 @@ This data may influence the look and feel of the current midPoint instance.
 
 [%autowidth]
 |===
-| *Attribute name*
-| *Description*
+| Attribute name | Description
 
 | name
 | Short name of this midPoint deployment.
 The name will be displayed on a prominent place in the user interface, most likely displayed  as a part of the header (on every page).
 The name is usually used to distinguish  between midPoint deployments in the same organization.
-Strings such as "DEVEL", "TEST", "UAT" are often used.
+Strings such as `DEVEL`, `TEST`, `UAT` are often used.
 
 | description
 | Free form description that specifies the details of this deployment.
 It may be significantly long (few paragraps).
-It has no special purpose other then a form of "on-line" documentation for the deployment.
+It has no special purpose other than a form of "on-line" documentation for the deployment.
 It will NOT be displayed on every page.
 It will most likely be displayed on a system configuration pages or in configuration summaries.
 
@@ -43,14 +42,15 @@ This can be used as an easy customization and point to a customer logo.
 Or it may be used as an icon to indicate the environment.
 Can be configured with imageUrl attribute or cssClass attribute.
 Please, be carefull with the width/height of the logo image, the preferable size is: width up to 300px, height up to 60px.You can either use URL or a relative path.
-For custom logos it's best to create a new directory `static-web` under your `midpoint.home` directory and use a relative link.
+For custom logos it's best to create a new directory `static-web` under you
+link:/midpoint/reference/deployment/midpoint-home-directory/[`midpoint.home`] directory and use a relative link.
 
 | customerName
 | Short name of the organization that is end user of the midPoint deployment.
 It is supposed to be a company name, such as "ExAmPLE, Inc." It will be displayed together with subscription information.
 
 | customerUrl
-| URL of the customer web site.
+| URL of the customer website.
 It will be used as a link target in case that the customer name is displayed as hyperlink.
 
 | partnerName
@@ -59,7 +59,7 @@ It is usually the name of Evolveum partner.
 It is supposed to be a company name, such as "ExAmPLE, Inc." It will be displayed together with subscription information.
 
 | partnerUrl
-| URL of the partner web site.
+| URL of the partner website.
 It will be used as a link target in case that the partner name is displayed as hyperlink.
 
 | subscriptionIdentifier
@@ -85,3 +85,8 @@ Here is a little example how midPoint look can be configured with deployment inf
 ----
 
 image::image2017-1-30-14-12-38.png[]
+
+== See also
+
+* link:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI Configuration]
+* link:/midpoint/reference/concepts/system-configuration-object/[System Configuration object]
