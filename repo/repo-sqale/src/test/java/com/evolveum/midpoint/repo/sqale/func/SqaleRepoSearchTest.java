@@ -1826,6 +1826,21 @@ AND(
                 .isNotNull()
                 .isSameAs(ObjectTypeUtil.getParentObject(result.get(1)));
     }
+
+    @Test
+    public void test691SearchErrorOperationExecutionForTaskOrderByObjectName() throws SchemaException {
+        SearchResultList<OperationExecutionType> result = searchContainerTest(
+                "with errors related to the task order by object name", OperationExecutionType.class,
+                f -> f.item(OperationExecutionType.F_TASK_REF).ref(task1Oid)
+                        .and()
+                        .item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR,
+                                OperationResultStatusType.PARTIAL_ERROR, OperationResultStatusType.WARNING)
+                        // order traversing to container owner
+                        .desc(PrismConstants.T_PARENT, ObjectType.F_NAME));
+
+        assertThat(result).extracting(opex -> ObjectTypeUtil.getParentObject(opex).getName().getOrig())
+                .containsExactly("user-3", "user-2", "user-2");
+    }
     // endregion
 
     // region various real-life use cases

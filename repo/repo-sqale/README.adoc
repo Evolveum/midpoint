@@ -3,14 +3,14 @@
 See:
 
 * https://docs.evolveum.com/midpoint/midscale/design/repository-design/[midScale Repository Design]
-* https://docs.evolveum.com/midpoint/projects/midscale/design/repo/new-repo-startup/[Starting with new repository]
+* https://docs.evolveum.com/midpoint/reference/repository/repository-native-usage/[Using Native Repository] (which is this new one)
 
 The rest of this document is to be merged into our Docs project.
 You may safely ignore it.
 
 == Extension attributes
 
-Regarding *query performance* we have to realize that even current implementation under favorable conditions (middle-sized databases) has various levels of performance for various operations:
+Regarding *query performance* we have to realize that even old implementation under favorable conditions (middle-sized databases) has various levels of performance for various operations:
 
 * Equality, comparison and "starts with" filters can rely on indexes like `iAExtensionDate` for `m_assignment_ext_date (dateValue)`.
 These are not always utilized (database dependent).
@@ -20,7 +20,7 @@ and https://www.postgresql.org/docs/13/indexes-types.html[index types documentat
 Trigram indexes support only alphanumerical characters and can, reportedly, be huge and inefficient.
 "Ends with" can benefit from `reverse()` index.
 
-* Case-insensitive search is not optimized without appropriate function-based index.
+* Case-insensitive search is not optimized without appropriate function-based or trigram index.
 
 
 === Modeling options
@@ -97,28 +97,6 @@ It can still help with other operations by selecting only relevant rows containi
 
 TODO SEE: https://stackoverflow.com/a/49826693/658826
 TODO also: https://stackoverflow.com/a/12612255 see arrays, composite types, hstore options
-
-=== Extension attribute types in JSONB
-
-* String, booleans and numbers (whole or floating points) as native JSON types.
-
-* Dates as ISO formatted strings - do we need dates or just date+times?
-What about local vs timezones?
-We probably want to enforce timezones, but is it possible that some dates will have "local date" semantics.
-
-* Polystring TODO as `{"orig": ..., "norm": ...}`?
-
-* References TODO
-
-What are the typical operations on various types?
-
-* Comparing (lt/gt) numbers, dates and even strings (but first two are crucial).
-* LIKE and ignore case comparison.
-* Ordering?
-Do we use it now?
-Do we need it?
-
-Is policy situation related or not?
 
 === GIN indexes
 
