@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
@@ -2146,13 +2145,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     private <C extends Containerable> void assertContainerFullObject(byte[] rowFullObject, C sObject) throws Exception {
-        byte[] serializeSObject = prismContext
-                .serializerFor(repositoryConfiguration.getFullObjectFormat())
-                .options(SerializationOptions
-                        .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true)
-                        .skipTransient(true))
-                .serialize(sObject.asPrismContainerValue())
+        byte[] serializeSObject = serializeFullObject(sObject)
                 .getBytes(StandardCharsets.UTF_8);
         assertThat(rowFullObject).isEqualTo(serializeSObject);
     }

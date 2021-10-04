@@ -518,6 +518,17 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return options.build();
     }
 
+    @NotNull
+    protected <C extends Containerable> String serializeFullObject(C containerable) throws SchemaException {
+        return prismContext.serializerFor(repositoryConfiguration.getFullObjectFormat())
+                .options(SerializationOptions
+                        .createSerializeReferenceNamesForNullOids()
+                        .skipIndexOnly(true)
+                        .skipTransient(true)
+                        .skipWhitespaces(true))
+                .serialize(containerable.asPrismContainerValue());
+    }
+
     /**
      * Helper to make setting shadow attributes easier.
      *
