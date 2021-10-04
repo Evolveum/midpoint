@@ -595,17 +595,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    @Deprecated // Remove in 4.4 (or sooner?)
-    public RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        // TODO: check for user membership in an organization (later versions)
-
-        OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
-        return resolvePolicyTypeFromSecurityPolicy(SecurityPolicyType.F_REGISTRATION, user, task,
-                result);
-    }
-
-    @Override
     public RegistrationsPolicyType getFlowPolicy(PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // TODO: check for user membership in an organization (later versions)

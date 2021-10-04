@@ -44,6 +44,14 @@
                 Please note that this NOT contain authorization and auditing. Authorization is
                 defined in roles (see RoleType) and auditing has a separate configuration.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:registration</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use self-registration flow instead.</a:comment>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AssignmentHolderType">
@@ -51,14 +59,6 @@
                     <xsd:element name="authentication" type="tns:AuthenticationsPolicyType" minOccurs="0">
                     </xsd:element>
                     <xsd:element name="credentials" type="tns:CredentialsPolicyType" minOccurs="0">
-                    </xsd:element>
-                    <xsd:element name="registration" type="tns:RegistrationsPolicyType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="flow" type="tns:RegistrationsPolicyType" minOccurs="0">
                         <xsd:annotation>

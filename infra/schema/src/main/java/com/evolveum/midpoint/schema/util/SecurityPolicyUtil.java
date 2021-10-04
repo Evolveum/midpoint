@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -269,16 +269,6 @@ public class SecurityPolicyUtil {
             selfRegistrationPolicy = flowPolicy.getSelfRegistration();
         }
 
-        if (selfRegistrationPolicy != null) {
-            return selfRegistrationPolicy;
-        }
-
-        RegistrationsPolicyType registrationPolicy = securityPolicyType.getRegistration();
-
-        if (registrationPolicy == null) {
-            return null;
-        }
-
-        return registrationPolicy.getSelfRegistration();
+        return selfRegistrationPolicy;
     }
 }

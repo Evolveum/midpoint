@@ -143,10 +143,6 @@ public class PageLogin extends AbstractPageLogin {
                     Task task = createAnonymousTask(OPERATION_LOAD_REGISTRATION_POLICY);
                     registrationPolicies = getModelInteractionService().getFlowPolicy(null, task, parentResult);
 
-                    if (registrationPolicies == null || registrationPolicies.getSelfRegistration() == null) {
-                        registrationPolicies = getModelInteractionService().getRegistrationPolicy(null, task, parentResult);
-                    }
-
                 } catch (CommonException e) {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }

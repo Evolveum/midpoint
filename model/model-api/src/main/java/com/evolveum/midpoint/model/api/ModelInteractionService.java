@@ -222,20 +222,6 @@ public interface ModelInteractionService {
     /**
      * Returns a policy for registration, e.g. type of the supported registrations (self, social,...)
      *
-     * @param user user for who the policy should apply
-     * @param task
-     * @param parentResult
-     * @return applicable credentials policy or null
-     * @throws ObjectNotFoundException No system configuration or other major system inconsistency
-     * @throws SchemaException Wrong schema or content of security policy
-     */
-    @Deprecated
-    // Remove in 4.4 (or sooner?)
-    RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
-
-    /**
-     * Returns a policy for registration, e.g. type of the supported registrations (self, social,...)
-     *
      * @param focus focus for who the policy should apply
      * @param task
      * @param parentResult
