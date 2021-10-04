@@ -127,6 +127,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         importObjectFromFile(RESOURCE_DUMMY_NOJARS_FILE, initResult);
 
         repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+        repoAddObjectFromFile(SECURITY_POLICY_BENEVOLENT_FILE, initResult);
         repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
 
         // Accounts
