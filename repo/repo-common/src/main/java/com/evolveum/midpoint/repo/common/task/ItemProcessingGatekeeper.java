@@ -516,32 +516,33 @@ class ItemProcessingGatekeeper<I> {
 
     /**
      * Increments the progress and gives a task a chance to update its statistics.
+     *
+     * TODO The statistics should be updated not only when item processing is finished - in cases when
+     *  the item processing takes too long. See MID-7280.
      */
     private void updateStatisticsInTasks(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        // The structured progress is maintained only in the coordinator task
         activityExecution.incrementProgress(processingResult.outcome);
 
         if (activityExecution.isMultithreaded()) {
             assert workerTask.isTransient();
 
-            // In lightweight subtasks we store legacy progress and operational statistics.
-            // We DO NOT store activity progress there.
+            // Lightweight subtasks: we store legacy progress and operational statistics in them.
+            // Obviously, we DO NOT store activity progress nor activity-level statistics here.
             workerTask.incrementLegacyProgressTransient();
             workerTask.updateStatisticsInTaskPrism(true);
 
-            // In coordinator we have to update the statistics in prism:
+            // Coordinator task: We need to update activity statistics
             // operation stats, structured progress, and progress itself
             coordinatorTask.updateStatisticsInTaskPrism(false);
-
         } else {
-
-            // Structured progress is incremented. Now we simply update all the stats in the coordinator task.
+            // The progress is incremented. Now we simply update all the stats in the coordinator task.
             coordinatorTask.updateStatisticsInTaskPrism(true);
-
         }
 
         // If needed, let us write current statistics into the repository.
         // There is no need to do this for worker task, because it is either the same as the coordinator, or it's a LAT.
+        // Note that using modifyObjectDynamically would be perhaps better, but the current use of last update timestamp
+        // ensures that there will not be concurrent updates of the coordinator coming from its worker threads.
         boolean updated = coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(getActivityStatUpdater(), result);
         if (updated) {
             activityExecution.updateItemProgressInTreeOverviewIfTimePassed(result);

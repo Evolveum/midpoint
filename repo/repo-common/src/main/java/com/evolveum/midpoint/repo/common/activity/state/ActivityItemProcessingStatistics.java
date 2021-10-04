@@ -112,6 +112,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
         List<ProcessedItemType> currentList = value.getCurrent();
         currentList.add(processedItem);
         LOGGER.trace("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), startInfo);
+
         return new OperationImpl(startInfo, processedItem);
     }
 
