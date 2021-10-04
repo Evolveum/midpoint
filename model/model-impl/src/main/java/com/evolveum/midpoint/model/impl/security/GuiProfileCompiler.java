@@ -202,7 +202,6 @@ public class GuiProfileCompiler {
             composite.setDisplayFormats(adminGuiConfiguration.getDisplayFormats().clone());
         }
 
-        applyViews(composite, adminGuiConfiguration.getObjectLists(), task, result); // Compatibility, deprecated
         applyViews(composite, adminGuiConfiguration.getObjectCollectionViews(), task, result);
 
         if (adminGuiConfiguration.getObjectForms() != null) {
@@ -308,8 +307,10 @@ public class GuiProfileCompiler {
             MiscSchemaUtil.mergeDisplay(configurableUserDashboard.getDisplay(), dashboardType.getDisplay());
             compiledDashboard.setDisplayType(configurableUserDashboard.getDisplay());
 
-            // Visibility, temporary while visibility is supported in DashboardType
-            UserInterfaceElementVisibilityType visibility = mergeVisibility(configurableUserDashboard.getVisibility(), dashboardType.getVisibility(), UserInterfaceElementVisibilityType.AUTOMATIC);
+            UserInterfaceElementVisibilityType visibility = configurableUserDashboard.getVisibility();
+            if (visibility == null) {
+                visibility = UserInterfaceElementVisibilityType.AUTOMATIC;
+            }
             compiledDashboard.setVisibility(visibility);
 
             composit.getConfigurableDashboards().add(compiledDashboard);
@@ -331,10 +332,6 @@ public class GuiProfileCompiler {
                 composite.setDefaultObjectCollectionView(new CompiledObjectCollectionView());
             }
             compileView(composite.getDefaultObjectCollectionView(), viewsType.getDefault(), task, result);
-        }
-
-        for (GuiObjectListViewType objectCollectionView : viewsType.getObjectList()) { // Compatibility, legacy
-            applyView(composite, objectCollectionView, task, result);
         }
 
         for (GuiObjectListViewType objectCollectionView : viewsType.getObjectCollectionView()) {
@@ -413,13 +410,7 @@ public class GuiProfileCompiler {
             ExpressionEvaluationException, ObjectNotFoundException {
         CollectionRefSpecificationType collectionSpec = objectListViewType.getCollection();
         if (collectionSpec == null) {
-            ObjectReferenceType collectionRef = objectListViewType.getCollectionRef();
-            if (collectionRef == null) {
-                return;
-            }
-            // Legacy, deprecated
-            collectionSpec = new CollectionRefSpecificationType();
-            collectionSpec.setCollectionRef(collectionRef.clone());
+            return;
         }
         if (existingView.getCollection() != null) {
             LOGGER.debug("Redefining collection in view {}", existingView.getViewIdentifier());

@@ -509,9 +509,6 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         if (layerLimitationsType.getMaxOccurs() != null) {
             limitations.setMaxOccurs(DefinitionUtil.parseMultiplicity(layerLimitationsType.getMaxOccurs()));
         }
-        if (layerLimitationsType.isIgnore() != null) {
-            limitations.setProcessing(ItemProcessing.IGNORE);
-        }
         if (layerLimitationsType.getProcessing() != null) {
             limitations.setProcessing(MiscSchemaUtil.toItemProcessing(layerLimitationsType.getProcessing()));
         }
@@ -551,9 +548,6 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         }
         if (limitationsType.getProcessing() != null) {
             return limitationsType.getProcessing() == ItemProcessingType.IGNORE;
-        }
-        if (limitationsType.isIgnore() != null) {
-            return limitationsType.isIgnore();
         }
         return false;
     }

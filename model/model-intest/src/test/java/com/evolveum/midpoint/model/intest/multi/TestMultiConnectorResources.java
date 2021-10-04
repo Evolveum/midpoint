@@ -53,6 +53,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         dummyResourceCollection.initDummyResource(RESOURCE_DUMMY_OPALINE_SCRIPT_NAME, opalineScriptController);
 
         repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+        repoAddObjectFromFile(SECURITY_POLICY_BENEVOLENT_FILE, initResult);
         repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
 
         repoAddObjectFromFile(USER_JACK_FILE, true, initResult);

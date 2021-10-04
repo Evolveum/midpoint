@@ -107,6 +107,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     protected static final File PASSWORD_POLICY_MAVERICK_FILE = new File(TEST_DIR, "password-policy-maverick.xml");
     protected static final String PASSWORD_POLICY_MAVERICK_OID = "b26d2bd4-ff83-11e7-94b3-8fa7a87aac6c";
 
+    protected static final File SECURITY_POLICY_UGLY_FILE = new File(TEST_DIR, "security-policy-ugly.xml");
+    protected static final String SECURITY_POLICY_UGLY_OID = "cfb3fa9e-eeee-eeee-eeee-dbebaacaf4ee";
+
+    protected static final File SECURITY_POLICY_MAVERICK_FILE = new File(TEST_DIR, "security-policy-maverick.xml");
+    protected static final String SECURITY_POLICY_MAVERICK_OID = "b26d2bd4-eeee-eeee-eeee-8fa7a87aac6c";
+
     protected static final File SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE = new File(TEST_DIR, "security-policy-default-storage-hashing.xml");
     protected static final String SECURITY_POLICY_DEFAULT_STORAGE_HASHING_OID = "0ea3b93c-0425-11e7-bbc1-73566dc53d59";
 
@@ -144,6 +150,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         super.initSystem(initTask, initResult);
 
         importObjectFromFile(PASSWORD_POLICY_UGLY_FILE);
+        importObjectFromFile(SECURITY_POLICY_UGLY_FILE);
         importObjectFromFile(SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE);
         importObjectFromFile(SECURITY_POLICY_PASSWORD_STORAGE_NONE_FILE);
 
@@ -158,6 +165,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
 
         importObjectFromFile(PASSWORD_POLICY_MAVERICK_FILE);
+        importObjectFromFile(SECURITY_POLICY_MAVERICK_FILE);
         initDummyResourcePirate(RESOURCE_DUMMY_MAVERICK_NAME, RESOURCE_DUMMY_MAVERICK_FILE, RESOURCE_DUMMY_MAVERICK_OID, initTask, initResult);
 
         login(USER_ADMINISTRATOR_USERNAME);

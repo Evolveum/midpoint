@@ -367,7 +367,7 @@ public class OpNode {
             case MINOR: return ".";
             default: return "?";
             }
-        } else return Boolean.TRUE.equals(result.isMinor()) ? "." : "o";
+        } else return "o";
     }
 
     public LensContextType getContextToView() {

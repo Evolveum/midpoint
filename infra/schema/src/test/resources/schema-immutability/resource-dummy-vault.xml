@@ -174,9 +174,6 @@
             </attribute>
             <attribute>
                 <ref>ri:water</ref>
-                <limitations>
-                    <ignore>true</ignore>
-                </limitations>
                 <outbound>
                     <!-- Make sure this mapping is really ignored -->
                     <expression>

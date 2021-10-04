@@ -513,7 +513,7 @@
          <attribute>
             <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:water</c:ref>
             <limitations>
-               <ignore>true</ignore>
+               <processing>ignore</processing>
             </limitations>
             <outbound>
                <expression>

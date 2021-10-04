@@ -138,7 +138,7 @@
             <attribute>
                 <ref>ri:water</ref>
                 <limitations>
-                    <ignore>true</ignore>
+                    <processing>ignore</processing>
                 </limitations>
                 <outbound>
                     <!-- Make sure this mapping is really ignored -->

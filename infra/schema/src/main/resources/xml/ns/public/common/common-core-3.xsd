@@ -3452,6 +3452,13 @@
                 provides a combination of several functions (e.g.
                 both provisioning and authoritative data for some attributes).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:namespace</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
@@ -5522,6 +5529,13 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:ignore</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="layer" type="tns:LayerType" minOccurs="0" maxOccurs="unbounded">
@@ -5544,17 +5558,6 @@
                     <xsd:documentation>
                         Override of schema maxOccurs specification.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:ignore" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED. Use "processing" element instead.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="processing" type="tns:ItemProcessingType" minOccurs="0" default="auto">
@@ -5863,6 +5866,12 @@
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaMigration>
+                    <a:element>tns:passwordPolicyRef</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                    <a:comment>Use securityPolicyRef in objectType element (ResourceObjectTypeDefinitionType) instead.</a:comment>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5895,23 +5904,6 @@
                         The "target" part of the assignment is implicitly set to user's password, therefore it may be
                         omitted.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Reference to the account type password policy settings.
-                        </p>
-                        <p>
-                            DEPRECATED: use securityPolicyRef in objectType element instead.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="caching" type="tns:CachingPolicyType" minOccurs="0" maxOccurs="1">
@@ -13632,6 +13624,13 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:minor</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="operation" type="xsd:string" minOccurs="0"/>
@@ -13668,15 +13667,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="minor" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.0</a:deprecatedSince>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -15398,6 +15388,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaMigration>
+                    <a:element>tns:subresultStripThreshold</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -15430,27 +15425,6 @@
                     <xsd:appinfo>
                         <a:since>3.8</a:since>
                         <a:displayName>InternalsConfigurationType.polyStringNormalizer</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="subresultStripThreshold" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When aggregation of the same subresults (same operation and status) is to be applied,
-                        during operation result "summarize" operation.
-                        (Default: 10.)
-
-                        TEMPORARY/EXPERIMENTAL. We plan to provide more elaborate operation result aggregation strategies.
-                        This is just a quick way how to reduce large operation results for some deployments.
-
-                        DEPRECATED. Use operationResultHandlingStrategy instead.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:experimental>true</a:experimental>
-                        <a:displayName>InternalsConfigurationType.subresultStripThreshold</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.0</a:deprecatedSince>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -21164,18 +21138,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
-    <xsd:element name="reportOutput" type="tns:ReportDataType" substitutionGroup="c:object">
-        <xsd:annotation>
-            <xsd:documentation>
-                DEPRECATED. Used only for compatibility back when there was an ReportOutputType.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:deprecated>true</a:deprecated>
-                <a:plannedRemoval>4.4</a:plannedRemoval>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
 
     <xsd:element name="reportData" type="tns:ReportDataType" substitutionGroup="c:object"/>
 

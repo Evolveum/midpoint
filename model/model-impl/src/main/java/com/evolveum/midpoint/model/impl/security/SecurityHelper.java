@@ -181,8 +181,8 @@ public class SecurityHelper implements ModelAuditRecorder {
         LOGGER.trace("locateProjectionSecurityPolicy starting");
         ObjectReferenceType securityPolicyRef = structuralObjectClassDefinition.getSecurityPolicyRef();
         if (securityPolicyRef == null || securityPolicyRef.getOid() == null) {
-            LOGGER.trace("Security policy not defined for the structural object class, trying legacy password policy.");
-            return loadProjectionLegacyPasswordPolicy(structuralObjectClassDefinition, task, result);
+            LOGGER.trace("Security policy not defined for the structural object class.");
+            return null;
         }
         LOGGER.trace("Loading security policy {} from: {}", securityPolicyRef, structuralObjectClassDefinition);
         // TODO Use read-only option. (But deal with the fact that we modify the returned object...)
@@ -194,29 +194,6 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
         postProcessSecurityPolicy(securityPolicy, task, result);
         return securityPolicy;
-    }
-
-    private SecurityPolicyType loadProjectionLegacyPasswordPolicy(RefinedObjectClassDefinition structuralObjectClassDefinition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ObjectReferenceType passwordPolicyRef = structuralObjectClassDefinition.getPasswordPolicy();
-        if (passwordPolicyRef == null || passwordPolicyRef.getOid() == null) {
-            LOGGER.trace("Legacy password policy not defined for the projection context.");
-            return null;
-        }
-        LOGGER.trace("Loading legacy password policy {} from: {}", passwordPolicyRef, structuralObjectClassDefinition);
-        ValuePolicyType passwordPolicy = objectResolver.resolve(passwordPolicyRef,
-                ValuePolicyType.class, null, " projection legacy password policy ", task, result);
-        if (passwordPolicy == null) {
-            LOGGER.debug("Legacy password policy {} defined for the projection does not exist", passwordPolicyRef);
-            return null;
-        }
-        ObjectReferenceType dummyPasswordPolicyRef = new ObjectReferenceType();
-        dummyPasswordPolicyRef.asReferenceValue().setObject(passwordPolicy.asPrismObject());
-        PrismObject<SecurityPolicyType> securityPolicy = prismContext.createObject(SecurityPolicyType.class);
-        securityPolicy.asObjectable()
-                .beginCredentials()
-                .beginPassword()
-                .valuePolicyRef(dummyPasswordPolicyRef);
-        return securityPolicy.asObjectable();
     }
 
     private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> focus,

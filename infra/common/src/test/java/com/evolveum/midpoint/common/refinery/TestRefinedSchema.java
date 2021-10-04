@@ -93,11 +93,11 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertNotNull("Refined schema is null", rSchema);
         System.out.println("Refined schema");
         System.out.println(rSchema.debugDump());
-        assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL, true, true);
+        assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL, true);
 
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA, true, true);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL, true, true);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.PRESENTATION, true, true);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA, true);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL, true);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.PRESENTATION, true);
 
         RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String) null);
         RefinedAttributeDefinition userPasswordAttribute = rAccount.findAttributeDefinition("userPassword");
@@ -106,11 +106,11 @@ public class TestRefinedSchema extends AbstractUnitTest {
     }
 
     private void assertLayerRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, LayerType sourceLayer,
-            LayerType validationLayer, boolean assertEntitlements, boolean assertPasswordPolicy) {
+            LayerType validationLayer, boolean assertEntitlements) {
         System.out.println("Refined schema: layer=" + sourceLayer);
         LayerRefinedResourceSchema lrSchema = rSchema.forLayer(sourceLayer);
         System.out.println(lrSchema.debugDump());
-        assertRefinedSchema(resourceType, lrSchema, sourceLayer, validationLayer, assertEntitlements, assertPasswordPolicy);
+        assertRefinedSchema(resourceType, lrSchema, sourceLayer, validationLayer, assertEntitlements);
     }
 
     @Test
@@ -129,12 +129,12 @@ public class TestRefinedSchema extends AbstractUnitTest {
         System.out.println("Refined schema");
         System.out.println(rSchema.debugDump());
 
-        assertRefinedSchema(resourceType, rSchema, null, LayerType.SCHEMA, false, false);
+        assertRefinedSchema(resourceType, rSchema, null, LayerType.SCHEMA, false);
 
     }
 
     private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema,
-            LayerType sourceLayer, LayerType validationLayer, boolean assertEntitlements, boolean assertPasswordPolicy) {
+            LayerType sourceLayer, LayerType validationLayer, boolean assertEntitlements) {
 
         assertEquals("Unexpected number of object classes in refined schema", 2, rSchema.getDefinitions().size());
 
@@ -179,11 +179,6 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertNotNull("Null propertyDefinitions", propertyDefinitions);
         assertFalse("Empty propertyDefinitions", propertyDefinitions.isEmpty());
         assertEquals("Unexpected number of propertyDefinitions", 55, propertyDefinitions.size());
-
-        if (assertPasswordPolicy) {
-            ObjectReferenceType passwordPolicyRef = rAccountDef.getPasswordPolicy();
-            assertNotNull("Expected password policy for account definition not found", passwordPolicyRef);
-        }
 
         if (assertEntitlements) {
             assertFalse("No entitlement definitions", rSchema.getRefinedDefinitions(ShadowKindType.ENTITLEMENT).isEmpty());

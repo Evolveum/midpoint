@@ -186,7 +186,7 @@
         }, {
           "ref" : "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance-3'; ri:water",
           "limitations" : [ {
-            "ignore" : true
+            "processing" : "ignore"
           } ],
           "outbound" : {
             "expression" : {

@@ -202,10 +202,9 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
         try {
             if (configuration != null && configuration.getInternals() != null) {
                 OperationResult.applyOperationResultHandlingStrategy(
-                        configuration.getInternals().getOperationResultHandlingStrategy(),
-                        configuration.getInternals().getSubresultStripThreshold());
+                        configuration.getInternals().getOperationResultHandlingStrategy());
             } else {
-                OperationResult.applyOperationResultHandlingStrategy(Collections.emptyList(), null);
+                OperationResult.applyOperationResultHandlingStrategy(Collections.emptyList());
             }
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER,
