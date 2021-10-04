@@ -205,10 +205,10 @@
                             <asIs/>
                         </expression>
                     </outbound>
-                    <passwordPolicyRef oid="b26d2bd4-ff83-11e7-94b3-8fa7a87aac6c" type="ValuePolicyType"/>
                 </password>
             </credentials>
 
+            <securityPolicyRef oid="b26d2bd4-eeee-eeee-eeee-8fa7a87aac6c"/>
         </objectType>
 
     </schemaHandling>

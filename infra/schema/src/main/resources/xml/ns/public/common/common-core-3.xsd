@@ -5870,6 +5870,7 @@
                     <a:element>tns:passwordPolicyRef</a:element>
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
+                    <a:comment>Use securityPolicyRef in objectType element (ResourceObjectTypeDefinitionType) instead.</a:comment>
                 </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
