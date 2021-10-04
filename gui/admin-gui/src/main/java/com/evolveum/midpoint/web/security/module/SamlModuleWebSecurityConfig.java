@@ -12,25 +12,40 @@ import static org.springframework.security.saml.util.StringUtils.stripEndingSlas
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import javax.servlet.Filter;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
+
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
+
+import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.saml.SamlAuthentication;
 import org.springframework.security.saml.SamlRequestMatcher;
 import org.springframework.security.saml.provider.SamlProviderLogoutFilter;
 import org.springframework.security.saml.provider.SamlServerConfiguration;
 import org.springframework.security.saml.provider.provisioning.SamlProviderProvisioning;
 import org.springframework.security.saml.provider.service.ServiceProviderService;
 import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
+import org.springframework.security.saml.spi.DefaultSamlAuthentication;
 import org.springframework.security.saml.spi.SpringSecuritySaml;
 import org.springframework.security.saml.spi.opensaml.OpenSamlImplementation;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -56,6 +71,7 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfig.class);
+    public static final String SAML_LOGIN_PATH = "/saml2/select";
 
     @Autowired
     private ModelAuditRecorder auditProvider;
@@ -75,8 +91,17 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
         http.csrf().disable();
 
-        getOrApply(http, new MidpointExceptionHandlingConfigurer())
-                .authenticationEntryPoint(new SamlAuthenticationEntryPoint("/saml2/select"));
+        MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
+            @Override
+            protected Authentication createNewAuthentication(AnonymousAuthenticationToken anonymousAuthenticationToken) {
+                if (anonymousAuthenticationToken.getDetails() instanceof SamlAuthentication) {
+                    return (SamlAuthentication) anonymousAuthenticationToken.getDetails();
+                }
+                return null;
+            }
+        };
+        getOrApply(http, exceptionConfigurer)
+                .authenticationEntryPoint(new SamlAuthenticationEntryPoint(SAML_LOGIN_PATH));
 
         http.addFilterAfter(
                 getBeanConfiguration().samlConfigurationFilter(),
@@ -104,10 +129,32 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         return beanConfiguration;
     }
 
-    private class MidpointSamlProviderServerBeanConfiguration extends SamlServiceProviderServerBeanConfiguration {
+    @Override
+    protected AnonymousAuthenticationFilter createAnonymousFilter() {
+        AnonymousAuthenticationFilter filter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, prismContext,
+                UUID.randomUUID().toString(), "anonymousUser",
+                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")){
+            @Override
+            protected void processAuthentication(ServletRequest req) {
+                if (SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication) {
+                    MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+                    ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+                    if (moduleAuthentication != null
+                            && (moduleAuthentication.getAuthentication() == null
+                                || moduleAuthentication.getAuthentication() instanceof SamlAuthentication)) {
+                        Authentication authentication = createBasicAuthentication((HttpServletRequest) req);
+                        moduleAuthentication.setAuthentication(authentication);
+                        mpAuthentication.setPrincipal(authentication.getPrincipal());
+                    }
+                }
+            }
+        };
 
-//        @Autowired
-//        private AuditedLogoutHandler auditedLogoutHandler;
+        filter.setAuthenticationDetailsSource(new SamlAuthenticationDetailsSource());
+        return filter;
+    }
+
+    private class MidpointSamlProviderServerBeanConfiguration extends SamlServiceProviderServerBeanConfiguration {
 
         private final SamlModuleWebSecurityConfiguration configuration;
 
@@ -195,6 +242,23 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
                 }
                 return authentication;
             }
+        }
+    }
+
+    private class SamlAuthenticationDetailsSource implements AuthenticationDetailsSource<HttpServletRequest, Object> {
+
+        private final WebAuthenticationDetailsSource detailsSource = new WebAuthenticationDetailsSource();
+
+        @Override
+        public Object buildDetails(HttpServletRequest context) {
+            if (SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication) {
+                MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+                ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+                if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof SamlAuthentication) {
+                    return moduleAuthentication.getAuthentication();
+                }
+            }
+            return detailsSource.buildDetails(context);
         }
     }
 }

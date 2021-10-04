@@ -27,6 +27,10 @@ public interface Referencable {
 
     String getOid();
 
+    static String getOid(Referencable referencable) {
+        return referencable != null ? referencable.getOid() : null;
+    }
+
     QName getType();
 
     PolyStringType getTargetName();

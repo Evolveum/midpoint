@@ -238,6 +238,11 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>com.evolveum.midpoint</groupId>

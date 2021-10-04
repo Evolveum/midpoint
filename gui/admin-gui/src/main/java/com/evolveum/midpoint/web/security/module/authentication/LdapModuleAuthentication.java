@@ -28,6 +28,7 @@ public class LdapModuleAuthentication extends ModuleAuthentication {
     public ModuleAuthentication clone() {
         LdapModuleAuthentication module = new LdapModuleAuthentication();
         module.setNamingAttribute(this.namingAttribute);
+        module.setAuthentication(this.getAuthentication());
         clone(module);
         return module;
     }

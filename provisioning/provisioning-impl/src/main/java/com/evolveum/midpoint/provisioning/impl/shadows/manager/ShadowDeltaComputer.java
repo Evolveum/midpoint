@@ -229,7 +229,7 @@ public class ShadowDeltaComputer {
                     }
                 }
             }
-            incompleteCacheableAttributes.clear();          // So we are OK regarding this. We can update caching timestamp.
+            incompleteCacheableAttributes.clear(); // So we are OK regarding this. We can update caching timestamp.
         }
     }
 

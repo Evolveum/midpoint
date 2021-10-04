@@ -47,6 +47,7 @@ public interface ResourceAttributeContainer extends PrismContainer<ShadowAttribu
                 }
                 attributesContainer.add(attribute);
                 attribute.applyDefinition(attributeDefinition);
+                attribute.setIncomplete(item.isIncomplete());
             } else {
                 throw new SchemaException("Cannot process item of type "+item.getClass().getSimpleName()+", attributes can only be properties");
             }

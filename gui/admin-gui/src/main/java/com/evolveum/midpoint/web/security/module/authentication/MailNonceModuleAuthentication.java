@@ -21,6 +21,7 @@ public class MailNonceModuleAuthentication extends CredentialModuleAuthenticatio
 
     public ModuleAuthentication clone() {
         MailNonceModuleAuthentication module = new MailNonceModuleAuthentication();
+        module.setAuthentication(this.getAuthentication());
         super.clone(module);
         return module;
     }

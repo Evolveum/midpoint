@@ -13,6 +13,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.web.security.module.SamlModuleWebSecurityConfig;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,9 +43,13 @@ public class SamlAuthenticationEntryPoint extends WicketLoginUrlAuthenticationEn
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication instanceof Saml2ModuleAuthentication) {
                 providers = ((Saml2ModuleAuthentication) moduleAuthentication).getProviders();
-                if (providers.size() == 1
-                        && request.getSession().getAttribute("SPRING_SECURITY_LAST_EXCEPTION") == null) {
-                    response.sendRedirect(providers.get(0).getRedirectLink());
+                if (request.getSession().getAttribute("SPRING_SECURITY_LAST_EXCEPTION") == null) {
+                    if (providers.size() == 1) {
+                        response.sendRedirect(providers.get(0).getRedirectLink());
+                        return;
+                    }
+                } else if (SamlModuleWebSecurityConfig.SAML_LOGIN_PATH.equals(request.getServletPath())
+                        && StateOfModule.LOGIN_PROCESSING.equals(moduleAuthentication.getState())) {
                     return;
                 }
             }

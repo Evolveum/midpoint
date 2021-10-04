@@ -16,10 +16,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.Channel;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,8 +36,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.SUPERPATH;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
 
 /**
  * @author semancik
@@ -271,7 +272,7 @@ public class OperationalDataManager {
         if (task.getOwnerRef() != null) {
             metaData.setCreatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
         }
-        metaData.setCreateTaskRef(task.getOid() != null ? task.getSelfReference() : null);
+        metaData.setCreateTaskRef(createRootTaskRef(task));
     }
 
     private <F extends ObjectType> void applyCreateApprovalMetadata(LensContext<F> context, MetadataType metadata) {
@@ -306,8 +307,8 @@ public class OperationalDataManager {
                 .item(metadataPath.append(MetadataType.F_MODIFY_TIMESTAMP)).replace(now)
                 .item(metadataPath.append(MetadataType.F_MODIFIER_REF))
                     .replace(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()))
-                .item(metadataPath.append(MetadataType.F_MODIFY_TASK_REF)).replaceRealValues(
-                        task.getOid() != null ? singleton(task.getSelfReference()) : emptySet())
+                .item(metadataPath.append(MetadataType.F_MODIFY_TASK_REF))
+                    .replace(createRootTaskRef(task))
                 .asItemDeltas());
         if (existingMetadata != null) {
             createMigrationDelta(existingMetadata, metadataPath, objectType, deltas);
@@ -323,6 +324,22 @@ public class OperationalDataManager {
                     prismContext.deltaFor(objectType)
                             .item(metadataPath.append(MetadataType.F_CREATE_CHANNEL)).replace(migration.getNewUri())
                             .asItemDelta());
+        }
+    }
+
+    /**
+     * Returns a reference suitable for use as create/modifyTaskRef: a reference to the root of the task tree.
+     *
+     * (We assume that if the task is a part of a task tree, it is always a {@link RunningTask}.)
+     */
+    private static @Nullable ObjectReferenceType createRootTaskRef(@NotNull Task task) {
+        if (task instanceof RunningTask) {
+            return ObjectTypeUtil.createObjectRef(((RunningTask) task).getRootTaskOid(), ObjectTypes.TASK);
+        } else if (task.isPersistent()) {
+            // Actually this should not occur in real life. If a task is persistent, it should be a RunningTask.
+            return task.getSelfReference();
+        } else {
+            return null;
         }
     }
 }

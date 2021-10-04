@@ -17,6 +17,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.constants.Channel;
 
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -62,6 +63,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     protected static final String USER_PASSWORD_1_CLEAR = "d3adM3nT3llN0Tal3s";
     protected static final String USER_PASSWORD_2_CLEAR = "bl4ckP3arl";
     protected static final String USER_PASSWORD_3_CLEAR = "wh3r3sTheRum?";
+    private static final String USER_PASSWORD_3A_CLEAR = "wh3r3sTheRum!!";
     protected static final String USER_PASSWORD_4_CLEAR = "sh1v3rM3T1mb3rs";
     protected static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
     protected static final String USER_PASSWORD_AA_CLEAR = "AA"; // too short
@@ -117,6 +119,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
     protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
     protected static final String USER_RAPP_EMAIL = "rapp.scallion@evolveum.com";
+
+    private static final TestResource<TaskType> TASK_CHANGE_JACK_ACCOUNT_PASSWORD = new TestResource<>(TEST_DIR, "task-change-jack-account-password.xml", "442f8d91-4f1c-4651-b6c6-65b5aa3ab1d4");
 
     public static final String PASSWORD_HELLO_WORLD = "H3ll0w0rld";
 
@@ -479,11 +483,55 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     }
 
     /**
+     * Changing shadow password from the task. Checking taskRef being correctly set.
+     *
+     * MID-7179
+     */
+    @Test
+    public void test112ModifyAccountJackPasswordInBackground() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        prepareTest();
+
+        when();
+        addObject(TASK_CHANGE_JACK_ACCOUNT_PASSWORD, task, result);
+        waitForTaskCloseOrSuspend(TASK_CHANGE_JACK_ACCOUNT_PASSWORD.oid);
+
+        then();
+        assertTask(TASK_CHANGE_JACK_ACCOUNT_PASSWORD.oid, "after")
+                .assertClosed()
+                .assertSuccess();
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack, "Jack Sparrow");
+
+        // User should still have old password
+        assertUserPassword(userJack, USER_PASSWORD_2_CLEAR);
+        // Account has new password
+        assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_3A_CLEAR);
+
+        assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+
+        assertUser(userJack.getOid(), "after")
+                .links()
+                    .singleLive()
+                        .resolveTarget()
+                            .display("shadow after")
+                            .passwordMetadata()
+                                .assertModifyTaskOid(TASK_CHANGE_JACK_ACCOUNT_PASSWORD.oid);
+
+        assertSingleAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_3A_CLEAR);
+        assertNoUserPasswordNotifications();
+    }
+
+    /**
      * Modify both user and account password. As password outbound mapping is weak the user should have its own password
      * and account should have its own password.
      */
     @Test
-    public void test112ModifyJackPasswordUserAndAccount() throws Exception {
+    public void test115ModifyJackPasswordUserAndAccount() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1391,7 +1439,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // THEN
         then();
-        assertSuccess(result);;
+        assertSuccess(result);
     }
 
     @Test
