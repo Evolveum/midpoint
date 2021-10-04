@@ -158,7 +158,8 @@ class RolesConfiguration {
         VelocityGenerator.generate(TECHNICAL_ROLE_TEMPLATE_FILE, generated,
                 mapOf("oid", oid,
                         "index", String.format("%04d", index),
-                        "resourceOid", resourceOid));
+                        "resourceOid", resourceOid,
+                        "metarole", memberOfComputation));
 
         return fileName;
     }
