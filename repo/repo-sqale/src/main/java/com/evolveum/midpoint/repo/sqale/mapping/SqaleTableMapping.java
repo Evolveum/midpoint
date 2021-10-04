@@ -500,7 +500,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
                         .skipIndexOnly(true)
-                        .skipTransient(true))
+                        .skipTransient(true)
+                        .skipWhitespaces(true))
                 .serialize(container.asPrismContainerValue())
                 .getBytes(StandardCharsets.UTF_8);
     }

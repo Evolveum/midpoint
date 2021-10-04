@@ -27,7 +27,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -98,7 +97,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1").asPrismObject(),
                 null, result);
-        // This also indirectly tests ability to create an minimal object (mandatory fields only).
+        // This also indirectly tests ability to create a minimal object (mandatory fields only).
         accessCertificationCampaign1Oid = repositoryService.addObject(
                 new AccessCertificationCampaignType(prismContext)
                         .name("campaign-1")
@@ -2914,12 +2913,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         // Make sure caseBefore contains also container id, otherwise serialization will be different
         caseBefore.setId(aRow.cid);
-        String caseBeforeStr = prismContext.serializerFor(repositoryConfiguration.getFullObjectFormat())
-                .options(SerializationOptions
-                        .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true)
-                        .skipTransient(true))
-                .serialize(caseBefore.asPrismContainerValue());
+        String caseBeforeStr = serializeFullObject(caseBefore);
         assertThat(fullObjectStr).isEqualTo(caseBeforeStr);
     }
 
