@@ -22,14 +22,19 @@ Therefore all that is needed to run midPoint is to download it, unpack it and st
 MidPoint server process will start up.
 It will listen on HTTP port 8080.
 
+[NOTE]
+The distribution archive contains a single directory (e.g. `midpoint-4.4`) which is safe to rename after unpacking.
+This directory is referred to as *midPoint installation directory* or simply *installation directory*.
+This is distinct from link:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
+or `midpoint.home`, which contains runtime configuration, logs, etc.
+
 Please have a look at the xref:/midpoint/quickstart/[] page for basic installation instruction for the purposes of midPoint evaluation or demo.
-See wiki:Installing+MidPoint+Server[Installing MidPoint Server] page for full installation instructions.
+See link:/midpoint/install/distribution/[Installing MidPoint Server] page for full installation instructions.
 
 == Run Control
 
 MidPoint distribution package provides convenient scripts to start and stop midPoint service.
-Those scripts are locate in the `bin` directory.
-
+Those scripts are located in the `bin` directory.
 
 === Linux (UNIX)
 
@@ -57,7 +62,7 @@ bin/midpoint.sh stop
 ----
 
 The `midpoint.sh` script may provide more run control and diagnostics capabilities in the future.
-
+See also link:/midpoint/install/midpoint-sh/[midpoint.sh page].
 
 === Windows
 
@@ -73,10 +78,9 @@ bin\start.bat
 bin\stop.bat
 ----
 
-
 == Installation Directory
 
-The entire midPoint system lives inside the installation directory unless it is configured otherwise.
+The entire midPoint system lives inside the *installation directory* unless it is configured otherwise.
 Therefore the choice of installation directory is important.
 Those are recommended locations for midPoint installation directory:
 
@@ -93,7 +97,6 @@ Those are recommended locations for midPoint installation directory:
 
 
 |===
-
 
 === Installation Directory Layout
 
@@ -126,9 +129,10 @@ The compiled files are platform-independent.
 
 
 | `var`
-| Default wiki:MidPoint+Home+Directory[midPoint home directory]. Initial configuration, cryptographic keys, log files and similar "variable" content.
+| Default link:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory], also known as `midpoint.home`.
+Initial configuration, cryptographic keys, log files and similar "variable" content.
 | Read-write
-| See wiki:MidPoint+Home+Directory[MidPoint Home Directory].
+| See link:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory].
 
 
 |
@@ -144,17 +148,15 @@ Those files may be removed if not needed.
 The "Access" column specifies what access to the directory is needed by midPoint itself.
 This information can be used to set up proper file system permission, e.g. in case of system hardening.
 
-
 == MidPoint Repository (Database)
 
 MidPoint comes with an embedded database engine (H2) that is perfectly suitable for testing and demo installations.
 This database will be used by midPoint after the installation.
 Therefore there is no need to set up a separate database if installing midPoint for the first time.
-The database files will be stored in wiki:MidPoint+Home+Directory[midPoint home directory].
+The database files will be stored in link:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
 
 The database can later be changed to a full-scale database engine.
-The wiki:Repository+Configuration[Repository Configuration] page provides the instructions.
-
+The link:/midpoint/reference/repository/configuration/[Repository Configuration] page provides the instructions.
 
 == Java Memory Setting and Other Options
 
@@ -181,5 +183,5 @@ However, it is deprecated, and it may be removed soon.
 == See Also
 
 * xref:/midpoint/quickstart/[]
-
 * xref:/midpoint/install/[]
+* link:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory]
