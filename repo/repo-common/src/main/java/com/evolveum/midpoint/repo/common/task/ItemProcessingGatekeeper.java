@@ -520,7 +520,6 @@ class ItemProcessingGatekeeper<I> {
     private void updateStatisticsInTasks(OperationResult result) throws SchemaException, ObjectNotFoundException {
         // The structured progress is maintained only in the coordinator task
         activityExecution.incrementProgress(processingResult.outcome);
-        //coordinatorTask.incrementStructuredProgress(activityExecution.activityIdentifier, processingResult.outcome);
 
         if (activityExecution.isMultithreaded()) {
             assert workerTask.isTransient();

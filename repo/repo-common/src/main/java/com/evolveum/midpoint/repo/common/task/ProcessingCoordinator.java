@@ -217,7 +217,6 @@ public class ProcessingCoordinator<I> {
                     } finally {
                         requestsBuffer.markProcessed(request, taskIdentifier);
                         treatOperationResultAfterOperation();
-                        workerTask.setLegacyProgress(workerTask.getLegacyProgress() + 1);
                     }
                 } else {
                     if (allItemsSubmitted.get()) {
