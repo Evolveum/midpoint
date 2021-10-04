@@ -9,7 +9,7 @@
 
 MidPoint logging is usually configured using the administration GUI.
 This logging configuration is stored in the midPoint repository (database) so it can only be
-applied after basic system infrastructure and wiki:Repository+Subsystem[repository subsystem] is initialized.
+applied after basic system infrastructure and link:/midpoint/architecture/archive/subsystems/repo/[repository subsystem] is initialized.
 Many events are logged before that happens and these are logged using built-in logging configuration.
 
 This initial logging setup may be insufficient for troubleshooting purposes,
@@ -148,3 +148,5 @@ Sensitive values in logs are protected in all supported 4.x versions, but the ov
 == See Also
 
 * xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory]
+* link:/midpoint/reference/diag/logging/[Logging]
+* link:/midpoint/reference/deployment/syslog-logging/[Syslog Logging]
