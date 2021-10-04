@@ -32,13 +32,13 @@ The original state is a clustered midpoint, node 1. The setup is as follows:
 | /opt/tomcat/start.sh
 
 | Start script JVM settings
-| CATALINA\_OPTS="-Xms256m -Xmx2g-Dmidpoint.home=/opt/tomcat/midpoint.home-Dmidpoint.nodeId=Tomcat\_Node1 -Dcom.sun.management.jmxremote=true-Dcom.sun.management.jmxremote.port=20001-Dcom.sun.management.jmxremote.ssl=false-Dcom.sun.management.jmxremote.password.file=/opt/tomcat/midpoint.home/jmxremote.password-Dcom.sun.management.jmxremote.access.file=/opt/tomcat/midpoint.home/jmxremote.access"
+| CATALINA_OPTS="-Xms256m -Xmx2g-Dmidpoint.home=/opt/tomcat/midpoint.home-Dmidpoint.nodeId=Tomcat_Node1 -Dcom.sun.management.jmxremote=true-Dcom.sun.management.jmxremote.port=20001-Dcom.sun.management.jmxremote.ssl=false-Dcom.sun.management.jmxremote.password.file=/opt/tomcat/midpoint.home/jmxremote.password-Dcom.sun.management.jmxremote.access.file=/opt/tomcat/midpoint.home/jmxremote.access"
 
 | Stop script
 | /opt/tomcat/shutdown.sh
 
 | Shutdown script JVM settings
-| CATALINA\_OPTS="-Xms256m -Xmx2g-Dmidpoint.home=/opt/tomcat/midpoint.home-Dmidpoint.nodeId=Tomcat\_Node1 -Dcom.sun.management.jmxremote=true-Dcom.sun.management.jmxremote.port=20001-Dcom.sun.management.jmxremote.ssl=false-Dcom.sun.management.jmxremote.password.file=/opt/tomcat/midpoint.home/jmxremote.password-Dcom.sun.management.jmxremote.access.file=/opt/tomcat/midpoint.home/jmxremote.access"
+| CATALINA_OPTS="-Xms256m -Xmx2g-Dmidpoint.home=/opt/tomcat/midpoint.home-Dmidpoint.nodeId=Tomcat_Node1 -Dcom.sun.management.jmxremote=true-Dcom.sun.management.jmxremote.port=20001-Dcom.sun.management.jmxremote.ssl=false-Dcom.sun.management.jmxremote.password.file=/opt/tomcat/midpoint.home/jmxremote.password-Dcom.sun.management.jmxremote.access.file=/opt/tomcat/midpoint.home/jmxremote.access"
 
 |===
 
@@ -104,7 +104,7 @@ If everything works, use the same steps for migrating your node 2.
 [TIP]
 ====
 The `midpoint.sh` file may be updated with the newer midPoint release.
-As it also contains your own customizations (e.g. JAVA\_OPTS), be sure to backup the `midpoint.sh` before uncompressing midPoint upgrade to the same directory, and then merge your changes back.
+As it also contains your own customizations (e.g. JAVA_OPTS), be sure to backup the `midpoint.sh` before uncompressing midPoint upgrade to the same directory, and then merge your changes back.
 In the future there should be another script for such customizations that would not be overwritten by midPoint upgrade, but rather included when starting and stopping midPoint.
 
 Since midPoint 3.9 it is possible to place your customizations to "bin/setenv.sh" (or "bin/setenv.bat") script to avoid modification of `midpoint.sh`. For example:

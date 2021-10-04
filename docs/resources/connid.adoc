@@ -43,7 +43,8 @@ TODO .. in the meantime see wiki:Resource+and+Connector+Schema+Explanation[Resou
 === NAME and UID
 
 There are two peculiarities when it comes to ICF resource schema design.
-ICF mandates that all resource objects *must* have two special attributes: `__NAME__` and `__UID__`. We do not like the underscores and therefore we refer to them as ICF NAME and ICF UID.
+ICF mandates that all resource objects *must* have two special attributes: `pass:[__NAME__]` and `pass:[__UID__]`.
+We do not like the underscores and therefore we refer to them as ICF NAME and ICF UID.
 Their meaning is as follows:
 
 [%autowidth,cols="h,1,1,1,1,1"]
@@ -57,7 +58,7 @@ It is the name of the object that humans usually care about.
 | create
 | username,  +
  LDAP DN
-| `__NAME__`
+| `pass:[__NAME__]`
 | `icfs:name`
 
 
@@ -71,7 +72,7 @@ This is the identifier of an object that machines usually care about.
 | Entry UUID, +
  auto-generated ID column, +
  record number
-| `__UID__`
+| `pass:[__UID__]`
 | `icfs:uid`
 
 

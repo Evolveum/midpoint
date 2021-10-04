@@ -145,7 +145,7 @@ _Resource Object Definition_ is mean to be synonym for _Object Class_ in some of
 
 Following XSD snippet provides an example of object class definition.
 The example shows how LDAP `person` object class could be presented in the resource schema.
-The example shows a schema presented by ICF connector, therefore some attributes are mangled into tha ICF mandatory format (e.g. LDAP DN is mangled into ICF `__NAME__` which is presented in the resource schema as `icfs:name`). See wiki:ICF+Issues[ICF Issues].
+The example shows a schema presented by ICF connector, therefore some attributes are mangled into tha ICF mandatory format (e.g. LDAP DN is mangled into ICF `pass:[__NAME__]` which is presented in the resource schema as `icfs:name`). See wiki:ICF+Issues[ICF Issues].
 
 .Object Class Example
 [source,xml]

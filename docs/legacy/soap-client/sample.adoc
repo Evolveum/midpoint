@@ -150,7 +150,7 @@ Just edit few source files:
 | OIDs of roles used in the sample
 | `12345678-d34d-b33f-f00d-987987987988`(Pirate), `12345678-d34d-b33f-f00d-987987cccccc`(Captain)
 | `src/main/java/com/evolveum/midpoint/testing/model/client/sample/Main.java`
-| constants ROLE\_PIRATE\_OID, ROLE\_CAPTAIN\_OID
+| constants ROLE_PIRATE_OID, ROLE_CAPTAIN_OID
 
 
 |===

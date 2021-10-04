@@ -112,15 +112,15 @@ Each handler start/stop is sent as a standalone event.
 
 | Run result status
 | Result of the handler execution, driving what will be done with the task.
-Can have values of PERMANENT\_ERROR, TEMPORARY\_ERROR, FINISHED, FINISHED\_HANDLER, INTERRUPTED, RESTART\_REQUESTED.
+Can have values of PERMANENT_ERROR, TEMPORARY_ERROR, FINISHED, FINISHED_HANDLER, INTERRUPTED, RESTART_REQUESTED.
 (TODO - more information)
 | Can be tested with isPermanentError(), isTemporaryError(), isFinished(), isInterrupted(), isRestartRequested() event methods.
 |
 
 | Status
 | Status as stored in the task's operation result.
-Can have values of SUCCESS, HANDLED\_ERROR, WARNING, PARTIAL\_ERROR, FATAL\_ERROR, IN\_PROGRESS, NOT\_APPLICABLE.
-| Can be tested with <status> filter, or with isSuccess() - corresponds to SUCESS, HANDLED\_ERROR, WARNING, isOnlyFailure() - corresponds to FATAL\_ERROR, isFailure() - corresponds to PARTIAL\_ERROR or FATAL\_ERROR.
+Can have values of SUCCESS, HANDLED_ERROR, WARNING, PARTIAL_ERROR, FATAL_ERROR, IN_PROGRESS, NOT_APPLICABLE.
+| Can be tested with <status> filter, or with isSuccess() - corresponds to SUCESS, HANDLED_ERROR, WARNING, isOnlyFailure() - corresponds to FATAL_ERROR, isFailure() - corresponds to PARTIAL_ERROR or FATAL_ERROR.
 |
 
 | Message

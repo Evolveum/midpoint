@@ -21,7 +21,7 @@ In this example we are using:
 
 * Apache 2
 
-* mod\_auth\_openidc 2.2.x
+* mod_auth_openidc 2.2.x
 
 
 
@@ -39,11 +39,11 @@ First version of the Howto document contributed by Dario Tongue
 Firstly please make sure that you have Apache Tomcat and midPoint installed and working properly. Also install Apache with rewrite, proxy and proxy_http modules and configure them to work with Apache Tomcat and midPoint. There steps can be found in this previous how to.
 
 Next configure Apache with SSL.
-And install the mod\_auth\_openidc module onto Apache and configure it properly so it will work with your OpenID Connect Provider.
+And install the mod_auth_openidc module onto Apache and configure it properly so it will work with your OpenID Connect Provider.
 For more details follow the link:https://gluu.org/docs/ce/latest/integration/openidc-rp/[following how to].
 
-The claim user\_name of our OpenID Connect Provider (Gluu in our case) matches midPoint user "name".
-This also means that one of the scopes of your client mod\_auth\_openidc defined on your OpenID Connect Provider contains the claim user\_name.
+The claim user_name of our OpenID Connect Provider (Gluu in our case) matches midPoint user "name".
+This also means that one of the scopes of your client mod_auth_openidc defined on your OpenID Connect Provider contains the claim user_name.
 
 
 == Apache configuration

@@ -94,7 +94,7 @@ This is how `project-users` archetype looks like:
 First of all, a link type of `parent` is defined.
 It denotes the parent org of any "users" sub-org.
 
-The mapping that follows derives sub-org name from the name of the parent by suffixing it by "\_users" text.
+The mapping that follows derives sub-org name from the name of the parent by suffixing it by "_users" text.
 Nothing special here.
 
 The archetype of `project-groups` looks exactly the same.

@@ -485,11 +485,11 @@ This has a slightly different meaning depending on the event category:
 
 
 
-(\*) The result is either SUCCESS, WARNING, or NOT\_APPLICABLE.
+(*) The result is either SUCCESS, WARNING, or NOT_APPLICABLE.
 
-(\**) The result is either FATAL\_ERROR, PARTIAL\_ERROR or NOT\_APPLICABLE.
+(**) The result is either FATAL_ERROR, PARTIAL_ERROR or NOT_APPLICABLE.
 
-(\***) The result is IN\_PROGRESS.
+(\***) The result is IN_PROGRESS.
 
 Please note that we take into account only user (i.e. focus) modifications, *not* modifications of user's accounts.
 

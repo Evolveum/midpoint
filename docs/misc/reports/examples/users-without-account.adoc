@@ -84,4 +84,4 @@ We need only report configuration with condition.
 
 ----
 
-Please replace_ '----OID_OF_YOUR_ROLE----'_ with oid of your role and '----OID\_OF\_YOUR\_RESOURCE----' with oid of your resource.
+Please replace_ '----OID_OF_YOUR_ROLE----'_ with oid of your role and '----OID_OF_YOUR_RESOURCE----' with oid of your resource.

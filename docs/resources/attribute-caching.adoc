@@ -59,7 +59,7 @@ It specifies maximum age of the value in millisecods.
 The default value is zero, which means that a fresh value must always be returned.
 This means that caches that do not guarantee fresh value cannot be used.
 If non-zero value is specified then such caches may be used.
-In case that Long.MAX\_VALUE is specified then the caches are always used and fresh value is never retrieved.
+In case that Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
 This option was added in midPoint 3.5.
 
 Both options can be used to get cached data.

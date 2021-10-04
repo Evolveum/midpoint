@@ -71,7 +71,7 @@ In the following decision tables these symbols are used:
 
 "No response" can be represented in the following ways:
 
-* explicit NO\_RESPONSE decision is provided,
+* explicit NO_RESPONSE decision is provided,
 
 * decision with response = null is provided,
 

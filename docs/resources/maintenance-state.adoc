@@ -35,7 +35,7 @@ This is in contrast with OperationalStateType setting of the Resource, which is 
 ----
 
 Operations executed on the resource which is under maintenance do not throw common provisioning errors.
-When change is requested, it's result is IN\_PROGRESS to indicate that pending operation has been saved to the ShadowType.
+When change is requested, it's result is IN_PROGRESS to indicate that pending operation has been saved to the ShadowType.
 When no change is requested or pending delta is propagated to operational resource, SUCCESS result is returned.
 
 

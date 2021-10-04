@@ -92,7 +92,7 @@ Object classes are defined by the wiki:Resource+Schema[Resource Schema] and are 
 MidPoint has a very little control over object classes.
 The object classes define a _reality_, what types of objects the resource _can_ handle.
 Object classes can reflect the real object class defined by the resource such as `inetOrgPerson` LDAP object class.
-Or the object classes can be "virtual" and introduced by the connector such as ConnId `__ACCOUNT__` object class (which is presented in midPoint as `ri:AccountObjectClass`).
+Or the object classes can be "virtual" and introduced by the connector such as ConnId `pass:[__ACCOUNT__]` object class (which is presented in midPoint as `ri:AccountObjectClass`).
 
 _Object class_ is an term used by midPoint connectors.
 Therefore object class definition is passed to the connector.
@@ -158,7 +158,7 @@ It may (and usually should) have a very different outbound mappings when compare
 | default
 | ri:AccountObjectClass
 | Just a simple CSV file account.
-The CSV connector does not have a concept of object classes therefore the connector defines only a single virtual  "\__ACCOUNT\__" ConnId object class.
+The CSV connector does not have a concept of object classes therefore the connector defines only a single virtual  "pass:[__ACCOUNT__]" ConnId object class.
 
 
 | LDAP group

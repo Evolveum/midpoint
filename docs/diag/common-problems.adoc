@@ -55,7 +55,7 @@ For example you are using value of some user attributes in the password.
 
 
 
-* Security violation: org.identityconnectors.framework.common.exceptions.PermissionDeniedException(Error modifying LDAP entry ...) unwillingToPerform: 0000052D: SvcErr: DSID-031A12D2, problem 5003 (WILL\_NOT\_PERFORM), data 0?? (53)).
+* Security violation: org.identityconnectors.framework.common.exceptions.PermissionDeniedException(Error modifying LDAP entry ...) unwillingToPerform: 0000052D: SvcErr: DSID-031A12D2, problem 5003 (WILL_NOT_PERFORM), data 0?? (53)).
 
 ** User is trying to use his/her name/surname/loginname as part of the password.
 bug:MID-1657[]

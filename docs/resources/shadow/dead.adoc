@@ -57,7 +57,7 @@ This is used mostly to detect uniqueness conflicts (to "reserve" identifiers)
 | false
 | active
 | Requested operation (ADD) +
-Status: EXECUTION\_PENDING or EXECUTING
+Status: EXECUTION_PENDING or EXECUTING
 | ADD operation "open" (executing)
 | Not present +
 (but being created)
@@ -108,7 +108,7 @@ No controversies.
 | true
 | active
 | Requested operation (DELETE) +
-Status: EXECUTION\_PENDING or EXECUTING
+Status: EXECUTION_PENDING or EXECUTING
 | DELETE operation "open" (executing)
 | Present +
 (but being deleted)

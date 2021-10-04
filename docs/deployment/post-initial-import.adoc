@@ -9,7 +9,7 @@
 :page-upkeep-status: orange
 
 Post-initial import works in a similar manner to initial data import.
-Post-initial import imports files and executes bulk action scrips from MP\_HOME/post-initial-objects directory.
+Post-initial import imports files and executes bulk action scrips from MP_HOME/post-initial-objects directory.
 If the directory does not exist after starting of Midpoint, it will be created.
 
 The suffix`_._done` is appended to the name of each file after importing/executing.

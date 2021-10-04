@@ -122,7 +122,7 @@ The number-of-objects estimation works since v3.0.1devel-765-gb7a0f58 (December 
 It does not support this kind of search for objects retrieved using PowerShell (all other Exchange-related object classes).
 
 . The sorting key must be indexed in AD.
-For example, icfs:name (a.k.a. `pass:[__NAME__]` a.k.a. distinguishedName) is not, neither is ad\_container attribute.
+For example, icfs:name (a.k.a. `pass:[__NAME__]` a.k.a. distinguishedName) is not, neither is ad_container attribute.
 Among attributes that are indexed by default are cn and sn.
 The cn attribute is used by the connector if no sorting key is specified.
 

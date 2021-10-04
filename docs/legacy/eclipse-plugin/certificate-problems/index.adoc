@@ -30,7 +30,7 @@ Steps:
 image::image2016-9-3-0-15-58.png[]
 
 
-. Go to the directory of _<java home>/lib/security_ (c:\program files\java\jre1.8.0\_102\lib\security in this case) and enter the following command:
+. Go to the directory of _<java home>/lib/security_ (c:\program files\java\jre1.8.0_102\lib\security in this case) and enter the following command:
 
 [source]
 ----

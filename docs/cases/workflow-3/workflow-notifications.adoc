@@ -71,7 +71,9 @@ The variable might be null if the object does not exist yet.
 
 | (all)
 | status
-| SUCCESS = result is 'approved' (you can use also isApproved() method to determine this)FAILURE = result is 'rejected' (also isRejected() method)IN\_PROGRESS = result is not yet known (you can also use isResultKnown() to determine this)
+| SUCCESS = result is 'approved' (you can use also isApproved() method to determine this) +
+FAILURE = result is 'rejected' (also isRejected() method) +
+IN_PROGRESS = result is not yet known (you can also use isResultKnown() to determine this)
 |
 
 

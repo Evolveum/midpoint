@@ -406,7 +406,7 @@ The mapping is smart enough to take care of handling multiple values of the prop
 A new empty role object is created in memory.
 Then the `populateItem` expressions are used to fill in this object.
 Please note how the `responsibility` value is used to construct a name of the new role.
-The "R\_" prefix is used to avoid collistion with other roles in the system.
+The `R_` prefix is used to avoid collistion with other roles in the system.
 
 ... When the role is populated then midPoint calls itself internally to store the new object in the repository. +
 
@@ -443,7 +443,7 @@ The user now has a full name and two assignments: +
 
 ... Assignement of the "Basic User" role.
 
-... Assignement of new "R\_canibalism" role.
+... Assignement of new "R_canibalism" role.
 
 
 
@@ -462,12 +462,12 @@ There in `orgpath` value therefore a default DN with "ou=people" is used instead
 
 
 
-.. The "R\_canibalism" role is processed.
+.. The "R_canibalism" role is processed.
 The role itself only contains assignment to the meta-role.
 This would normally be ignored at this stage because the role already has a projection.
 But in this case there is a second-order inducement in the meta-role.
 This means that the inducement is not applied to the meta-role (as all inducements) and it is also not applied to the role.
-It goes "one level deeper" than usual and the inducement is applied to the user which has the "R\_canibalism" role.
+It goes "one level deeper" than usual and the inducement is applied to the user which has the "R_canibalism" role.
 This is our case.
 
 .. The second-order inducement includes an interesting expression: wiki:Expression[associationFromLink expression]. This kind of expression is used to associate the user account (which is still to be created) and the entitlement which is linked to the role (it is a projection of the role).

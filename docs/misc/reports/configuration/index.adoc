@@ -202,7 +202,7 @@ To remove names of fields on all report pages except the 1st page in CSV report 
 
 <columnHeader> +
              <band height="24" splitType="Stretch"> +
-                         <printWhenExpression><![CDATA[$V{PAGE\_NUMBER}==1]]></printWhenExpression>  +
+                         <printWhenExpression><![CDATA[$V{PAGE_NUMBER}==1]]></printWhenExpression>  +
                          <frame> +
                                  <reportElement style="Column header" mode="Transparent" x="0" y="1" width="1000" height="19" isRemoveLineWhenBlank="true" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/> +
                                  <staticText> +

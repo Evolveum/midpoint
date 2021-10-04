@@ -439,10 +439,10 @@ _AuthenticationModuleSaml2ServiceProviderType_ contains following configuration 
 
 | `defaultSigningAlgorithm`
 | Default signing algorithm.
-Possible values are RSA\_SHA1, RSA\_SHA256, RSA\_SHA512 and RSA\_RIPEMD160.
+Possible values are RSA_SHA1, RSA_SHA256, RSA_SHA512 and RSA_RIPEMD160.
 | false
 | _enum_
-| RSA\_SHA256
+| RSA_SHA256
 
 
 | `defaultDigest`
@@ -476,7 +476,7 @@ possible values are  SHA1, SHA256, SHA512 and RIPEMD160.
 
 | `nameId`
 | Name identifiers to be included in the metadata.
-Supported values are: EMAIL, TRANSIENT, PERSISTENT, UNSPECIFIED and X509\_SUBJECT.
+Supported values are: EMAIL, TRANSIENT, PERSISTENT, UNSPECIFIED and X509_SUBJECT.
 Order of NameIDs in the property determines order of NameIDs in the generated metadata.
 | false
 | _enum_

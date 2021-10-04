@@ -175,7 +175,7 @@ However, when running in clustered mode, there is no default, and this property 
 | This is the port on which JMX agent will listen.
 It *must be specified* for clustered mode, because JMX is used to query status of individual nodes and to manage them (start/stop scheduler, stop tasks on that node).
 And, if you test a clustering/failover configuration (more midPoint nodes) on a single machine, be sure to set this parameter to *different* values for individual midPoint nodes.
-Otherwise, you will get "link:http://java.net[java.net].BindException: Address already in use: JVM\_Bind" exception on tomcat startup.
+Otherwise, you will get "link:http://java.net[java.net].BindException: Address already in use: JVM_Bind" exception on tomcat startup.
 
 
 | com.sun.management.jmxremote.ssl

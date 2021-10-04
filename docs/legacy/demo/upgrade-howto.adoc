@@ -94,7 +94,7 @@ Set up settings, especially motherboard base memory with 2048 MB. +
         </tomcat-users> +
     sudo service tomcat7 restart +
  +
-    Also file setenv.sh with content (CATALINA\_OUT=/var/log/tomcat7/catalina.out) has to be created via command: sudo vim /usr/share/tomcat7/bin/setenv.sh +
+    Also file setenv.sh with content (CATALINA_OUT=/var/log/tomcat7/catalina.out) has to be created via command: sudo vim /usr/share/tomcat7/bin/setenv.sh +
  +
     At last check in browser connection via: link:http://localhost:8080[http://localhost:8080] +
  +
@@ -130,7 +130,7 @@ Once installed, you can access the manager webapp and the host-manager webapp en
     sudo mkdir /opt/midpoint-home +
     sudo chown link:http://tomcat7tomcat7[tomcat7:tomcat7] /opt/midpoint-home +
  +
-    Add JAVA\_OPTS="$JAVA\_OPTS -server -Xms256m -Xmx1024m -XX:PermSize=128m -XX:MaxPermSize=256m -Dmidpoint.home=/opt/midpoint-home/" into catalina.sh file via command: +
+    Add JAVA_OPTS="$JAVA_OPTS -server -Xms256m -Xmx1024m -XX:PermSize=128m -XX:MaxPermSize=256m -Dmidpoint.home=/opt/midpoint-home/" into catalina.sh file via command: +
     sudo vim /usr/share/tomcat7/bin/catalina.sh +
  +
     Copy midpoint.war in tomcat7 via command: +
@@ -172,7 +172,7 @@ Once installed, you can access the manager webapp and the host-manager webapp en
 . *Create postgreSQL database.* Check:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[]    Example for create a database: ubuntu@ubuntu-i386:/$ sudo -u postgres createdb --owner=midpoint midpoint        Example to execute the script to create database: ubuntu@ubuntu-i386:/$ psql --host=localhost --username=midpoint -d midpoint < /midpoint-2.3-SNAPSHOT/config/sql/midpoint/2.3/postgresql/postgresql-2.3.sql        Check if database was created correctly:    ubuntu@ubuntu-i386:/$ sudo su - postgres    postgres@ubuntu-i386:~$ psql -U postgres    postgres=# \l +
     \=================================================================================================================================================================
 
-. *Download, unzip and copy Java Cryptography Extension (JCE)* version 6, 7, 8 local\_policy.jar and US\_export\_policy.jar files into /usr/lib/jvm/java.../jre/lib/security file located in midpoint VM. +
+. *Download, unzip and copy Java Cryptography Extension (JCE)* version 6, 7, 8 local_policy.jar and US_export_policy.jar files into /usr/lib/jvm/java.../jre/lib/security file located in midpoint VM. +
     \=================================================================================================================================================================
 
 . *Download and install KeyStore Explorer 5.0* in order to* combine default and strong key* from midpoint's 2.2.1 keystore.jceks (located in var/opt/midpoint) with midpoint's 3.0 keystore.jceks default key (located in /opt/midpoint-home). +
@@ -203,18 +203,18 @@ Exact path is demanded.
 
 . In order to run Addressbook resource *create database addressbook* with table people.
  +
-    You can also import file addressbook.sql from VM Demo2.2.1 (postgres@electra:~$ pg\_dump adddressbook > /tmp/addressbook.sql) into postgres database (via WinSCP) VM Demo3. +
-    Following command for table people creation is also possible to use:    addressbook=# create table people (first\_name CHARACTER VARYING(100),last\_name CHARACTER VARYING(100) NOT NULL,tel\_number CHARACTER VARYING(32),fax\_number CHARACTER VARYING(32),office\_id CHARACTER VARYING(32),floor integer,street\_address CHARACTER VARYING(100),city CHARACTER VARYING(100),country CHARACTER VARYING(100),postal\_code CHARACTER VARYING(16),validity boolean, created timestamp without time zone,modified timestamp without time zone,username CHARACTER VARYING(64),password CHARACTER VARYING(64)); +
+    You can also import file addressbook.sql from VM Demo2.2.1 (postgres@electra:~$ pg_dump adddressbook > /tmp/addressbook.sql) into postgres database (via WinSCP) VM Demo3. +
+    Following command for table people creation is also possible to use:    addressbook=# create table people (first_name CHARACTER VARYING(100),last_name CHARACTER VARYING(100) NOT NULL,tel_number CHARACTER VARYING(32),fax_number CHARACTER VARYING(32),office_id CHARACTER VARYING(32),floor integer,street_address CHARACTER VARYING(100),city CHARACTER VARYING(100),country CHARACTER VARYING(100),postal_code CHARACTER VARYING(16),validity boolean, created timestamp without time zone,modified timestamp without time zone,username CHARACTER VARYING(64),password CHARACTER VARYING(64)); +
     \=================================================================================================================================================================
 
-. *Insert values in table people*. Command is following (or import file addressbook-schema.sql):    addressbook=# insert into people (first\_name,last\_name,tel\_number,office\_id,city,validity,username,password) values ('Raffaello','Sanzio da Urbino',+3968887777,'Employee','Rome','t','raphael','dS0eE');    addressbook=# insert into people (first\_name,last\_name,tel\_number,office\_id,city,validity,username,password) values ('Leonardo','da Vinci',+3968687797,'Employee','Florentine','t','leonardo','NZ6i1');    addressbook=# insert into people (first\_name,last\_name,tel\_number,office\_id,city,validity,username,password) values ('Michelangelo','di Lodovico Buonarroti Simoni',+3968587707,'Contractor','Rome','t','michelangelo','l3xps'); +
+. *Insert values in table people*. Command is following (or import file addressbook-schema.sql):    addressbook=# insert into people (first_name,last_name,tel_number,office_id,city,validity,username,password) values ('Raffaello','Sanzio da Urbino',+3968887777,'Employee','Rome','t','raphael','dS0eE');    addressbook=# insert into people (first_name,last_name,tel_number,office_id,city,validity,username,password) values ('Leonardo','da Vinci',+3968687797,'Employee','Florentine','t','leonardo','NZ6i1');    addressbook=# insert into people (first_name,last_name,tel_number,office_id,city,validity,username,password) values ('Michelangelo','di Lodovico Buonarroti Simoni',+3968587707,'Contractor','Rome','t','michelangelo','l3xps'); +
     \=================================================================================================================================================================
 
 . *Set up user addressbook* in postgres database (based on Addressbook postgre resource XML schema user addressbook).
 Command is following:    addressbook=# create user addressbook with password 'secret';    addressbook=# grant all privileges on database addressbook to addressbook;    addressbook=# grant all on table people to addressbook; +
     \=================================================================================================================================================================
 
-. *Import file hr.sql* from VM Demo2.2.1 (postgres@electra:~$ pg\_dump hr > /tmp/hr.sql) into postgres database (via WinSCP) VM Demo3 and set up user hr in postgre database: +
+. *Import file hr.sql* from VM Demo2.2.1 (postgres@electra:~$ pg_dump hr > /tmp/hr.sql) into postgres database (via WinSCP) VM Demo3 and set up user hr in postgre database: +
     sudo -u postgres createuser --pwprompt --no-superuser --no-createdb --no-createrole hr    Create database:    sudo -u postgres createdb --owner=hr hr    psql --host=localhost --username=hr < /home/ubuntu/hr.sql +
     \=================================================================================================================================================================
 
@@ -228,7 +228,7 @@ Command is following:    addressbook=# create user addressbook with password 'se
  +
     And: +
     ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/$] bin/dsconfig create-replication-domain -h 10.0.2.15 -p 4444 -D "cn=directory manager" -w secret -X -n  +
-    --provider-name "Multimaster Synchronization" --set link:http://base-dndc=example,dc=com[base-dn:dc=example,dc=com] --set link:[replication-server:10.0.2.15:8989] --set server-id:3 --type generic --domain-name example\_com +
+    --provider-name "Multimaster Synchronization" --set link:http://base-dndc=example,dc=com[base-dn:dc=example,dc=com] --set link:[replication-server:10.0.2.15:8989] --set server-id:3 --type generic --domain-name example_com +
  +
     And: +
     ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/$] bin/ldapsearch -D cn=directory\ manager -w secret -h 10.0.2.15 -p 1389  +
@@ -271,10 +271,10 @@ Command is following:    addressbook=# create user addressbook with password 'se
     \=================================================================================================================================================================
 
 . *Phpldapadmin configuration.* Check also: link:http://forums.debian.net/viewtopic.php?f=5&t=111508[http://forums.debian.net/viewtopic.php?f=5&t=111508] +
-    At sudo vim /usr/share/phpldapadmin/lib/functions.php lines 2130, 2311, 2320 and sudo vim /usr/share/phpldapadmin/lib/PageRender.php line 289:    replace:    password\_hash    with:        pla\_password\_hash    At sudo vim /usr/share/phpldapadmin/lib/functions.php line 2549 and sudo vim /usr/share/phpldapadmin/lib/ds\_ldap.php line 1120:    replace:     preg\_replace('/\\\([0-9A-Fa-f]{2})/e',"''.chr(hexdec('\\1')).''",$rdn);    with:         preg\_replace\_callback('/\\\([0-9A-Fa-f]{2})/',function(){return "''.chr(hexdec('\\1')).''";},$rdn);    At /usr/share/phpldapadmin/lib/functions.php line 2554 and /usr/share/phpldapadmin/lib/ds\_ldap.php line 1125:    replace:    preg\_replace('/\\\([0-9A-Fa-f]{2})/e',"''.chr(hexdec('\\1')).''",$dn);    with:        preg\_replace\_callback('/\\\([0-9A-Fa-f]{2})/',function(){return "''.chr(hexdec('\\1')).''";},$dn); +
+    At sudo vim /usr/share/phpldapadmin/lib/functions.php lines 2130, 2311, 2320 and sudo vim /usr/share/phpldapadmin/lib/PageRender.php line 289:    replace:    password_hash    with:        pla_password_hash    At sudo vim /usr/share/phpldapadmin/lib/functions.php line 2549 and sudo vim /usr/share/phpldapadmin/lib/ds_ldap.php line 1120:    replace:     preg_replace('/\\\([0-9A-Fa-f]{2})/e',"''.chr(hexdec('\\1')).''",$rdn);    with:         preg_replace_callback('/\\\([0-9A-Fa-f]{2})/',function(){return "''.chr(hexdec('\\1')).''";},$rdn);    At /usr/share/phpldapadmin/lib/functions.php line 2554 and /usr/share/phpldapadmin/lib/ds_ldap.php line 1125:    replace:    preg_replace('/\\\([0-9A-Fa-f]{2})/e',"''.chr(hexdec('\\1')).''",$dn);    with:        preg_replace_callback('/\\\([0-9A-Fa-f]{2})/',function(){return "''.chr(hexdec('\\1')).''";},$dn); +
     \=================================================================================================================================================================
 
-. *Phpldapadmin configuration. *Check also: link:http://forums.debian.net/viewtopic.php?f=5&t=111508[http://forums.debian.net/viewtopic.php?f=5&t=111508]    At sudo vim /etc/phpldapadmin/config.php and /usr/share/phpldapadmin/config/config.php line 161    replace:    //$config->custom->appearance['hide\_template\_warning'] = false;    with:        $config->custom->appearance['hide\_template\_warning'] = true;    At line 194 - 199    replace:    $config->custom->appearance['friendly\_attrs'] = array(                'facsimileTelephoneNumber' => 'Fax',                'gid'                      => 'Group',                'mail'                     => 'Email',                'telephoneNumber'          => 'Telephone',                'uid'                      => 'User Name',                'userPassword'             => 'Password'                );    with:        $config->custom->appearance['friendly\_attrs'] = array(                # 'facsimileTelephoneNumber' => 'Fax',                # 'gid'                      => 'Group',                # 'mail'                     => 'Email',                # 'telephoneNumber'          => 'Telephone',                # 'uid'                      => 'User Name',                # 'userPassword'             => 'Password'                );    At line 286    replace:     $servers->setValue('server','name','My LDAP server');    with:        $servers->setValue('server','name','Leonardo\'s Workshop LDAP Server');    At line 296    replace:     //$servers->setValue('server','port',389);    with:        $servers->setValue('server','port',1389);    At line 318    replace:     $servers->setValue('login','auth\_type','session');    with:        $servers->setValue('login','auth\_type','config');    At line 326    replace:     $servers->setValue('login','bind\_id','cn=admin,dc=example,dc=com');    with:        $servers->setValue('login','bind\_id','uid=phpldapadmin,ou=Administrators,dc=example,dc=com');    At line 332    replace:     //$servers->setValue('login','bind\_pass','secret');    with:        $servers->setValue('login','bind\_pass','secret');    sudo service apache2 reload +
+. *Phpldapadmin configuration. *Check also: link:http://forums.debian.net/viewtopic.php?f=5&t=111508[http://forums.debian.net/viewtopic.php?f=5&t=111508]    At sudo vim /etc/phpldapadmin/config.php and /usr/share/phpldapadmin/config/config.php line 161    replace:    //$config->custom->appearance['hide_template_warning'] = false;    with:        $config->custom->appearance['hide_template_warning'] = true;    At line 194 - 199    replace:    $config->custom->appearance['friendly_attrs'] = array(                'facsimileTelephoneNumber' => 'Fax',                'gid'                      => 'Group',                'mail'                     => 'Email',                'telephoneNumber'          => 'Telephone',                'uid'                      => 'User Name',                'userPassword'             => 'Password'                );    with:        $config->custom->appearance['friendly_attrs'] = array(                # 'facsimileTelephoneNumber' => 'Fax',                # 'gid'                      => 'Group',                # 'mail'                     => 'Email',                # 'telephoneNumber'          => 'Telephone',                # 'uid'                      => 'User Name',                # 'userPassword'             => 'Password'                );    At line 286    replace:     $servers->setValue('server','name','My LDAP server');    with:        $servers->setValue('server','name','Leonardo\'s Workshop LDAP Server');    At line 296    replace:     //$servers->setValue('server','port',389);    with:        $servers->setValue('server','port',1389);    At line 318    replace:     $servers->setValue('login','auth_type','session');    with:        $servers->setValue('login','auth_type','config');    At line 326    replace:     $servers->setValue('login','bind_id','cn=admin,dc=example,dc=com');    with:        $servers->setValue('login','bind_id','uid=phpldapadmin,ou=Administrators,dc=example,dc=com');    At line 332    replace:     //$servers->setValue('login','bind_pass','secret');    with:        $servers->setValue('login','bind_pass','secret');    sudo service apache2 reload +
     \=================================================================================================================================================================
 
 . *Apache2 configuration.* +
@@ -286,9 +286,9 @@ Command is following:    addressbook=# create user addressbook with password 'se
     Modules need to be started via: +
     ubuntu@ubuntu-i386:/$ a2enmod rewrite +
     sudo service apache2 reload +
-    ubuntu@ubuntu-i386:/$ a2enmod proxy\_http +
+    ubuntu@ubuntu-i386:/$ a2enmod proxy_http +
     sudo service apache2 reload +
-    ubuntu@ubuntu-i386:/$ a2enmod authnz\_ldap +
+    ubuntu@ubuntu-i386:/$ a2enmod authnz_ldap +
     sudo service apache2 reload +
  +
     NOTE: exportPhpLdapAdminDemo3.ldif file configuration passwords and passwords in 000-default.conf file has to be identical +

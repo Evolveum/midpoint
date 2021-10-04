@@ -89,7 +89,7 @@ The new configuration properties are summarized below:
 | quoteMode
 | Quote Mode
 | What field should be quoted.
-Allowed values are ALL, MINIMAL, NON\_NUMERIC, NONE.
+Allowed values are ALL, MINIMAL, NON_NUMERIC, NONE.
 
 
 | ignoreEmptyLines
