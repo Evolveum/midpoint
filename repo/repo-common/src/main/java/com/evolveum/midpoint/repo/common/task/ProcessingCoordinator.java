@@ -14,6 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.evolveum.midpoint.task.api.RunningLightweightTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
@@ -83,14 +86,18 @@ public class ProcessingCoordinator<I> {
         }
 
         if (multithreaded) {
+            assert requestsBuffer != null;
             try {
                 while (!requestsBuffer.offer(request)) {
                     if (!canRun()) {
                         recordInterrupted(request, result);
                         request.acknowledge(false, result);
                         return false;
+                    } else {
+                        updateCoordinatorTaskStatistics(request, result);
                     }
                 }
+                updateCoordinatorTaskStatistics(request, result);
             } catch (InterruptedException e) {
                 recordInterrupted(request, result);
                 request.acknowledge(false, result);
@@ -104,6 +111,21 @@ public class ProcessingCoordinator<I> {
         } else {
             // In this case the coordinator task is the worker.
             return request.process(coordinatorTask, result);
+        }
+    }
+
+    /**
+     * This method updates coordinator task statistics. It's here to ensure regular update
+     * even in cases when item processing takes too long, so the update in {@link ItemProcessingGatekeeper}
+     * is not invoked for significant time.
+     */
+    private void updateCoordinatorTaskStatistics(ItemProcessingRequest<I> request, OperationResult result) {
+        IterativeActivityExecution<I, ?, ?, ?> activityExecution = request.getActivityExecution();
+        try {
+            activityExecution.updateStatistics(true, result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't update task statistics for {}", e, activityExecution);
+            // ignoring the exception
         }
     }
 
@@ -217,7 +239,6 @@ public class ProcessingCoordinator<I> {
                     } finally {
                         requestsBuffer.markProcessed(request, taskIdentifier);
                         treatOperationResultAfterOperation();
-                        workerTask.setLegacyProgress(workerTask.getLegacyProgress() + 1);
                     }
                 } else {
                     if (allItemsSubmitted.get()) {

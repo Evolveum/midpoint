@@ -57,16 +57,15 @@ public class SceneItemDto implements Serializable {
 
     public List<SceneItemLineDto> computeLines() {
         List<SceneItemLineDto> rv = new ArrayList<>();
-        int index = 0;
         Collator collator = WebComponentUtil.getCollator();
         if (!isDelta()) {
             for (SceneItemValue itemValue : sceneItem.getNewValues()) {
-                rv.add(new SceneItemLineDto(this, null, itemValue, index++, false));
+                rv.add(new SceneItemLineDto(this, null, itemValue, false));
             }
         } else {
             SceneDeltaItem deltaItem = (SceneDeltaItem) sceneItem;
             for (SceneItemValue itemValue : deltaItem.getUnchangedValues()) {
-                rv.add(new SceneItemLineDto(this, null, itemValue, index++, false));
+                rv.add(new SceneItemLineDto(this, null, itemValue, false));
             }
             List<? extends SceneItemValue> deletedValues = deltaItem.getDeletedValues();
             List<? extends SceneItemValue> addedValues = deltaItem.getAddedValues();
@@ -91,7 +90,7 @@ public class SceneItemDto implements Serializable {
             while (deletedValuesIter.hasNext() || addedValuesIter.hasNext()) {
                 SceneItemValue deletedValue = deletedValuesIter.hasNext() ? deletedValuesIter.next() : null;
                 SceneItemValue addedValue = addedValuesIter.hasNext() ? addedValuesIter.next() : null;
-                rv.add(new SceneItemLineDto(this, deletedValue, addedValue, index++, true));
+                rv.add(new SceneItemLineDto(this, deletedValue, addedValue, true));
             }
         }
         Comparator<? super SceneItemLineDto> comparator =

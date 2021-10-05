@@ -74,7 +74,7 @@ public class TestOperationResult extends AbstractSchemaTest {
                         new OperationResultHandlingStrategyType(prismContext)
                                 .name(LOCAL_1)
                                 .preserveDuringCleanup(MAJOR)
-                ), null);
+                ));
         OperationResult.setThreadLocalHandlingStrategy(LOCAL_1);
 
         root.cleanupResultDeeply();

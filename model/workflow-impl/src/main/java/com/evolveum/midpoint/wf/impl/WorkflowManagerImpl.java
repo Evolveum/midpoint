@@ -16,7 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 
-import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.Operation;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

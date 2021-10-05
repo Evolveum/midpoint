@@ -660,11 +660,6 @@ public class CollectionProcessor {
         if (viewIdentifier != null) {
             return viewIdentifier;
         }
-        String viewName = objectListViewType.getName();
-        if (viewName != null) {
-            // legacy, deprecated
-            return viewName;
-        }
         CollectionRefSpecificationType collection = objectListViewType.getCollection();
         if (collection == null) {
             return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;

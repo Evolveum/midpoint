@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.statistics.*;
@@ -159,6 +158,7 @@ public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskTy
                     .append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
                     .append("\n");
         }
+        sb.append(ActivityProgressAndStatisticsPrinter.print(task));
         if (statistics.getCachingConfiguration() != null) {
             sb.append(LINE);
             sb.append("Caching configuration:\n\n");

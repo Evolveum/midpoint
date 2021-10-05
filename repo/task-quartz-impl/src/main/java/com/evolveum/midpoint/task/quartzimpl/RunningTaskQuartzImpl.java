@@ -37,7 +37,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private static final long DEFAULT_OPERATION_STATS_UPDATE_INTERVAL = 3000L;
 
     private long operationStatsUpdateInterval = DEFAULT_OPERATION_STATS_UPDATE_INTERVAL;
-    private Long lastOperationStatsUpdateTimestamp;
+    private volatile Long lastOperationStatsUpdateTimestamp;
 
     /**
      * Root of the task hierarchy. It is not guaranteed to be current. It is initialized when the task is started.
@@ -176,7 +176,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      * Beware that we hold the lock on async subtasks.
      */
     private void migrateStatisticsFromLightweightSubtasks() {
-        updateOperationalStatsInTaskPrism();
+        updateOperationStatsInTaskPrism();
         statistics.restartCollectingStatisticsFromStoredValues(this, beans.sqlPerformanceMonitorsCollection);
     }
     //endregion
@@ -198,14 +198,14 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public void updateStatisticsInTaskPrism(boolean updateThreadLocalStatistics) {
+    public void updateOperationStatsInTaskPrism(boolean updateThreadLocalStatistics) {
         if (updateThreadLocalStatistics) {
             refreshThreadLocalStatistics();
         }
-        updateOperationalStatsInTaskPrism();
+        updateOperationStatsInTaskPrism();
     }
 
-    private void updateOperationalStatsInTaskPrism() {
+    private void updateOperationStatsInTaskPrism() {
         setOperationStatsTransient(
                 getAggregatedLiveOperationStats());
     }
@@ -213,15 +213,26 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public boolean storeStatisticsIntoRepositoryIfTimePassed(Runnable additionalUpdater, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        if (lastOperationStatsUpdateTimestamp != null &&
-                System.currentTimeMillis() - lastOperationStatsUpdateTimestamp <= operationStatsUpdateInterval) {
+        Long lastUpdateTimestamp = lastOperationStatsUpdateTimestamp;
+        if (lastUpdateTimestamp != null &&
+                System.currentTimeMillis() - lastUpdateTimestamp <= operationStatsUpdateInterval) {
             return false;
         } else {
-            if (additionalUpdater != null) {
-                additionalUpdater.run();
+            // This is a workaround to stop multiple worker threads updating the stats concurrently.
+            // Besides wasting CPU cycles and DB operations, the problem with concurrent updates is that they
+            // may leave the repository in obsolete state (if executed in wrong order because of DB retries).
+            lastOperationStatsUpdateTimestamp = System.currentTimeMillis();
+            try {
+                if (additionalUpdater != null) {
+                    additionalUpdater.run();
+                }
+                storeStatisticsIntoRepository(result);
+                return true;
+            } catch (Throwable t) {
+                // We should try the next time.
+                lastOperationStatsUpdateTimestamp = null;
+                throw t;
             }
-            storeStatisticsIntoRepository(result);
-            return true;
         }
     }
 
@@ -231,6 +242,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getLegacyProgress()));
         addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_EXPECTED_TOTAL, getExpectedTotal()));
         try {
+            LOGGER.trace("Storing statistics into repository: {} pending modifications", getPendingModificationsCount());
             flushPendingModifications(result);
         } catch (ObjectAlreadyExistsException e) {
             throw new SystemException("Unexpected ObjectAlreadyExistsException: " + e.getMessage(), e);
@@ -241,7 +253,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public void updateAndStoreStatisticsIntoRepository(boolean updateThreadLocalStatistics, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        updateStatisticsInTaskPrism(updateThreadLocalStatistics);
+        updateOperationStatsInTaskPrism(updateThreadLocalStatistics);
         storeStatisticsIntoRepository(result);
     }
 
@@ -254,7 +266,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void incrementLegacyProgressAndStoreStatisticsIfTimePassed(OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         incrementLegacyProgressTransient();
-        updateStatisticsInTaskPrism(true);
+        updateOperationStatsInTaskPrism(true);
         storeStatisticsIntoRepositoryIfTimePassed(null, result);
     }
 

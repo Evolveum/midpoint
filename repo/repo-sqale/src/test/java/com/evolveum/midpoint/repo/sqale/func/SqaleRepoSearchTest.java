@@ -78,11 +78,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String shadow1Oid; // shadow with owner
     private String case1Oid; // Closed case, two work items
     private String accCertCampaign1Oid;
+    private String connector1Oid;
+    private String connector2Oid;
 
     // other info used in queries
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
     private final QName relation2 = QName.valueOf("{https://random.org/ns}rel-2");
     private final String resourceOid = UUID.randomUUID().toString();
+    private final String connectorHostOid = UUID.randomUUID().toString();
 
     private ItemDefinition<?> shadowAttributeDefinition;
 
@@ -377,6 +380,26 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                         .iteration(1)))
                         .asPrismObject(),
                 null, result);
+
+        connector1Oid = repositoryService.addObject(
+                new ConnectorType(prismContext)
+                        .name("conn-1")
+                        .connectorBundle("com.connector.package")
+                        .connectorType("ConnectorTypeClass")
+                        .connectorVersion("1.2.3")
+                        .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
+                        .connectorHostRef(connectorHostOid, ConnectorHostType.COMPLEX_TYPE)
+                        .targetSystemType("type1")
+                        .targetSystemType("type2")
+                        .asPrismObject(), null, result);
+        connector2Oid = repositoryService.addObject(
+                new ConnectorType(prismContext)
+                        .name("conn-2")
+                        .connectorBundle("com.connector.package")
+                        .connectorType("ConnectorTypeClass")
+                        .connectorVersion("1.2.3")
+                        .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
+                        .asPrismObject(), null, result);
 
         // objects for OID range tests
         List.of("00000000-1000-0000-0000-000000000000",
@@ -714,6 +737,19 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user1Oid, user3Oid);
     }
 
+    @Test
+    public void test195SearchConnectorByConnectorHostReference() throws SchemaException {
+        searchObjectTest("having specified connector host", ConnectorType.class,
+                f -> f.item(ConnectorType.F_CONNECTOR_HOST_REF).ref(connectorHostOid),
+                connector1Oid);
+    }
+
+    @Test
+    public void test196SearchConnectorByNullConnectorHostReference() throws SchemaException {
+        searchObjectTest("having specified connector host", ConnectorType.class,
+                f -> f.item(ConnectorType.F_CONNECTOR_HOST_REF).isNull(),
+                connector2Oid);
+    }
     // endregion
 
     // region org filter
@@ -1868,6 +1904,7 @@ AND(
     }
     // endregion
 
+    // right-hand path
     @Test
     public void test800SearchUsersWithSimplePath() throws SchemaException {
         searchUsersTest("fullName does not equals fname",
@@ -1883,6 +1920,7 @@ AND(
                 user1Oid, user2Oid, user3Oid, user4Oid);
         // Should fail because right-hand side nesting into multivalue container is not supported
     }
+    // endregion
 
     // region special cases
     @Test

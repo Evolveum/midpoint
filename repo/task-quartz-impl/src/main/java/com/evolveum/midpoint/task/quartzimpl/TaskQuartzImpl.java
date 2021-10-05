@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationStatisticsCollector;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
@@ -386,6 +386,12 @@ public class TaskQuartzImpl implements Task {
         modifyRepository(currentPendingModification, result);
         if (recreateQuartzTrigger) { // just in case there were no pending modifications
             synchronizeWithQuartz(result);
+        }
+    }
+
+    int getPendingModificationsCount() {
+        synchronized (pendingModifications) {
+            return pendingModifications.size();
         }
     }
 
@@ -2259,11 +2265,6 @@ public class TaskQuartzImpl implements Task {
             actionsExecutedCollector.recordActionExecuted(object, objectTypeClass, defaultOid, changeType,
                     channel, exception);
         }
-    }
-
-    @Override
-    public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
-        statistics.resetIterativeTaskInformation(value, collectExecutions);
     }
     //endregion
 

@@ -2437,11 +2437,9 @@ public class OperationResult
     }
 
     public static void applyOperationResultHandlingStrategy(
-            @NotNull List<OperationResultHandlingStrategyType> configuredStrategies, Integer stripThresholdDeprecated) {
+            @NotNull List<OperationResultHandlingStrategyType> configuredStrategies) {
         if (!configuredStrategies.isEmpty()) {
             handlingStrategies = CloneUtil.cloneCollectionMembers(configuredStrategies);
-        } else if (stripThresholdDeprecated != null) {
-            handlingStrategies = singletonList(new OperationResultHandlingStrategyType().subresultStripThreshold(stripThresholdDeprecated));
         } else {
             handlingStrategies = singletonList(DEFAULT_HANDLING_STRATEGY);
         }

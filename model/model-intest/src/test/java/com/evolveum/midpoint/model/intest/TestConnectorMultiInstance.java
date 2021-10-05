@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -60,6 +60,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         initDummyResourcePirate(RESOURCE_DUMMY_BLACK_NAME, RESOURCE_DUMMY_BLACK_FILE, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
 
         repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+        repoAddObjectFromFile(SECURITY_POLICY_BENEVOLENT_FILE, initResult);
         repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
 
         repoAddObjectFromFile(USER_JACK_FILE, true, initResult);

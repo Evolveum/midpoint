@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
+import com.evolveum.midpoint.schema.statistics.ActivityProgressPrinter;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,6 +25,7 @@ import static com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUti
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNullElseGet;
 
 public class ActivityProgressUtil {
 
@@ -134,5 +137,10 @@ public class ActivityProgressUtil {
 
     private static ActivityProgressType getProgress(ActivityStateType state) {
         return state != null ? state.getProgress() : null;
+    }
+
+    public static String format(@Nullable ActivityProgressType progress) {
+        return new ActivityProgressPrinter(requireNonNullElseGet(progress, ActivityProgressType::new), null)
+                .print();
     }
 }

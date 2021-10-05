@@ -24,14 +24,12 @@ public class SceneItemLineDto implements Serializable {
     private final SceneItemDto sceneItemDto;
     private final SceneItemValue sceneItemOldValue;
     private final SceneItemValue sceneItemNewValue;
-    private final int index;
     private final boolean isDelta;
 
-    public SceneItemLineDto(SceneItemDto sceneItemDto, SceneItemValue sceneItemOldValue, SceneItemValue sceneItemNewValue, int index, boolean isDelta) {
+    public SceneItemLineDto(SceneItemDto sceneItemDto, SceneItemValue sceneItemOldValue, SceneItemValue sceneItemNewValue, boolean isDelta) {
         this.sceneItemDto = sceneItemDto;
         this.sceneItemOldValue = sceneItemOldValue;
         this.sceneItemNewValue = sceneItemNewValue;
-        this.index = index;
         this.isDelta = isDelta;
     }
 
@@ -52,7 +50,7 @@ public class SceneItemLineDto implements Serializable {
     }
 
     public boolean isFirst() {
-        return index == 0;
+        return sceneItemDto.getLines().indexOf(this) == 0;
     }
 
     public boolean isDelta() {
@@ -91,7 +89,6 @@ public class SceneItemLineDto implements Serializable {
 
         SceneItemLineDto that = (SceneItemLineDto) o;
 
-        if (index != that.index) return false;
         if (isDelta != that.isDelta) return false;
         if (sceneItemOldValue != null ? !sceneItemOldValue.equals(that.sceneItemOldValue) : that.sceneItemOldValue != null)
             return false;
@@ -104,7 +101,6 @@ public class SceneItemLineDto implements Serializable {
         int result = 1;
         result = 31 * result + (sceneItemOldValue != null ? sceneItemOldValue.hashCode() : 0);
         result = 31 * result + (sceneItemNewValue != null ? sceneItemNewValue.hashCode() : 0);
-        result = 31 * result + index;
         result = 31 * result + (isDelta ? 1 : 0);
         return result;
     }

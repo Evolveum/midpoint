@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics.Operation;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityStatistics;
@@ -515,50 +514,29 @@ class ItemProcessingGatekeeper<I> {
     }
 
     /**
-     * Increments the progress and gives a task a chance to update its statistics.
+     * Increments the progress and updates various statistics in the tasks (LAT, coordinator, tree).
      */
     private void updateStatisticsInTasks(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        // The structured progress is maintained only in the coordinator task
         activityExecution.incrementProgress(processingResult.outcome);
-        //coordinatorTask.incrementStructuredProgress(activityExecution.activityIdentifier, processingResult.outcome);
 
+        boolean updateThreadLocalStatisticsInCoordinator;
         if (activityExecution.isMultithreaded()) {
             assert workerTask.isTransient();
 
-            // In lightweight subtasks we store legacy progress and operational statistics.
-            // We DO NOT store activity progress there.
+            // Lightweight subtasks: we store legacy progress and operational statistics in them.
+            // Obviously, we DO NOT store activity progress nor activity-level statistics here.
             workerTask.incrementLegacyProgressTransient();
-            workerTask.updateStatisticsInTaskPrism(true);
+            workerTask.updateOperationStatsInTaskPrism(true);
 
-            // In coordinator we have to update the statistics in prism:
-            // operation stats, structured progress, and progress itself
-            coordinatorTask.updateStatisticsInTaskPrism(false);
-
+            // We must not update thread local statistics in coordinator task, because we execute in a different thread.
+            updateThreadLocalStatisticsInCoordinator = false;
         } else {
-
-            // Structured progress is incremented. Now we simply update all the stats in the coordinator task.
-            coordinatorTask.updateStatisticsInTaskPrism(true);
-
+            // We can update TL statistics in coordinator, because we are the coordinator.
+            updateThreadLocalStatisticsInCoordinator = true;
         }
 
-        // If needed, let us write current statistics into the repository.
-        // There is no need to do this for worker task, because it is either the same as the coordinator, or it's a LAT.
-        boolean updated = coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(getActivityStatUpdater(), result);
-        if (updated) {
-            activityExecution.updateItemProgressInTreeOverviewIfTimePassed(result);
-        }
-    }
-
-    private Runnable getActivityStatUpdater() {
-        return () -> {
-            try {
-                activityExecution.getActivityState().updateProgressAndStatisticsNoCommit();
-            } catch (ActivityExecutionException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update activity statistics in the task {}", e,
-                        coordinatorTask);
-                // Ignoring the exception
-            }
-        };
+        activityExecution.updateStatistics(updateThreadLocalStatisticsInCoordinator, result);
+        activityExecution.updateItemProgressInTreeOverviewIfTimePassed(result);
     }
 
     @NotNull

@@ -40,6 +40,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaMigration>
+                    <a:element>tns:objectLists</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -61,25 +66,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AdminGuiConfigurationType.userDashboardLink</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectLists" type="tns:GuiObjectListViewsType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Specifies the set of pages that are used for displaying lists of objects
-                            such as Users, Roles, Orgs, ...
-                        </p>
-                        <p>
-                            DEPRECATED because name of this element is wrong. Use objectCollectionViews element instead.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.4</a:since>
-                        <a:displayName>AdminGuiConfigurationType.objectLists</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -523,6 +509,11 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:objectList</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -530,18 +521,6 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>GuiObjectListViewsType.default</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectList" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED because name of this element is wrong. Use objectCollectionView instead.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>GuiObjectListViewsType.objectList</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1540,32 +1519,21 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:name</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:collectionRef</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:GuiObjectListPanelConfigurationType">
                 <xsd:sequence>
-                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Symbolic name for this view. It is used as a view identifier. Views with the same name will be merged together.
-                                    The name is used to detect whether a particular view is overridden, e.g. if view defined in system configuration
-                                    is overridden in the role. It may also be used by other system components (e.g. dashboard widgets, reports)
-                                    to refer to this view. It will also be used for diagnostics, logging and so on.
-                                </p>
-                                <p>
-                                    DEPRECATED. Use identifier instead.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>3.9</a:since>
-                                <a:displayName>GuiObjectListViewType.name</a:displayName>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1586,24 +1554,6 @@
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
                                 <a:displayName>GuiObjectListViewType.collection</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                DEPRECATED. Use "collection" element instead.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>3.9</a:since>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                                <!-- Reference target type definition is NOT here by purpose. Later on we might want
-                                     archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
-                                     this reference may point to various object types. By NOT specifying default ObjectCollectionType
-                                     here we will force everybody to specify it explicitly. So their configuration will work in
-                                     future versions when we add support for implicit collections. -->
-                                <a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2506,6 +2456,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.0</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:visibility</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2516,22 +2471,6 @@
                     </xsd:element>
                     <!-- TODO: layout -->
                     <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
-                    </xsd:element>
-                    <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
-                                 minOccurs="0" maxOccurs="1" default="automatic">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Defines, whether this dashboard will be visible or it will be hidden.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>DashboardType.visibility</a:displayName>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.3</a:deprecatedSince>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>

@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
@@ -1339,7 +1338,52 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test812ConnectorHost() throws Exception {
+    public void test812ConnectorWithNullConnectorHost() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("connector with no connector host reference");
+        String objectName = "conn" + getTestNumber();
+        ConnectorType connector = new ConnectorType(prismContext)
+                .name(objectName)
+                .connectorBundle("com.connector.package")
+                .connectorType("ConnectorTypeClass")
+                .connectorVersion("1.2.3")
+                .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
+
+        when("adding it to the repository");
+        repositoryService.addObject(connector.asPrismObject(), null, result);
+
+        then("it is stored and with null connection host reference");
+        assertThatOperationResult(result).isSuccess();
+
+        MConnector row = selectObjectByOid(QConnector.class, connector.getOid());
+        assertThat(row.connectorHostRefTargetOid).isNull();
+    }
+
+    @Test
+    public void test813NonUniqueConnector() {
+        OperationResult result = createOperationResult();
+
+        given("connector already existing in the repository");
+        String objectName = "conn" + getTestNumber(); // name is unique, but that's not what we test
+        ConnectorType connector = new ConnectorType(prismContext)
+                .name(objectName)
+                .connectorBundle("com.connector.package")
+                // We need unique connectorType + connectorVersion + connectorHostRef.oid (even if NULL)
+                .connectorType("ConnectorTypeClass")
+                .connectorVersion("1.2.3")
+                .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
+
+        expect("adding it to the repository fails");
+        assertThatThrownBy(() -> repositoryService.addObject(connector.asPrismObject(), null, result))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
+
+        assertThatOperationResult(result).isFatalError()
+                .hasMessageContaining("m_connector_typeversion_key");
+    }
+
+    @Test
+    public void test814ConnectorHost() throws Exception {
         OperationResult result = createOperationResult();
 
         given("connector host");
@@ -1361,7 +1405,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test813Report() throws Exception {
+    public void test815Report() throws Exception {
         OperationResult result = createOperationResult();
 
         given("report");
@@ -1379,7 +1423,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test814ReportData() throws Exception {
+    public void test816ReportData() throws Exception {
         OperationResult result = createOperationResult();
 
         given("report data");
@@ -2146,13 +2190,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     private <C extends Containerable> void assertContainerFullObject(byte[] rowFullObject, C sObject) throws Exception {
-        byte[] serializeSObject = prismContext
-                .serializerFor(repositoryConfiguration.getFullObjectFormat())
-                .options(SerializationOptions
-                        .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true)
-                        .skipTransient(true))
-                .serialize(sObject.asPrismContainerValue())
+        byte[] serializeSObject = serializeFullObject(sObject)
                 .getBytes(StandardCharsets.UTF_8);
         assertThat(rowFullObject).isEqualTo(serializeSObject);
     }

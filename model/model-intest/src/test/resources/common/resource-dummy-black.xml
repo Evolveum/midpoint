@@ -168,10 +168,10 @@
             <credentials>
                 <password>
                     <outbound/>
-                    <!-- MID-3682 -->
-                    <passwordPolicyRef oid="ed8026dc-569a-11e7-abdf-4fce56706755"/> <!-- Benevolent password policy -->
                 </password>
             </credentials>
+            <!-- MID-3682 -->
+            <securityPolicyRef oid="ed8026dc-eeee-eeee-eeee-4fce56706755"/>
         </objectType>
     </schemaHandling>
 

@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -24,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
-import com.evolveum.midpoint.schema.statistics.IterationInformationPrinter;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -111,6 +111,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
         List<ProcessedItemType> currentList = value.getCurrent();
         currentList.add(processedItem);
         LOGGER.trace("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), startInfo);
+
         return new OperationImpl(startInfo, processedItem);
     }
 
@@ -144,7 +145,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
      */
     private synchronized void recordOperationEnd(OperationImpl operation, QualifiedItemProcessingOutcomeType outcome,
             Throwable exception) {
-        removeFromCurrentOperations(value, operation.operationId);
+        removeFromCurrentOperations(value, operation);
         addToProcessedItemSet(value, operation, outcome, exception);
     }
 
@@ -168,17 +169,22 @@ public class ActivityItemProcessingStatistics extends Initializable {
     private ProcessedItemSetType findOrCreateProcessedItemSet(ActivityItemProcessingStatisticsType part,
             QualifiedItemProcessingOutcomeType outcome) {
         return part.getProcessed().stream()
-                .filter(itemSet -> java.util.Objects.equals(itemSet.getOutcome(), outcome))
+                .filter(itemSet -> Objects.equals(itemSet.getOutcome(), outcome))
                 .findFirst()
                 .orElseGet(
                         () -> ActivityItemProcessingStatisticsUtil.add(part.getProcessed(), new ProcessedItemSetType(prismContext).outcome(outcome.cloneWithoutId())));
     }
 
     /** Removes operation (given by id) from current operations in given task part. */
-    private void removeFromCurrentOperations(ActivityItemProcessingStatisticsType part, long operationId) {
-        boolean removed = part.getCurrent().removeIf(item -> java.util.Objects.equals(operationId, item.getOperationId()));
-        if (!removed) {
-            LOGGER.warn("Couldn't remove operation {} from the list of current operations: {}", operationId, part.getCurrent());
+    private void removeFromCurrentOperations(ActivityItemProcessingStatisticsType part, OperationImpl operation) {
+        List<ProcessedItemType> currentOperations = part.getCurrent();
+        boolean removed = currentOperations.removeIf(item -> Objects.equals(operation.operationId, item.getOperationId()));
+        if (removed) {
+            LOGGER.trace("Removed operation {} from the list of current operations. Remaining: {}",
+                    operation, currentOperations.size());
+        } else {
+            LOGGER.warn("Couldn't remove operation {} from the list of current operations: {}",
+                    operation, currentOperations);
         }
     }
 
@@ -207,8 +213,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
     /** Formats the information. */
     public static String format(ActivityItemProcessingStatisticsType source, AbstractStatisticsPrinter.Options options) {
-        ActivityItemProcessingStatisticsType information = source != null ? source : new ActivityItemProcessingStatisticsType();
-        return new IterationInformationPrinter(information, options).print();
+        return ActivityItemProcessingStatisticsUtil.format(source, options);
     }
 
     public boolean isCollectExecutions() {

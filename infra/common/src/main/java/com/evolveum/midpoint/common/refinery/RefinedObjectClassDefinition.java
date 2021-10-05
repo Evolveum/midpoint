@@ -158,9 +158,6 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
     AttributeFetchStrategyType getPasswordFetchStrategy();
 
-    @Deprecated // Remove in 4.4
-    ObjectReferenceType getPasswordPolicy();
-
     ObjectReferenceType getSecurityPolicyRef();
 
     ResourceActivationDefinitionType getActivationSchemaHandling();

@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import static com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.Operation;
 
 import javax.annotation.PostConstruct;
 

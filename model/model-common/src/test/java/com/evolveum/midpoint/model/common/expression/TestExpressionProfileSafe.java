@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Evolveum and contributors
+ * Copyright (C) 2013-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,8 +12,8 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
@@ -30,7 +30,7 @@ public class TestExpressionProfileSafe extends TestExpression {
     @Test
     @Override
     public void test130Const() throws Exception {
-        // GIVEN
+        given();
         OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
@@ -40,18 +40,17 @@ public class TestExpressionProfileSafe extends TestExpression {
         VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
-        // WHEN
+        when();
         evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext, result);
 
-        // THEN
-
+        then();
         assertScriptExecutionIncrement(0);
     }
 
     @Test
     @Override
     public void test154ScriptGroovySystemDeny() throws Exception {
-        // GIVEN
+        given();
         OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
@@ -61,18 +60,18 @@ public class TestExpressionProfileSafe extends TestExpression {
         VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
-        // WHEN
+        when();
         evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext, result);
 
-        // THEN
-
+        then();
         assertScriptExecutionIncrement(0);
     }
 
     @Test
     @Override
     public void test160ScriptJavaScript() throws Exception {
-        // GIVEN
+        skipIfEcmaScriptEngineNotSupported();
+        given();
         OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
@@ -82,11 +81,10 @@ public class TestExpressionProfileSafe extends TestExpression {
         VariablesMap variables = prepareBasicVariables();
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
-        // WHEN
+        when();
         evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext, result);
 
-        // THEN
-
+        then();
         assertScriptExecutionIncrement(0);
     }
 }

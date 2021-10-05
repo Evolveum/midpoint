@@ -31,9 +31,9 @@ public class QConnector extends QAssignmentHolder<MConnector> {
     public static final ColumnMetadata CONNECTOR_BUNDLE =
             ColumnMetadata.named("connectorBundle").ofType(Types.VARCHAR);
     public static final ColumnMetadata CONNECTOR_TYPE =
-            ColumnMetadata.named("connectorType").ofType(Types.VARCHAR);
+            ColumnMetadata.named("connectorType").ofType(Types.VARCHAR).notNull();
     public static final ColumnMetadata CONNECTOR_VERSION =
-            ColumnMetadata.named("connectorVersion").ofType(Types.VARCHAR);
+            ColumnMetadata.named("connectorVersion").ofType(Types.VARCHAR).notNull();
     public static final ColumnMetadata FRAMEWORK_ID =
             ColumnMetadata.named("frameworkId").ofType(Types.INTEGER);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_OID =

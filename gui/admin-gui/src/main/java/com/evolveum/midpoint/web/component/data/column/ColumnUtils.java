@@ -72,24 +72,23 @@ public class ColumnUtils {
     public static <T> List<IColumn<T, String>> createColumns(List<ColumnTypeDto<String>> columns) {
         List<IColumn<T, String>> tableColumns = new ArrayList<>();
         for (ColumnTypeDto<String> column : columns) {
-            PropertyColumn<T, String> tableColumn;
-            if (column.isSortable()) {
-                tableColumn = createPropertyColumn(column.getColumnName(), column.getSortableColumn(),
-                        column.getColumnValue(), column.isMultivalue(), column.isTranslated());
-
-            } else {
-                if (column.isTranslated()) {
-                    tableColumn = new PolyStringPropertyColumn<>(createStringResource(column.getColumnName()),
-                            column.getColumnValue());
-                } else {
-                    tableColumn = new PropertyColumn<>(createStringResource(column.getColumnName()),
-                            column.getColumnValue());
-                }
-            }
-            tableColumns.add(tableColumn);
-
+            tableColumns.add(createPropertyColumn(column));
         }
         return tableColumns;
+    }
+
+    public static <T> PropertyColumn<T, String> createPropertyColumn(ColumnTypeDto<String> column) {
+        if (column.isSortable()) {
+            return createPropertyColumn(column.getColumnName(), column.getSortableColumn(),
+                    column.getColumnValue(), column.isMultivalue(), column.isTranslated());
+        }
+        if (column.isTranslated()) {
+            return new PolyStringPropertyColumn<>(createStringResource(column.getColumnName()),
+                    column.getColumnValue());
+        } else {
+            return new PropertyColumn<>(createStringResource(column.getColumnName()),
+                    column.getColumnValue());
+        }
     }
 
     private static <T> PropertyColumn<T, String> createPropertyColumn(String name, String sortableProperty,
@@ -141,7 +140,7 @@ public class ColumnUtils {
         }
     }
 
-    public static <O extends ObjectType> IColumn<SelectableBean<O>, String>  createIconColumn(PageBase pageBase) {
+    public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(PageBase pageBase) {
 
         return new CompositedIconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
 
@@ -388,8 +387,7 @@ public class ColumnUtils {
 
         columns.addAll((Collection) getDefaultAbstractRoleColumns(false));
 
-
-        columns.add(new LinkColumn<>(createStringResource("ObjectType.parentOrgRef")){
+        columns.add(new LinkColumn<>(createStringResource("ObjectType.parentOrgRef")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem, String componentId, IModel<SelectableBean<T>> rowModel) {
@@ -430,7 +428,7 @@ public class ColumnUtils {
             }
         });
 
-        columns.add((IColumn)getAbstractRoleColumnForProjection());
+        columns.add((IColumn) getAbstractRoleColumnForProjection());
         return columns;
     }
 

@@ -253,8 +253,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         // Custom function libraries
         repoAddObjectFromFile(CUSTOM_LIBRARY_FILE, initResult);
 
-        // Password policy
+        // Password & security policy
         repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
+        repoAddObjectFromFile(SECURITY_POLICY_BENEVOLENT_FILE, initResult);
 
         // Archetypes
         repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult);

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,6 +28,7 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Utility methods for navigating throughout activity trees, potentially distributed throughout a task tree.
+ * (There are also variants that traverse only local activities in a task.)
  */
 public class ActivityTreeUtil {
 
@@ -46,6 +48,18 @@ public class ActivityTreeUtil {
     }
 
     /**
+     * Transforms task-local activity state objects into custom ones, organized into a tree.
+     * Does not distinguish between local, delegated, and distributed states: all are treated the same.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static <X> @NotNull TreeNode<X> transformLocalStates(@NotNull TaskType rootTask,
+            @NotNull LocalActivityStateTransformer<X> transformer) {
+        TreeNode<X> root = new TreeNode<>();
+        processLocalStates(rootTask, transformer::transform);
+        return root;
+    }
+
+    /**
      * Processes activity state objects using the same rules as in {@link #transformStates(TaskType, TaskResolver, ActivityStateTransformer)}:
      * delegation states are ignored, distribution states are considered, along with all their workers' states.
      */
@@ -56,12 +70,32 @@ public class ActivityTreeUtil {
     }
 
     /**
+     * Processes local activity state objects using the same rules as in
+     * {@link #transformLocalStates(TaskType, LocalActivityStateTransformer)} (TaskType, ActivityStateTransformer)}:
+     * all states are treated the same.
+     */
+    public static void processLocalStates(@NotNull TaskType task,
+            @NotNull LocalActivityStateProcessor processor) {
+        ActivityStateType localRootState = getLocalRootState(task);
+        if (localRootState != null) {
+            processLocalStates(getLocalRootPath(task), localRootState, processor);
+        }
+    }
+
+    /**
      * Special case of {@link #transformStates(TaskType, TaskResolver, ActivityStateTransformer)}: creates a {@link TreeNode}
      * of {@link ActivityStateInContext} objects.
      */
     public static @NotNull TreeNode<ActivityStateInContext> toStateTree(@NotNull TaskType rootTask,
             @NotNull TaskResolver resolver) {
         return ActivityTreeUtil.transformStates(rootTask, resolver, ActivityStateInContext::new);
+    }
+
+    /**
+     * Creates a {@link TreeNode} of {@link ActivityStateInLocalContext} objects for activities locally contained in the task.
+     */
+    public static @NotNull TreeNode<ActivityStateInLocalContext> toLocalStateTree(@NotNull TaskType task) {
+        return ActivityTreeUtil.transformLocalStates(task, ActivityStateInLocalContext::new);
     }
 
     private static ActivityPath getLocalRootPath(TaskType task) {
@@ -160,6 +194,37 @@ public class ActivityTreeUtil {
         return oids.size() > 1;
     }
 
+    public static @NotNull List<TaskType> getSubtasksForPath(TaskType task, ActivityPath activityPath,
+            TaskResolver taskResolver) {
+        return TaskTreeUtil.getResolvedSubtasks(task, taskResolver).stream()
+                .filter(t -> activityPath.equalsBean(ActivityStateUtil.getLocalRootPathBean(t.getActivityState())))
+                .collect(Collectors.toList());
+    }
+
+    public static @NotNull List<ActivityStateType> getAllLocalStates(@NotNull TaskActivityStateType taskActivityState) {
+        List<ActivityStateType> allStates = new ArrayList<>();
+        collectLocalStates(allStates, taskActivityState.getActivity());
+        return allStates;
+    }
+
+    private static void collectLocalStates(@NotNull List<ActivityStateType> allStates, @Nullable ActivityStateType state) {
+        if (state == null) {
+            return;
+        }
+        allStates.add(state);
+        state.getActivity().forEach(child -> collectLocalStates(allStates, child));
+    }
+
+    private static void processLocalStates(@NotNull ActivityPath path, @NotNull ActivityStateType state,
+            @NotNull LocalActivityStateProcessor processor) {
+        processor.process(path, state);
+        state.getActivity().forEach(child ->
+                processLocalStates(
+                        path.append(child.getIdentifier()),
+                        child,
+                        processor));
+    }
+
     @Experimental
     @FunctionalInterface
     public interface ActivityStateTransformer<X> {
@@ -169,6 +234,12 @@ public class ActivityTreeUtil {
          */
         X transform(@NotNull ActivityPath path, @Nullable ActivityStateType state,
                 @Nullable List<ActivityStateType> workerStates, @NotNull TaskType task);
+    }
+
+    @Experimental
+    @FunctionalInterface
+    public interface LocalActivityStateTransformer<X> {
+        X transform(@NotNull ActivityPath path, @NotNull ActivityStateType state);
     }
 
     @Experimental
@@ -198,32 +269,17 @@ public class ActivityTreeUtil {
         }
     }
 
-    public static @NotNull List<TaskType> getSubtasksForPath(TaskType task, ActivityPath activityPath,
-            TaskResolver taskResolver) {
-        return TaskTreeUtil.getResolvedSubtasks(task, taskResolver).stream()
-                .filter(t -> activityPath.equalsBean(ActivityStateUtil.getLocalRootPathBean(t.getActivityState())))
-                .collect(Collectors.toList());
-    }
-
-    public static @NotNull List<ActivityStateType> getAllLocalStates(@NotNull TaskActivityStateType taskActivityState) {
-        List<ActivityStateType> allStates = new ArrayList<>();
-        collectLocalStates(allStates, taskActivityState.getActivity());
-        return allStates;
-    }
-
-    private static void collectLocalStates(@NotNull List<ActivityStateType> allStates, @Nullable ActivityStateType state) {
-        if (state == null) {
-            return;
-        }
-        allStates.add(state);
-        state.getActivity().forEach(child -> collectLocalStates(allStates, child));
+    @Experimental
+    @FunctionalInterface
+    public interface LocalActivityStateProcessor {
+        void process(@NotNull ActivityPath path, @NotNull ActivityStateType state);
     }
 
     /**
      * Activity state with all the necessary context: the path, the task, and the partial states of coordinated workers.
      * Maybe we should find better name.
      */
-    public static class ActivityStateInContext {
+    public static class ActivityStateInContext implements Serializable {
 
         @NotNull private final ActivityPath activityPath;
         @Nullable private final ActivityStateType activityState;
@@ -275,6 +331,27 @@ public class ActivityTreeUtil {
                     "activityPath=" + activityPath +
                     ", task=" + task +
                     '}';
+        }
+    }
+
+    /**
+     * Activity state in local context: just the path and the state.
+     */
+    public static class ActivityStateInLocalContext implements Serializable {
+        @NotNull private final ActivityPath activityPath;
+        @NotNull private final ActivityStateType activityState;
+
+        ActivityStateInLocalContext(@NotNull ActivityPath activityPath, @NotNull ActivityStateType activityState) {
+            this.activityPath = activityPath;
+            this.activityState = activityState;
+        }
+
+        public @NotNull ActivityPath getActivityPath() {
+            return activityPath;
+        }
+
+        public @NotNull ActivityStateType getActivityState() {
+            return activityState;
         }
     }
 }
