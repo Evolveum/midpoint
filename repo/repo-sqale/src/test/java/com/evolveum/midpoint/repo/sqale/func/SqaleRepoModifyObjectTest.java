@@ -42,7 +42,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
-import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
@@ -1740,10 +1739,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
-
-        and("reference OID in DB is set to null placeholder value");
-        assertThat(selectObjectByOid(QConnector.class, oid).connectorHostRefTargetOid)
-                .isEqualTo(QConnectorMapping.NULL_CONNECTOR_HOST_OID);
+        // For a day, placeholder value was used instead of NULL, now this test is nothing special, but stays.
+        assertThat(selectObjectByOid(QConnector.class, oid).connectorHostRefTargetOid).isNull();
     }
     // endregion
 

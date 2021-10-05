@@ -41,7 +41,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
-import com.evolveum.midpoint.repo.sqale.qmodel.connector.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnector;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnectorHost;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
@@ -1350,11 +1353,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(connector.asPrismObject(), null, result);
 
-        then("it is stored and null reference is replaced with UUID placeholder");
+        then("it is stored and with null connection host reference");
         assertThatOperationResult(result).isSuccess();
 
         MConnector row = selectObjectByOid(QConnector.class, connector.getOid());
-        assertThat(row.connectorHostRefTargetOid).isEqualTo(QConnectorMapping.NULL_CONNECTOR_HOST_OID);
+        assertThat(row.connectorHostRefTargetOid).isNull();
     }
 
     @Test
@@ -1376,7 +1379,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .isInstanceOf(ObjectAlreadyExistsException.class);
 
         assertThatOperationResult(result).isFatalError()
-                .hasMessageContaining("m_connector_typeversionhost_key");
+                .hasMessageContaining("m_connector_typeversion_key");
     }
 
     @Test
