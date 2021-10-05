@@ -31,9 +31,13 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private static final String DEFAULT_DRIVER = "org.postgresql.Driver";
     private static final SupportedDatabase DEFAULT_DATABASE = SupportedDatabase.POSTGRESQL;
+    private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:5432/midpoint";
+    private static final String DEFAULT_JDBC_USERNAME = "midpoint";
+    private static final String DEFAULT_JDBC_PASSWORD = "password";
+    private static final String DEFAULT_FULL_OBJECT_FORMAT = PrismContext.LANG_JSON;
 
     private static final int DEFAULT_MIN_POOL_SIZE = 8;
-    private static final int DEFAULT_MAX_POOL_SIZE = 20;
+    private static final int DEFAULT_MAX_POOL_SIZE = 50;
 
     private static final int DEFAULT_ITERATIVE_SEARCH_PAGE_SIZE = 100;
 
@@ -53,8 +57,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private int minPoolSize;
     private int maxPoolSize;
 
-    private boolean useZip;
-    private boolean useZipAudit;
     private String fullObjectFormat;
 
     private String performanceStatisticsFile;
@@ -72,8 +74,8 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     public void init() throws RepositoryServiceFactoryException {
         dataSource = configuration.getString(PROPERTY_DATASOURCE);
 
-        jdbcUrl = configuration.getString(PROPERTY_JDBC_URL);
-        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME);
+        jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, DEFAULT_JDBC_URL);
+        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, DEFAULT_JDBC_USERNAME);
 
         databaseType = DEFAULT_DATABASE;
         driverClassName = DEFAULT_DRIVER;
@@ -87,15 +89,13 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
                         + jdbcPasswordFile + "': " + e.getMessage(), e);
             }
         } else {
-            jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD);
+            jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, DEFAULT_JDBC_PASSWORD);
         }
 
         minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, DEFAULT_MIN_POOL_SIZE);
         maxPoolSize = configuration.getInt(PROPERTY_MAX_POOL_SIZE, DEFAULT_MAX_POOL_SIZE);
 
-        useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
-        useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
-        fullObjectFormat = configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_JSON)
+        fullObjectFormat = configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, DEFAULT_FULL_OBJECT_FORMAT)
                 .toLowerCase(); // all language string constants are lower-cases
 
         performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
@@ -112,7 +112,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private void validateConfiguration() throws RepositoryServiceFactoryException {
         if (dataSource == null) {
-            notEmpty(jdbcUrl, "JDBC Url is empty or not defined.");
+            notEmpty(jdbcUrl, "JDBC URL is empty or not defined.");
             // We don't check username and password, they can be null (MID-5342)
             // In case of configuration mismatch we let the JDBC driver to fail.
             notEmpty(driverClassName, "Driver class name is empty or not defined.");
@@ -149,12 +149,14 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         return jdbcPassword;
     }
 
+    /** We leave potential compression to PG, for us the values are plain. */
     public boolean isUseZip() {
-        return useZip;
+        throw new UnsupportedOperationException();
     }
 
+    /** We leave potential compression to PG, for us the values are plain. */
     public boolean isUseZipAudit() {
-        return useZipAudit;
+        throw new UnsupportedOperationException();
     }
 
     /**

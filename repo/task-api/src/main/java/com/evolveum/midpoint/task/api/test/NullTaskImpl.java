@@ -589,11 +589,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
-    }
-
-    @Override
-    public IterationInformation.@NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
+    public @NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         throw new UnsupportedOperationException();
     }
 

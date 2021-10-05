@@ -557,6 +557,7 @@ public abstract class IterativeActivityExecution<
         return !BucketingUtil.hasLimitations(bucket);
     }
 
+    /** Do we execute over items in repository? (Maybe the name should be changed.) */
     protected abstract boolean isInRepository(OperationResult result) throws ActivityExecutionException, CommonException;
 
     /**
@@ -679,6 +680,44 @@ public abstract class IterativeActivityExecution<
                 throw new SystemException("The root task was not found", e);
             }
         }
+    }
+
+    /**
+     * Updates statistics in the coordinator task (including TL if it's safe to do so).
+     *
+     * If needed, also updates the statistics in the repository.
+     *
+     * Statistics updated in the task:
+     *  - task.operationStats,
+     *  - progress (both activity-based and legacy),
+     *  - activity statistics: items, synchronization, actions executed, bucketing operations
+     *
+     * Note that using modifyObjectDynamically would be perhaps better, but the current use of last update timestamp
+     * ensures that there will not be concurrent updates of the coordinator coming from its worker threads.
+     */
+    void updateStatistics(boolean updateThreadLocalStatistics, OperationResult result)
+            throws SchemaException, ObjectNotFoundException{
+        RunningTask coordinatorTask = getRunningTask();
+
+        coordinatorTask.updateOperationStatsInTaskPrism(updateThreadLocalStatistics);
+        coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(getActivityStatUpdater(), result);
+    }
+
+    private Runnable getActivityStatUpdater() {
+        return () -> {
+            try {
+                activityState.updateProgressAndStatisticsNoCommit();
+            } catch (ActivityExecutionException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update activity statistics in the task {}", e,
+                        getRunningTask());
+                // Ignoring the exception
+            }
+        };
+    }
+
+    @Override
+    protected boolean hasProgressCommitPoints() {
+        return true;
     }
 
     @Override

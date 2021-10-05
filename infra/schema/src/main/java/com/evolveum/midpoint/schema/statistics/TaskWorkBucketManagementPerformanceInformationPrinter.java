@@ -24,7 +24,7 @@ import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.RIGHT
  */
 public class TaskWorkBucketManagementPerformanceInformationPrinter extends AbstractStatisticsPrinter<ActivityBucketManagementStatisticsType> {
 
-    public TaskWorkBucketManagementPerformanceInformationPrinter(@NotNull ActivityBucketManagementStatisticsType information,
+    TaskWorkBucketManagementPerformanceInformationPrinter(@NotNull ActivityBucketManagementStatisticsType information,
             Options options, Integer iterations, Integer seconds) {
         super(information, options, iterations, seconds);
     }

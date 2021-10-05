@@ -725,104 +725,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="StructuredTaskProgressType">
-        <xsd:annotation>
-            <xsd:documentation>
-                DELETE ASAP
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-                <a:deprecated>true</a:deprecated>
-                <a:deprecatedSince>4.4</a:deprecatedSince>
-                <a:since>4.3</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="currentPartUri" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Current part URI.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="currentPartNumber" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Current part number, starting at 1. The numbering is relative to the parts processed by given physical task.
-                        An example: for simple reconciliation tasks there are parts 1, 2, and 3. For partitioned reconciliation
-                        task, i.e. such task that individual parts run in separate physical tasks, each task structured progress
-                        has only a single part, numbered 1.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="expectedParts" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How many parts are in this physical task?
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="part" type="tns:TaskPartProgressOldType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Progress in individual parts.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="structuredTaskProgress" type="tns:StructuredTaskProgressType" />
-
-    <xsd:complexType name="TaskPartProgressOldType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Progress of a given task part.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-                <a:experimentaL>true</a:experimentaL>
-                <a:since>4.3</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="partUri" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        URI of the task part.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="closed" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Counters representing items that were processed and are stored in closed buckets.
-                        These items will not be re-processed if the task would start over.
-                        TODO better name
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="open" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Counters representing items that were processed but their bucket is not closed yet.
-                        In the case of task restart, these will be re-processed.
-                        TODO better name
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="complete" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        True if this part is complete.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
     <xsd:complexType name="ActivityProgressType">
         <xsd:annotation>
             <xsd:documentation>
@@ -5546,26 +5448,6 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="transition" type="tns:SynchronizationSituationTransitionType" minOccurs="0" maxOccurs="unbounded" />
-
-            <!-- The following is not used anymore -->
-            <xsd:element name="countProtected" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countNoSynchronizationPolicy" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countSynchronizationDisabled" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countNotApplicableForTask" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countDeleted" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countDisputed" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countLinked" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countUnlinked" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countUnmatched" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countProtectedAfter" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countNoSynchronizationPolicyAfter" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countSynchronizationDisabledAfter" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countNotApplicableForTaskAfter" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countDeletedAfter" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countDisputedAfter" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countLinkedAfter" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countUnlinkedAfter" type="xsd:int" minOccurs="0" />
-            <xsd:element name="countUnmatchedAfter" type="xsd:int" minOccurs="0" />
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

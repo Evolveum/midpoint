@@ -13,8 +13,6 @@ import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.RIGHT
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -22,11 +20,11 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Prints iterative task performance information.
+ * Prints the item processing statistics.
  */
-public class IterationInformationPrinter extends AbstractStatisticsPrinter<ActivityItemProcessingStatisticsType> {
+public class ActivityItemProcessingStatisticsPrinter extends AbstractStatisticsPrinter<ActivityItemProcessingStatisticsType> {
 
-    public IterationInformationPrinter(@NotNull ActivityItemProcessingStatisticsType information, Options options) {
+    public ActivityItemProcessingStatisticsPrinter(@NotNull ActivityItemProcessingStatisticsType information, Options options) {
         super(information, options, null, null);
     }
 
@@ -38,16 +36,15 @@ public class IterationInformationPrinter extends AbstractStatisticsPrinter<Activ
 
     private void createData() {
         initData();
-        createData(ActivityPath.empty(), information); // TODO correct activity path!!!
+        createData(information);
     }
 
-    private void createData(ActivityPath activityPath, ActivityItemProcessingStatisticsType component) {
+    private void createData(ActivityItemProcessingStatisticsType component) {
         List<ProcessedItemSetType> processed = new ArrayList<>(component.getProcessed());
         processed.sort(OutcomeKeyedCounterTypeUtil.createOutcomeKeyedCounterComparator());
 
         for (ProcessedItemSetType set : processed) {
             Data.Record record = data.createRecord();
-            record.add(String.valueOf(activityPath));
             record.add(OutcomeKeyedCounterTypeUtil.getOutcome(set));
             record.add(OutcomeKeyedCounterTypeUtil.getOutcomeQualifierUri(set));
             record.add(set.getCount());
@@ -66,7 +63,19 @@ public class IterationInformationPrinter extends AbstractStatisticsPrinter<Activ
             }
         }
 
-        // TODO current
+        // This is somehow problematic. Maybe we should put current items into a separate table.
+        for (ProcessedItemType currentItem : component.getCurrent()) {
+            Data.Record record = data.createRecord();
+            record.add(null);
+            record.add(null);
+            record.add(null);
+            record.add(null);
+            record.add(null);
+            record.add(getItemDescription(currentItem));
+            record.add(XmlTypeConverter.toDate(currentItem.getStartTimestamp()));
+            record.add(null);
+            record.add(null); // Or should the current duration be here?
+        }
     }
 
     private Long getDuration(ProcessedItemType item) {
@@ -88,7 +97,6 @@ public class IterationInformationPrinter extends AbstractStatisticsPrinter<Activ
 
     private void createFormatting() {
         initFormatting();
-        addColumn("Activity", LEFT, formatString());
         addColumn("Outcome", LEFT, formatString());
         addColumn("Qualifier", LEFT, formatString());
         addColumn("Count", RIGHT, formatInt());

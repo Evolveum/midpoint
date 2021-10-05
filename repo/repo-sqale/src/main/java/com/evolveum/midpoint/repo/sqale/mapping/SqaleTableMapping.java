@@ -411,14 +411,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Consumer<UUID> targetOidConsumer,
             Consumer<MObjectType> targetTypeConsumer,
             Consumer<Integer> relationIdConsumer) {
-        setReference(ref, targetOidConsumer, targetTypeConsumer, relationIdConsumer, null);
-    }
-
-    protected void setReference(Referencable ref,
-            Consumer<UUID> targetOidConsumer,
-            Consumer<MObjectType> targetTypeConsumer,
-            Consumer<Integer> relationIdConsumer,
-            UUID nullPlaceholder) {
         if (ref != null) {
             if (ref.getType() == null) {
                 ref = SqaleUtils.referenceWithTypeFixed(ref);
@@ -426,8 +418,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             targetOidConsumer.accept(SqaleUtils.oidToUUid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
             relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
-        } else if (nullPlaceholder != null) {
-            targetOidConsumer.accept(nullPlaceholder);
         }
     }
 

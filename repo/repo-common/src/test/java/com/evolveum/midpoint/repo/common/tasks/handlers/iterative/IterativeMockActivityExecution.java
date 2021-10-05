@@ -53,6 +53,11 @@ class IterativeMockActivityExecution
     }
 
     @Override
+    protected boolean hasProgressCommitPoints() {
+        return false;
+    }
+
+    @Override
     public void iterateOverItemsInBucket(OperationResult result) {
         IterativeMockWorkDefinition workDef = getWorkDefinition();
 

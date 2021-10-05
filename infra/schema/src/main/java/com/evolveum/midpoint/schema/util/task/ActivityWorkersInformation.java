@@ -150,6 +150,7 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
 
     public @NotNull String toHumanReadableString() {
         return workersCountersPerNode.entrySet().stream()
+                .filter(e -> e.getValue().workersExecuting > 0)
                 .map(e -> e.getKey() + " (" + e.getValue().workersExecuting + ")")
                 .collect(Collectors.joining(", "));
     }

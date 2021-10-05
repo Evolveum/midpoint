@@ -10,6 +10,8 @@ package com.evolveum.midpoint.schema.util.task;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
+import com.evolveum.midpoint.schema.statistics.ActivityItemProcessingStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -332,5 +334,16 @@ public class ActivityItemProcessingStatisticsUtil {
 
     public static boolean hasItemProcessingInformation(@Nullable ActivityStateType state) {
         return state != null && state.getStatistics() != null && state.getStatistics().getItemProcessing() != null;
+    }
+
+    public static String format(@Nullable ActivityItemProcessingStatisticsType source) {
+        return format(source, null);
+    }
+
+    /** Formats the information. */
+    public static String format(@Nullable ActivityItemProcessingStatisticsType source,
+            AbstractStatisticsPrinter.Options options) {
+        ActivityItemProcessingStatisticsType information = source != null ? source : new ActivityItemProcessingStatisticsType();
+        return new ActivityItemProcessingStatisticsPrinter(information, options).print();
     }
 }

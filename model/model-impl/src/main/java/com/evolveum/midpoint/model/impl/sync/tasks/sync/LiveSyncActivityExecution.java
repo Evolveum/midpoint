@@ -60,6 +60,12 @@ public class LiveSyncActivityExecution
         super(activityExecution, "LiveSync");
     }
 
+    /** TODO This is to be re-thought. */
+    @Override
+    protected boolean hasProgressCommitPoints() {
+        return true;
+    }
+
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
