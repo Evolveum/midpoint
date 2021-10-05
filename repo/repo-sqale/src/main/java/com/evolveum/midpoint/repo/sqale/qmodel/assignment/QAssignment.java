@@ -62,11 +62,6 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
             ColumnMetadata.named("tenantRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata TENANT_REF_RELATION_ID =
             ColumnMetadata.named("tenantRefRelationId").ofType(Types.INTEGER);
-    public static final ColumnMetadata EXT_ID =
-            ColumnMetadata.named("extId").ofType(Types.INTEGER);
-    // TODO UUID or not? our control or outside?
-    public static final ColumnMetadata EXT_OID =
-            ColumnMetadata.named("extOid").ofType(Types.VARCHAR);
     public static final ColumnMetadata POLICY_SITUATIONS =
             ColumnMetadata.named("policySituations").ofType(Types.ARRAY);
     public static final ColumnMetadata SUBTYPES =
@@ -146,8 +141,6 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
             createEnum("tenantRefTargetType", MObjectType.class, TENANT_REF_TARGET_TYPE);
     public final NumberPath<Integer> tenantRefRelationId =
             createInteger("tenantRefRelationId", TENANT_REF_RELATION_ID);
-    public final NumberPath<Integer> extId = createInteger("extId", EXT_ID);
-    public final StringPath extOid = createString("extOid", EXT_OID);
     public final ArrayPath<Integer[], Integer> policySituations =
             createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
     public final ArrayPath<String[], String> subtypes =
