@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
@@ -142,16 +143,14 @@ public class QOperationExecutionMapping<OR extends MObject>
         Map<UUID, ObjectType> owners = new HashMap<>();
         return new ResultListRowTransformer<>() {
             @Override
-            public void beforeTransformation(Iterable<Tuple> rowTuples, QOperationExecution<OR> entityPath)
+            public void beforeTransformation(List<Tuple> rowTuples, QOperationExecution<OR> entityPath)
                     throws SchemaException {
+                Set<UUID> ownerOids = rowTuples.stream()
+                        .map(row -> Objects.requireNonNull(row.get(entityPath)).ownerOid)
+                        .collect(Collectors.toSet());
+
                 // TODO do we need get options here as well? Is there a scenario where we load container
                 //  and define what to load for referenced/owner object?
-                Set<UUID> ownerOids = new HashSet<>();
-                for (Tuple rowTuple : rowTuples) {
-                    MOperationExecution row = Objects.requireNonNull(rowTuple.get(entityPath));
-                    ownerOids.add(row.ownerOid);
-                }
-
                 QObject<?> o = QObjectMapping.getObjectMapping().defaultAlias();
                 List<Tuple> result = jdbcSession.newQuery()
                         .select(o.oid, o.fullObject)

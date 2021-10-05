@@ -74,6 +74,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationChangeListener {
 
     private static final String DOT_INTERFACE = TaskManager.class.getName() + ".";
+    private static final String OP_COUNT_OBJECTS = DOT_INTERFACE + "countObjects";
+    private static final String OP_SEARCH_OBJECTS_ITERATIVE = DOT_INTERFACE + "searchObjectsIterative";
+    private static final String OP_SEARCH_OBJECTS = DOT_INTERFACE + "searchObjects";
+    private static final String OP_GET_OBJECT = DOT_INTERFACE + "getObject";
+    private static final String OP_DELETE_TASK_TREE = DOT_INTERFACE + "deleteTaskTree";
+    private static final String OP_DELETE_TASK = DOT_INTERFACE + "deleteTask";
     private static final String OP_GET_NEXT_RUN_START_TIME = DOT_INTERFACE + "getNextStartTimes";
     private static final String OP_GET_TASK_BY_IDENTIFIER = DOT_INTERFACE + "getTaskByIdentifier";
     private static final String OP_STOP_LOCAL_SCHEDULER = DOT_INTERFACE + "stopLocalScheduler";
@@ -498,7 +504,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     @Override
     public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteTask");
+        OperationResult result = parentResult.createSubresult(OP_DELETE_TASK);
         result.addParam("oid", oid);
         try {
             taskStateManager.deleteTask(oid, result);
@@ -513,7 +519,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Override
     public void deleteTaskTree(String rootTaskOid, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteTaskTree");
+        OperationResult result = parentResult.createSubresult(OP_DELETE_TASK_TREE);
         result.addParam("rootTaskOid", rootTaskOid);
         try {
             taskStateManager.deleteTaskTree(rootTaskOid, result);
@@ -541,7 +547,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".getObject");
+        OperationResult result = parentResult.createMinorSubresult(OP_GET_OBJECT);
         result.addParam("objectType", type);
         result.addParam("oid", oid);
         result.addArbitraryObjectCollectionAsParam("options", options);
@@ -604,7 +610,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @NotNull
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "searchObjects");
+        OperationResult result = parentResult.createMinorSubresult(OP_SEARCH_OBJECTS);
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
@@ -631,7 +637,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type,
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "searchObjects");
+        OperationResult result = parentResult.createMinorSubresult(OP_SEARCH_OBJECTS_ITERATIVE);
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
@@ -666,7 +672,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
             Class<T> type, ObjectQuery query, OperationResult parentResult)
             throws SchemaException {
 
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".countObjects");
+        OperationResult result = parentResult.createMinorSubresult(OP_COUNT_OBJECTS);
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);

@@ -23,6 +23,9 @@ public interface JdbcRepositoryConfiguration {
 
     String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
     String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
+    String PROPERTY_MAX_LIFETIME = "maxLifetime";
+    String PROPERTY_IDLE_TIMEOUT = "idleTimeout";
+    String PROPERTY_INITIALIZATION_FAIL_TIMEOUT = "initializationFailTimeout";
 
     String PROPERTY_USE_ZIP = "useZip";
     String PROPERTY_USE_ZIP_AUDIT = "useZipAudit";

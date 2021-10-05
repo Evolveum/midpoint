@@ -242,6 +242,7 @@ DECLARE
     dateTo TIMESTAMPTZ;
     tableSuffix TEXT;
 BEGIN
+    -- noinspection SqlUnused
     FOR i IN 1..futureCount loop
         dateTo := dateFrom + interval '1 month';
         tableSuffix := to_char(dateFrom, 'YYYYMM');

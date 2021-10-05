@@ -33,6 +33,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+
 /**
  * Activity execution for report import.
  */
@@ -82,7 +85,9 @@ class ClassicReportImportActivityExecution
         try {
             variables = controller.parseColumnsAsVariablesFromFile(support.getReportData());
         } catch (IOException e) {
-            LOGGER.error("Couldn't read content of imported file", e);
+            String message = "Couldn't read content of imported file: " + e.getMessage();
+            result.recordFatalError(message, e);
+            throw new ActivityExecutionException(message, FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
 

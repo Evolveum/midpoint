@@ -77,9 +77,6 @@ public class TaskManagerConfiguration {
     private static final String NODE_STARTUP_DELAY_CONFIG_ENTRY = "nodeStartupDelay";
 
     private static final String CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY = "checkForTaskConcurrentExecution";
-    private static final String USE_JMX_CONFIG_ENTRY = "useJmx";
-    @Deprecated private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
-    @Deprecated private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
     private static final String TEST_MODE_CONFIG_ENTRY = "testMode";
     private static final String WAITING_TASKS_CHECK_INTERVAL_CONFIG_ENTRY = "waitingTasksCheckInterval";
     private static final String STALLED_TASKS_CHECK_INTERVAL_CONFIG_ENTRY = "stalledTasksCheckInterval";
@@ -128,10 +125,6 @@ public class TaskManagerConfiguration {
     private String url;
     private String hostName;
     private Integer httpPort;
-
-    @Deprecated private String jmxHostName;
-    @Deprecated private int jmxPort;
-    @Deprecated private int jmxConnectTimeout;
 
     /**
      * How often should node register itself in repository. In seconds.
@@ -211,11 +204,6 @@ public class TaskManagerConfiguration {
 
     private TaskExecutionLimitationsType taskExecutionLimitations;
 
-    private boolean useJmx;
-    // JMX credentials for connecting to remote nodes
-    @Deprecated private String jmxUsername;
-    @Deprecated private String jmxPassword;
-
     // quartz jdbc job store specific information
     private String sqlSchemaFile;
     private String jdbcDriverDelegateClass;
@@ -268,9 +256,6 @@ public class TaskManagerConfiguration {
             QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY, QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY,
             NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
             NODE_TIMEOUT_CONFIG_ENTRY,
-            USE_JMX_CONFIG_ENTRY,
-            JMX_USERNAME_CONFIG_ENTRY,
-            JMX_PASSWORD_CONFIG_ENTRY,
             TEST_MODE_CONFIG_ENTRY,
             WAITING_TASKS_CHECK_INTERVAL_CONFIG_ENTRY,
             STALLED_TASKS_CHECK_INTERVAL_CONFIG_ENTRY,
@@ -341,22 +326,9 @@ public class TaskManagerConfiguration {
         nodeId = new NodeIdComputer(prismContext, repositoryService).determineNodeId(root, clustered, result);
 
         hostName = root.getString(MidpointConfiguration.MIDPOINT_HOST_NAME_PROPERTY, null);
-        jmxHostName = root.getString(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY, null);
 
-        String jmxPortString = System.getProperty(JMX_PORT_PROPERTY);
-        if (StringUtils.isEmpty(jmxPortString)) {
-            jmxPort = JMX_PORT_DEFAULT;
-        } else {
-            try {
-                jmxPort = Integer.parseInt(jmxPortString);
-            } catch (NumberFormatException e) {
-                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + jmxPortString, e);
-            }
-        }
         httpPort = root.getInteger(MidpointConfiguration.MIDPOINT_HTTP_PORT_PROPERTY, null);
         url = root.getString(MidpointConfiguration.MIDPOINT_URL_PROPERTY, null);
-
-        jmxConnectTimeout = c.getInt(JMX_CONNECT_TIMEOUT_CONFIG_ENTRY, JMX_CONNECT_TIMEOUT_DEFAULT);
 
         if (c.containsKey(TEST_MODE_CONFIG_ENTRY)) {
             midPointTestMode = c.getBoolean(TEST_MODE_CONFIG_ENTRY);
@@ -391,10 +363,6 @@ public class TaskManagerConfiguration {
         quartzClusterCheckinGracePeriod = c.getLong(QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY, QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_DEFAULT);
 
         checkForTaskConcurrentExecution = c.getBoolean(CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY, CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT);
-
-        useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
-        jmxUsername = c.getString(JMX_USERNAME_CONFIG_ENTRY, JMX_USERNAME_DEFAULT);
-        jmxPassword = c.getString(JMX_PASSWORD_CONFIG_ENTRY, JMX_PASSWORD_DEFAULT);
 
         waitingTasksCheckInterval = c.getInt(WAITING_TASKS_CHECK_INTERVAL_CONFIG_ENTRY, WAITING_TASKS_CHECK_INTERVAL_DEFAULT);
         stalledTasksCheckInterval = c.getInt(STALLED_TASKS_CHECK_INTERVAL_CONFIG_ENTRY, STALLED_TASKS_CHECK_INTERVAL_DEFAULT);
@@ -594,10 +562,6 @@ public class TaskManagerConfiguration {
         return Objects.requireNonNull(nodeId, "No node ID");
     }
 
-    public int getJmxPort() {
-        return jmxPort;
-    }
-
     public String getSqlSchemaFile() {
         return sqlSchemaFile;
     }
@@ -628,10 +592,6 @@ public class TaskManagerConfiguration {
 
     public UseThreadInterrupt getUseThreadInterrupt() {
         return useThreadInterrupt;
-    }
-
-    public int getJmxConnectTimeout() {
-        return jmxConnectTimeout;
     }
 
     @SuppressWarnings("unused")
@@ -690,22 +650,6 @@ public class TaskManagerConfiguration {
 
     public String getHostName() {
         return hostName;
-    }
-
-    public boolean isUseJmx() {
-        return useJmx;
-    }
-
-    public String getJmxUsername() {
-        return jmxUsername;
-    }
-
-    public String getJmxPassword() {
-        return jmxPassword;
-    }
-
-    public String getJmxHostName() {
-        return jmxHostName;
     }
 
     public int getWaitingTasksCheckInterval() {

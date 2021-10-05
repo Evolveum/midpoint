@@ -255,8 +255,20 @@ public class ActivityPerformanceInformation implements DebugDumpable, Serializab
         return sb.toString();
     }
 
+    /**
+     * Information about the real (wall clock) time spent by an activity.
+     */
     private static class WallClockInfo {
+
+        /**
+         * Aggregated wall-clock time when at least one activity execution took place.
+         */
         private final Long wallClockTime;
+
+        /**
+         * The time of the earliest start of an execution of the activity.
+         * It is not needed to evaluate the performance. It is here for debugging/testing purposes.
+         */
         private final XMLGregorianCalendar earliestStartTime;
 
         private WallClockInfo(Long wallClockTime, XMLGregorianCalendar earliestStartTime) {

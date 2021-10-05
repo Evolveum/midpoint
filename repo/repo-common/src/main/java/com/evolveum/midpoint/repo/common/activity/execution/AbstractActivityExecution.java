@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
@@ -414,6 +415,10 @@ public abstract class AbstractActivityExecution<
         return doesSupportStatistics();
     }
 
+    public boolean doesSupportExecutionRecords() {
+        return false;
+    }
+
     public void incrementProgress(@NotNull QualifiedItemProcessingOutcomeType outcome) {
         ActivityProgress.Counters counters = hasProgressCommitPoints() ? UNCOMMITTED : COMMITTED;
         activityState.getLiveProgress().increment(outcome, counters);
@@ -494,5 +499,19 @@ public abstract class AbstractActivityExecution<
 
     public @NotNull ActivityDefinition<WD> getActivityDefinition() {
         return activity.getDefinition();
+    }
+
+    public Long getStartTimestamp() {
+        return startTimestamp;
+    }
+
+    public long getStartTimestampRequired() {
+        return Objects.requireNonNull(
+                startTimestamp,
+                () -> "no start timestamp in " + this);
+    }
+
+    public Long getEndTimestamp() {
+        return endTimestamp;
     }
 }

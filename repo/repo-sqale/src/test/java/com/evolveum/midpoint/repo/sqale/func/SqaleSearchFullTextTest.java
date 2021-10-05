@@ -77,7 +77,7 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
                         .description("assignment two description")
                         .lifecycleState("assignment1-2"))
                 .extension(new ExtensionType(prismContext));
-        // TODO extension can be full-text indexed too, but not for index-only stuff
+        // extension can be full-text indexed too, but not for index-only stuff
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "indexable string extension");
         addExtensionValue(user1Extension, "long", 747L);

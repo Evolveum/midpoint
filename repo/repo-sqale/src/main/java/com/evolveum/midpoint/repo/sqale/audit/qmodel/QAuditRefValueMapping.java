@@ -52,13 +52,13 @@ public class QAuditRefValueMapping
 
     @Override
     public AuditEventRecordReferenceType toSchemaObject(MAuditRefValue row) {
-        throw new UnsupportedOperationException(); // TODO
+        throw new UnsupportedOperationException(); // implemented in service
     }
 
     @Override
     public AuditEventRecordReferenceType toSchemaObject(
             Tuple row, QAuditRefValue entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
-        throw new UnsupportedOperationException(); // TODO
+        throw new UnsupportedOperationException(); // implemented in service
     }
 }

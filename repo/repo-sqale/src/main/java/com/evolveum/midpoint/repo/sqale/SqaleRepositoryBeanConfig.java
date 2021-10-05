@@ -213,8 +213,6 @@ public class SqaleRepositoryBeanConfig {
                 sqlPerformanceMonitorsCollection);
     }
 
-    // TODO @Bean for AuditServiceFactory later
-
     // TODO rethink? using Spring events
     @Bean
     public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {
