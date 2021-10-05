@@ -195,7 +195,7 @@ class TaskCycleExecutor {
                 // This updates the result in the task object. TODO improve
                 OperationResult taskResult = task.getResult();
                 if (runResult.getOperationResultStatus() != null) {
-                    taskResult.recordStatus(runResult.getOperationResultStatus(), ""); // TODO
+                    taskResult.recordStatus(runResult.getOperationResultStatus(), taskResult.getMessage()); // TODO
                 }
                 task.setResult(taskResult);
             }
