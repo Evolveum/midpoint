@@ -81,7 +81,6 @@ public class QShadowMapping
         addItemMapping(F_INTENT, stringMapper(q -> q.intent));
         addItemMapping(F_TAG, stringMapper(q -> q.tag));
         addItemMapping(F_KIND, enumMapper(q -> q.kind));
-        // TODO attemptNumber?
         addItemMapping(F_DEAD, booleanMapper(q -> q.dead));
         addItemMapping(F_EXISTS, booleanMapper(q -> q.exist));
         addItemMapping(F_FULL_SYNCHRONIZATION_TIMESTAMP,
@@ -122,7 +121,6 @@ public class QShadowMapping
         row.intent = shadow.getIntent();
         row.tag = shadow.getTag();
         row.kind = shadow.getKind();
-//        row.attemptNumber = shadow.att; TODO not set in RShadow, probably just with deltas? Where does it come from?
         row.dead = shadow.isDead();
         row.exist = shadow.isExists();
         row.fullSynchronizationTimestamp =

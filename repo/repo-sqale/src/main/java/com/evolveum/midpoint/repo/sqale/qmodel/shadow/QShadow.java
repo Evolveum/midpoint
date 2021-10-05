@@ -45,8 +45,6 @@ public class QShadow extends QObject<MShadow> {
             ColumnMetadata.named("tag").ofType(Types.VARCHAR);
     public static final ColumnMetadata KIND =
             ColumnMetadata.named("kind").ofType(Types.OTHER);
-    public static final ColumnMetadata ATTEMPT_NUMBER =
-            ColumnMetadata.named("attemptNumber").ofType(Types.INTEGER);
     public static final ColumnMetadata DEAD = ColumnMetadata.named("dead").ofType(Types.BOOLEAN);
     public static final ColumnMetadata EXIST = ColumnMetadata.named("exist").ofType(Types.BOOLEAN);
     public static final ColumnMetadata FULL_SYNCHRONIZATION_TIMESTAMP =
@@ -76,7 +74,6 @@ public class QShadow extends QObject<MShadow> {
     public final StringPath intent = createString("intent", INTENT);
     public final StringPath tag = createString("tag", TAG);
     public final EnumPath<ShadowKindType> kind = createEnum("kind", ShadowKindType.class, KIND);
-    public final NumberPath<Integer> attemptNumber = createInteger("attemptNumber", ATTEMPT_NUMBER);
     public final BooleanPath dead = createBoolean("dead", DEAD);
     public final BooleanPath exist = createBoolean("exist", EXIST);
     public final DateTimePath<Instant> fullSynchronizationTimestamp =

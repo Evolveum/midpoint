@@ -831,13 +831,11 @@ CREATE TABLE m_shadow (
     intent TEXT,
     tag TEXT,
     kind ShadowKindType,
-    attemptNumber INTEGER, -- TODO how is this mapped?
     dead BOOLEAN,
     exist BOOLEAN,
     fullSynchronizationTimestamp TIMESTAMPTZ,
     pendingOperationCount INTEGER NOT NULL,
     primaryIdentifierValue TEXT,
---     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
     synchronizationTimestamp TIMESTAMPTZ,
     attributes JSONB
@@ -1575,10 +1573,6 @@ CREATE INDEX m_form_policySituation_idx ON m_form USING gin(policysituations gin
 -- region Assignment/Inducement table
 -- Represents AssignmentType, see https://wiki.evolveum.com/display/midPoint/Assignment
 -- and also https://wiki.evolveum.com/display/midPoint/Assignment+vs+Inducement
--- TODO: partitioning, probably not by object type, it's not even... hash-something?
--- select assignmentowner, count(*) From m_assignment group by assignmentowner;
---1	45 (inducements)
---0	48756229
 CREATE TABLE m_assignment (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     -- this is different from other containers, this is not generated, app must provide it

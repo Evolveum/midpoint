@@ -27,7 +27,6 @@ public class MShadow extends MObject {
     public String intent;
     public String tag;
     public ShadowKindType kind;
-    public Integer attemptNumber;
     public Boolean dead;
     public Boolean exist;
     public Instant fullSynchronizationTimestamp;
