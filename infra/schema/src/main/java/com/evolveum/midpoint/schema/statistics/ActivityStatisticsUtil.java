@@ -192,17 +192,19 @@ public class ActivityStatisticsUtil {
         return aggregate;
     }
 
-    public static String format(ActivityStatisticsType statistics) {
+    public static String format(@Nullable ActivityStatisticsType statistics) {
         if (statistics == null) {
             return "";
         }
         StringBuilder sb = new StringBuilder();
         if (statistics.getItemProcessing() != null) {
             sb.append("Item processing\n\n")
-                    .append(IterationInformation.format(statistics.getItemProcessing())) // TODO use correct formatter
+                    .append(ActivityItemProcessingStatisticsUtil.format(statistics.getItemProcessing()))
                     .append("\n");
         }
-        if (statistics.getSynchronization() != null) {
+        // The second condition (some transitions present) is a workaround for synchronization info being present
+        // in task even if it's not in the repository. (Do GUI wrappers do that?)
+        if (statistics.getSynchronization() != null && !statistics.getSynchronization().getTransition().isEmpty()) {
             sb.append("Synchronization\n\n")
                     .append(ActivitySynchronizationStatisticsUtil.format(statistics.getSynchronization()))
                     .append("\n");

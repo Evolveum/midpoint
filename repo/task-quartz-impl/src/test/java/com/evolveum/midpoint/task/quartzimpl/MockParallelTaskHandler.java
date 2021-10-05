@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.task.quartzimpl.TestTaskManagerBasic.NS_EXT;
 import static org.testng.AssertJUnit.*;
 
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.Operation;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -80,7 +80,7 @@ public class MockParallelTaskHandler implements TaskHandler {
                     Thread.sleep(STEP);
                     op.succeeded();
                     parentTask.incrementLegacyProgressTransient();
-                    parentTask.updateStatisticsInTaskPrism(false);
+                    parentTask.updateOperationStatsInTaskPrism(false);
                     parentTask.storeStatisticsIntoRepositoryIfTimePassed(null, new OperationResult("store stats"));
                 } catch (InterruptedException e) {
                     LOGGER.trace("Handler for task {} interrupted", task);
@@ -127,7 +127,6 @@ public class MockParallelTaskHandler implements TaskHandler {
         for (int i = 0; i < NUM_SUBTASKS; i++) {
             MyLightweightTaskHandler handler = new MyLightweightTaskHandler(duration);
             RunningLightweightTaskImpl subtask = (RunningLightweightTaskImpl) task.createSubtask(handler);
-            subtask.resetIterativeTaskInformation(null, true);
             assertTrue("Subtask is not transient", subtask.isTransient());
             assertTrue("Subtask is not asynchronous", subtask.isAsynchronous());
             assertEquals("Subtask has a wrong lightweight handler", handler, subtask.getLightweightTaskHandler());

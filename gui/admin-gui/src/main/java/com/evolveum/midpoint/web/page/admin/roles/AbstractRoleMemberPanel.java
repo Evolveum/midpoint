@@ -239,6 +239,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 if (refList == null) {
                     refList = new ArrayList<>();
                 }
+                if (relation != null && CollectionUtils.isNotEmpty(relation.getArchetypeRefs())) {
+                    refList.addAll(relation.getArchetypeRefs());
+                }
                 ObjectReferenceType membershipRef = new ObjectReferenceType();
                 membershipRef.setOid(AbstractRoleMemberPanel.this.getModelObject().getOid());
                 membershipRef.setType(AbstractRoleMemberPanel.this.getModelObject().asPrismObject().getComplexTypeDefinition().getTypeName());
@@ -480,6 +483,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 AssignmentObjectRelation assignmentObjectRelation = new AssignmentObjectRelation();
                 assignmentObjectRelation.addRelations(supportedRelation);
                 assignmentObjectRelation.addObjectTypes(Collections.singletonList(objectType));
+                assignmentObjectRelation.getArchetypeRefs().addAll(archetypeReferencesListForType(objectType));
                 relationsList.add(assignmentObjectRelation);
             });
         } else {
@@ -488,6 +492,18 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             relationsList.add(assignmentObjectRelation);
         }
         return relationsList;
+    }
+
+    private List<ObjectReferenceType> archetypeReferencesListForType(QName type) {
+        List<CompiledObjectCollectionView> views =
+                getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(type, OperationTypeType.ADD);
+        List<ObjectReferenceType> archetypeRefs = new ArrayList<>();
+        views.forEach(view -> {
+            if (view.getCollection() != null && view.getCollection().getCollectionRef() != null) {
+                archetypeRefs.add(view.getCollection().getCollectionRef());
+            }
+        });
+        return archetypeRefs;
     }
 
     private AjaxIconButton createAssignButton(String buttonId) {

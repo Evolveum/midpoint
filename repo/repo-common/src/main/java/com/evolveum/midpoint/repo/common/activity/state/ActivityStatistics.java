@@ -81,8 +81,6 @@ public class ActivityStatistics {
      * Writes current values to the running task: into the memory and to repository.
      */
     void writeToTaskAsPendingModifications() throws ActivityExecutionException {
-        // TODO We should use the dynamic modification approach in order to provide most current values to the task
-        //  (in case of update conflicts). But let's wait for the new repo with this.
         if (activityState.getActivityExecution().doesSupportStatistics()) {
             activityState.setItemRealValues(ITEM_PROCESSING_STATISTICS_PATH, itemProcessing.getValueCopy());
             if (activityState.getActivityExecution().doesSupportSynchronizationStatistics()) {

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -36,7 +37,10 @@ public class ValueDisplayUtil {
         if (propertyValue == null || propertyValue.getValue() == null){
             return null;
         }
-        Object value = propertyValue.getValue();
+        return toStringValue(propertyValue.getValue());
+    }
+
+    private static String toStringValue(Object value) {
         String defaultStr = "(a value of type " + value.getClass().getSimpleName() + ")";  // todo i18n
         if (value instanceof String) {
             return (String) value;
@@ -123,7 +127,12 @@ public class ValueDisplayUtil {
         } else if (value instanceof byte[]) {
             return "(binary data)";
         } else if (value instanceof RawType) {
-            return PrettyPrinter.prettyPrint(value);
+            try {
+                Object parsedValue = ((RawType) value).getValue();
+                return toStringValue(parsedValue);
+            } catch (SchemaException e) {
+                return PrettyPrinter.prettyPrint(value);
+            }
         } else if (value instanceof ItemPathType) {
             ItemPath itemPath = ((ItemPathType) value).getItemPath();
             StringBuilder sb = new StringBuilder();

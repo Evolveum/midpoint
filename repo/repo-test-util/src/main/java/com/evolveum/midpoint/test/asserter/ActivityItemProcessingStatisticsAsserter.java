@@ -10,7 +10,6 @@ package com.evolveum.midpoint.test.asserter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
-import com.evolveum.midpoint.schema.statistics.IterationInformation;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -98,7 +97,7 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
     }
 
     public ActivityItemProcessingStatisticsAsserter<RA> display() {
-        IntegrationTestTools.display(desc(), IterationInformation.format(information));
+        IntegrationTestTools.display(desc(), ActivityItemProcessingStatisticsUtil.format(information));
         return this;
     }
 

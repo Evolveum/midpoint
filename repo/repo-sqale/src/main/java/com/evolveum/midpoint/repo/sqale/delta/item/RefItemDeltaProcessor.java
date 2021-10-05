@@ -34,23 +34,10 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
             Function<Q, UuidPath> rootToOidPath,
             Function<Q, EnumPath<MObjectType>> rootToTypePath,
             Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
-        this(context,
-                rootToOidPath.apply(context.entityPath()),
-                rootToTypePath != null ? rootToTypePath.apply(context.entityPath()) : null,
-                rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.entityPath()) : null);
-    }
-
-    /**
-     * @param <Q> entity query type from which the attribute is resolved
-     * @param <R> row type related to {@link Q}
-     */
-    private <Q extends FlexibleRelationalPathBase<R>, R> RefItemDeltaProcessor(
-            SqaleUpdateContext<?, Q, R> context,
-            UuidPath oidPath, EnumPath<MObjectType> typePath, NumberPath<Integer> relationIdPath) {
         super(context);
-        this.oidPath = oidPath;
-        this.typePath = typePath;
-        this.relationIdPath = relationIdPath;
+        this.oidPath = rootToOidPath.apply(context.entityPath());
+        this.typePath = rootToTypePath != null ? rootToTypePath.apply(context.entityPath()) : null;
+        this.relationIdPath = rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.entityPath()) : null;
     }
 
     @Override

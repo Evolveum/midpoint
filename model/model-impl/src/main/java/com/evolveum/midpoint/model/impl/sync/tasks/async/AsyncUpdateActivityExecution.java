@@ -53,6 +53,11 @@ public class AsyncUpdateActivityExecution
     }
 
     @Override
+    protected boolean hasProgressCommitPoints() {
+        return false;
+    }
+
+    @Override
     public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
         RunningTask runningTask = getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();

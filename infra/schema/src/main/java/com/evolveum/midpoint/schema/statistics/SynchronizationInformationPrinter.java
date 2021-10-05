@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SynchronizationInformationPrinter extends AbstractStatisticsPrinter<ActivitySynchronizationStatisticsType> {
 
-    public SynchronizationInformationPrinter(@NotNull ActivitySynchronizationStatisticsType information, Options options) {
+    SynchronizationInformationPrinter(@NotNull ActivitySynchronizationStatisticsType information, Options options) {
         super(information, options, null, null);
     }
 

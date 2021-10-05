@@ -408,7 +408,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected void setReference(Referencable ref,
-            Consumer<UUID> targetOidConsumer, Consumer<MObjectType> targetTypeConsumer,
+            Consumer<UUID> targetOidConsumer,
+            Consumer<MObjectType> targetTypeConsumer,
             Consumer<Integer> relationIdConsumer) {
         if (ref != null) {
             if (ref.getType() == null) {
@@ -500,7 +501,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
                         .skipIndexOnly(true)
-                        .skipTransient(true))
+                        .skipTransient(true)
+                        .skipWhitespaces(true))
                 .serialize(container.asPrismContainerValue())
                 .getBytes(StandardCharsets.UTF_8);
     }

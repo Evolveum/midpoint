@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConn
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -114,6 +116,8 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
      * Contains IMMUTABLE connector objects with connector hosts resolved and schemas parsed.
      */
     @NotNull private Map<String, ConnectorType> connectorBeanCache = new ConcurrentHashMap<>();
+
+    private Consumer<ConnectorType> notInRepoConsumer;
 
     Collection<ConnectorFactory> getConnectorFactories() {
         if (connectorFactories == null) {
@@ -435,60 +439,70 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
                 LOGGER.trace("Examining connector {}", foundConnector);
 
+
+
                 boolean inRepo = isInRepo(foundConnector, hostType, result);
                 if (inRepo) {
                     LOGGER.trace("Connector {} is in the repository, skipping", foundConnector);
-
                 } else {
-                    LOGGER.trace("Connector {} not in the repository, adding", foundConnector);
-
-                    if (foundConnector.getSchema() == null) {
-                        LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);
+                    if (notInRepoConsumer != null) {
+                        notInRepoConsumer.accept(foundConnector);
                     }
-
-                    // Sanitize framework-supplied OID
-                    if (StringUtils.isNotEmpty(foundConnector.getOid())) {
-                        LOGGER.warn("Provisioning framework {} supplied OID for connector {}", foundConnector.getFramework(), foundConnector);
-                        foundConnector.setOid(null);
+                    if (addConnectorToRepo(foundConnector, result, hostType)) {
+                        discoveredConnectors.add(foundConnector);
+                        LOGGER.info("Discovered new connector {}", foundConnector);
                     }
-
-                    // Store the connector object
-                    String oid;
-                    try {
-                        prismContext.adopt(foundConnector);
-                        oid = repositoryService.addObject(foundConnector.asPrismObject(), null, result);
-                    } catch (ObjectAlreadyExistsException e) {
-                        // We don't specify the OID, therefore this should never
-                        // happen
-                        // Convert to runtime exception
-                        LOGGER.error("Got ObjectAlreadyExistsException while not expecting it: {}", e.getMessage(), e);
-                        result.recordFatalError(
-                                "Got ObjectAlreadyExistsException while not expecting it: " + e.getMessage(), e);
-                        throw new SystemException("Got ObjectAlreadyExistsException while not expecting it: "
-                                + e.getMessage(), e);
-                    } catch (SchemaException e) {
-                        // If there is a schema error it must be a bug. Convert to
-                        // runtime exception
-                        LOGGER.error("Got SchemaException while not expecting it: {}", e.getMessage(), e);
-                        result.recordFatalError("Got SchemaException while not expecting it: " + e.getMessage(), e);
-                        throw new SystemException("Got SchemaException while not expecting it: " + e.getMessage(), e);
-                    }
-                    foundConnector.setOid(oid);
-
-                    // We need to "embed" connectorHost to the connectorType. The UCF does not
-                    // have access to repository, therefore it cannot resolve it for itself
-                    if (hostType != null) {
-                        foundConnector.getConnectorHostRef().asReferenceValue().setObject(hostType.asPrismObject());
-                    }
-
-                    discoveredConnectors.add(foundConnector);
-                    LOGGER.info("Discovered new connector {}", foundConnector);
                 }
             }
         }
 
         result.recordSuccess();
         return discoveredConnectors;
+    }
+
+    /**
+     *
+     * @return true if connector was not present in repo and was added to it
+     */
+    private boolean addConnectorToRepo(ConnectorType foundConnector, OperationResult result, ConnectorHostType hostType) {
+        LOGGER.trace("Connector {} not in the repository, adding", foundConnector);
+
+        if (foundConnector.getSchema() == null) {
+            LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);
+        }
+
+        // Sanitize framework-supplied OID
+        if (StringUtils.isNotEmpty(foundConnector.getOid())) {
+            LOGGER.warn("Provisioning framework {} supplied OID for connector {}", foundConnector.getFramework(), foundConnector);
+            foundConnector.setOid(null);
+        }
+
+        // Store the connector object
+        String oid;
+        try {
+            prismContext.adopt(foundConnector);
+            oid = repositoryService.addObject(foundConnector.asPrismObject(), null, result);
+        } catch (ObjectAlreadyExistsException e) {
+            if (isInRepo(foundConnector, hostType, result)) {
+                return false;
+            }
+            throw new SystemException("Connector was not present in repository, but add failed", e);
+        } catch (SchemaException e) {
+            // If there is a schema error it must be a bug. Convert to
+            // runtime exception
+            LOGGER.error("Got SchemaException while not expecting it: {}", e.getMessage(), e);
+            result.recordFatalError("Got SchemaException while not expecting it: " + e.getMessage(), e);
+            throw new SystemException("Got SchemaException while not expecting it: " + e.getMessage(), e);
+        }
+        foundConnector.setOid(oid);
+
+        // We need to "embed" connectorHost to the connectorType. The UCF does not
+        // have access to repository, therefore it cannot resolve it for itself
+        if (hostType != null) {
+            foundConnector.getConnectorHostRef().asReferenceValue().setObject(hostType.asPrismObject());
+        }
+        return true;
+
     }
 
     private boolean isInRepo(ConnectorType connectorType, ConnectorHostType hostType, OperationResult result) {
@@ -706,5 +720,10 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         } catch (CommunicationException e) {
             LOGGER.error("Error occured during discovery of connectors");
         }
+    }
+
+    @VisibleForTesting
+    void setNotFoundInRepoConsumer(Consumer<ConnectorType> consumer) {
+        this.notInRepoConsumer = consumer;
     }
 }

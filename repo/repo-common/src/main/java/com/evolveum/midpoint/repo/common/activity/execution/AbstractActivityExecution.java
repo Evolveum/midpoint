@@ -423,6 +423,8 @@ public abstract class AbstractActivityExecution<
      * @return True if the activity is capable of distinguishing between uncommitted and committed progress items.
      * A typical example of committing progress items is when a bucket is marked as complete: this ensures that items
      * that were processed will not be reprocessed again.
+     *
+     * If an activity has no progress commit points, then all progress is registered as committed.
      */
     protected boolean hasProgressCommitPoints() {
         return false;
