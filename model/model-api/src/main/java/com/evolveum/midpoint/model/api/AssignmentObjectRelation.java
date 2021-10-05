@@ -55,7 +55,7 @@ public class AssignmentObjectRelation implements DebugDumpable, ShortDumpable, S
     private static final long serialVersionUID = 1L;
 
     public List<QName> objectTypes;
-    public List<ObjectReferenceType> archetypeRefs;
+    public List<ObjectReferenceType> archetypeRefs = new ArrayList<>();
     public List<QName> relations;
     public String description;
 

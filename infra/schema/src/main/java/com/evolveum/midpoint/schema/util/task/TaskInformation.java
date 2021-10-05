@@ -128,7 +128,11 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
     }
 
     /** Returns short description of progress of the task and its children. */
-    public abstract String getProgressDescriptionShort();
+    public String getProgressDescriptionShort() {
+        return getProgressDescription(false);
+    }
+
+    public abstract String getProgressDescription(boolean longForm);
 
     /**
      * Returns number of items failed to be processed by the task and its children, if known.

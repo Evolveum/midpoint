@@ -65,8 +65,8 @@ public class LegacyTaskInformation extends TaskInformation {
     }
 
     @Override
-    public String getProgressDescriptionShort() {
-        return itemsProgressInformation.toHumanReadableString(false);
+    public String getProgressDescription(boolean longForm) {
+        return itemsProgressInformation.toHumanReadableString(longForm);
     }
 
     @Override

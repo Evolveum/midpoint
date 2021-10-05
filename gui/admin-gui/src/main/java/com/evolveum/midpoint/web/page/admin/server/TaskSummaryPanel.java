@@ -186,9 +186,10 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     @Override
     protected IModel<String> getTitleModel() {
         return () -> {
-                TaskType taskType = getModelObject();
+            TaskType taskType = getModelObject();
+            TaskInformation taskInformation = taskInformationModel.getObject();
 
-            String rv = WebComponentUtil.getTaskProgressInformation(taskType, true, getPageBase());
+            String rv = WebComponentUtil.getTaskProgressDescription(taskInformation, true, getPageBase());
             if (taskType.getExecutionState() != null) {
                     switch (taskType.getExecutionState()) {
                         case SUSPENDED:
