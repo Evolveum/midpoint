@@ -304,11 +304,10 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 .select(buildSelectExpressions(entity, query))
                 .fetch();
 
-        // TODO: Rework to ResultListRowTransformer.beforeTransformation
-        entityPathMapping.processResult(data, entity, jdbcSession, options);
         // TODO: This is currently used for old audit only.
         //  New audit would work too as the ID there is unique, but we want to use timestamp column
         //  which is a partition key. Fetchers are not suitable to do that.
+        // Fetchers are now superseded by ResultListRowTransformer#beforeTransformation()
         Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers =
                 entityPathMapping.detailFetchMappers();
         if (!detailFetchMappers.isEmpty()) {
@@ -467,7 +466,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             ResultListRowTransformer<S, Q, R> rowTransformer =
                     entityPathMapping.createRowTransformer(this, jdbcSession);
 
-            rowTransformer.beforeTransformation(result, entityPath);
+            rowTransformer.beforeTransformation(result.content(), entityPath);
             PageOf<S> transformedResult = result.map(row -> rowTransformer.transform(row, entityPath, options));
             rowTransformer.finishTransformation();
 
