@@ -4210,6 +4210,12 @@ public final class WebComponentUtil {
             if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getObjectTypes())) {
                 assignmentObjectRelation.getObjectTypes().forEach(objectType -> {
                     if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())) {
+                        //add at first type+relation combination without archetypeRef to cover default views (e.g. all users)
+                        AssignmentObjectRelation defaultViewRelation = new AssignmentObjectRelation();
+                        defaultViewRelation.setObjectTypes(Collections.singletonList(objectType));
+                        defaultViewRelation.setRelations(assignmentObjectRelation.getRelations());
+                        defaultViewRelation.setDescription(assignmentObjectRelation.getDescription());
+                        resultList.add(defaultViewRelation);
                         assignmentObjectRelation.getArchetypeRefs().forEach(archetypeRef -> {
                             AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
                             newRelation.setObjectTypes(Collections.singletonList(objectType));
