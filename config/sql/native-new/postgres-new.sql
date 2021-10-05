@@ -1589,9 +1589,6 @@ CREATE TABLE m_assignment (
     tenantRefTargetOid UUID,
     tenantRefTargetType ObjectType,
     tenantRefRelationId INTEGER REFERENCES m_uri(id),
-    -- TODO what is this? see RAssignment.getExtension (both extId/Oid)
-    extId INTEGER,
-    extOid TEXT, -- is this UUID too?
     policySituations INTEGER[], -- soft-references m_uri, add index per table
     subtypes TEXT[], -- only EQ filter
     ext JSONB,
