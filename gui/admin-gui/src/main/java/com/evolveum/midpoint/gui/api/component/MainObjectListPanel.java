@@ -179,7 +179,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(newObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(newObjectButtonDisplayType));
-        if (isCollectionViewPanel()) {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        if (ObjectCollectionViewUtil.isArchetypedCollectionView(view)) {
             IconType plusIcon = new IconType();
             plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
             plusIcon.setColor("green");
@@ -297,7 +298,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             if (ObjectCollectionViewUtil.isArchetypedCollectionView(view)) {
                 return GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
             }
-        }
+         }
 
         String sb = createStringResource("MainObjectListPanel.newObject").getString()
                 + " "

@@ -35,6 +35,8 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGR
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_LOCAL;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * The "real" execution of an activity - i.e. not a delegation nor a distribution.
  *
@@ -83,7 +85,7 @@ public abstract class LocalActivityExecution<
 
         getTreeStateOverview().recordLocalExecutionStart(this, result);
 
-        if (supportsExecutionRecords()) {
+        if (doesSupportExecutionRecords()) {
             activityState.getLiveStatistics().getLiveItemProcessing().recordExecutionStart(startTimestamp);
         }
         activityState.getLiveProgress().clearUncommitted();
@@ -103,6 +105,8 @@ public abstract class LocalActivityExecution<
 
         activityState.setResultStatus(IN_PROGRESS);
         activityState.recordExecutionStart(startTimestamp);
+
+        activityState.updateProgressAndStatisticsNoCommit();
         activityState.flushPendingTaskModificationsChecked(result);
     }
 
@@ -126,17 +130,21 @@ public abstract class LocalActivityExecution<
 
         getTreeStateOverview().recordLocalExecutionFinish(this, executionResult, result);
 
-        if (supportsExecutionRecords()) {
+        if (doesSupportExecutionRecords()) {
             activityState.getLiveStatistics().getLiveItemProcessing()
-                    .recordExecutionEnd(startTimestamp, endTimestamp);
+                    .recordExecutionEnd(
+                            requireNonNull(startTimestamp, "no start timestamp"),
+                            endTimestamp);
         }
 
         // The state is flushed upstream
     }
 
-    private boolean supportsExecutionRecords() {
-        // Temporary solution: activities that have persistent/semi-persistent state are those that execute in short cycles
-        // (like live sync, various scanners, and so on). We usually do not want to store execution records for these.
+    /**
+     * Temporary solution: activities that have persistent/semi-persistent state are those that execute in short cycles
+     * (like live sync, various scanners, and so on). We usually do not want to store execution records for these.
+     */
+    public boolean doesSupportExecutionRecords() {
         return doesSupportStatistics() && activityStateDefinition.isSingleRealization();
     }
 

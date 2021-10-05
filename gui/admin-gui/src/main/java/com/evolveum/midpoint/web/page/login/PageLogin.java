@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.login;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -142,10 +143,6 @@ public class PageLogin extends AbstractPageLogin {
                     Task task = createAnonymousTask(OPERATION_LOAD_REGISTRATION_POLICY);
                     registrationPolicies = getModelInteractionService().getFlowPolicy(null, task, parentResult);
 
-                    if (registrationPolicies == null || registrationPolicies.getSelfRegistration() == null) {
-                        registrationPolicies = getModelInteractionService().getRegistrationPolicy(null, task, parentResult);
-                    }
-
                 } catch (CommonException e) {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
@@ -159,17 +156,20 @@ public class PageLogin extends AbstractPageLogin {
                 return linkIsVisible;
             }
         });
-        if (securityPolicy != null && securityPolicy.getRegistration() != null && securityPolicy.getRegistration().getSelfRegistration() != null
-                && StringUtils.isNotBlank(securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName())) {
-            AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName(),
-                    securityPolicy.getAuthentication());
-            if (sequence != null) {
-                registration.add(AttributeModifier.replace("href", new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
-                    }
-                }));
+        if (securityPolicy != null) {
+            SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
+            if (selfRegistrationPolicy != null
+                    && StringUtils.isNotBlank(selfRegistrationPolicy.getAdditionalAuthenticationName())) {
+                AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationName(),
+                        securityPolicy.getAuthentication());
+                if (sequence != null) {
+                    registration.add(AttributeModifier.replace("href", new IModel<String>() {
+                        @Override
+                        public String getObject() {
+                            return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+                        }
+                    }));
+                }
             }
         }
         form.add(registration);

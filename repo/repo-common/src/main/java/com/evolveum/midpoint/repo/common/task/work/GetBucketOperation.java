@@ -290,7 +290,7 @@ public class GetBucketOperation extends BucketOperation {
     }
 
     private void recordCreatedNew(@NotNull GetBucketOperationAttempt attempt) {
-        CONTENTION_LOGGER.info("New bucket(s) acquired after {} ms (retries: {}) in {}: {}",
+        CONTENTION_LOGGER.trace("New bucket(s) acquired after {} ms (retries: {}) in {}: {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTaskOid,
                 attempt.getBucketToUse());
         statisticsKeeper.register(GET_WORK_BUCKET_CREATED_NEW);

@@ -30,7 +30,7 @@ public class WallClockTimeComputer {
     private final Set<Interval> nonOverlappingIntervals;
 
     @SafeVarargs
-    public WallClockTimeComputer(List<ActivityExecutionRecordType>... lists) {
+    WallClockTimeComputer(List<ActivityExecutionRecordType>... lists) {
         intervals = Arrays.stream(lists)
                 .flatMap(Collection::stream)
                 .map(Interval::create)
@@ -119,11 +119,11 @@ public class WallClockTimeComputer {
                 if (interval.isValid()) {
                     return interval;
                 } else {
-                    LOGGER.debug("Malformed execution record: {} -> {}", record, interval); // FIXME
+                    LOGGER.warn("Malformed execution record: {} -> {}", record, interval);
                     return null;
                 }
             } else {
-                LOGGER.debug("Malformed execution record: {}", record); // FIXME
+                LOGGER.warn("Malformed execution record: {}", record);
                 return null;
             }
         }

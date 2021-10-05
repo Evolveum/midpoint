@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.test.asserter.ActivityProgressInformationAsserter;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -107,6 +108,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_220_MOCK_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-220-mock-composite-with-subtasks.xml", "");
     private static final TestResource<TaskType> TASK_300_WORKERS_SIMPLE = new TestResource<>(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
     private static final TestResource<TaskType> TASK_310_WORKERS_SCAVENGING = new TestResource<>(TEST_DIR, "task-310-workers-scavenging.xml", "1e956013-5997-47bd-8885-4da2340dddfc");
+    private static final TestResource<TaskType> TASK_400_LONG_RUNNING = new TestResource<>(TEST_DIR, "task-400-long-running.xml", "f179b67d-a4b2-4bd0-af8a-7f814d9f069c");
 
     @Autowired private MockRecorder recorder;
     @Autowired private CommonTaskBeans beans;
@@ -2670,6 +2672,41 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertRealizationInProgress()
                     .assertStatusInProgress()
                 .end();
+    }
+
+
+    /**
+     * The performance information of running tasks should be measured in a reasonable way.
+     */
+    @Test
+    public void test400RunningTaskPerformance() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        Task root = taskAdd(TASK_400_LONG_RUNNING, result);
+        waitForTaskStart(root.getOid(), result, 5000, 100);
+
+        when();
+
+        MiscUtil.sleepCatchingInterruptedException(2000);
+        assertTask(root.getOid(), "during")
+                .assertExecutionState(TaskExecutionStateType.RUNNING)
+                .display();
+
+        assertPerformance(root.getOid(), "during")
+                .display()
+                .assertApplicable();
+
+        then();
+
+        boolean suspended = suspendTask(root.getOid(), 10000);
+        assertThat(suspended).as("task was suspended").isTrue();
+
+        assertPerformance(root.getOid(), "after")
+                .display()
+                .assertApplicable();
     }
 
     private void dumpProgressAndPerformanceInfo(String oid, OperationResult result)

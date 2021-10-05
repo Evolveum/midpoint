@@ -170,7 +170,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     }
 
     protected ProgressPanel getProgressPanel() {
-        return (ProgressPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_PROGRESS_PANEL));
+        return (ProgressPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_PROGRESS_PANEL_FRAGMENT, ID_PROGRESS_PANEL));
     }
 
     @Override
@@ -211,12 +211,12 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
         boolean canExitPage;
         if (returningFromAsync) {
-            canExitPage = getProgressPanel().isAllSuccess() || result.isInProgress() || result.isHandledError(); // if there's at least a warning in the progress table, we would like to keep the table open
+            canExitPage = result.isInProgress() || result.isHandledError(); // if there's at least a warning in the progress table, we would like to keep the table open
         } else {
             canExitPage = !canContinueEditing;                            // no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
         }
 
-        if (!getProgressPanel().isKeepDisplayingResults() && canExitPage) {
+        if ((returningFromAsync || !getProgressPanel().isKeepDisplayingResults()) && canExitPage) {
             showResult(result);
             redirectBack();
         } else {

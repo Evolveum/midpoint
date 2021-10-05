@@ -1051,7 +1051,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 || getObjectCollectionView() != null;
     }
 
-    private boolean defaultCollectionExists() {
+    protected boolean defaultCollectionExists() {
         return getCollectionViewForAllObject() != null;
     }
 

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 
 import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityExecution.NS_EXT;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import javax.xml.namespace.QName;
 
@@ -27,6 +28,7 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
     private static final ItemName FROM_NAME = new ItemName(NS_EXT, "from");
     private static final ItemName TO_NAME = new ItemName(NS_EXT, "to");
     private static final ItemName MESSAGE_NAME = new ItemName(NS_EXT, "message");
+    private static final ItemName DELAY_NAME = new ItemName(NS_EXT, "delay");
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "IterativeMockDefinitionType");
 
@@ -38,11 +40,14 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
 
     private final String message;
 
+    private final long delay;
+
     IterativeMockWorkDefinition(WorkDefinitionSource source) {
         PrismContainerValue<?> pcv = ((WorkDefinitionWrapper.UntypedWorkDefinitionWrapper) source).getUntypedDefinition();
         this.from = MoreObjects.firstNonNull(pcv.getPropertyRealValue(FROM_NAME, Integer.class), 0);
         this.to = MoreObjects.firstNonNull(pcv.getPropertyRealValue(TO_NAME, Integer.class), from);
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);
+        this.delay = or0(pcv.getPropertyRealValue(DELAY_NAME, Long.class));
     }
 
     public int getFrom() {
@@ -61,8 +66,15 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
         return message;
     }
 
+    public long getDelay() {
+        return delay;
+    }
+
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
+        DebugUtil.debugDumpWithLabelLn(sb, "from", from, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "to", to, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "delay", delay, indent+1);
     }
 }

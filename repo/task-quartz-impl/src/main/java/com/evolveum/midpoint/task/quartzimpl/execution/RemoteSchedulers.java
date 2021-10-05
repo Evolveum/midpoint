@@ -9,7 +9,6 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
-import com.evolveum.midpoint.task.quartzimpl.execution.remote.JmxConnector;
 import com.evolveum.midpoint.task.quartzimpl.execution.remote.RestConnector;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,7 +38,6 @@ public class RemoteSchedulers {
     public static final String CLASS_DOT = RemoteSchedulers.class.getName();
 
     @Autowired private ClusterManager clusterManager;
-    @Autowired private JmxConnector jmxConnector;
     @Autowired private RestConnector restConnector;
     @Autowired private TaskManagerConfiguration configuration;
 
@@ -49,11 +47,7 @@ public class RemoteSchedulers {
             return; // result is already updated
         }
 
-        if (configuration.isUseJmx()) {
-            jmxConnector.stopRemoteScheduler(node, result);
-        } else {
-            restConnector.stopRemoteScheduler(node, result);
-        }
+        restConnector.stopRemoteScheduler(node, result);
     }
 
     private NodeType getNode(String nodeIdentifier, OperationResult result) {
@@ -74,11 +68,7 @@ public class RemoteSchedulers {
                 return; // result is already updated
             }
 
-            if (configuration.isUseJmx()) {
-                jmxConnector.startRemoteScheduler(node, result);
-            } else {
-                restConnector.startRemoteScheduler(node, result);
-            }
+            restConnector.startRemoteScheduler(node, result);
         } catch (Throwable t) {
             result.recordFatalError("Couldn't start scheduler on remote node", t);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't start scheduler on remote node: {}", t, nodeIdentifier);
@@ -95,11 +85,7 @@ public class RemoteSchedulers {
         result.addParam("node", node.toString());
         try {
             LOGGER.debug("Interrupting task {} running at {}", oid, clusterManager.dumpNodeInfo(node));
-            if (configuration.isUseJmx()) {
-                jmxConnector.stopRemoteTaskRun(oid, node, result);
-            } else {
-                restConnector.stopRemoteTaskRun(oid, node, result);
-            }
+            restConnector.stopRemoteTaskRun(oid, node, result);
         } catch (Throwable t) {
             result.recordFatalError("Couldn't stop task running on remote node", t);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop task running on remote node: {}", t, oid);

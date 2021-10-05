@@ -34,7 +34,9 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -290,45 +292,56 @@ public class QAuditEventRecordMapping
     }
 
     @Override
-    public void processResult(
-            List<Tuple> data, QAuditEventRecord entityPath, JdbcSession jdbcSession,
-            Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (data.isEmpty()) {
-            return;
-        }
+    public ResultListRowTransformer<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> createRowTransformer(
+            SqlQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> sqlQueryContext,
+            JdbcSession jdbcSession) {
+        return new ResultListRowTransformer<>() {
+            @Override
+            public void beforeTransformation(List<Tuple> rowTuples, QAuditEventRecord entityPath) {
+                if (rowTuples.isEmpty()) {
+                    return;
+                }
 
-        Instant minTimestamp = Instant.MAX;
-        Instant maxTimestamp = Instant.MIN;
-        Map<Long, MAuditEventRecord> rowMap = new HashMap<>();
-        for (Tuple rowTuple : data) {
-            MAuditEventRecord row = Objects.requireNonNull(rowTuple.get(entityPath));
-            rowMap.put(row.id, row);
-            if (row.timestamp.isBefore(minTimestamp)) {
-                minTimestamp = row.timestamp;
+                Instant minTimestamp = Instant.MAX;
+                Instant maxTimestamp = Instant.MIN;
+                Map<Long, MAuditEventRecord> rowMap = new HashMap<>();
+                for (Tuple rowTuple : rowTuples) {
+                    MAuditEventRecord row = Objects.requireNonNull(rowTuple.get(entityPath));
+                    rowMap.put(row.id, row);
+                    if (row.timestamp.isBefore(minTimestamp)) {
+                        minTimestamp = row.timestamp;
+                    }
+                    if (row.timestamp.isAfter(maxTimestamp)) {
+                        maxTimestamp = row.timestamp;
+                    }
+                }
+
+                QAuditDelta qd = QAuditDeltaMapping.get().defaultAlias();
+                jdbcSession.newQuery()
+                        .select(qd)
+                        .from(qd)
+                        .where(qd.recordId.in(rowMap.keySet())
+                                // here between is OK, it's inclusive on both sides
+                                .and(qd.timestamp.between(minTimestamp, maxTimestamp)))
+                        .fetch()
+                        .forEach(d -> rowMap.get(d.recordId).addDelta(d));
+
+                QAuditRefValue qr = QAuditRefValueMapping.get().defaultAlias();
+                jdbcSession.newQuery()
+                        .select(qr)
+                        .from(qr)
+                        .where(qr.recordId.in(rowMap.keySet())
+                                // here between is OK, it's inclusive on both sides
+                                .and(qr.timestamp.between(minTimestamp, maxTimestamp)))
+                        .fetch()
+                        .forEach(r -> rowMap.get(r.recordId).addRefValue(r));
             }
-            if (row.timestamp.isAfter(maxTimestamp)) {
-                maxTimestamp = row.timestamp;
+
+            @Override
+            public AuditEventRecordType transform(Tuple tuple, QAuditEventRecord entityPath,
+                    Collection<SelectorOptions<GetOperationOptions>> options) {
+                return toSchemaObjectSafe(tuple, entityPath, options, jdbcSession, false);
             }
-        }
-
-        QAuditDelta qd = QAuditDeltaMapping.get().defaultAlias();
-        jdbcSession.newQuery()
-                .select(qd)
-                .from(qd)
-                .where(qd.recordId.in(rowMap.keySet())
-                        // here between is OK, it's inclusive on both sides
-                        .and(qd.timestamp.between(minTimestamp, maxTimestamp)))
-                .fetch()
-                .forEach(d -> rowMap.get(d.recordId).addDelta(d));
-
-        QAuditRefValue qr = QAuditRefValueMapping.get().defaultAlias();
-        jdbcSession.newQuery()
-                .select(qr)
-                .from(qr)
-                .where(qr.recordId.in(rowMap.keySet())
-                        // here between is OK, it's inclusive on both sides
-                        .and(qr.timestamp.between(minTimestamp, maxTimestamp)))
-                .fetch()
-                .forEach(r -> rowMap.get(r.recordId).addRefValue(r));
+        };
     }
 }

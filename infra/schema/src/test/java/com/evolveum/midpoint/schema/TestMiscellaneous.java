@@ -111,7 +111,8 @@ public class TestMiscellaneous extends AbstractSchemaTest {
 
     @Test
     public void testWallClockComputerEmpty() {
-        assertThat(new WallClockTimeComputer(new long[][] {}).getSummaryTime()).isEqualTo(0);
+        assertThat(new WallClockTimeComputer(new long[][] {})
+                .getSummaryTime()).isEqualTo(0);
     }
 
     @Test
