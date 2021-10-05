@@ -133,16 +133,14 @@ public class SqaleServiceBase {
     }
 
     protected <T extends Containerable> long registerOperationStart(String kind, Class<T> type) {
-        // TODO what about class prefix? If not used some audit/repo ops would mingle.
-        //  a) we will use prefix (this version); b) we will name ops distinctively
         return performanceMonitor != null
                 ? performanceMonitor.registerOperationStart(opNamePrefix + kind, type)
                 : -1;
     }
 
-    protected void registerOperationFinish(long opHandle, int attempt) {
+    protected void registerOperationFinish(long opHandle) {
         if (performanceMonitor != null) {
-            performanceMonitor.registerOperationFinish(opHandle, attempt);
+            performanceMonitor.registerOperationFinish(opHandle, 1);
         }
     }
 

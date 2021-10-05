@@ -6,22 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
+import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -32,7 +22,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.querydsl.core.Tuple;
 
 public abstract class ReferenceNameResolver {
 
@@ -41,7 +30,7 @@ public abstract class ReferenceNameResolver {
     public static ReferenceNameResolver from(Collection<SelectorOptions<GetOperationOptions>> options) {
         @NotNull
         List<? extends ItemPath> paths = getPathsToResolve(options);
-        if(paths.isEmpty()) {
+        if (paths.isEmpty()) {
             return new Noop();
         }
         return new Impl(paths);
@@ -103,12 +92,10 @@ public abstract class ReferenceNameResolver {
             return object;
         }
 
-
-
         private void resolveNames(JdbcSession session) {
             QObject<MObject> object = new QObject<>(MObject.class, "obj");
             // TODO: Add batch processing
-            if(oidsToResolve.isEmpty()) {
+            if (oidsToResolve.isEmpty()) {
                 return;
             }
 
@@ -146,7 +133,7 @@ public abstract class ReferenceNameResolver {
             if (maybe != null) {
                 value.setTargetName(maybe);
             } else {
-                oidsToResolve .add(oid);
+                oidsToResolve.add(oid);
             }
         }
 
@@ -160,6 +147,4 @@ public abstract class ReferenceNameResolver {
             }
         }
     }
-
-
 }

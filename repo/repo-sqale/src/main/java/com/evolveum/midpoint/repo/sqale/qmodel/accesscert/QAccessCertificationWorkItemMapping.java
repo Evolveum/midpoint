@@ -9,12 +9,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
+import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -29,7 +26,6 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
-import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -37,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-import com.querydsl.core.Tuple;
 
 /**
  * Mapping between {@link QAccessCertificationWorkItem} and {@link AccessCertificationWorkItemType}.
@@ -178,9 +173,9 @@ public class QAccessCertificationWorkItemMapping
             UUID ownerOid = row.ownerOid;
             PrismObject<AccessCertificationCampaignType> owner = cache.get(ownerOid);
             // FIXME: Should we load cases we need, instead of all cases?
-            options = SchemaService.get().getOperationOptionsBuilder().retrieve().build();
             if (owner == null) {
-                owner = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext).loadObject(jdbcSession, AccessCertificationCampaignType.class, ownerOid, Collections.emptyList());
+                owner = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext).loadObject(
+                        jdbcSession, AccessCertificationCampaignType.class, ownerOid, Collections.emptyList());
                 cache.put(ownerOid, owner);
             }
             PrismContainer<AccessCertificationCaseType> caseContainer;
@@ -198,7 +193,8 @@ public class QAccessCertificationWorkItemMapping
                     throw new SystemException(e);
                 }
             }
-            PrismContainer<AccessCertificationWorkItemType> container = aCase.findContainer(AccessCertificationCaseType.F_WORK_ITEM);
+            PrismContainer<AccessCertificationWorkItemType> container =
+                    aCase.findContainer(AccessCertificationCaseType.F_WORK_ITEM);
             if (container == null) {
                 throw new SystemException("Campaign " + owner + "has no work item for case with ID " + row.accessCertCaseCid);
             }
@@ -210,7 +206,8 @@ public class QAccessCertificationWorkItemMapping
         };
     }
 
-    private PrismContainerValue<AccessCertificationCaseType> loadCase(JdbcSession jdbcSession, UUID ownerOid, Long accessCertCaseCid) {
+    private PrismContainerValue<AccessCertificationCaseType> loadCase(
+            JdbcSession jdbcSession, UUID ownerOid, Long accessCertCaseCid) {
         QAccessCertificationCaseMapping mapping = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping();
         QAccessCertificationCase root = mapping.defaultAlias();
         Tuple result = jdbcSession.newQuery()
@@ -219,13 +216,13 @@ public class QAccessCertificationWorkItemMapping
                 .where(root.ownerOid.eq(ownerOid).and(root.cid.eq(accessCertCaseCid)))
                 .fetchOne();
         if (result == null) {
-            throw new SystemException("Case owner:" + ownerOid + " cid: " +  accessCertCaseCid + "does not exists.");
+            throw new SystemException("Case owner:" + ownerOid + " cid: " + accessCertCaseCid + "does not exists.");
         }
         try {
+            //noinspection unchecked
             return mapping.toSchemaObject(result, root, Collections.emptyList()).asPrismContainerValue();
         } catch (SchemaException e) {
             throw new SystemException(e);
         }
-
     }
 }

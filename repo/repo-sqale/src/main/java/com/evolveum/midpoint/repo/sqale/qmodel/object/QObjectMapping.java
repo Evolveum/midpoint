@@ -251,12 +251,6 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         storeRefs(row, schemaObject.getParentOrgRef(),
                 QObjectReferenceMapping.getForParentOrg(), jdbcSession);
-
-        /* TODO EAV extensions - the relevant code from old repo RObject#copyObjectInformationFromJAXB
-        if (jaxb.getExtension() != null) {
-            copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
-        }
-        */
     }
 
     /**

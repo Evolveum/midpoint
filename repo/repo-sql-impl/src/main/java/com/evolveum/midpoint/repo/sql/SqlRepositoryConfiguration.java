@@ -189,11 +189,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     public static final String PROPERTY_HIBERNATE_HBM2DDL = "hibernateHbm2ddl";
     public static final String PROPERTY_HIBERNATE_DIALECT = "hibernateDialect";
 
-    public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
-    public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
-    public static final String PROPERTY_MAX_LIFETIME = "maxLifetime";
-    public static final String PROPERTY_IDLE_TIMEOUT = "idleTimeout";
-
     // concurrency properties
     public static final String PROPERTY_TRANSACTION_ISOLATION = "transactionIsolation";
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE = "lockForUpdateViaHibernate";
@@ -216,8 +211,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     public static final String PROPERTY_SCHEMA_VERSION_IF_MISSING = "schemaVersionIfMissing";
     public static final String PROPERTY_SCHEMA_VERSION_OVERRIDE = "schemaVersionOverride";
     public static final String PROPERTY_SCHEMA_VARIANT = "schemaVariant";
-
-    public static final String PROPERTY_INITIALIZATION_FAIL_TIMEOUT = "initializationFailTimeout";
 
     public static final String PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_INSERTION = "enableNoFetchExtensionValuesInsertion";
     public static final String PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION = "enableNoFetchExtensionValuesDeletion";
@@ -382,7 +375,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
         useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
-        createMissingCustomColumns = configuration.getBoolean(JdbcRepositoryConfiguration.PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
+        createMissingCustomColumns = configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         fullObjectFormat = configuration.getString(
                         PROPERTY_FULL_OBJECT_FORMAT,
                         System.getProperty(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML))

@@ -28,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-// TODO experimental, maybe temporary
 public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
 
     public static final SecureRandom RANDOM = new SecureRandom();
