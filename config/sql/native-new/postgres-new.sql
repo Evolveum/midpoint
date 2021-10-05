@@ -348,7 +348,7 @@ CREATE TABLE m_reference (
     -- add PK (referenceType is the same per table): PRIMARY KEY (ownerOid, relationId, targetOid)
 );
 -- Add this index for each sub-table (reference type is not necessary, each sub-table has just one).
--- CREATE INDEX m_referenceTargetOidRelationId_idx ON m_reference (targetOid, relationId);
+-- CREATE INDEX m_reference_targetOidRelationId_idx ON m_reference (targetOid, relationId);
 
 -- references related to ObjectType and AssignmentHolderType
 -- stores AssignmentHolderType/archetypeRef
@@ -361,7 +361,7 @@ CREATE TABLE m_ref_archetype (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_archetypeTargetOidRelationId_idx
+CREATE INDEX m_ref_archetype_targetOidRelationId_idx
     ON m_ref_archetype (targetOid, relationId);
 
 -- stores AssignmentHolderType/delegatedRef
@@ -374,7 +374,7 @@ CREATE TABLE m_ref_delegated (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_delegatedTargetOidRelationId_idx
+CREATE INDEX m_ref_delegated_targetOidRelationId_idx
     ON m_ref_delegated (targetOid, relationId);
 
 -- stores ObjectType/metadata/createApproverRef
@@ -413,7 +413,7 @@ CREATE TABLE m_ref_role_membership (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_role_memberTargetOidRelationId_idx
+CREATE INDEX m_ref_role_membership_targetOidRelationId_idx
     ON m_ref_role_membership (targetOid, relationId);
 -- endregion
 
@@ -464,7 +464,7 @@ CREATE TABLE m_ref_persona (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_personaTargetOidRelationId_idx
+CREATE INDEX m_ref_persona_targetOidRelationId_idx
     ON m_ref_persona (targetOid, relationId);
 
 -- stores FocusType/linkRef ("projection" is newer and better term)
@@ -477,7 +477,7 @@ CREATE TABLE m_ref_projection (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_projectionTargetOidRelationId_idx
+CREATE INDEX m_ref_projection_targetOidRelationId_idx
     ON m_ref_projection (targetOid, relationId);
 
 -- Represents GenericObjectType, see https://docs.evolveum.com/midpoint/reference/schema/generic-objects/
@@ -496,7 +496,7 @@ CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
-ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_generic_object_nameNorm_key ON m_generic_object (nameNorm);
 CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtypes);
 CREATE INDEX m_generic_object_validFrom_idx ON m_generic_object (validFrom);
 CREATE INDEX m_generic_object_validTo_idx ON m_generic_object (validTo);
@@ -540,7 +540,7 @@ CREATE TRIGGER m_user_oid_delete_tr AFTER DELETE ON m_user
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_user_nameOrig_idx ON m_user (nameOrig);
-ALTER TABLE m_user ADD CONSTRAINT m_user_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_user_nameNorm_key ON m_user (nameNorm);
 CREATE INDEX m_user_policySituation_idx ON m_user USING gin(policysituations gin__int_ops);
 CREATE INDEX m_user_ext_idx ON m_user USING gin(ext);
 CREATE INDEX m_user_fullNameOrig_idx ON m_user (fullNameOrig);
@@ -595,7 +595,7 @@ CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_role_nameOrig_idx ON m_role (nameOrig);
-ALTER TABLE m_role ADD CONSTRAINT m_role_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_role_nameNorm_key ON m_role (nameNorm);
 CREATE INDEX m_role_subtypes_idx ON m_role USING gin(subtypes);
 CREATE INDEX m_role_identifier_idx ON m_role (identifier);
 CREATE INDEX m_role_validFrom_idx ON m_role (validFrom);
@@ -619,7 +619,7 @@ CREATE TRIGGER m_service_oid_delete_tr AFTER DELETE ON m_service
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_service_nameOrig_idx ON m_service (nameOrig);
-ALTER TABLE m_service ADD CONSTRAINT m_service_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_service_nameNorm_key ON m_service (nameNorm);
 CREATE INDEX m_service_subtypes_idx ON m_service USING gin(subtypes);
 CREATE INDEX m_service_identifier_idx ON m_service (identifier);
 CREATE INDEX m_service_validFrom_idx ON m_service (validFrom);
@@ -642,7 +642,7 @@ CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_archetype_nameOrig_idx ON m_archetype (nameOrig);
-ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_archetype_nameNorm_key ON m_archetype (nameNorm);
 CREATE INDEX m_archetype_subtypes_idx ON m_archetype USING gin(subtypes);
 CREATE INDEX m_archetype_identifier_idx ON m_archetype (identifier);
 CREATE INDEX m_archetype_validFrom_idx ON m_archetype (validFrom);
@@ -669,7 +669,7 @@ CREATE TRIGGER m_org_oid_delete_tr AFTER DELETE ON m_org
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_org_nameOrig_idx ON m_org (nameOrig);
-ALTER TABLE m_org ADD CONSTRAINT m_org_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_org_nameNorm_key ON m_org (nameNorm);
 CREATE INDEX m_org_displayOrder_idx ON m_org (displayOrder);
 CREATE INDEX m_org_subtypes_idx ON m_org USING gin(subtypes);
 CREATE INDEX m_org_identifier_idx ON m_org (identifier);
@@ -688,8 +688,7 @@ CREATE TABLE m_ref_object_parent_org (
 )
     INHERITS (m_reference);
 
--- TODO is this enough? Is target+owner+relation needed too?
-CREATE INDEX m_ref_object_parent_orgTargetOidRelationId_idx
+CREATE INDEX m_ref_object_parent_org_targetOidRelationId_idx
     ON m_ref_object_parent_org (targetOid, relationId);
 
 -- region org-closure
@@ -804,7 +803,7 @@ CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_resource_nameOrig_idx ON m_resource (nameOrig);
-ALTER TABLE m_resource ADD CONSTRAINT m_resource_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_resource_nameNorm_key ON m_resource (nameNorm);
 CREATE INDEX m_resource_subtypes_idx ON m_resource USING gin(subtypes);
 CREATE INDEX m_resource_fullTextInfo_idx ON m_resource USING gin (fullTextInfo gin_trgm_ops);
 
@@ -818,7 +817,7 @@ CREATE TABLE m_ref_resource_business_configuration_approver (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_resource_biz_config_approverTargetOidRelationId_idx
+CREATE INDEX m_ref_resource_biz_config_approver_targetOidRelationId_idx
     ON m_ref_resource_business_configuration_approver (targetOid, relationId);
 
 -- Represents ShadowType, see https://wiki.evolveum.com/display/midPoint/Shadow+Objects
@@ -856,8 +855,8 @@ CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
 
 CREATE INDEX m_shadow_nameOrig_idx ON m_shadow (nameOrig);
 CREATE INDEX m_shadow_nameNorm_idx ON m_shadow (nameNorm); -- may not be unique for shadows!
-ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_primIdVal_objCls_resRefOid_key
-    UNIQUE (primaryIdentifierValue, objectClassId, resourceRefTargetOid);
+CREATE UNIQUE INDEX m_shadow_primIdVal_objCls_resRefOid_key
+    ON m_shadow (primaryIdentifierValue, objectClassId, resourceRefTargetOid);
 
 CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
 CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING gin(policysituations gin__int_ops);
@@ -895,7 +894,7 @@ CREATE TRIGGER m_node_oid_delete_tr AFTER DELETE ON m_node
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_node_nameOrig_idx ON m_node (nameOrig);
-ALTER TABLE m_node ADD CONSTRAINT m_node_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_node_nameNorm_key ON m_node (nameNorm);
 -- not interested in other indexes for this one, this table will be small
 
 -- Represents SystemConfigurationType, see https://wiki.evolveum.com/display/midPoint/System+Configuration+Object
@@ -913,8 +912,7 @@ CREATE TRIGGER m_system_configuration_update_tr BEFORE UPDATE ON m_system_config
 CREATE TRIGGER m_system_configuration_oid_delete_tr AFTER DELETE ON m_system_configuration
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
-ALTER TABLE m_system_configuration
-    ADD CONSTRAINT m_system_configuration_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_system_configuration_nameNorm_key ON m_system_configuration (nameNorm);
 -- no need for the name index, m_system_configuration table is very small
 
 -- Represents SecurityPolicyType, see https://wiki.evolveum.com/display/midPoint/Security+Policy+Configuration
@@ -933,7 +931,7 @@ CREATE TRIGGER m_security_policy_oid_delete_tr AFTER DELETE ON m_security_policy
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_security_policy_nameOrig_idx ON m_security_policy (nameOrig);
-ALTER TABLE m_security_policy ADD CONSTRAINT m_security_policy_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_security_policy_nameNorm_key ON m_security_policy (nameNorm);
 CREATE INDEX m_security_policy_subtypes_idx ON m_security_policy USING gin(subtypes);
 CREATE INDEX m_security_policy_policySituation_idx
     ON m_security_policy USING gin(policysituations gin__int_ops);
@@ -956,7 +954,7 @@ CREATE TRIGGER m_object_collection_oid_delete_tr AFTER DELETE ON m_object_collec
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_object_collection_nameOrig_idx ON m_object_collection (nameOrig);
-ALTER TABLE m_object_collection ADD CONSTRAINT m_object_collection_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_object_collection_nameNorm_key ON m_object_collection (nameNorm);
 CREATE INDEX m_object_collection_subtypes_idx ON m_object_collection USING gin(subtypes);
 CREATE INDEX m_object_collection_policySituation_idx
     ON m_object_collection USING gin(policysituations gin__int_ops);
@@ -980,7 +978,7 @@ CREATE TRIGGER m_dashboard_oid_delete_tr AFTER DELETE ON m_dashboard
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_dashboard_nameOrig_idx ON m_dashboard (nameOrig);
-ALTER TABLE m_dashboard ADD CONSTRAINT m_dashboard_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_dashboard_nameNorm_key ON m_dashboard (nameNorm);
 CREATE INDEX m_dashboard_subtypes_idx ON m_dashboard USING gin(subtypes);
 CREATE INDEX m_dashboard_policySituation_idx
     ON m_dashboard USING gin(policysituations gin__int_ops);
@@ -1001,7 +999,7 @@ CREATE TRIGGER m_value_policy_oid_delete_tr AFTER DELETE ON m_value_policy
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_value_policy_nameOrig_idx ON m_value_policy (nameOrig);
-ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_value_policy_nameNorm_key ON m_value_policy (nameNorm);
 CREATE INDEX m_value_policy_subtypes_idx ON m_value_policy USING gin(subtypes);
 CREATE INDEX m_value_policy_policySituation_idx
     ON m_value_policy USING gin(policysituations gin__int_ops);
@@ -1022,7 +1020,7 @@ CREATE TRIGGER m_report_oid_delete_tr AFTER DELETE ON m_report
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
-ALTER TABLE m_report ADD CONSTRAINT m_report_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_report_nameNorm_key ON m_report (nameNorm);
 CREATE INDEX m_report_subtypes_idx ON m_report USING gin(subtypes);
 CREATE INDEX m_report_policySituation_idx ON m_report USING gin(policysituations gin__int_ops);
 
@@ -1066,7 +1064,7 @@ CREATE TRIGGER m_lookup_table_oid_delete_tr AFTER DELETE ON m_lookup_table
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_lookup_table_nameOrig_idx ON m_lookup_table (nameOrig);
-ALTER TABLE m_lookup_table ADD CONSTRAINT m_lookup_table_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_lookup_table_nameNorm_key ON m_lookup_table (nameNorm);
 CREATE INDEX m_lookup_table_subtypes_idx ON m_lookup_table USING gin(subtypes);
 CREATE INDEX m_lookup_table_policySituation_idx
     ON m_lookup_table USING gin(policysituations gin__int_ops);
@@ -1086,8 +1084,7 @@ CREATE TABLE m_lookup_table_row (
 )
     INHERITS(m_container);
 
-ALTER TABLE m_lookup_table_row
-    ADD CONSTRAINT m_lookup_table_row_ownerOid_key_key UNIQUE (ownerOid, key);
+CREATE UNIQUE INDEX m_lookup_table_row_ownerOid_key_key ON m_lookup_table_row (ownerOid, key);
 
 -- Represents ConnectorType, see https://wiki.evolveum.com/display/midPoint/Identity+Connectors
 CREATE TABLE m_connector (
@@ -1095,8 +1092,8 @@ CREATE TABLE m_connector (
     objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR') STORED
         CHECK (objectType = 'CONNECTOR'),
     connectorBundle TEXT, -- typically a package name
-    connectorType TEXT, -- typically a class name
-    connectorVersion TEXT,
+    connectorType TEXT NOT NULL, -- typically a class name
+    connectorVersion TEXT NOT NULL,
     frameworkId INTEGER REFERENCES m_uri(id),
     connectorHostRefTargetOid UUID,
     connectorHostRefTargetType ObjectType,
@@ -1112,9 +1109,14 @@ CREATE TRIGGER m_connector_update_tr BEFORE UPDATE ON m_connector
 CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
+CREATE UNIQUE INDEX m_connector_typeVersion_key
+    ON m_connector (connectorType, connectorVersion)
+    WHERE connectorHostRefTargetOid IS NULL;
+CREATE UNIQUE INDEX m_connector_typeVersionHost_key
+    ON m_connector (connectorType, connectorVersion, connectorHostRefTargetOid)
+    WHERE connectorHostRefTargetOid IS NOT NULL;
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
--- TODO: wasn't unique but duplicates caused problems
---  Also, perhaps unique constraint on type+version would be handy?
+-- TODO: wasn't unique but duplicates caused problems, is it fixed by unique indexes above?
 CREATE INDEX m_connector_nameNorm_idx ON m_connector (nameNorm);
 CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
 CREATE INDEX m_connector_policySituation_idx
@@ -1138,7 +1140,7 @@ CREATE TRIGGER m_connector_host_oid_delete_tr AFTER DELETE ON m_connector_host
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_connector_host_nameOrig_idx ON m_connector_host (nameOrig);
-ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_connector_host_nameNorm_key ON m_connector_host (nameNorm);
 CREATE INDEX m_connector_host_subtypes_idx ON m_connector_host USING gin(subtypes);
 CREATE INDEX m_connector_host_policySituation_idx
     ON m_connector_host USING gin(policysituations gin__int_ops);
@@ -1187,7 +1189,7 @@ CREATE INDEX m_task_nameOrig_idx ON m_task (nameOrig);
 CREATE INDEX m_task_nameNorm_idx ON m_task (nameNorm); -- can have duplicates
 CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRefTargetOid_idx ON m_task(objectRefTargetOid);
-ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
+CREATE UNIQUE INDEX m_task_taskIdentifier_key ON m_task (taskIdentifier);
 CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING gin(dependentTaskIdentifiers);
 CREATE INDEX m_task_subtypes_idx ON m_task USING gin(subtypes);
 CREATE INDEX m_task_policySituation_idx ON m_task USING gin(policysituations gin__int_ops);
@@ -1273,6 +1275,9 @@ ALTER TABLE m_case_wi_assignee ADD CONSTRAINT m_case_wi_assignee_id_fk
     FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
         ON DELETE CASCADE;
 
+CREATE INDEX m_case_wi_assignee_targetOidRelationId_idx
+    ON m_case_wi_assignee (targetOid, relationId);
+
 -- stores workItem/candidateRef
 CREATE TABLE m_case_wi_candidate (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -1286,6 +1291,9 @@ CREATE TABLE m_case_wi_candidate (
 ALTER TABLE m_case_wi_candidate ADD CONSTRAINT m_case_wi_candidate_id_fk
     FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
         ON DELETE CASCADE;
+
+CREATE INDEX m_case_wi_candidate_targetOidRelationId_idx
+    ON m_case_wi_candidate (targetOid, relationId);
 -- endregion
 
 -- region Access Certification object tables
@@ -1311,8 +1319,7 @@ CREATE TRIGGER m_access_cert_definition_oid_delete_tr AFTER DELETE ON m_access_c
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_access_cert_definition_nameOrig_idx ON m_access_cert_definition (nameOrig);
-ALTER TABLE m_access_cert_definition
-    ADD CONSTRAINT m_access_cert_definition_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_access_cert_definition_nameNorm_key ON m_access_cert_definition (nameNorm);
 CREATE INDEX m_access_cert_definition_subtypes_idx ON m_access_cert_definition USING gin(subtypes);
 CREATE INDEX m_access_cert_definition_policySituation_idx
     ON m_access_cert_definition USING gin(policysituations gin__int_ops);
@@ -1347,8 +1354,7 @@ CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cer
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_access_cert_campaign_nameOrig_idx ON m_access_cert_campaign (nameOrig);
-ALTER TABLE m_access_cert_campaign
-    ADD CONSTRAINT m_access_cert_campaign_nameNorm_key UNIQUE (nameNorm);
+CREATE UNIQUE INDEX m_access_cert_campaign_nameNorm_key ON m_access_cert_campaign (nameNorm);
 CREATE INDEX m_access_cert_campaign_subtypes_idx ON m_access_cert_campaign USING gin(subtypes);
 CREATE INDEX m_access_cert_campaign_policySituation_idx
     ON m_access_cert_campaign USING gin(policysituations gin__int_ops);
@@ -1395,6 +1401,11 @@ CREATE TABLE m_access_cert_case (
 )
     INHERITS(m_container);
 
+CREATE INDEX m_access_cert_case_objectRefTargetOid_idx ON m_access_cert_case (objectRefTargetOid);
+CREATE INDEX m_access_cert_case_targetRefTargetOid_idx ON m_access_cert_case (targetRefTargetOid);
+CREATE INDEX m_access_cert_case_tenantRefTargetOid_idx ON m_access_cert_case (tenantRefTargetOid);
+CREATE INDEX m_access_cert_case_orgRefTargetOid_idx ON m_access_cert_case (orgRefTargetOid);
+
 CREATE TABLE m_access_cert_wi (
     ownerOid UUID NOT NULL, -- PK+FK
     accessCertCaseCid INTEGER NOT NULL, -- PK+FK
@@ -1438,6 +1449,9 @@ ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_i
         REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
         ON DELETE CASCADE;
 
+CREATE INDEX m_access_cert_wi_assignee_targetOidRelationId_idx
+    ON m_access_cert_wi_assignee (targetOid, relationId);
+
 -- stores case/workItem/candidateRef
 CREATE TABLE m_access_cert_wi_candidate (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -1458,17 +1472,8 @@ ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate
         REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
         ON DELETE CASCADE;
 
-/*
-CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (nameOrig);
-ALTER TABLE m_access_cert_campaign ADD CONSTRAINT uc_access_cert_campaign_name UNIQUE (nameNorm);
-CREATE INDEX iCaseObjectRefTargetOid ON m_access_cert_case (objectRefTargetOid);
-CREATE INDEX iCaseTargetRefTargetOid ON m_access_cert_case (targetRefTargetOid);
-CREATE INDEX iCaseTenantRefTargetOid ON m_access_cert_case (tenantRefTargetOid);
-CREATE INDEX iCaseOrgRefTargetOid ON m_access_cert_case (orgRefTargetOid);
-CREATE INDEX iCertDefinitionNameOrig ON m_access_cert_definition (nameOrig);
-ALTER TABLE m_access_cert_definition ADD CONSTRAINT uc_access_cert_definition_name UNIQUE (nameNorm);
-CREATE INDEX iCertWorkItemRefTargetOid ON m_access_cert_wi_reference (targetOid);
- */
+CREATE INDEX m_access_cert_wi_candidate_targetOidRelationId_idx
+    ON m_access_cert_wi_candidate (targetOid, relationId);
 -- endregion
 
 -- region ObjectTemplateType
@@ -1502,7 +1507,7 @@ CREATE TABLE m_ref_include (
 )
     INHERITS (m_reference);
 
-CREATE INDEX m_ref_includeTargetOidRelationId_idx
+CREATE INDEX m_ref_include_targetOidRelationId_idx
     ON m_ref_include (targetOid, relationId);
 -- endregion
 
@@ -1659,7 +1664,8 @@ ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_cre
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;
 
--- TODO index targetOid, relationId?
+CREATE INDEX m_assignment_ref_create_approver_targetOidRelationId_idx
+    ON m_assignment_ref_create_approver (targetOid, relationId);
 
 -- stores assignment/metadata/modifyApproverRef
 CREATE TABLE m_assignment_ref_modify_approver (
@@ -1676,7 +1682,8 @@ ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_mod
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;
 
--- TODO index targetOid, relationId?
+CREATE INDEX m_assignment_ref_modify_approver_targetOidRelationId_idx
+    ON m_assignment_ref_modify_approver (targetOid, relationId);
 -- endregion
 
 -- region Other object containers

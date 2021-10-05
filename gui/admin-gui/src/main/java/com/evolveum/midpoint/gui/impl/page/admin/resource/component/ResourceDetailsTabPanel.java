@@ -115,17 +115,31 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         ListDataProvider<ResourceConfigurationDto> resourceConfigProvider = new ListDataProvider<>(
                 ResourceDetailsTabPanel.this, createResourceConfigListModel());
 
+
+        List<IColumn<SelectableBeanImpl<ResourceType>, String>> tableColumns = new ArrayList<>();
+        tableColumns.add(ColumnUtils.createPropertyColumn(
+                new ColumnTypeDto<>(
+                        "ShadowType.kind", "objectTypeDefinition.kind", ShadowType.F_KIND.getLocalPart())));
+        tableColumns.add(new PropertyColumn<>(createStringResource("ShadowType.objectClass"),
+                "objectTypeDefinition.objectClass") {
+
+            @Override
+            public IModel<?> getDataModel(IModel<SelectableBeanImpl<ResourceType>> rowModel) {
+                IModel<QName> model = (IModel<QName>) super.getDataModel(rowModel);
+                if (model.getObject() != null) {
+                    return () -> model.getObject().getLocalPart();
+                }
+                return model;
+            }
+        });
+
+
         List<ColumnTypeDto<String>> columns = Arrays.asList(
-                new ColumnTypeDto<>("ShadowType.kind", "objectTypeDefinition.kind",
-                        ShadowType.F_KIND.getLocalPart()),
-                new ColumnTypeDto<>("ShadowType.objectClass",
-                        "objectTypeDefinition.objectClass.localPart",
-                        ShadowType.F_OBJECT_CLASS.getLocalPart()),
                 new ColumnTypeDto<>("ShadowType.intent", "objectTypeDefinition.intent",
                         ShadowType.F_INTENT.getLocalPart()),
                 new ColumnTypeDto<>("ResourceType.isSync", "sync", null));
 
-        List<IColumn<SelectableBeanImpl<ResourceType>, String>> tableColumns = ColumnUtils.createColumns(columns);
+        tableColumns.addAll(ColumnUtils.createColumns(columns));
 
         PropertyColumn tasksColumn = new PropertyColumn(
                 PageBase.createStringResourceStatic(this, "ResourceType.tasks"), "definedTasks") {
