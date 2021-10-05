@@ -4513,6 +4513,11 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:jmxPort</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -4563,18 +4568,6 @@
                             <xsd:documentation>
                                 IP addresses of the node (both IPv4 and IPv6 addresses in textual notation).
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="jmxPort" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Port at which this node can be contacted via JMX.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.0</a:deprecatedSince>
-                                <a:plannedRemoval>4.4</a:plannedRemoval>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastCheckInTime" type="xsd:dateTime" minOccurs="0">

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqlbase.mapping;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.querydsl.core.Tuple;
 
@@ -43,7 +44,7 @@ public interface ResultListRowTransformer<S, Q extends FlexibleRelationalPathBas
      * This allows preprocessing of results before the transformation.
      * One example is to load owner objects for containers.
      */
-    default void beforeTransformation(Iterable<Tuple> rowTuples, Q entityPath) throws SchemaException {
+    default void beforeTransformation(List<Tuple> rowTuples, Q entityPath) throws SchemaException {
         // nothing by default
     }
 

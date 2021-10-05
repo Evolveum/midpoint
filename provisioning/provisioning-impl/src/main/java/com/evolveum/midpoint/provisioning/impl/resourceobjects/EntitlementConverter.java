@@ -559,8 +559,10 @@ class EntitlementConverter {
         if (valueAttrName == null) {
             throw new SchemaException("No value attribute defined in entitlement association '"+associationName+"' in "+ctx.getResource());
         }
-        ResourceAttributeContainer identifiersContainer =
-                ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
+        //MID-7144: Identifier container may not be resource attribute container, if its origin
+        // is serialized pending delta
+        PrismContainer<?> identifiersContainer = associationCVal
+                .findContainer(ShadowAssociationType.F_IDENTIFIERS);
         PrismProperty<T> valueAttr = identifiersContainer.findProperty(ItemName.fromQName(valueAttrName));
         if (valueAttr == null) {
             throw new SchemaException("No value attribute "+valueAttrName+" present in entitlement association '"+associationName+"' in shadow for "+ctx.getResource());
