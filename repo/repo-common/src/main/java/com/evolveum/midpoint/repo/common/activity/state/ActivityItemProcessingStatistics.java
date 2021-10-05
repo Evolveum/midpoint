@@ -11,15 +11,14 @@ import static java.util.Objects.requireNonNull;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 
-import org.apache.commons.collections.buffer.CircularFifoBuffer; // TODO FIXME
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -30,6 +29,8 @@ import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This is "live" iteration information.
@@ -54,28 +55,25 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
     private static final AtomicLong ID_COUNTER = new AtomicLong(0);
 
-    @Deprecated
-    public static final int LAST_FAILURES_KEPT = 30;
-
     /** Current value. Guarded by this. */
     @NotNull private final ActivityItemProcessingStatisticsType value;
-
-    @Deprecated
-    protected CircularFifoBuffer lastFailures = new CircularFifoBuffer(LAST_FAILURES_KEPT);
-
-    @NotNull private final PrismContext prismContext;
 
     /**
      * For activities that aggregate operation statistics over significant periods of time (i.e. those that
      * do not start from zero) we would like to avoid execution records to grow indefinitely.
      * As the easiest solution (for 4.3) is to simply stop collecting this information for such tasks.
      */
-    private final boolean collectExecutions;
+    private final boolean supportsExecutionRecords;
+
+    /**
+     * Reference to the containing activity state object.
+     */
+    @NotNull private final CurrentActivityState<?> activityState;
 
     ActivityItemProcessingStatistics(@NotNull CurrentActivityState<?> activityState) {
-        this.prismContext = activityState.getBeans().prismContext;
-        this.value = new ActivityItemProcessingStatisticsType(prismContext);
-        this.collectExecutions = true; // TODO
+        this.activityState = activityState;
+        this.value = new ActivityItemProcessingStatisticsType(PrismContext.get());
+        this.supportsExecutionRecords = activityState.getActivityExecution().doesSupportExecutionRecords();
     }
 
     public void initialize(ActivityItemProcessingStatisticsType initialValue) {
@@ -100,7 +98,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
     public synchronized Operation recordOperationStart(IterativeOperationStartInfo startInfo) {
         assertInitialized();
         IterationItemInformation item = startInfo.getItem();
-        ProcessedItemType processedItem = new ProcessedItemType(prismContext)
+        ProcessedItemType processedItem = new ProcessedItemType(PrismContext.get())
                 .name(item.getObjectName())
                 .displayName(item.getObjectDisplayName())
                 .type(item.getObjectType())
@@ -117,13 +115,23 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
     public synchronized void recordExecutionStart(long startTimestamp) {
         assertInitialized();
-        findOrCreateMatchingExecutionRecord(value.getExecution(), startTimestamp);
+        updateMatchingExecutionRecord(startTimestamp);
     }
 
     public synchronized void recordExecutionEnd(long startTimestamp, long endTimestamp) {
         assertInitialized();
+        updateMatchingExecutionRecord(startTimestamp, XmlTypeConverter.createXMLGregorianCalendar(endTimestamp));
+    }
+
+    private void updateMatchingExecutionRecord(long startTimestamp) {
+        // We must not create an execution record without end timestamp.
+        // So, if the execution is still going on, we use the current timestamp.
+        updateMatchingExecutionRecord(startTimestamp, XmlTypeConverter.createXMLGregorianCalendar());
+    }
+
+    private void updateMatchingExecutionRecord(long startTimestamp, XMLGregorianCalendar xmlGregorianCalendar) {
         findOrCreateMatchingExecutionRecord(value.getExecution(), startTimestamp)
-                .setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar(endTimestamp));
+                .setEndTimestamp(xmlGregorianCalendar);
     }
 
     private static ActivityExecutionRecordType findOrCreateMatchingExecutionRecord(List<ActivityExecutionRecordType> records,
@@ -147,6 +155,17 @@ public class ActivityItemProcessingStatistics extends Initializable {
             Throwable exception) {
         removeFromCurrentOperations(value, operation);
         addToProcessedItemSet(value, operation, outcome, exception);
+        if (supportsExecutionRecords) {
+            updateMatchingExecutionRecord(getActivityExecutionStartTimestamp(), operation.getEndTimestamp());
+        }
+    }
+
+    private long getActivityExecutionStartTimestamp() {
+        return getActivityExecution().getStartTimestampRequired();
+    }
+
+    private @NotNull AbstractActivityExecution<?, ?, ?> getActivityExecution() {
+        return activityState.getActivityExecution();
     }
 
     /** Updates the corresponding `processed` statistics. Creates and stores appropriate `lastItem` record. */
@@ -172,7 +191,10 @@ public class ActivityItemProcessingStatistics extends Initializable {
                 .filter(itemSet -> Objects.equals(itemSet.getOutcome(), outcome))
                 .findFirst()
                 .orElseGet(
-                        () -> ActivityItemProcessingStatisticsUtil.add(part.getProcessed(), new ProcessedItemSetType(prismContext).outcome(outcome.cloneWithoutId())));
+                        () -> ActivityItemProcessingStatisticsUtil.add(
+                                part.getProcessed(),
+                                new ProcessedItemSetType(PrismContext.get())
+                                        .outcome(outcome.cloneWithoutId())));
     }
 
     /** Removes operation (given by id) from current operations in given task part. */
@@ -192,12 +214,6 @@ public class ActivityItemProcessingStatistics extends Initializable {
         return ID_COUNTER.getAndIncrement();
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    @Deprecated
-    public List<String> getLastFailures() {
-        return new ArrayList<>(lastFailures);
-    }
-
     public static String format(ActivityItemProcessingStatisticsType source) {
         return format(source, null);
     }
@@ -214,10 +230,6 @@ public class ActivityItemProcessingStatistics extends Initializable {
     /** Formats the information. */
     public static String format(ActivityItemProcessingStatisticsType source, AbstractStatisticsPrinter.Options options) {
         return ActivityItemProcessingStatisticsUtil.format(source, options);
-    }
-
-    public boolean isCollectExecutions() {
-        return collectExecutions;
     }
 
     public int getItemsProcessed() {
@@ -260,6 +272,11 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
         /** Returns start info for this operation. */
         @NotNull IterativeOperationStartInfo getStartInfo();
+
+        default @Nullable XMLGregorianCalendar getEndTimestamp() {
+            return getEndTimeMillis() != 0 ?
+                    XmlTypeConverter.createXMLGregorianCalendar(getEndTimeMillis()) : null;
+        }
     }
 
     /**
@@ -291,7 +308,6 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
         @Override
         public void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
-//            System.out.println("DONE: " + startInfo);
             setEndTimes();
             recordOperationEnd(this, outcome, exception);
 //            StructuredProgressCollector progressCollector = startInfo.getStructuredProgressCollector();

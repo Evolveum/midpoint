@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil.Interval;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * Execution for iterative mock activity.
@@ -87,8 +90,14 @@ class IterativeMockActivityExecution
     @Override
     public boolean processItem(@NotNull ItemProcessingRequest<Integer> request, @NotNull RunningTask workerTask,
             @NotNull OperationResult parentResult) {
+        IterativeMockWorkDefinition def = getActivity().getWorkDefinition();
+
+        if (def.getDelay() > 0) {
+            MiscUtil.sleepWatchfully(System.currentTimeMillis() + def.getDelay(), 100, workerTask::canRun);
+        }
+
         Integer item = request.getItem();
-        String message = getActivity().getWorkDefinition().getMessage() + item;
+        String message = emptyIfNull(def.getMessage()) + item;
         LOGGER.info("Message: {}", message);
         getRecorder().recordExecution(message);
 

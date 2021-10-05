@@ -226,12 +226,6 @@ public class ActivityItemProcessingStatisticsUtil {
         return getLastProcessedObjectName(stats, OutcomeKeyedCounterTypeUtil::isSuccess);
     }
 
-    @SuppressWarnings("unused")
-    public static long getWallClockTime(IterativeTaskPartItemsProcessingInformationType info) {
-        return new WallClockTimeComputer(info.getExecution())
-                .getSummaryTime();
-    }
-
     public static Double toSeconds(Long time) {
         return time != null ? time / 1000.0 : null;
     }

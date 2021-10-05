@@ -40,8 +40,8 @@ public class TransientActivityExecutionStatistics {
 
     // Note that we currently do not need the end timestamp.
 
-    void recordExecutionStart() {
-        this.startTimeMillis = System.currentTimeMillis();
+    void recordExecutionStart(long startTimeMillis) {
+        this.startTimeMillis = startTimeMillis;
     }
 
     void update(boolean isError, double duration) {

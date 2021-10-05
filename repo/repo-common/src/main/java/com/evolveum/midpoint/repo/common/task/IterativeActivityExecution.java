@@ -188,7 +188,7 @@ public abstract class IterativeActivityExecution<
         try {
             enableGlobalConnIdOperationsListener();
 
-            transientExecutionStatistics.recordExecutionStart();
+            transientExecutionStatistics.recordExecutionStart(getStartTimestampRequired());
 
             beforeExecution(result);
             setTaskObjectRef(result); // requires custom initialization of the execution
