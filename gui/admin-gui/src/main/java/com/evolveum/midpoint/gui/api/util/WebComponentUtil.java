@@ -29,7 +29,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
-import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
@@ -120,9 +120,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
-import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
-import com.evolveum.midpoint.schema.util.task.TaskResolver;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -4965,25 +4962,17 @@ public final class WebComponentUtil {
         return calAsLong;
     }
 
-    public static String getTaskProgressInformation(TaskType taskType, boolean longForm, PageBase pageBase) {
+    public static String getTaskProgressDescription(TaskInformation taskInformation, boolean longForm, PageBase pageBase) {
 
         // TODO use progress.toLocalizedString after it's implemented
-
-        ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(taskType, TaskResolver.empty());
-        String partProgressHumanReadable = progress.toHumanReadableString(longForm);
+        String progressDescription = taskInformation.getProgressDescription(longForm);
 
         if (longForm) {
-            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "of", pageBase.getString("TaskSummaryPanel.progress.of"));
-            partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "buckets", pageBase.getString("TaskSummaryPanel.progress.buckets"));
+            String temp1 = StringUtils.replaceOnce(progressDescription, "of", pageBase.getString("TaskSummaryPanel.progress.of"));
+            return StringUtils.replaceOnce(temp1, "buckets", pageBase.getString("TaskSummaryPanel.progress.buckets"));
+        } else {
+            return progressDescription;
         }
-
-        // TODO
-//        if (progress.getAllPartsCount() > 1) {
-//            String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
-//            return rv;
-//        }
-
-        return partProgressHumanReadable;
     }
 
     public static String filterNonDeadProjections(List<ShadowWrapper> projectionWrappers) {
