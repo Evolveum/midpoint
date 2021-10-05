@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics.Operation;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityStatistics;
@@ -515,50 +514,29 @@ class ItemProcessingGatekeeper<I> {
     }
 
     /**
-     * Increments the progress and gives a task a chance to update its statistics.
-     *
-     * TODO The statistics should be updated not only when item processing is finished - in cases when
-     *  the item processing takes too long. See MID-7280.
+     * Increments the progress and updates various statistics in the tasks (LAT, coordinator, tree).
      */
     private void updateStatisticsInTasks(OperationResult result) throws SchemaException, ObjectNotFoundException {
         activityExecution.incrementProgress(processingResult.outcome);
 
+        boolean updateThreadLocalStatisticsInCoordinator;
         if (activityExecution.isMultithreaded()) {
             assert workerTask.isTransient();
 
             // Lightweight subtasks: we store legacy progress and operational statistics in them.
             // Obviously, we DO NOT store activity progress nor activity-level statistics here.
             workerTask.incrementLegacyProgressTransient();
-            workerTask.updateStatisticsInTaskPrism(true);
+            workerTask.updateOperationStatsInTaskPrism(true);
 
-            // Coordinator task: We need to update activity statistics
-            // operation stats, structured progress, and progress itself
-            coordinatorTask.updateStatisticsInTaskPrism(false);
+            // We must not update thread local statistics in coordinator task, because we execute in a different thread.
+            updateThreadLocalStatisticsInCoordinator = false;
         } else {
-            // The progress is incremented. Now we simply update all the stats in the coordinator task.
-            coordinatorTask.updateStatisticsInTaskPrism(true);
+            // We can update TL statistics in coordinator, because we are the coordinator.
+            updateThreadLocalStatisticsInCoordinator = true;
         }
 
-        // If needed, let us write current statistics into the repository.
-        // There is no need to do this for worker task, because it is either the same as the coordinator, or it's a LAT.
-        // Note that using modifyObjectDynamically would be perhaps better, but the current use of last update timestamp
-        // ensures that there will not be concurrent updates of the coordinator coming from its worker threads.
-        boolean updated = coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(getActivityStatUpdater(), result);
-        if (updated) {
-            activityExecution.updateItemProgressInTreeOverviewIfTimePassed(result);
-        }
-    }
-
-    private Runnable getActivityStatUpdater() {
-        return () -> {
-            try {
-                activityExecution.getActivityState().updateProgressAndStatisticsNoCommit();
-            } catch (ActivityExecutionException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update activity statistics in the task {}", e,
-                        coordinatorTask);
-                // Ignoring the exception
-            }
-        };
+        activityExecution.updateStatistics(updateThreadLocalStatisticsInCoordinator, result);
+        activityExecution.updateItemProgressInTreeOverviewIfTimePassed(result);
     }
 
     @NotNull

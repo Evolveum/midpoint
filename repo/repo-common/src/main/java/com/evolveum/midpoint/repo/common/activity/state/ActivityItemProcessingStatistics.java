@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
-import com.evolveum.midpoint.schema.statistics.IterationInformationPrinter;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -214,8 +213,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
     /** Formats the information. */
     public static String format(ActivityItemProcessingStatisticsType source, AbstractStatisticsPrinter.Options options) {
-        ActivityItemProcessingStatisticsType information = source != null ? source : new ActivityItemProcessingStatisticsType();
-        return new IterationInformationPrinter(information, options).print();
+        return ActivityItemProcessingStatisticsUtil.format(source, options);
     }
 
     public boolean isCollectExecutions() {

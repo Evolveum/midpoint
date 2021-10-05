@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemProcessingStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +20,7 @@ public interface IterativeOperationCollector {
      * The operation end is recorded by calling appropriate method on the returned object.
      */
     @NotNull
-    default IterationInformation.Operation recordIterativeOperationStart(PrismObject<? extends ObjectType> object) {
+    default Operation recordIterativeOperationStart(PrismObject<? extends ObjectType> object) {
         return recordIterativeOperationStart(new IterationItemInformation(object));
     }
 
@@ -29,7 +28,7 @@ public interface IterativeOperationCollector {
      * Records the start of iterative operation.
      * The operation end is recorded by calling appropriate method on the returned object.
      */
-    @NotNull default IterationInformation.Operation recordIterativeOperationStart(IterationItemInformation info) {
+    @NotNull default Operation recordIterativeOperationStart(IterationItemInformation info) {
         return recordIterativeOperationStart(new IterativeOperationStartInfo(info));
     }
 
@@ -37,10 +36,5 @@ public interface IterativeOperationCollector {
      * Records the start of iterative operation.
      * The operation end is recorded by calling appropriate method on the returned object.
      */
-    @NotNull IterationInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation);
-
-    /**
-     * Resets iterative task information collection, starting from a given value.
-     */
-    void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions);
+    @NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation);
 }

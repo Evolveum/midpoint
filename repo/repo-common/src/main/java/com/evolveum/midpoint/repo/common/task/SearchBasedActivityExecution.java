@@ -515,11 +515,6 @@ public abstract class SearchBasedActivityExecution<
         return beans.taskManager;
     }
 
-    @Override
-    protected final boolean hasProgressCommitPoints() {
-        return true;
-    }
-
     @NotNull
     protected final SearchSpecification<C> getSearchSpecificationRequired() {
         return requireNonNull(searchSpecification, "no search specification");

@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
  * low-level statistics that are gathered for current thread: repo, cache, etc. See {@link #refreshThreadLocalStatistics()}.
  *
  * 2. From task.statistics to task.prism. Here the subtask aggregation usually takes place. Can be done from any thread.
- * See {@link #updateStatisticsInTaskPrism(boolean)}.
+ * See {@link #updateOperationStatsInTaskPrism(boolean)}.
  *
  * 3. From task.prism to the repository. This takes a lot of time, so it is driven by time interval.
  * See {@link #updateAndStoreStatisticsIntoRepository(boolean, OperationResult)} and
@@ -63,10 +63,11 @@ public interface RunningTaskStatisticsCollector extends ProgressCollector {
     void refreshThreadLocalStatistics();
 
     /**
-     * Updates statistics in prism object, based on dynamic information and thread-local data.
-     * (Updates TL stats if requested. Beware of the threads.)
+     * Updates operational statistics in prism object, based on existing values in Statistics objects
+     * for the current task and its lightweight subtasks. If `updateThreadLocalStatistics` is true,
+     * also updates this task Statistics using thread-local collectors. (*MUST* be called from the correct thread!)
      */
-    void updateStatisticsInTaskPrism(boolean updateThreadLocalStatistics);
+    void updateOperationStatsInTaskPrism(boolean updateThreadLocalStatistics);
 
     /**
      * Stores statistics from `task.prism` to the repository, if the specified time interval passed.

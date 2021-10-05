@@ -101,33 +101,6 @@ public class Statistics {
         return rv;
     }
 
-//    private ActivityItemProcessingStatisticsType getAggregateIterativeTaskInformation(Collection<Statistics> children) {
-//        return new ActivityItemProcessingStatisticsType();
-////        ActivityIterationInformationType sum = iterationInformation.getValueCopy();
-////        for (Statistics child : children) {
-////            IterationInformation info = child.getIterativeTaskInformation();
-////            if (info != null) {
-////                IterationInformation.addTo(sum, info.getValueCopy());
-////            }
-////        }
-////        return sum;
-//    }
-//
-//    private ActivitySynchronizationStatisticsType getAggregateSynchronizationInformation(Collection<Statistics> children) {
-//        if (activitySynchronizationStatistics == null) {
-//            return null;
-//        }
-//        ActivitySynchronizationStatisticsType rv = new ActivitySynchronizationStatisticsType();
-//        ActivitySynchronizationStatistics.addTo(rv, activitySynchronizationStatistics.getValueCopy());
-//        for (Statistics child : children) {
-//            ActivitySynchronizationStatistics info = child.getSynchronizationInformation();
-//            if (info != null) {
-//                ActivitySynchronizationStatistics.addTo(rv, info.getValueCopy());
-//            }
-//        }
-//        return rv;
-//    }
-
     private RepositoryPerformanceInformationType getAggregateRepositoryPerformanceInformation(Collection<Statistics> children) {
         if (repositoryPerformanceInformation == null) {
             return null;
@@ -199,12 +172,8 @@ public class Statistics {
     }
 
     public void recordState(String message) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("{}", message);
-        }
-        if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
-            PERFORMANCE_ADVISOR.debug("{}", message);
-        }
+        LOGGER.trace("{}", message);
+        PERFORMANCE_ADVISOR.debug("{}", message);
         environmentalPerformanceInformation.recordState(message);
     }
 
@@ -222,8 +191,8 @@ public class Statistics {
     }
 
     @NotNull
-    public IterationInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
-        return new IterationInformation.Operation() {
+    public Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
+        return new Operation() {
             @Override
             public double getDurationRounded() {
                 return 0;
@@ -238,9 +207,6 @@ public class Statistics {
 
     private void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
         environmentalPerformanceInformation = new EnvironmentalPerformanceInformation(value);
-    }
-
-    public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
     }
 
     public void startCollectingStatistics(@NotNull RunningTask task,
@@ -302,9 +268,14 @@ public class Statistics {
     public void startOrRestartCollectingThreadLocalStatistics(SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         if (sqlPerformanceMonitors != null) {
             sqlPerformanceMonitors.startThreadLocalPerformanceInformationCollection();
+            repositoryPerformanceInformation = new RepositoryPerformanceInformationType();
         }
+
         CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
+        cachesPerformanceInformation = new CachesPerformanceInformationType();
+
         OperationsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
+        operationsPerformanceInformation = new OperationsPerformanceInformationType();
     }
 
     private void setInitialValuesForThreadLocalStatistics(OperationStatsType operationStats) {
