@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
-import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 
 import com.evolveum.midpoint.schema.util.task.LegacyTaskInformation;
@@ -45,7 +44,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     private static final Trace LOGGER = TraceManager.getTrace(TaskSummaryPanel.class);
 
     /** Keeps the pre-processed task information. */
-    @NotNull private final NonEmptyModel<TaskInformation> taskInformationModel;
+    @NotNull private final NonEmptyLoadableModel<TaskInformation> taskInformationModel;
 
     public TaskSummaryPanel(String id, IModel<TaskType> model, @NotNull IModel<TaskType> rootTaskModel, PageBase parentPage) {
         super(id, TaskType.class, model, parentPage);
@@ -57,17 +56,15 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         this.taskInformationModel = createFallbackTaskInformationModel(model);
     }
 
-    private NonEmptyModel<TaskInformation> createTaskInformationModel(@NotNull IModel<TaskType> taskModel,
+    private NonEmptyLoadableModel<TaskInformation> createTaskInformationModel(@NotNull IModel<TaskType> taskModel,
             @NotNull IModel<TaskType> rootTaskModel) {
         return NonEmptyLoadableModel.create(
-                () -> TaskInformation.createForTask(taskModel.getObject(), rootTaskModel.getObject()),
-                false);
+                () -> TaskInformation.createForTask(taskModel.getObject(), rootTaskModel.getObject()), false);
     }
 
-    private NonEmptyModel<TaskInformation> createFallbackTaskInformationModel(@NotNull IModel<TaskType> model) {
+    private NonEmptyLoadableModel<TaskInformation> createFallbackTaskInformationModel(@NotNull IModel<TaskType> model) {
         return NonEmptyLoadableModel.create(
-                () -> LegacyTaskInformation.fromLegacyTaskOrNoTask(model.getObject()),
-                false);
+                () -> LegacyTaskInformation.fromLegacyTaskOrNoTask(model.getObject()), false);
     }
 
     @Override
@@ -279,5 +276,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         }
         Object token = taskInformationModel.getObject().getLiveSyncToken();
         return token != null ? token.toString() : null;
+    }
+
+    public NonEmptyLoadableModel<TaskInformation> getTaskInfoModel(){
+        return taskInformationModel;
     }
 }

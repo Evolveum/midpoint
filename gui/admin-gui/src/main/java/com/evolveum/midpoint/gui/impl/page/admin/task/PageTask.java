@@ -115,4 +115,12 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
         super.postProcessResult(result, executedDeltas, target);
     }
 
+    @Override
+    public void refresh(AjaxRequestTarget target, boolean soft) {
+        if (isEditObject()) {
+            ((TaskSummaryPanel) getSummaryPanel()).getTaskInfoModel().reset();
+        }
+        super.refresh(target, soft) ;
+    }
+
 }
