@@ -96,8 +96,8 @@ class ActivityBasedTaskInformation extends TaskInformation {
     }
 
     @Override
-    public String getProgressDescriptionShort() {
-        return progressInformation.toHumanReadableString(false);
+    public String getProgressDescription(boolean longForm) {
+        return progressInformation.toHumanReadableString(longForm);
     }
 
     @Override
