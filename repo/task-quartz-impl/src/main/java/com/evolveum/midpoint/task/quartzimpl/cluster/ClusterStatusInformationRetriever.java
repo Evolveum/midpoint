@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.execution.LocalExecutionManager;
-import com.evolveum.midpoint.task.quartzimpl.execution.remote.JmxConnector;
 import com.evolveum.midpoint.task.quartzimpl.execution.remote.RestConnector;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -49,7 +48,6 @@ public class ClusterStatusInformationRetriever {
     @Autowired private TaskManagerConfiguration configuration;
     @Autowired private LocalExecutionManager localExecutionManager;
     @Autowired private ClusterManager clusterManager;
-    @Autowired private JmxConnector jmxConnector;
     @Autowired private RestConnector restConnector;
 
     public ClusterStatusInformation getClusterStatusInformation(boolean clusterwide, boolean allowCached,
@@ -144,11 +142,7 @@ public class ClusterStatusInformationRetriever {
             clusterInfo.addNodeInfo(nodeBean);
             result.recordStatus(OperationResultStatus.SUCCESS, "Node is not checking in");
         } else {
-            if (configuration.isUseJmx()) {
-                jmxConnector.addNodeStatusUsingJmx(clusterInfo, nodeBean, result);
-            } else {
-                restConnector.addNodeStatus(clusterInfo, nodeBean, result);
-            }
+            restConnector.addNodeStatus(clusterInfo, nodeBean, result);
         }
     }
 

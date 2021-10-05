@@ -226,7 +226,6 @@ public class NodeRegistrar implements Cache {
         node.setHostname(getMyHostname());
         node.getIpAddress().addAll(getMyIpAddresses());
         node.setUrlOverride(configuration.getUrl());                 // overridden later (if already exists in repo)
-        node.setJmxPort(configuration.getJmxPort());
         node.setClustered(configuration.isClustered());
         node.setOperationalState(operationalStatus);
         node.setLastCheckInTime(currentTime);
@@ -560,8 +559,6 @@ public class NodeRegistrar implements Cache {
     private String getMyHostname() {
         if (configuration.getHostName() != null) {
             return configuration.getHostName();
-        } else if (configuration.getJmxHostName() != null) {
-            return configuration.getJmxHostName();
         } else {
             try {
                 String hostName = NetworkUtil.getLocalHostNameFromOperatingSystem();
