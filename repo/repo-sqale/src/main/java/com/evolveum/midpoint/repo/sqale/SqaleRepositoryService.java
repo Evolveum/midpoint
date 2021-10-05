@@ -178,7 +178,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     .asPrismObject();
             jdbcSession.commit();
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
+            registerOperationFinish(opHandle);
         }
 
         invokeConflictWatchers((w) -> w.afterGetObject(object));
@@ -270,7 +270,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             invokeConflictWatchers((w) -> w.afterGetVersion(oid.toString(), versionString));
             return versionString;
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -348,7 +348,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             invokeConflictWatchers((w) -> w.afterAddObject(oid, object));
             return oid;
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -361,7 +361,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         UUID oidUuid = checkOid(oid);
 
         long opHandle = registerOperationStart(OP_ADD_OBJECT_OVERWRITE, newObject);
-        // TODO use executeAttempts
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             try {
                 //noinspection ConstantConditions
@@ -379,7 +378,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                         oid, modifications);
                 Collection<? extends ItemDelta<?, ?>> executedModifications =
                         updateContext.execute(modifications, false);
-                replaceObject(updateContext, modifications, updateContext.getPrismObject());
+                replaceObject(updateContext, updateContext.getPrismObject());
                 if (!executedModifications.isEmpty()) {
                     invokeConflictWatchers((w) -> w.afterModifyObject(oid));
                 }
@@ -397,7 +396,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             SqaleUtils.handlePostgresException(e);
             throw e;
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -483,7 +482,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             return modifyObjectInternal(updateContext, modifications,
                     precondition, options, parentResult);
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -555,7 +554,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // no precondition is checked in this scenario, this should not happen
             throw new AssertionError(e);
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -602,7 +601,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // UpdateTables is false, we want only to process modifications on fullObject
             // do not modify nested items.
             modifications = updateContext.execute(modifications, false);
-            replaceObject(updateContext, modifications, updateContext.getPrismObject());
+            replaceObject(updateContext, updateContext.getPrismObject());
         } else {
             modifications = updateContext.execute(modifications);
             updateContext.jdbcSession().commit();
@@ -615,8 +614,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return new ModifyObjectResult<>(originalObject, prismObject, modifications);
     }
 
-    private <T extends ObjectType> @NotNull Collection<? extends ItemDelta<?, ?>> replaceObject(@NotNull RootUpdateContext<?, QObject<MObject>, MObject> updateContext,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications, PrismObject<T> newObject) throws RepositoryException, SchemaException {
+    private <T extends ObjectType> void replaceObject(
+            @NotNull RootUpdateContext<?, QObject<MObject>, MObject> updateContext,
+            PrismObject<T> newObject)
+            throws RepositoryException {
         // We delete original object and cascade of referenced tables, this will also
         // remove additional rows, which may not be present in full object
         // after desync
@@ -628,7 +629,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // table rows again
             new AddObjectContext<>(sqlRepoContext, newObject)
                     .executeReindexed(updateContext.jdbcSession());
-            return modifications;
         } catch (SchemaException | ObjectAlreadyExistsException e) {
             throw new RepositoryException("Update with reindex failed", e);
         }
@@ -655,8 +655,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @NotNull UUID oid, RepoModifyOptions options)
             throws SchemaException, ObjectNotFoundException {
 
-        QueryTableMapping<S, FlexibleRelationalPathBase<Object>, Object> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
-        Collection<SelectorOptions<GetOperationOptions>> getOptions = rootMapping.updateGetOptions(GET_FOR_UPDATE_OPTIONS, modifications);
+        QueryTableMapping<S, FlexibleRelationalPathBase<Object>, Object> rootMapping =
+                sqlRepoContext.getMappingBySchemaType(schemaType);
+        Collection<SelectorOptions<GetOperationOptions>> getOptions =
+                rootMapping.updateGetOptions(GET_FOR_UPDATE_OPTIONS, modifications);
 
         return prepareUpdateContext(jdbcSession, schemaType, oid, getOptions, options);
     }
@@ -772,7 +774,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             jdbcSession.commit();
             return result;
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -845,7 +847,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     SqaleQueryContext.from(type, sqlRepoContext),
                     query, options);
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -902,7 +904,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             return result.map(
                     o -> (PrismObject<T>) o.asPrismObject());
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -1061,7 +1063,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // This just counts the operation and adds zero/minimal time not to confuse user
             // with what could be possibly very long duration.
             long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -1200,7 +1202,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     SqaleQueryContext.from(type, sqlRepoContext),
                     query, options);
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -1248,7 +1250,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     SqaleQueryContext.from(type, sqlRepoContext, this::readByOid);
             return sqlQueryExecutor.list(queryContext, query, options);
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
         }
     }
     // endregion
@@ -1281,7 +1283,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     .fetchCount();
             return count != 0L;
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -1309,7 +1311,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     .fetchCount();
             return count != 0L;
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -1377,7 +1379,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private long executeAdvanceSequence(UUID oid)
             throws ObjectNotFoundException, SchemaException, RepositoryException {
-        // TODO executeAttempts if any problems with further test, so far it looks good based on SequenceTestConcurrency
         long opHandle = registerOperationStart(OP_ADVANCE_SEQUENCE, SequenceType.class);
 
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
@@ -1401,7 +1402,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             jdbcSession.commit();
             return returnValue;
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -1469,7 +1470,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private void executeReturnUnusedValuesToSequence(UUID oid, Collection<Long> unusedValues)
             throws SchemaException, ObjectNotFoundException, RepositoryException {
-        // TODO executeAttempts
         long opHandle = registerOperationStart(
                 OP_RETURN_UNUSED_VALUES_TO_SEQUENCE, SequenceType.class);
 
@@ -1502,7 +1502,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             updateContext.finishExecutionOwn();
             jdbcSession.commit();
         } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt
+            registerOperationFinish(opHandle);
         }
     }
 

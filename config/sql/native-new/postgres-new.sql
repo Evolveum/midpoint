@@ -18,9 +18,7 @@
 -- TEXT is used instead of VARCHAR, see: https://dba.stackexchange.com/a/21496/157622
 --
 -- For Audit tables see 'postgres-new-audit.sql' right next to this file.
---
--- For Quartz tables see:
--- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
+-- For Quartz tables see 'postgres-new-quartz.sql'.
 
 -- noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
 

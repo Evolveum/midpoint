@@ -435,8 +435,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         when("searching all objects with query without any conditions and paging");
         OperationResult operationResult = createOperationResult();
         SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .build(),
+                prismContext.queryFor(ObjectType.class).build(),
                 operationResult);
 
         then("all objects are returned");
@@ -1043,21 +1042,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 shadow1Oid);
     }
 
-
-/* TODO EXISTS tests
-4. part of AND in container query, used on sub-container (workItem) with nested AND condition
-CertificationTest.test730CurrentUnansweredCases >>> Q{
-AND(
-// TODO this requires right-hand path support
-  EQUAL: stageNumber, {http://prism.evolveum.com/xml/ns/public/types-3}parent/stageNumber;
-  EQUAL: ../state, PPV(AccessCertificationCampaignStateType:IN_REVIEW_STAGE);
-  EXISTS(workItem,
-    AND(
-      EQUAL: closeTimestamp, ;
-      EQUAL: output/outcome, )))
-, null paging}
-*/
-
     @Test
     public void test350ExistsWithEmbeddedContainer() {
         // TODO this does not work currently, because implementation creates query sub-contexts
@@ -1152,10 +1136,6 @@ AND(
                         user1Oid, user2Oid);
         assertThat(result.get(0).getOid()).isEqualTo(user1Oid);
     }
-
-    // TODO tests with ref/@/...
-    // query for AccessCertificationCaseType container with order by objectRef/@/name
-    // PERHAPS: single refs can be LEFT JOINed to support ordering?
     // endregion
 
     // region extension queries
@@ -1723,7 +1703,7 @@ AND(
                 .hasMessageContaining("not indexed");
     }
 
-    // TODO multi-value EQ filter (IN semantics) is not supported YET (except for refs)
+    // TODO multi-value EQ filter (IN semantics) for extensions is not supported YET (except for refs)
     // endregion
 
     // region container search

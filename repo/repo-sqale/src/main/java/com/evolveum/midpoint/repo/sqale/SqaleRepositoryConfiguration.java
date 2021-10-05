@@ -56,6 +56,9 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private int minPoolSize;
     private int maxPoolSize;
+    private Long maxLifetime;
+    private Long idleTimeout;
+    private long initializationFailTimeout;
 
     private String fullObjectFormat;
 
@@ -94,6 +97,9 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
         minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, DEFAULT_MIN_POOL_SIZE);
         maxPoolSize = configuration.getInt(PROPERTY_MAX_POOL_SIZE, DEFAULT_MAX_POOL_SIZE);
+        maxLifetime = configuration.getLong(PROPERTY_MAX_LIFETIME, null);
+        idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
+        initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
 
         fullObjectFormat = configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, DEFAULT_FULL_OBJECT_FORMAT)
                 .toLowerCase(); // all language string constants are lower-cases
@@ -183,9 +189,9 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         return databaseType == db;
     }
 
-    // TODO - IMPLEMENT EVERYTHING BELOW
     @Override
     public TransactionIsolation getTransactionIsolation() {
+        // Not set explicitly, we leave it to PG, defaults to Connection.TRANSACTION_READ_COMMITTED
         return null;
     }
 
@@ -206,20 +212,17 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     @Override
     public Long getMaxLifetime() {
-        // TODO implement
-        return null;
+        return maxLifetime;
     }
 
     @Override
     public Long getIdleTimeout() {
-        // TODO implement
-        return null;
+        return idleTimeout;
     }
 
     @Override
     public long getInitializationFailTimeout() {
-        // TODO implement
-        return 0;
+        return initializationFailTimeout;
     }
 
     @Override

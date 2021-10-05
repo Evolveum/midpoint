@@ -121,7 +121,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
             jdbcSession.commit();
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -360,7 +360,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
         long start = System.currentTimeMillis();
         long deletedCount = 0;
-        // TODO finish, write test, etc
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             logger.info("Audit cleanup, deleting records older than {}.", olderThan);
 
@@ -370,7 +369,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                     .execute();
             jdbcSession.commit();
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
             logger.info("Audit cleanup based on age finished; deleted {} entries in {} seconds.",
                     deletedCount, (System.currentTimeMillis() - start) / 1000L);
         }
@@ -403,7 +402,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
         long start = System.currentTimeMillis();
         long deletedCount = 0;
-        // TODO finish, write test, etc
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             logger.info("Audit cleanup, deleting to leave only {} records.", maxRecords);
             QAuditEventRecord qae = QAuditEventRecordMapping.get().defaultAlias();
@@ -421,7 +419,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                     .execute();
             jdbcSession.commit();
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
             logger.info("Audit cleanup based on record count finished; deleted {} entries in {} seconds.",
                     deletedCount, (System.currentTimeMillis() - start) / 1000L);
         }
@@ -466,7 +464,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                     AuditEventRecordType.class, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -513,7 +511,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                     SqaleQueryContext.from(AuditEventRecordType.class, sqlRepoContext),
                     query, options);
         } finally {
-            registerOperationFinish(opHandle, 1);
+            registerOperationFinish(opHandle);
         }
     }
 
@@ -643,7 +641,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         } finally {
             // This just counts the operation and adds zero/minimal time not to confuse user
             // with what could be possibly very long duration.
-            registerOperationFinish(registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE), 1);
+            registerOperationFinish(registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE));
         }
     }
 
