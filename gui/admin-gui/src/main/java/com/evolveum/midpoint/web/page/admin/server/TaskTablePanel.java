@@ -156,7 +156,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         //HACK TODO clenup and think about generic mechanism for this
         CompiledObjectCollectionView objectCollectionView  = getObjectCollectionView();
         if (!isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)) {
-            super.getNewObjectInfluencesList();
+            return super.getNewObjectInfluencesList();
         }
 
         List<CompiledObjectCollectionView> compiledObjectCollectionViews = getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(TaskType.COMPLEX_TYPE, OperationTypeType.ADD);
