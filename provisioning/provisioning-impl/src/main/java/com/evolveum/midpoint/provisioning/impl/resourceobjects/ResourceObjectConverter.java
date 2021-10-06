@@ -7,8 +7,28 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.ResourceObjectPattern;
-import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
@@ -26,42 +46,34 @@ import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeList
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.*;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang3.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
-
-import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Responsibilities:
@@ -1687,7 +1699,11 @@ public class ResourceObjectConverter {
 
         // Entitlements
         if (fetchAssociations) {
-            entitlementConverter.postProcessEntitlementsRead(ctx, resourceObject, result);
+            try {
+                entitlementConverter.postProcessEntitlementsRead(ctx, resourceObject, result);
+            } catch (SchemaException ex) {  //todo should resource object be loaded and returned if association fetching fails? see mid-7287
+                LOGGER.error("An error occurred while fetching associations for resource " + resourceObject.getName(), ex.getLocalizedMessage());
+            }
         }
     }
 
