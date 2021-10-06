@@ -316,6 +316,7 @@ public class ProgressPanel extends BasePanel {
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
+        backButton.setVisible(false);
         configureButton(backButton);
         progressForm.add(backButton);
 
@@ -333,6 +334,7 @@ public class ProgressPanel extends BasePanel {
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
+        continueEditingButton.setVisible(false);
         configureButton(continueEditingButton);
         progressForm.add(continueEditingButton);
     }
