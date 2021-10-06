@@ -5565,12 +5565,9 @@
                     <xsd:documentation>
                         Specifies the "depth" of item processing - whether the item is ignored,
                         there is minimal processing or full automatic processing.
-                        In midPoint 3.8 this is only supported by the user interface
-                        (presentation layer) and only as an experimental feature.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.8</a:since>
-                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
