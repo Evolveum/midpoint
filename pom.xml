@@ -43,6 +43,9 @@
     runs just under 900 tests, skips distribution and any common unit/IT tests (~1h50m):
     mvn clean install -P extratest,-dist -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
     (Skipping of default tests is managed by "extratest" profile.)
+    WARNING!!! Overriding failsafe/surefire.args when using "sqale" profile (new repository)
+    effectively disables another improtant JVM argument for tests which must be added to mvn
+    command line explicitly: -Dtest.config.file=test-config-new-repo.xml
 
     Extra test run for a single module, -D property matches the module in -pl:
     mvn clean install -DskipConnTests=false -pl testing/conntest

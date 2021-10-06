@@ -17,6 +17,8 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -43,8 +45,10 @@ public class OperationResultPopupPanel extends BasePanel<OperationResult> implem
     protected void onInitialize(){
         super.onInitialize();
 
+        IModel<OpResult> opResultModel = createResultModel();
         OperationResultPanel operationResultPanel = new OperationResultPanel(ID_OPERATION_RESULTS_PANEL,
-                createResultModel());
+                opResultModel);
+        operationResultPanel.add(new VisibleBehaviour(() -> opResultModel.getObject() != null));
         operationResultPanel.setOutputMarkupId(true);
         add(operationResultPanel);
 

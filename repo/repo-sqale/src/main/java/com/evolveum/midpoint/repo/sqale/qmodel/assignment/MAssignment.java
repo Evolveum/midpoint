@@ -32,8 +32,6 @@ public class MAssignment extends MContainer {
     public UUID tenantRefTargetOid;
     public MObjectType tenantRefTargetType;
     public Integer tenantRefRelationId;
-    public Integer extId;
-    public String extOid;
     public Integer[] policySituations;
     public String[] subtypes;
     public Jsonb ext;

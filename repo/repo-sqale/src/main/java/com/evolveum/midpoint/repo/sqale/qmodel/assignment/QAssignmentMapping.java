@@ -123,7 +123,6 @@ public class QAssignmentMapping<OR extends MObject>
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
         addItemMapping(F_SUBTYPE, multiStringMapper(q -> q.subtypes));
 
-        // TODO no idea how extId/Oid works, see RAssignment.getExtension
         addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
         addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
                 .addRefMapping(ConstructionType.F_RESOURCE_REF,
@@ -197,8 +196,6 @@ public class QAssignmentMapping<OR extends MObject>
                         row.targetRefTargetType, row.targetRefRelationId))
                 .tenantRef(objectReference(row.tenantRefTargetOid,
                         row.tenantRefTargetType, row.tenantRefRelationId));
-
-        // TODO extId/extOid - if meaningful for new repo
 
         // TODO ext... wouldn't serialized fullObject part of the assignment be better after all?
 
@@ -291,9 +288,6 @@ public class QAssignmentMapping<OR extends MObject>
                 t -> row.tenantRefTargetType = t,
                 r -> row.tenantRefRelationId = r);
 
-        // TODO no idea how to do this yet, somehow related to RAssignment.extension
-//        row.extId = assignment.getExtension()...id?;
-//        row.extOid =;
         row.policySituations = processCacheableUris(assignment.getPolicySituation());
         row.subtypes = stringsToArray(assignment.getSubtype());
         row.ext = processExtensions(assignment.getExtension(), MExtItemHolderType.EXTENSION);

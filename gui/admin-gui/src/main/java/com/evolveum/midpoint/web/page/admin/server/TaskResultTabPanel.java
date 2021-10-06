@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
@@ -82,9 +83,11 @@ public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
                 PrismObjectWrapper<TaskType> taskWrapper = TaskResultTabPanel.this.getModelObject();
                 TaskType taskType = taskWrapper.getObject().asObjectable();
                 OperationResult opResult = OperationResult.createOperationResult(taskType.getResult());
+                OpResult result = opResult != null ? OpResult.getOpResult(getPageBase(), opResult) : null;
                 OperationResultPanel body = new OperationResultPanel(
                         getPageBase().getMainPopupBodyId(),
-                        new Model<>(OpResult.getOpResult(getPageBase(), opResult)));
+                        new Model<>(result));
+                body.add(new VisibleBehaviour(() -> opResult != null));
                 body.setOutputMarkupId(true);
                 getPageBase().showMainPopup(body, target);
             }

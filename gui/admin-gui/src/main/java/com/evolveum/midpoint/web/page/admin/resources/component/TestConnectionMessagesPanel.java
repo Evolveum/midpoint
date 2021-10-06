@@ -15,6 +15,8 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -146,6 +148,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
     public void initResultsPanel(RepeatingView resultView, List<OpResult> opresults, Page parentPage) {
         for (OpResult result : opresults) {
             OperationResultPanel resultPanel = new OperationResultPanel(resultView.newChildId(), new Model<>(result));
+            resultPanel.add(new VisibleBehaviour(() -> result != null));
             resultPanel.setOutputMarkupId(true);
             resultView.add(resultPanel);
         }
