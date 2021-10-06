@@ -183,8 +183,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     public void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
-        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = saveOrPreviewPerformed(target, result, false);
-        postProcessResult(result, executedDeltas, target);
+        saveOrPreviewPerformed(target, result, false);
     }
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
@@ -224,6 +223,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         LOGGER.trace("returning from saveOrPreviewPerformed");
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
+
+        postProcessResult(result, executedDeltas, target);
+
         return executedDeltas;
     }
 

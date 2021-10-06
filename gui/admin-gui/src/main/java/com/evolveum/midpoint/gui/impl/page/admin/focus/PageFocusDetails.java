@@ -109,14 +109,19 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     @Override
     public void savePerformed(AjaxRequestTarget target) {
         previewRequested = false;
-        OperationResult result = new OperationResult(OPERATION_SAVE);
-        saveOrPreviewPerformed(target, result, false);
+        super.savePerformed(target);
     }
 
     public void previewPerformed(AjaxRequestTarget target) {
         previewRequested = true;
         OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
         saveOrPreviewPerformed(target, result, true);
+    }
+
+    @Override
+    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+        result.computeStatusIfUnknown();
+        target.add(getFeedbackPanel());
     }
 
     class ProgressFragment extends Fragment {
