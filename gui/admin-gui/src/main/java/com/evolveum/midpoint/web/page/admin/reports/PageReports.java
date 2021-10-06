@@ -119,7 +119,8 @@ public class PageReports extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         ReportType report = getRowModel().getObject().getValue();
-                        com.evolveum.midpoint.web.page.admin.reports.PageReport.runReportPerformed(target, report, PageReports.this);
+                        com.evolveum.midpoint.web.page.admin.reports.PageReport.runReportPerformed(
+                                target, report.asPrismObject(), PageReports.this);
                     }
                 };
             }
@@ -150,7 +151,8 @@ public class PageReports extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         ReportType report = getRowModel().getObject().getValue();
-                        com.evolveum.midpoint.web.page.admin.reports.PageReport.importReportPerformed(target, report, PageReports.this);
+                        com.evolveum.midpoint.web.page.admin.reports.PageReport.importReportPerformed(
+                                target, report.asPrismObject(), PageReports.this);
                     }
                 };
             }
