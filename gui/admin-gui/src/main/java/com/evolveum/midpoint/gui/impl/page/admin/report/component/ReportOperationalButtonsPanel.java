@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
@@ -196,7 +197,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
             }
         };
         runReport.titleAsLabel(true);
-        runReport.add(new VisibleBehaviour(() -> isEditObject() && !WebComponentUtil.isImportReport(getOriginalReport())));
+        runReport.add(new VisibleBehaviour(() -> isEditObject() && !WebComponentUtil.isImportReport(getOriginalReport().asObjectable())));
         runReport.add(AttributeAppender.append("class", "btn-default btn-sm"));
         runReport.setOutputMarkupId(true);
         repeatingView.add(runReport);
@@ -212,7 +213,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
                 importReportPerformed(target, getOriginalReport(), getPageBase());
             }
         };
-        importReport.add(new VisibleBehaviour(() -> isEditObject() && WebComponentUtil.isImportReport(getOriginalReport())));
+        importReport.add(new VisibleBehaviour(() -> isEditObject() && WebComponentUtil.isImportReport(getOriginalReport().asObjectable())));
         importReport.add(AttributeAppender.append("class", "btn-default btn-sm"));
         importReport.setOutputMarkupId(true);
         repeatingView.add(importReport);
@@ -226,12 +227,12 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
 
     protected abstract ReportObjectsListPanel<?> getReportTable();
 
-    private ReportType getOriginalReport() {
-        return getModelObject().getObjectOld().asObjectable();
+    private PrismObject<ReportType> getOriginalReport() {
+        return getModelObject().getObjectOld();
     }
 
-    public static void importReportPerformed(AjaxRequestTarget target, ReportType report, PageBase pageBase) {
-        ImportReportPopupPanel importReportPopupPanel = new ImportReportPopupPanel(pageBase.getMainPopupBodyId(), report) {
+    public static void importReportPerformed(AjaxRequestTarget target, PrismObject<ReportType> report, PageBase pageBase) {
+        ImportReportPopupPanel importReportPopupPanel = new ImportReportPopupPanel(pageBase.getMainPopupBodyId(), report.asObjectable()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -244,12 +245,12 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         pageBase.showMainPopup(importReportPopupPanel, target);
     }
 
-    private static void importConfirmPerformed(AjaxRequestTarget target, ReportType reportType, ReportDataType reportImportData, PageBase pageBase) {
+    private static void importConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> reportType, ReportDataType reportImportData, PageBase pageBase) {
         OperationResult result = new OperationResult(OPERATION_IMPORT_REPORT);
         Task task = pageBase.createSimpleTask(OPERATION_IMPORT_REPORT);
 
         try {
-            pageBase.getReportManager().importReport(reportType.asPrismObject(), reportImportData.asPrismObject(), task, result);
+            pageBase.getReportManager().importReport(reportType, reportImportData.asPrismObject(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {
@@ -260,19 +261,19 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         target.add(pageBase.getFeedbackPanel());
     }
 
-    public static void runReportPerformed(AjaxRequestTarget target, ReportType report, PageBase pageBase) {
+    public static void runReportPerformed(AjaxRequestTarget target, PrismObject<ReportType> report, PageBase pageBase) {
 
-        if (!hasParameters(report)) {
+        if (!hasParameters(report.asObjectable())) {
             runConfirmPerformed(target, report, null, pageBase);
             return;
         }
 
-        RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(pageBase.getMainPopupBodyId(), report) {
+        RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(pageBase.getMainPopupBodyId(), report.asObjectable()) {
 
             private static final long serialVersionUID = 1L;
 
-            protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
-                ReportOperationalButtonsPanel.runConfirmPerformed(target, reportType, reportParam, pageBase);
+            protected void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> report, PrismContainer<ReportParameterType> reportParam) {
+                ReportOperationalButtonsPanel.runConfirmPerformed(target, report, reportParam, pageBase);
                 pageBase.hideMainPopup(target);
             }
         };
@@ -280,12 +281,12 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
 
     }
 
-    private static void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam, PageBase pageBase) {
+    private static void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> report, PrismContainer<ReportParameterType> reportParam, PageBase pageBase) {
         OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
         Task task = pageBase.createSimpleTask(OPERATION_RUN_REPORT);
 
         try {
-            pageBase.getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
+            pageBase.getReportManager().runReport(report, reportParam, task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {
