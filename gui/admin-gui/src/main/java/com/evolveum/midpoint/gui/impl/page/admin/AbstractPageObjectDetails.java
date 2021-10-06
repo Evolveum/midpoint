@@ -183,7 +183,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     public void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
-        saveOrPreviewPerformed(target, result, false);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = saveOrPreviewPerformed(target, result, false);
+        postProcessResult(result, executedDeltas, target);
     }
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
@@ -223,16 +224,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         LOGGER.trace("returning from saveOrPreviewPerformed");
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
-
-        postProcessResult(result, executedDeltas, target);
-
         return executedDeltas;
     }
 
     protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
         result.computeStatusIfUnknown();
-
-        if (allowRedirectBack() && !result.isError()) { // && allowRedirectBack()) {
+        if (allowRedirectBack() && !result.isError()) {
             redirectBack();
         } else {
             target.add(getFeedbackPanel());
@@ -242,7 +239,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
         if (noChangesToExecute(deltas, options)) {
             recordNoChangesWarning(result);
-
 
             showResult(result);
             return null;

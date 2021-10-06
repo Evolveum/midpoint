@@ -66,7 +66,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
         return data;
     }
-    
+
     public SelectableBean<O> createDataObjectWrapper(O obj) {
         SelectableBean<O> selectable = new SelectableBeanImpl<>(obj);
 
@@ -136,5 +136,10 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     public void setIsMemberPanel(boolean isMemberPanel) {
         this.isMemberPanel = isMemberPanel;
+    }
+
+    @Override
+    protected List<O> searchObjects(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
+        return getModel().searchObjects(type, query, options, task, result).map(prismObject -> prismObject.asObjectable());
     }
 }
