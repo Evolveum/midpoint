@@ -7,26 +7,11 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyTestResource;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,12 +19,27 @@ import java.net.ConnectException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests reporting of task state, progress, and errors.
@@ -95,10 +95,13 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     private static final DummyTestResource RESOURCE_DUMMY_HACKED = new DummyTestResource(TEST_DIR, "resource-hacked.xml", "8aad610b-0e35-4604-9139-2f864ac4eac2", "hacked");
 
     private static final TestResource<TaskType> TASK_RECONCILIATION_HACKED = new TestResource<>(TEST_DIR, "task-reconciliation-hacked.xml", "9e2887cd-3f45-46e7-82ee-20454ba25d94");
+    private boolean isNewRepo;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        // Some tests differ for new and old repo for good reasons, so we need this switch.
+        isNewRepo = plainRepositoryService instanceof SqaleRepositoryService;
 
         initDummyResource(RESOURCE_DUMMY_SOURCE, initTask, initResult);
         initDummyResource(RESOURCE_DUMMY_TARGET, initTask, initResult);
@@ -166,6 +169,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
             Task importTask = waitForTaskFinish(TASK_IMPORT.oid, builder -> builder.errorOk(true));
 
             then();
+            // @formatter:off
             assertTask(importTask, "import task after")
                     .display()
                     .assertFatalError()
@@ -175,7 +179,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .end()
                     .rootSynchronizationInformation()
                         .display();
-
+            // @formatter:on
         } finally {
             account.setName(MALFORMED_SHADOW_NAME);
         }
@@ -193,6 +197,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         then();
         stabilize();
+        // @formatter:off
         assertTask(importTask, "import task after")
                 .display()
                 .assertSuccess()
@@ -201,6 +206,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .rootSynchronizationInformation()
                     .display();
+        // @formatter:on
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -223,6 +229,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         then();
         stabilize();
+        // @formatter:off
         assertTask(TASK_IMPORT.oid, "import task after")
                 .display()
                 .assertPartialError()
@@ -240,6 +247,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
                     .assertTransitions(2)
                     .end();
+        // @formatter:on
 
         // TODO assert redirected errors in the task
     }
@@ -260,32 +268,49 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         then();
         stabilize();
-        assertTask(TASK_IMPORT.oid, "import task after")
+        TaskAsserter<Void> taskAsserter = assertTask(TASK_IMPORT.oid, "import task after")
                 .display()
                 .assertPartialError()
                 .assertClosed()
-                .assertProgress(10)
-                .rootItemProcessingInformation()
+                .assertProgress(10);
+
+        if (isNewRepo) {
+            // super-long name does not fail in new repo
+            taskAsserter.rootItemProcessingInformation()
+                    .display()
+                    .assertSuccessCount(8)
+                    .assertFailureCount(2);
+            taskAsserter.rootSynchronizationInformation()
+                    .display()
+                    .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
+                    .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
+                    .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0) // Long-name is OK for new repo
+                    .assertTransitions(3);
+        } else {
+            taskAsserter.rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(7)
-                    .assertFailureCount(3)
-                    .end()
-                .rootSynchronizationInformation()
+                    .assertFailureCount(3);
+            taskAsserter.rootSynchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
                     .assertTransition(null, null, null, null, 0, 1, 0) // Long UID account
-                    .assertTransitions(3)
-                    .end();
+                    .assertTransitions(3);
+        }
 
         List<OperationExecutionType> taskExecRecords = getTask(TASK_IMPORT.oid).asObjectable().getOperationExecution();
         List<OperationExecutionType> redirected = taskExecRecords.stream()
                 .filter(r -> r.getRealOwner() != null)
                 .collect(Collectors.toList());
-        assertThat(redirected).as("redirected operation execution records").hasSize(1);
-        assertThat(redirected.get(0).getRealOwner().getIdentification())
-                .as("identification")
-                .isEqualTo(formatAccountName(IDX_LONG_UID));
+        if (isNewRepo) {
+            assertThat(redirected).as("redirected operation execution records").isEmpty();
+        } else {
+            assertThat(redirected).as("redirected operation execution records").hasSize(1);
+            assertThat(redirected.get(0).getRealOwner().getIdentification())
+                    .as("identification")
+                    .isEqualTo(formatAccountName(IDX_LONG_UID));
+        }
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display()
@@ -308,7 +333,8 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         then();
         stabilize();
-        assertTask(TASK_IMPORT_RETRY_BY_FILTERING.oid, "import task after")
+        // @formatter:off
+        TaskAsserter<Void> taskAsserter = assertTask(TASK_IMPORT_RETRY_BY_FILTERING.oid, "import task after")
                 .display()
                 .assertPartialError()
                 .assertClosed()
@@ -317,13 +343,26 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .display()
                     .assertSkipCount(8)
                     .assertFailureCount(2)
-                    .end()
-                .rootSynchronizationInformation()
+                    .end();
+        if (isNewRepo) {
+            taskAsserter.rootSynchronizationInformation()
                     .display()
-                    .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0) // That record was already linked and remain so.
-                    .assertTransition(LINKED, null, null, null, 0, 1, 7) // Malformed account has a LINKED shadow
-                    .assertTransition(null, null, null, null, 0, 0, 1) // No shadow here
-                    .assertTransitions(3);
+                    .assertTransitions(2)
+                    // That record was already linked and remain so.
+                    .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0)
+                    // Malformed account has a LINKED shadow - skipped count based on previous test
+                    .assertTransition(LINKED, null, null, null, 0, 1, 8);
+        } else {
+            taskAsserter.rootSynchronizationInformation()
+                    .display()
+                    .assertTransitions(3)
+                    // That record was already linked and remain so.
+                    .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0)
+                    // Malformed account has a LINKED shadow - skipped count based on previous test
+                    .assertTransition(LINKED, null, null, null, 0, 1, 7)
+                    .assertTransition(null, null, null, null, 0, 0, 1); // No shadow here
+        }
+        // @formatter:on
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -344,6 +383,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         then();
         stabilize();
+        // @formatter:off
         assertTask(TASK_IMPORT_RETRY_BY_FETCHING.oid, "import task after")
                 .display()
                 .assertPartialError()
@@ -359,6 +399,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0) // That record was already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
                     .assertTransitions(2);
+        // @formatter:on
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -381,35 +422,66 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         then();
         stabilize();
 
-        // @formatter:off
-        assertTask(TASK_RECONCILIATION.oid, "reconciliation task after")
-                .display()
-                .displayOperationResult()
-                .assertPartialError()
-                .assertClosed()
-                .assertProgress(11)
-                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+        if (isNewRepo) {
+            // @formatter:off
+            assertTask(TASK_RECONCILIATION.oid, "reconciliation task after")
                     .display()
-                    .itemProcessingStatistics()
-                        .assertSuccessCount(7)
-                        .assertFailureCount(3) // u-000001 failed once in 2nd part, and once in 3rd part
-                    .end()
-                    .synchronizationStatistics()
+                    .displayOperationResult()
+                    .assertPartialError()
+                    .assertClosed()
+                    .assertProgress(11)
+                    .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                         .display()
-                        .assertTransitions(3)
-                        .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
-                        .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
-                        .assertTransition(null, null, null, null, 0, 1, 0) // Long UID account
+                        .itemProcessingStatistics()
+                            .assertSuccessCount(8)
+                            .assertFailureCount(2) // u-000001 failed once in 2nd part, and once in 3rd part
+                        .end()
+                        .synchronizationStatistics()
+                            .display()
+                            .assertTransitions(2)
+                            .assertTransition(LINKED, LINKED, LINKED, null, 8, 1, 0) // Those 9 records were already linked and remain so.
+                            .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
+                        .end()
                     .end()
-                .end()
-                .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
+                    .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
+                        .display()
+                        .itemProcessingStatistics()
+                            .assertFailureCount(1) // u-000001 failed once in 2nd part, and once in 3rd part
+                            .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
+                        .end()
+                    .end();
+            // @formatter:on
+        } else {
+            // @formatter:off
+            assertTask(TASK_RECONCILIATION.oid, "reconciliation task after")
                     .display()
-                    .itemProcessingStatistics()
-                        .assertFailureCount(1) // u-000001 failed once in 2nd part, and once in 3rd part
-                        .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
+                    .displayOperationResult()
+                    .assertPartialError()
+                    .assertClosed()
+                    .assertProgress(11)
+                    .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                        .display()
+                        .itemProcessingStatistics()
+                            .assertSuccessCount(7)
+                            .assertFailureCount(3) // u-000001 failed once in 2nd part, and once in 3rd part
+                        .end()
+                        .synchronizationStatistics()
+                            .display()
+                            .assertTransitions(3)
+                            .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
+                            .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
+                            .assertTransition(null, null, null, null, 0, 1, 0) // Long UID account
+                        .end()
                     .end()
-                .end();
-        // @formatter:on
+                    .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
+                        .display()
+                        .itemProcessingStatistics()
+                            .assertFailureCount(1) // u-000001 failed once in 2nd part, and once in 3rd part
+                            .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
+                        .end()
+                    .end();
+            // @formatter:on
+        }
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -432,6 +504,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         waitForTaskTreeNextFinishedRun(taskBefore.asObjectable(), 60000, result, true);
 
         then();
+        // @formatter:off
         assertTaskTree(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, "reconciliation task after")
                 .display()
                 .subtaskForPath(RECONCILIATION_OPERATION_COMPLETION_PATH)
@@ -448,6 +521,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .subtaskForPath(RECONCILIATION_REMAINING_SHADOWS_PATH)
                     .display();
+        // @formatter:on
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display()
@@ -482,6 +556,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         then();
 
+        // @formatter:off
         assertTask(TASK_RECONCILIATION_HACKED.oid, "after")
                 .display()
                 .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
@@ -501,6 +576,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .end()
                 .assertClosed()
                 .assertSuccess();
+        // @formatter:on
     }
 
     @NotNull
