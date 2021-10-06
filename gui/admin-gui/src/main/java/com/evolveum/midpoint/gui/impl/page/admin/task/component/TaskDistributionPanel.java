@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDistributionType
 
 @PanelType(name = "distribution", defaultContainerPath = "activity/distribution", defaultType = WorkDistributionType.class)
 @PanelInstance(identifier = "distribution", applicableForType = TaskType.class, childOf = TaskActivityPanel.class,
-        display = @PanelDisplay(label = "ActivityDefinitionType.distribution", icon = GuiStyleConstants.CLASS_TASK_DISTRIBUTION_ICON, order = 20))
+        display = @PanelDisplay(label = "ActivityDefinitionType.distribution", icon = GuiStyleConstants.CLASS_TASK_DISTRIBUTION_ICON, order = 30))
 public class TaskDistributionPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskDistributionPanel.class);
