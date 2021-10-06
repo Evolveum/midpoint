@@ -11,6 +11,8 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -85,20 +87,24 @@ public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
                     return;
                 }
                 AjaxRequestTarget target = optionalTarget.get();
-                PrismObjectWrapper<TaskType> taskWrapper = TaskResultPanel.this.getObjectWrapper();
-                TaskType taskType = taskWrapper.getObject().asObjectable();
-                OperationResult opResult = OperationResult.createOperationResult(taskType.getResult());
                 OperationResultPopupPanel body = new OperationResultPopupPanel(
                         getPageBase().getMainPopupBodyId(),
-                        new Model<>(opResult));
+                        new Model<>(getTaskOperationResult()));
                 body.setOutputMarkupId(true);
                 getPageBase().showMainPopup(body, target);
             }
 
         };
+        showResult.add(new VisibleBehaviour(() -> getTaskOperationResult() != null));
         showResult.setOutputMarkupId(true);
         add(showResult);
 
+    }
+
+    private OperationResult getTaskOperationResult() {
+        PrismObjectWrapper<TaskType> taskWrapper = TaskResultPanel.this.getObjectWrapper();
+        TaskType taskType = taskWrapper.getObject().asObjectable();
+        return OperationResult.createOperationResult(taskType.getResult());
     }
 
     private List<OperationResult> createOperationResultList() {

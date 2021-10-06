@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.message;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -55,14 +57,7 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
                     super.onAfterRender();
                 }
             };
-            panel.add(new VisibleEnableBehaviour() {
-
-                private static final long serialVersionUID = 1L;
-
-                public boolean isVisible() {
-                    return !opResult.isAlreadyShown();
-                }
-            });
+            panel.add(new VisibleBehaviour(() -> opResult != null && !opResult.isAlreadyShown()));
 
             panel.setOutputMarkupId(true);
             item.add(panel);

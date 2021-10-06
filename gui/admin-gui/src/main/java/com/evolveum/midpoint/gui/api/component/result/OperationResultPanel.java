@@ -437,6 +437,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             @Override
             protected void populateItem(final ListItem<OpResult> item) {
                 Panel subresult = new OperationResultPanel("subresult", item.getModel());
+                subresult.add(new VisibleBehaviour(() -> item.getModel() != null && item.getModelObject() != null));
                 subresult.setOutputMarkupId(true);
                 item.add(subresult);
             }
