@@ -15,13 +15,10 @@ mvn integration-test -P sqale -pl model/model-intest/
     <listeners>
         <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
     </listeners>
-    <!-- TODO were in unit tests - but why? -->
     <test name="Security" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityPrincipal"/>
-            <!-- TODO fails on access certification campaign (parent) is not returned with container search
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityBasic"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMedium"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMultitenant"/>
