@@ -8,6 +8,7 @@ package com.evolveum.midpoint.rest.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -17,9 +18,9 @@ import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -247,7 +248,11 @@ public class ClusterRestController extends AbstractRestController {
             if (resolution.status == null) {
                 // we are only interested in the content, not in its type nor length
                 // TODO how to test this?
-                response = ResponseEntity.ok(new FileInputStream(resolution.file));
+                response = ResponseEntity.ok()
+                        // Explicitly needed, because Spring would change content type to "*"
+                        // even if application/octet-stream is in produces section
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(new FileInputStream(resolution.file));
             } else {
                 response = ResponseEntity.status(resolution.status).build();
             }
@@ -311,12 +316,26 @@ public class ClusterRestController extends AbstractRestController {
 
     private FileResolution resolveFile(String fileName) {
         FileResolution rv = new FileResolution();
-        rv.file = Paths.get(midpointConfiguration.getMidpointHome(), EXPORT_DIR, fileName).toFile();
-
         if (forbiddenFileName(fileName)) {
             logger.warn("File name '{}' is forbidden", fileName);
             rv.status = HttpStatus.FORBIDDEN;
-        } else if (!rv.file.exists()) {
+            return rv;
+        }
+
+        String[] parts = fileName.split("/");
+        Path directory;
+        if (parts.length == 1) {
+            directory = reportDirectory("export");
+        } else if (parts.length == 2) {
+            directory = reportDirectory(parts[0]);
+            fileName = parts[1];
+        } else {
+            logger.warn("Report output file '{}' is a nested file", fileName);
+            rv.status = HttpStatus.FORBIDDEN;
+            return rv;
+        }
+        rv.file = directory.resolve(fileName).toFile();
+        if (!rv.file.exists()) {
             logger.warn("Report output file '{}' does not exist", rv.file);
             rv.status = HttpStatus.NOT_FOUND;
         } else if (rv.file.isDirectory()) {
@@ -324,6 +343,26 @@ public class ClusterRestController extends AbstractRestController {
             rv.status = HttpStatus.FORBIDDEN;
         }
         return rv;
+    }
+
+    /**
+     * @return trace directory if selector is "trace, import directory if selector is "import", export directory
+     *         otherwise
+     */
+    private Path reportDirectory(String selector) {
+
+        if ("trace".equals(selector)) {
+            return Paths.get(midpointConfiguration.getMidpointHome(), "trace");
+        }
+        String configKey = "import".equals(selector) ? "importFolder" : "exportFolder";
+        String directory = midpointConfiguration.getConfiguration(MidpointConfiguration.WEB_APP_CONFIGURATION).getString(configKey);
+        if (directory == null || directory.isEmpty()) {
+            directory = EXPORT_DIR;
+        }
+        if (directory.startsWith("/")) {
+            return Paths.get(directory);
+        }
+        return Paths.get(midpointConfiguration.getMidpointHome(), directory);
     }
 
     private boolean forbiddenFileName(String fileName) {

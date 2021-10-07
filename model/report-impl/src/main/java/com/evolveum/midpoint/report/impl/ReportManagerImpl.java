@@ -28,7 +28,6 @@ import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -399,11 +398,12 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                     LOGGER.error("Couldn't delete report file {}", file);
                 }
             } else {
-                String fileName = checkFileName(file, result);
+                String fileName = remoteFileName(reportData, null, file, task, result);
                 if (fileName == null) {
                     return;
                 }
                 String originalNodeId = reportData.getNodeRef() != null ? reportData.getNodeRef().getOid() : null;
+
                 clusterExecutionHelper.executeWithFallback(originalNodeId,
                         (client, node, result1) -> {
                             client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
@@ -451,6 +451,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         // and should not depend on user privileges.
 
         try {
+            // MID-7219: We need report type in case of cluster to look for file in correct remote folders
+            String reportType = null;
+
             ReportDataType reportOutput = modelService.getObject(ReportDataType.class, reportDataOid, null, task,
                     result).asObjectable();
 
@@ -458,6 +461,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
             if (ObjectTypeUtil.hasArchetype(reportOutput, SystemObjectsType.ARCHETYPE_TRACE.value())) {
                 securityEnforcer.authorize(ModelAuthorizationAction.READ_TRACE.getUrl(), null,
                         AuthorizationParameters.EMPTY, null, task, result);
+                reportType = "trace";
             }
 
             String filePath = reportOutput.getFilePath();
@@ -469,7 +473,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
             if (file.exists()) {
                 return FileUtils.openInputStream(file);
             } else {
-                String fileName = checkFileName(file, result);
+                String fileName = remoteFileName(reportOutput, reportType, file, task, result);
                 if (fileName == null) {
                     return null;
                 }
@@ -528,6 +532,27 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    private String remoteFileName(ReportDataType reportOutput, String reportType, File file, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        String localFileName = checkFileName(file, result);
+        if (localFileName == null) {
+            return null;
+        }
+
+        if (reportType == null && reportOutput.getReportRef() != null && reportOutput.getReportRef().getOid() != null) {
+            try {
+            ReportType report = modelService.getObject(ReportType.class, reportOutput.getReportRef().getOid(), null, task, result).asObjectable();
+            // If direction is import
+            if (report.getBehavior() != null && DirectionTypeType.IMPORT.equals(report.getBehavior().getDirection())) {
+                reportType = "import";
+            }
+            } catch (ObjectNotFoundException e) {
+                // NOOP
+            }
+
+        }
+        return reportType != null ? (reportType + "/" + localFileName) : localFileName;
     }
 
     @Nullable
