@@ -292,7 +292,7 @@ public class WebModelServiceUtils {
         if (WebComponentUtil.showResultInPage(subResult)) {
             page.showResult(subResult);
         }
-        if (!allowNotFound) {
+        if (object == null && !allowNotFound) {
             throw new RestartResponseException(PageError.class);
         }
         LOGGER.debug("Loaded {} with result {}", object, subResult);
