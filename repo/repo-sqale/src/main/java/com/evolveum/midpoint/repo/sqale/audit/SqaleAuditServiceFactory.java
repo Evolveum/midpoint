@@ -103,9 +103,10 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
 
         LOGGER.info("Configuring SQL audit service to use a different datasource");
         SqaleRepositoryConfiguration config = new SqaleRepositoryConfiguration(configuration);
+        config.init(); // normally Spring calls this, but for audit this is unmanaged bean
 
         DataSourceFactory dataSourceFactory = new DataSourceFactory(config);
-        DataSource dataSource = dataSourceFactory.createDataSource();
+        DataSource dataSource = dataSourceFactory.createDataSource("mp-audit");
         return createSqaleRepoContext(config, dataSource, schemaService);
     }
 

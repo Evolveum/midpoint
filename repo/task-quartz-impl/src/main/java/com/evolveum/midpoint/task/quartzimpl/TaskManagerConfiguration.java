@@ -10,8 +10,6 @@ import static java.util.Map.entry;
 
 import java.util.*;
 
-import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
-
 import com.google.common.base.Strings;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +25,7 @@ import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
 import com.evolveum.midpoint.task.api.UseThreadInterrupt;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
@@ -59,14 +58,12 @@ public class TaskManagerConfiguration {
     private static final String JDBC_USER_CONFIG_ENTRY = "jdbcUser";
     private static final String JDBC_PASSWORD_CONFIG_ENTRY = "jdbcPassword";
     private static final String DATA_SOURCE_CONFIG_ENTRY = "dataSource";
-    private static final String USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY = "useRepositoryConnectionProvider";     // experimental
+    private static final String USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY = "useRepositoryConnectionProvider"; // experimental
 
     private static final String SQL_SCHEMA_FILE_CONFIG_ENTRY = "sqlSchemaFile";
     private static final String CREATE_QUARTZ_TABLES_CONFIG_ENTRY = "createQuartzTables";
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
     private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
-    @Deprecated private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
-    private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";  // unused
     private static final String QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY = "quartzClusterCheckinInterval";
     private static final String QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY = "quartzClusterCheckinGracePeriod";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
@@ -97,20 +94,14 @@ public class TaskManagerConfiguration {
 
     private static final String TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY = "taskExecutionLimitations";
 
-    @Deprecated private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
     private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
 
     private static final boolean STOP_ON_INITIALIZATION_FAILURE_DEFAULT = true;
     private static final int THREADS_DEFAULT = 10;
     private static final boolean CLUSTERED_DEFAULT = false;             // do not change this value!
     private static final boolean CREATE_QUARTZ_TABLES_DEFAULT = true;
-    @Deprecated private static final int JMX_PORT_DEFAULT = 20001;
-    @Deprecated private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
     private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
     private static final boolean CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT = false;
-    private static final boolean USE_JMX_DEFAULT = false;
-    @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
-    @Deprecated private static final String JMX_PASSWORD_DEFAULT = "secret";
     private static final int WAITING_TASKS_CHECK_INTERVAL_DEFAULT = 600;
     private static final int STALLED_TASKS_CHECK_INTERVAL_DEFAULT = 600;
     private static final int STALLED_TASKS_THRESHOLD_DEFAULT = 600;             // if a task does not advance its progress for 10 minutes, it is considered stalled
@@ -236,7 +227,6 @@ public class TaskManagerConfiguration {
     private boolean midPointTestMode = false;
 
     private static final List<String> KNOWN_KEYS = List.of(
-            MidpointConfiguration.MIDPOINT_HOME_PROPERTY, // probably can be removed from this list
             STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY,
             THREADS_CONFIG_ENTRY,
             CLUSTERED_CONFIG_ENTRY,
@@ -251,9 +241,8 @@ public class TaskManagerConfiguration {
             CREATE_QUARTZ_TABLES_CONFIG_ENTRY,
             JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY,
             USE_THREAD_INTERRUPT_CONFIG_ENTRY,
-            JMX_CONNECT_TIMEOUT_CONFIG_ENTRY,
-            QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,     // unused
-            QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY, QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY,
+            QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY,
+            QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY,
             NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
             NODE_TIMEOUT_CONFIG_ENTRY,
             TEST_MODE_CONFIG_ENTRY,
@@ -466,7 +455,7 @@ public class TaskManagerConfiguration {
                     if (jdbcConfig.isEmbedded()) {
                         jdbcUrl = jdbcConfig.getDefaultEmbeddedJdbcUrlPrefix() + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
                     } else {
-                        jdbcUrl = jdbcConfig.getJdbcUrl();
+                        jdbcUrl = jdbcConfig.getJdbcUrl("mp-scheduler");
                     }
                 } else {
                     jdbcUrl = null;

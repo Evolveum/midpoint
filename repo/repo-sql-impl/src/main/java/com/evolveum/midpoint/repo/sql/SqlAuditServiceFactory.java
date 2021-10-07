@@ -101,7 +101,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         config.validate();
 
         DataSourceFactory dataSourceFactory = new DataSourceFactory(config);
-        DataSource dataSource = dataSourceFactory.createDataSource();
+        DataSource dataSource = dataSourceFactory.createDataSource("mp-audit");
         return createSqlRepoContext(config, dataSource, schemaService);
     }
 

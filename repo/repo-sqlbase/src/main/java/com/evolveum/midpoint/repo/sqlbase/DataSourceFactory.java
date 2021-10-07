@@ -39,7 +39,7 @@ public class DataSourceFactory {
         return configuration;
     }
 
-    public DataSource createDataSource() throws RepositoryServiceFactoryException {
+    public DataSource createDataSource(String applicationName) throws RepositoryServiceFactoryException {
         LOGGER.info("Loading datasource.");
         if (configuration == null) {
             throw new RepositoryServiceFactoryException(
@@ -54,8 +54,9 @@ public class DataSourceFactory {
             } else {
                 LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}"
                                 + "\n Using driver: {}",
-                        configuration.getJdbcUrl(), configuration.getDriverClassName());
-                dataSource = createDataSourceInternal();
+                        configuration.getJdbcUrl(applicationName), configuration.getDriverClassName());
+                HikariConfig config = createHikariConfig(applicationName);
+                dataSource = new HikariDataSource(config);
                 internalDataSource = true;
             }
             return dataSource;
@@ -76,11 +77,11 @@ public class DataSourceFactory {
         return (DataSource) factory.getObject();
     }
 
-    private HikariConfig createHikariConfig() {
+    private HikariConfig createHikariConfig(String applicationName) {
         HikariConfig config = new HikariConfig();
 
         config.setDriverClassName(configuration.getDriverClassName());
-        config.setJdbcUrl(configuration.getJdbcUrl());
+        config.setJdbcUrl(configuration.getJdbcUrl(applicationName));
         config.setUsername(configuration.getJdbcUsername());
         config.setPassword(configuration.getJdbcPassword());
 
@@ -115,12 +116,6 @@ public class DataSourceFactory {
         config.setAutoCommit(false);
 
         return config;
-    }
-
-    private DataSource createDataSourceInternal() {
-        HikariConfig config = createHikariConfig();
-
-        return new HikariDataSource(config);
     }
 
     @PreDestroy

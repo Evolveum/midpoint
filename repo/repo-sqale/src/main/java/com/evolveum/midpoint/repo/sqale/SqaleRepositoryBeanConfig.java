@@ -99,7 +99,7 @@ public class SqaleRepositoryBeanConfig {
     @ConditionalOnMissingBean
     public DataSource dataSource(DataSourceFactory dataSourceFactory)
             throws RepositoryServiceFactoryException {
-        return dataSourceFactory.createDataSource();
+        return dataSourceFactory.createDataSource("mp-repo");
     }
 
     @Bean

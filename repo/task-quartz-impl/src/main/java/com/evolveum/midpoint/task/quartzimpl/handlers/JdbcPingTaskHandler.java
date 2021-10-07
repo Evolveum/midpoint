@@ -12,11 +12,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.util.exception.SystemException;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +24,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -92,7 +90,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
         String jdbcDriver = get(task, SchemaConstants.JDBC_PING_DRIVER_CLASS_NAME_QNAME,
                 jdbcConfig != null ? jdbcConfig.getDriverClassName() : "");
         String jdbcUrl = get(task, SchemaConstants.JDBC_PING_JDBC_URL_QNAME,
-                jdbcConfig != null ? jdbcConfig.getJdbcUrl() : "");
+                jdbcConfig != null ? jdbcConfig.getJdbcUrl("mp-ping") : "");
         String jdbcUsername = get(task, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME,
                 jdbcConfig != null ? jdbcConfig.getJdbcUsername() : "");
         String jdbcPassword = get(task, SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME,

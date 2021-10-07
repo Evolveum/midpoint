@@ -46,6 +46,15 @@ public interface JdbcRepositoryConfiguration {
     String getDataSource();
     String getDriverClassName();
     String getJdbcUrl();
+
+    /**
+     * Allows distinguishing connections for various usages like repository, audit, scheduler.
+     * By default, this doesn't do anything, but works for new repository.
+     */
+    default String getJdbcUrl(String applicationName) {
+        return getJdbcUrl();
+    }
+
     String getJdbcUsername();
     boolean isEmbedded();
     String getJdbcPassword();

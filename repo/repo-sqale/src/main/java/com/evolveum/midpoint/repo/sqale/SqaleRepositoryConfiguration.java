@@ -168,6 +168,17 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         return jdbcUrl;
     }
 
+    public static final String APPLICATION_NAME_JDBC_PARAM = "ApplicationName=";
+
+    @Override
+    public String getJdbcUrl(@NotNull String applicationName) {
+        if (jdbcUrl != null && !jdbcUrl.contains(APPLICATION_NAME_JDBC_PARAM)) {
+            return jdbcUrl + (jdbcUrl.contains("?") ? '&' : '?') + APPLICATION_NAME_JDBC_PARAM + applicationName;
+        } else {
+            return jdbcUrl;
+        }
+    }
+
     public String getJdbcUsername() {
         return jdbcUsername;
     }
