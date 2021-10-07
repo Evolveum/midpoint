@@ -41,8 +41,8 @@ public class ChildOfReportParamWrapperFactory<R extends Referencable> extends Pr
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
-        return super.match(def)
-                && parent.getDefinition().getItemName().equivalent(AbstractReportWorkDefinitionType.F_REPORT_PARAM);
+        return super.match(def) && parent != null && parent.getDefinition() != null
+                && AbstractReportWorkDefinitionType.F_REPORT_PARAM.equivalent(parent.getDefinition().getItemName());
     }
 
     @Override
