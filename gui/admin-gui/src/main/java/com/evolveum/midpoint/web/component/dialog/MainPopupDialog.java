@@ -36,6 +36,10 @@ public class MainPopupDialog extends ModalDialog {
         return get("overlay").get("dialog");
     }
 
+    public Component getContentComponent() {
+        return getDialogComponent().get(ModalDialog.CONTENT_ID);
+    }
+
     public String generateWidthHeightParameter(String width, String widthUnit, String height, String heightUnit) {
         StringBuilder sb = new StringBuilder();
         if (StringUtils.isNotEmpty(width)) {

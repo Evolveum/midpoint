@@ -19,6 +19,8 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -196,7 +198,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
                 getPageBase().showMainPopup(objectBrowserPanel, target);
             }
         };
-        selectObject.add(new VisibleBehaviour(() -> getPageBase().getMainPopup() != null));
+        selectObject.add(new VisibleBehaviour(() -> getPageBase().getMainPopup().getContentComponent() == null));
         midpointForm.add(selectObject);
     }
 
