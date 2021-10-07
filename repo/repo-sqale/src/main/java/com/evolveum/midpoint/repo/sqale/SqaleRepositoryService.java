@@ -383,11 +383,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     invokeConflictWatchers((w) -> w.afterModifyObject(oid));
                 }
                 logger.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
-
             } catch (ObjectNotFoundException e) {
                 // so it is just plain addObject after all
                 new AddObjectContext<>(sqlRepoContext, newObject)
-                        .execute();
+                        .execute(jdbcSession);
                 invokeConflictWatchers((w) -> w.afterAddObject(oid, newObject));
             }
             jdbcSession.commit();
@@ -474,13 +473,14 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         long opHandle = registerOperationStart(OP_MODIFY_OBJECT, type);
 
-        try (JdbcSession transaction = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
-                    prepareUpdateContext(transaction, type, modifications, oidUuid, options);
+                    prepareUpdateContext(jdbcSession, type, modifications, oidUuid, options);
 
-            // commit is executed inside this method
-            return modifyObjectInternal(updateContext, modifications,
+            ModifyObjectResult<T> rv = modifyObjectInternal(updateContext, modifications,
                     precondition, options, parentResult);
+            jdbcSession.commit();
+            return rv;
         } finally {
             registerOperationFinish(opHandle);
         }
@@ -537,18 +537,17 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         long opHandle = registerOperationStart(OP_MODIFY_OBJECT_DYNAMICALLY, type);
 
-        try (JdbcSession transaction = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
-                    prepareUpdateContext(transaction, type, oidUuid, getOptions, modifyOptions);
+                    prepareUpdateContext(jdbcSession, type, oidUuid, getOptions, modifyOptions);
 
             PrismObject<T> object = updateContext.getPrismObject().clone();
             Collection<? extends ItemDelta<?, ?>> modifications =
                     modificationsSupplier.get(object.asObjectable());
 
-            // commit is executed inside this method
             ModifyObjectResult<T> rv = modifyObjectInternal(updateContext,
                     modifications, null, modifyOptions, parentResult);
-
+            jdbcSession.commit();
             return rv;
         } catch (PreconditionViolationException e) {
             // no precondition is checked in this scenario, this should not happen
@@ -604,7 +603,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             replaceObject(updateContext, updateContext.getPrismObject());
         } else {
             modifications = updateContext.execute(modifications);
-            updateContext.jdbcSession().commit();
         }
         logger.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
 

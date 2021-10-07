@@ -53,20 +53,29 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
     public String execute()
             throws SchemaException, ObjectAlreadyExistsException {
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
-            object.setVersion(INITIAL_VERSION_STRING);
-            initContexts();
-            if (object.getOid() == null) {
-                return addObjectWithoutOid(jdbcSession);
-            } else {
-                // this also handles overwrite after ObjectNotFoundException
-                return addObjectWithOid(jdbcSession);
-            }
+            String oid = execute(jdbcSession);
+            jdbcSession.commit();
+            return oid;
         } catch (QueryException e) { // Querydsl exception, not ours
             Throwable cause = e.getCause();
             if (cause instanceof PSQLException) {
                 SqaleUtils.handlePostgresException((PSQLException) cause);
             }
             throw e;
+        }
+    }
+
+    /**
+     * Like {@link #execute()} but with provided JDBC session, does not commit.
+     */
+    public String execute(JdbcSession jdbcSession) throws SchemaException {
+        object.setVersion(INITIAL_VERSION_STRING);
+        initContexts();
+        if (object.getOid() == null) {
+            return addObjectWithoutOid(jdbcSession);
+        } else {
+            // this also handles overwrite after ObjectNotFoundException
+            return addObjectWithOid(jdbcSession);
         }
     }
 
@@ -106,7 +115,6 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
         row.objectType = objectType; // sub-entities can use it, now it's safe to set it
         rootMapping.storeRelatedEntities(row, schemaObject, jdbcSession);
 
-        jdbcSession.commit();
         return Objects.requireNonNull(oid, "OID of inserted object can't be null")
                 .toString();
     }
@@ -139,7 +147,6 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
         row.objectType = objectType; // sub-entities can use it, now it's safe to set it
         rootMapping.storeRelatedEntities(row, schemaObject, jdbcSession);
 
-        jdbcSession.commit();
         return oidString;
     }
 }
