@@ -26,14 +26,14 @@
                         <q:path>targetRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$target</path>
+                            <path>$targetRef</path>
                         </expression>
                     </q:ref>
                     <q:ref>
                         <q:path>initiatorRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$initiator</path>
+                            <path>$initiatorRef</path>
                         </expression>
                     </q:ref>
                     <q:equal>
@@ -135,7 +135,7 @@
             </display>
         </parameter>
         <parameter>
-            <name>target</name>
+            <name>targetRef</name>
             <type>c:ObjectReferenceType</type>
             <display>
                 <label>
@@ -147,7 +147,7 @@
             </display>
         </parameter>
         <parameter>
-            <name>initiator</name>
+            <name>initiatorRef</name>
             <type>c:ObjectReferenceType</type>
             <display>
                 <label>
