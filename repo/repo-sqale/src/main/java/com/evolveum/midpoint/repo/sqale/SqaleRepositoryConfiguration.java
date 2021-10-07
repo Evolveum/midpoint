@@ -36,8 +36,26 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private static final String DEFAULT_JDBC_PASSWORD = "password";
     private static final String DEFAULT_FULL_OBJECT_FORMAT = PrismContext.LANG_JSON;
 
+    /**
+     * We need at least two connections, because ext item/URI cache can start nested transaction
+     * using separate connection to add missing entry into the database.
+     * For audit 1 is probably possible, but we just use the same floor for simplicity.
+     */
+    private static final int MIN_POOL_SIZE_FLOOR = 2;
     private static final int DEFAULT_MIN_POOL_SIZE = 8;
-    private static final int DEFAULT_MAX_POOL_SIZE = 50;
+
+    /**
+     * 40 is more than plentiful for any single-node setup.
+     * With 2 nodes, this means 80 connections + separate pool for scheduler, which is 10 for each node.
+     * That is already up to the limit of 100 default PG connections.
+     * Nobody should go above 2 nodes without further tweaking.
+     * Adding more connections to the database may not be the best course of action either, as it may
+     * use more resources on the DB server and be slower than using less connections.
+     * Total number of midPoint connections for the whole cluster should always be under PG connection limit.
+     * If pool doesn't have a connection, the thread will wait a bit and work as a natural throttling.
+     * If DB doesn't have another connection it reports error which will be much uglier.
+     */
+    private static final int DEFAULT_MAX_POOL_SIZE = 40;
 
     private static final int DEFAULT_ITERATIVE_SEARCH_PAGE_SIZE = 100;
 
@@ -95,8 +113,11 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
             jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, DEFAULT_JDBC_PASSWORD);
         }
 
-        minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, DEFAULT_MIN_POOL_SIZE);
-        maxPoolSize = configuration.getInt(PROPERTY_MAX_POOL_SIZE, DEFAULT_MAX_POOL_SIZE);
+        // maxPoolSize can't be smaller than MIN_POOL_SIZE_FLOOR
+        maxPoolSize = Math.max(
+                configuration.getInt(PROPERTY_MAX_POOL_SIZE, DEFAULT_MAX_POOL_SIZE),
+                MIN_POOL_SIZE_FLOOR);
+        minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, Math.min(DEFAULT_MIN_POOL_SIZE, maxPoolSize));
         maxLifetime = configuration.getLong(PROPERTY_MAX_LIFETIME, null);
         idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
         initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
