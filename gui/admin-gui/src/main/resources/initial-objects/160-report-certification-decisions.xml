@@ -21,7 +21,14 @@
                     <q:path>../name</q:path>
                     <expression>
                         <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                        <path>$campaignName</path>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                if (campaignName != null) {
+                                    campaignName.getTargetName()
+                                }
+                            </code>
+                        </script>
                     </expression>
                 </q:equal>
             </filter>
