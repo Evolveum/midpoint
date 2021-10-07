@@ -3,6 +3,12 @@ ALTER TABLE m_task ADD schedulingState NUMBER(10, 0);
 ALTER TABLE m_task ADD autoScalingMode NUMBER(10, 0);
 ALTER TABLE m_node ADD operationalState NUMBER(10, 0);
 
+
+-- MID-7074
+
+CREATE UNIQUE INDEX uc_connector_type_version_host
+  ON m_connector  (connectortype, connectorversion, nvl(connectorHostRef_targetOid,0));
+
 -- WRITE CHANGES ABOVE ^^
 UPDATE m_global_metadata SET value = '4.4' WHERE name = 'databaseSchemaVersion';
 

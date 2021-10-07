@@ -1217,6 +1217,12 @@ CREATE INDEX iOrgOrgTypeOid ON m_org_org_type(org_oid);
 CREATE INDEX iServiceTypeOid ON m_service_type(service_oid);
 CREATE INDEX iTaskDependentOid ON m_task_dependent(task_oid);
 
+
+-- MID-7074
+CREATE UNIQUE INDEX uc_connector_type_version_host
+  ON m_connector (connectorType, connectorVersion, connectorHostRef_targetOid);
+
+
 BEGIN TRANSACTION
 INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.4');
 COMMIT;

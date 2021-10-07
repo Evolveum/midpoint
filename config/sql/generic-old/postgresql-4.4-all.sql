@@ -1402,3 +1402,13 @@ create index idx_qrtz_ft_j_g on qrtz_fired_triggers(SCHED_NAME,JOB_NAME,JOB_GROU
 create index idx_qrtz_ft_jg on qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
 create index idx_qrtz_ft_t_g on qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
 create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
+
+
+  -- MID-7074
+
+  CREATE UNIQUE INDEX m_connector_typeVersion_key
+      ON m_connector (connectorType, connectorVersion)
+      WHERE connectorHostRef_targetOid IS NULL;
+  CREATE UNIQUE INDEX m_connector_typeVersionHost_key
+      ON m_connector (connectorType, connectorVersion, connectorHostRef_targetOid)
+      WHERE connectorHostRef_targetOid IS NOT NULL;
