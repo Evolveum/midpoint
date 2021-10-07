@@ -83,6 +83,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private final Map<String, SimpleCounter> countersMap = new HashMap<>();
 
     private Boolean experimentalFeaturesEnabled = false;
+    private Set<Class<?>> packagesClasses;
+    private Set<Class<?>> collectionClasses;
 
     @Override
     @PostConstruct
@@ -208,6 +210,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     }
 
     private void fillInPanelsMap(Set<Class<?>> classes) {
+        if (!panelsMap.isEmpty()) {
+            return;
+        }
         for (Class<?> clazz : classes) {
             PanelType panelType = clazz.getAnnotation(PanelType.class);
             if (isNotPanelTypeDefinition(clazz, panelType)) {
@@ -232,6 +237,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     }
 
     private void fillInCountersMap(Set<Class<?>> scannedClasses) {
+        if (!countersMap.isEmpty()) {
+            return;
+        }
         for (Class<?> clazz : scannedClasses) {
             Counter counterDefinition = clazz.getAnnotation(Counter.class);
             if (counterDefinition != null) {
@@ -303,11 +311,17 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     }
 
     private Set<Class<?>> collectPackagesClasses() {
-        return collectClasses(PANEL_PACKAGES_TO_SCAN);
+        if (packagesClasses == null) {
+            packagesClasses = collectClasses(PANEL_PACKAGES_TO_SCAN);
+        }
+        return packagesClasses;
     }
 
     private Set<Class<?>> collectCollectionClasses() {
-        return collectClasses(COLLECTION_PACKAGES_TO_SCAN);
+        if (collectionClasses == null) {
+            collectionClasses = collectClasses(COLLECTION_PACKAGES_TO_SCAN);
+        }
+        return collectionClasses;
     }
 
     private Set<Class<?>> collectClasses(String[] packagesToScan) {
