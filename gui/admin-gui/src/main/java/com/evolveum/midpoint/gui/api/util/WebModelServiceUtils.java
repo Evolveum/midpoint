@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchColl
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.error.PageError;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -290,7 +292,9 @@ public class WebModelServiceUtils {
         if (WebComponentUtil.showResultInPage(subResult)) {
             page.showResult(subResult);
         }
-
+        if (!allowNotFound) {
+            throw new RestartResponseException(PageError.class);
+        }
         LOGGER.debug("Loaded {} with result {}", object, subResult);
 
         return object;

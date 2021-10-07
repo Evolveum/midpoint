@@ -412,7 +412,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 prismObject = getPrismContext().createObject(getType());
             } else {
                 String focusOid = getObjectOidParameter();
-                prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), this, task, result);
+                prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), false,this, task, result);
                 LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, prismObject);
             }
             result.recordSuccess();
