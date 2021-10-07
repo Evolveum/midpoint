@@ -129,7 +129,8 @@ public class ArchetypeManager implements Cache {
         List<ObjectReferenceType> archetypeRefs = new ArrayList<>(assignmentHolder.asObjectable().getArchetypeRef());
 
         for (ObjectReferenceType archetypeAssignmentRef : archetypeAssignmentsRefs) {
-            if (archetypeRefs.contains(archetypeAssignmentRef)) {
+            if (archetypeRefs.contains(archetypeAssignmentRef)
+                    || archetypeRefs.stream().anyMatch(archetypeRef -> archetypeRef.getOid().equals(archetypeAssignmentRef.getOid()))) {
                 continue;
             }
             archetypeRefs.add(archetypeAssignmentRef);
