@@ -1216,6 +1216,11 @@ CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID) INITRANS 30;
 CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID) INITRANS 30;
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID) INITRANS 30;
 
+
+-- MID-7074
+CREATE UNIQUE INDEX uc_connector_type_version_host
+  ON m_connector  (connectorType, connectorVersion, nvl(connectorHostRef_targetOid,0));
+
 INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.4');
 
 --
