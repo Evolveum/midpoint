@@ -78,7 +78,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         }
 
         return ItemStatus.NOT_CHANGED;
-
     }
 
     public abstract void registerWrapperPanel(IW wrapper);
@@ -116,7 +115,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
     }
 
-    private boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+    boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
         if (def == null) {
             return true;
         }

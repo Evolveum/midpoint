@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum and contributors
+ * Copyright (C) 2013-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,19 +8,12 @@ package com.evolveum.midpoint.model.intest;
 
 import static java.util.Collections.singleton;
 import static org.springframework.test.util.AssertionErrors.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
+import java.util.Arrays;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.intest.util.MockMultipleTriggersHandler;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -28,14 +21,19 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
+import com.evolveum.midpoint.model.intest.util.MockMultipleTriggersHandler;
 import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * In theory, the assertions counting # of invocations could fail even if trigger task handler works well
@@ -43,7 +41,7 @@ import java.util.List;
  *
  * @author Radovan Semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
@@ -54,6 +52,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Autowired
     private TriggerHandlerRegistry triggerHandlerRegistry;
+    private boolean isNewRepo;
 
     @Override
     protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
@@ -64,6 +63,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        // Some tests differ for new and old repo for good reasons, so we need this switch.
+        isNewRepo = plainRepositoryService instanceof SqaleRepositoryService;
 
         testTriggerHandler = new MockTriggerHandler();
         triggerHandlerRegistry.register(MockTriggerHandler.HANDLER_URI, testTriggerHandler);
@@ -100,11 +101,13 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Trigger was called incorrect number of times", 1, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(taskAfter, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(1);
+        // @formatter:on
     }
 
     /**
@@ -129,11 +132,13 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNull("Trigger was called while not expecting it", testTriggerHandler.getLastObject());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(1); // From previous test
+        // @formatter:on
     }
 
     /**
@@ -160,11 +165,13 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Trigger was called incorrect number of times", 1, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(2); // One from test100, one newly added.
+        // @formatter:on
     }
 
     /**
@@ -203,12 +210,15 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Trigger was called wrong number of times", 2, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(3)
-                    .assertSkipCount(1);
+                    // New repo uses EXISTS, no duplicate objects, nothing to skip.
+                    .assertSkipCount(isNewRepo ? 0 : 1);
+        // @formatter:on
     }
 
     /**
@@ -236,12 +246,14 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Trigger was called wrong number of times", 2, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(4) // +1 real execution
-                    .assertSkipCount(2); // +1 skipped occurrence
+                    .assertSkipCount(isNewRepo ? 0 : 2); // +1 skipped occurrence for old repo
+        // @formatter:on
     }
 
     /**
@@ -271,12 +283,14 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Trigger was called wrong number of times", 3, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(5) // +1 real execution
-                    .assertSkipCount(4); // +2 skipped occurrences
+                    .assertSkipCount(isNewRepo ? 0 : 4); // +2 skipped occurrences for old repo
+        // @formatter:on
     }
 
     /**
@@ -305,20 +319,22 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong # of triggers last executed", 2, testMultipleTriggersHandler.getLastTriggers().size());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(6) // +1 real execution
-                    .assertSkipCount(5); // +1 skipped occurrence
+                    .assertSkipCount(isNewRepo ? 0 : 5); // +1 skipped occurrence for old repo
+        // @formatter:on
     }
 
     /**
      * Creates two (distinct) triggers with the same timestamp PLUS one trigger a little bit later.
      * The handler should be executed only twice:
-     *  (1) first with two triggers having the same timestamp,
-     *  (2) second with the third trigger that fires a bit later,
-     *  because we use {@link MockMultipleTriggersHandler} that accepts multiple triggers with the same timestamp.
+     * (1) first with two triggers having the same timestamp,
+     * (2) second with the third trigger that fires a bit later,
+     * because we use {@link MockMultipleTriggersHandler} that accepts multiple triggers with the same timestamp.
      */
     @Test
     public void test145TwoTriggersSamePlusOneUsingMultiHandler() throws Exception {
@@ -345,12 +361,14 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong # of triggers last executed", 1, testMultipleTriggersHandler.getLastTriggers().size());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(7) // +1 real execution
-                    .assertSkipCount(7); // +2 skipped occurrences
+                    .assertSkipCount(isNewRepo ? 0 : 7); // +2 skipped occurrences for old repo
+        // @formatter:on
     }
 
     /**
@@ -381,12 +399,14 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
             assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
             assertNoTrigger(UserType.class, USER_JACK_OID);
 
+            // @formatter:off
             assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                     .assertLastTriggerScanTimestamp(startCal, endCal)
                     .rootItemProcessingInformation()
                         .display()
                         .assertSuccessCount(8) // +1 real execution
-                        .assertSkipCount(8); // +1 skipped occurrence
+                        .assertSkipCount(isNewRepo ? 0 : 8); // +1 skipped occurrence for old repo
+            // @formatter:on
         } finally {
             testTriggerHandler.setIdempotent(false);
         }
@@ -414,12 +434,14 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNull("Trigger was called while not expecting it", testTriggerHandler.getLastObject());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(8) // no change
-                    .assertSkipCount(8); // no change
+                    .assertSkipCount(isNewRepo ? 0 : 8); // no change
+        // @formatter:on
     }
 
     /**
@@ -460,13 +482,15 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong # of triggers found", 1, userAfter.asObjectable().getTrigger().size());
         assertTrigger(userAfter, MockTriggerHandler.HANDLER_URI, startCal, 1);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after 1st run")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertFailureCount(1) // +1 failed run (2 triggers: one success, one failure)
                     .assertSuccessCount(8) // no new successful runs
-                    .assertSkipCount(9); // +1 skipped occurrence
+                    .assertSkipCount(isNewRepo ? 0 : 9); // +1 skipped occurrence for old repo
+        // @formatter:on
 
         when("second run (retries failed trigger)");
 
@@ -488,13 +512,15 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after 2nd run")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertFailureCount(1) // no new failures
                     .assertSuccessCount(9) // +1 success
-                    .assertSkipCount(9); // no new skips
+                    .assertSkipCount(isNewRepo ? 0 : 9); // no new skips
+        // @formatter:on
     }
 
     /**
@@ -523,13 +549,15 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
         assertTrigger(getUser(USER_JACK_OID), MockTriggerHandler.HANDLER_URI, startCalPlus5days, 100L);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .assertLastTriggerScanTimestamp(startCal, endCal)
                 .rootItemProcessingInformation()
                     .display()
                     .assertFailureCount(1) // no new failures
                     .assertSuccessCount(10) // +1 success
-                    .assertSkipCount(9); // no new skips
+                    .assertSkipCount(isNewRepo ? 0 : 9); // no new skips
+        // @formatter:on
     }
 
     /**
@@ -590,12 +618,14 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         // this assert may fail occasionally if the trigger scanner would start in between (we'll see how often)
         assertEquals("Last scan timestamp was changed", lastScanTimestampBefore, lastScanTimestampAfter);
 
+        // @formatter:off
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
                 .rootItemProcessingInformation()
                 .display()
                     .assertFailureCount(1) // no new failures
                     .assertSuccessCount(11) // +1 success (see the note in method javadoc)
-                    .assertSkipCount(9); // no new skips
+                    .assertSkipCount(isNewRepo ? 0 : 9); // no new skips
+        // @formatter:on
     }
 
     // trigger scanner task is suspended here; and handler is set to a delay of one day (reset will clear that)

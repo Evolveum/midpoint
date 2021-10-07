@@ -69,6 +69,7 @@
                 <a:displayName>TaskExtension.reportData</a:displayName>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:objectReferenceTargetType>c:ReportDataType</a:objectReferenceTargetType>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

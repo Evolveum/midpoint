@@ -21,7 +21,14 @@
                     <q:path>../name</q:path>
                     <expression>
                         <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                        <path>$campaignName</path>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                if (campaignRef != null) {
+                                campaignRef.getTargetName()
+                                }
+                            </code>
+                        </script>
                     </expression>
                 </q:equal>
             </filter>
@@ -179,7 +186,7 @@
             </paging>
         </view>
         <parameter>
-            <name>campaignName</name>
+            <name>campaignRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:AccessCertificationCampaignType</targetType>
             <display>

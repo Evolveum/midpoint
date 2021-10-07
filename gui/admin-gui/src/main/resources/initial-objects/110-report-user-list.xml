@@ -30,21 +30,21 @@
                         <q:path>assignment/targetRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$organization</path>
+                            <path>$organizationRef</path>
                         </expression>
                     </q:ref>
                     <q:ref>
                         <q:path>assignment/targetRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$role</path>
+                            <path>$roleRef</path>
                         </expression>
                     </q:ref>
                     <q:ref>
                         <q:path>assignment/construction/resourceRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$resource</path>
+                            <path>$resourceRef</path>
                         </expression>
                     </q:ref>
                 </q:and>
@@ -63,7 +63,7 @@
             </display>
         </parameter>
         <parameter>
-            <name>organization</name>
+            <name>organizationRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:OrgType</targetType>
             <display>
@@ -76,7 +76,7 @@
             </display>
         </parameter>
         <parameter>
-            <name>role</name>
+            <name>roleRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:RoleType</targetType>
             <display>
@@ -89,7 +89,7 @@
             </display>
         </parameter>
         <parameter>
-            <name>resource</name>
+            <name>resourceRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:ResourceType</targetType>
             <display>

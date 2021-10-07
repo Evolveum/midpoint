@@ -3822,6 +3822,17 @@ public final class WebComponentUtil {
         }
         builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
 
+        if (shadow.getResourceRef().getObject() == null && !isColumn) {
+            Task task = pageBase.createSimpleTask("Load Resource");
+            try {
+                ResourceType resource = pageBase.getModelObjectResolver().resolve(
+                        shadow.getResourceRef(), ResourceType.class, null, "Load Resource", task, task.getResult());
+                shadow.getResourceRef().asReferenceValue().setObject(resource.asPrismObject());
+            } catch (CommonException e) {
+                //ignore exception
+            }
+        }
+
         if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
                 && ResourceTypeUtil.isInMaintenance(shadow.getResourceRef().getObject())) {
             IconType icon = new IconType();

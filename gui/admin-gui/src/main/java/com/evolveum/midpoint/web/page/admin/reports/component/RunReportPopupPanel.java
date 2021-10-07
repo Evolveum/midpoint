@@ -203,18 +203,19 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
                     continue;
                 }
                 MutableItemDefinition def;
+                String namespaceUri = ReportConstants.NS_EXTENSION + "/" + AbstractReportWorkDefinitionType.F_REPORT_PARAM;
                 if (Referencable.class.isAssignableFrom(clazz)) {
                     def = getPrismContext().definitionFactory().createReferenceDefinition(
-                            new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type);
+                            new QName(namespaceUri, parameter.getName()), type);
                     ((MutablePrismReferenceDefinition) def).setTargetTypeName(parameter.getTargetType());
                 } else {
                     List values = WebComponentUtil.getAllowedValues(parameter, getPageBase());
                     if (CollectionUtils.isNotEmpty(values)) {
                         def = getPrismContext().definitionFactory().createPropertyDefinition(
-                                new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type, values, null).toMutable();
+                                new QName(namespaceUri, parameter.getName()), type, values, null).toMutable();
                     } else {
                         def = getPrismContext().definitionFactory().createPropertyDefinition(
-                                new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type);
+                                new QName(namespaceUri, parameter.getName()), type);
                     }
                 }
                 def.setDynamic(true);

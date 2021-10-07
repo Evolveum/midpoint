@@ -21,7 +21,14 @@
                     <q:path>../name</q:path>
                     <expression>
                         <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                        <path>$campaignName</path>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                if (campaignRef != null) {
+                                    campaignRef.getTargetName()
+                                }
+                            </code>
+                        </script>
                     </expression>
                 </q:equal>
             </filter>
@@ -119,7 +126,9 @@
                                     sb.append(" - ");
                                     sb.append(object.getIteration());
                                     sb.append(" - ");
-                                    sb.append(ReportUtils.prettyPrintCertOutcomeForReport(workItem.getOutput(), true));
+                                    if (workItem.getOutput() != null) {
+                                        sb.append(ReportUtils.prettyPrintCertOutcomeForReport(workItem.getOutput(), true));
+                                    }
                                     comment = ReportUtils.prettyPrintCertCommentForReport(workItem.getOutput());
                                     if (comment != null) {
                                         sb.append(" (");
@@ -140,7 +149,7 @@
             <type>c:AccessCertificationCaseType</type>
         </view>
         <parameter>
-            <name>campaignName</name>
+            <name>campaignRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:AccessCertificationCampaignType</targetType>
             <display>
