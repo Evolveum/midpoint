@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
@@ -5187,5 +5188,43 @@ public final class WebComponentUtil {
             LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
         }
         return null;
+    }
+
+    public static PrismObject<ResourceType> findResource(PrismPropertyWrapper itemWrapper, PrismPropertyPanelContext panelCtx) {
+        PrismObjectWrapper<?> objectWrapper = itemWrapper.findObjectWrapper();
+        if (objectWrapper == null) {
+            return null;
+        }
+
+        if (ResourceType.class.equals(objectWrapper.getObject().getCompileTimeClass())) {
+            return (PrismObject<ResourceType>) objectWrapper.getObject();
+        } else if (TaskType.class.equals(objectWrapper.getObject().getCompileTimeClass())) {
+            PrismReferenceValue objectRef = findResourceReference(itemWrapper);
+
+            if (objectRef == null || objectRef.getOid() == null) {
+                return null;
+            }
+
+            Task task = panelCtx.getPageBase().createSimpleTask("load resource");
+            return WebModelServiceUtils.loadObject(objectRef, ResourceType.COMPLEX_TYPE, panelCtx.getPageBase(), task, task.getResult());
+        }
+        return null;
+    }
+
+    private static PrismReferenceValue findResourceReference(PrismPropertyWrapper<QName> itemWrapper) {
+        PrismContainerValueWrapper<?> parent = itemWrapper.getParent();
+        if (parent == null) {
+            return null;
+        }
+        try {
+            PrismReferenceWrapper<Referencable> resourceRefWrapper = parent.findReference(ResourceObjectSetType.F_RESOURCE_REF);
+            if (resourceRefWrapper == null) {
+                return null;
+            }
+
+            return resourceRefWrapper.getValue().getNewValue();
+        } catch (SchemaException e) {
+            return null;
+        }
     }
 }

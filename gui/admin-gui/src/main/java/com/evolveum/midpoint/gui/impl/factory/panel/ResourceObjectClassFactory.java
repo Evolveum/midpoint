@@ -6,32 +6,31 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import java.io.Serializable;
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.task.api.Task;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 @Component
-public class TaskObjectClassFactory extends AbstractObjectClassFactory {
+public class ResourceObjectClassFactory extends AbstractObjectClassFactory {
 
     @PostConstruct
     public void register() {
         getRegistry().addToRegistry(this);
     }
+
 
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
@@ -41,17 +40,9 @@ public class TaskObjectClassFactory extends AbstractObjectClassFactory {
         }
 
         ObjectType object = objectWrapper.getObject().asObjectable();
-        if (!(object instanceof TaskType)) {
+        if (!(object instanceof ResourceType)) {
             return false;
         }
-
-        TaskType task = (TaskType) object;
-        if (WebComponentUtil.isResourceRelatedTask(task)
-                && wrapper.getPath().startsWith(ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK))
-                && wrapper.getPath().lastName().equivalent(ResourceObjectSetType.F_OBJECTCLASS)) {
-            return true;
-        }
-
-        return false;
+        return wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS);
     }
 }
