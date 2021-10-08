@@ -15,6 +15,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -189,6 +190,28 @@ public class SqaleRepoLookupTableTest extends SqaleRepoBaseTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[] { "sk_SK", "sk", "Slovak" });
+    }
+
+    @Test
+    public void test123LookupLanguagesOrderById() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        when();
+        GetOperationOptionsBuilder optionsBuilder = SchemaService.get().getOperationOptionsBuilder()
+                .item(LookupTableType.F_ROW)
+                .retrieveQuery()
+                .item(LookupTableRowType.F_KEY)
+                .contains("_")
+                .offset(2)
+                .maxSize(1)
+                .asc(PrismConstants.T_ID)
+                .end();
+        PrismObject<LookupTableType> lookup = repositoryService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), result);
+
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
     }
 
     @Test

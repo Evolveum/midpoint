@@ -64,7 +64,7 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
-    public @Nullable Expression<?> itemOrdering(Q entityPath, ItemDefinition<?> definition)
+    public @Nullable Expression<?> primaryPath(Q entityPath, ItemDefinition<?> definition)
             throws QueryException {
         JsonbPath path = rootToExtensionPath.apply(entityPath);
         ExtItemInfo info = new ExtensionProcessor(repositoryContext)

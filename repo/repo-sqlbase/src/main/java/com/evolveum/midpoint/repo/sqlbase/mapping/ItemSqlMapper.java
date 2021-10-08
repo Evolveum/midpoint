@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public interface ItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R> {
 
     /** Returns primary path for provided entity path - usable for ordering. */
-    @Nullable Expression<?> itemOrdering(Q entityPath, ItemDefinition<?> definition)
+    @Nullable Expression<?> primaryPath(Q entityPath, ItemDefinition<?> definition)
             throws QueryException;
 
     /**

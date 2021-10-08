@@ -148,7 +148,7 @@ public class QLookupTableMapping
             return base;
         }
         String value = queryDef.getSearchValue();
-        StringPath path = (StringPath) QLookupTableRowMapping.get().getItemMapper(queryDef.getColumn()).itemOrdering(alias, null);
+        StringPath path = (StringPath) QLookupTableRowMapping.get().getItemMapper(queryDef.getColumn()).primaryPath(alias, null);
         BooleanExpression right;
         if (LookupTableRowType.F_LABEL.equals(queryDef.getColumn())) {
             path = alias.labelNorm;
@@ -184,11 +184,12 @@ public class QLookupTableMapping
             }
             for (ObjectOrdering ordering : paging.getOrderingInstructions()) {
                 Order direction = ordering.getDirection() == OrderDirection.DESCENDING ? Order.DESC : Order.ASC;
-                if (ordering.getOrderBy() == null || !ordering.getOrderBy().isSingleName()) {
-                    throw new SystemException("Only single name order path is supported");
+                var mapper = rowMapping.itemMapper(ordering.getOrderBy().firstToQName());
+                if (mapper == null) {
+                    throw new QueryException("Incorrect orderBy path " + ordering.getOrderBy());
                 }
                 @SuppressWarnings("rawtypes")
-                Expression path = rowMapping.itemMapper(ordering.getOrderBy().firstToQName()).itemOrdering(alias, null);
+                Expression path = mapper.primaryPath(alias, null);
                 if (ItemPath.equivalent(LookupTableRowType.F_LABEL, ordering.getOrderBy())) {
                     // old repository uses normalized form for ordering
                     path = alias.labelNorm;
