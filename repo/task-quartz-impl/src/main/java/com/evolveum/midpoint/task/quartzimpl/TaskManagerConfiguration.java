@@ -64,6 +64,8 @@ public class TaskManagerConfiguration {
     private static final String CREATE_QUARTZ_TABLES_CONFIG_ENTRY = "createQuartzTables";
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
     private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
+    @Deprecated private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
+    @Deprecated private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
     private static final String QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY = "quartzClusterCheckinInterval";
     private static final String QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY = "quartzClusterCheckinGracePeriod";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
@@ -262,6 +264,9 @@ public class TaskManagerConfiguration {
     );
 
     private static final List<String> DEPRECATED_KEYS = List.of(
+            MidpointConfiguration.MIDPOINT_HOME_PROPERTY,
+            JMX_CONNECT_TIMEOUT_CONFIG_ENTRY,
+            QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
             WORK_ALLOCATION_MAX_RETRIES_ENTRY,
             WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY,
             WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY,
