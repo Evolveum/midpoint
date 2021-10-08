@@ -187,7 +187,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
        return fragment;
    }
 
-   private boolean isTracingEnabled() {
+   public boolean isTracingEnabled() {
        boolean canRecordTrace;
        try {
            canRecordTrace = getPageBase().isAuthorized(ModelAuthorizationAction.RECORD_TRACE.getUrl());

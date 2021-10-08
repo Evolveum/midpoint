@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 
@@ -30,6 +31,7 @@ import java.util.List;
 
 public class FocusOperationalButtonsPanel<F extends FocusType> extends AssignmentHolderOperationalButtonsPanel<F> {
 
+    private static final String ID_EXECUTE_OPTIONS_LEGEND = "executeOptionsLegend";
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
     private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
@@ -64,6 +66,10 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
 
         });
         add(optionsPanel);
+
+        Label legend = new Label(ID_EXECUTE_OPTIONS_LEGEND,
+                getPageBase().createStringResource("FocusOperationalButtonsPanel.options.tracing." + optionsPanel.isTracingEnabled()));
+        add(legend);
     }
 
     @Override
