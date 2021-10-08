@@ -317,13 +317,10 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // WHEN
         when();
-        deleteObject(TaskType.class, getSyncTaskOid(), task, result);
+        suspendAndDeleteTasks(getSyncTaskOid());
 
         // THEN
         then();
-        // There may be warning about deleting a running task
-//        assertSuccess(result);
-
         assertNoObject(TaskType.class, getSyncTaskOid(), task, result);
     }
 
@@ -522,7 +519,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // WHEN
         when();
-        deleteObject(TaskType.class, getSyncTaskOid(), task, result);
+        suspendAndDeleteTasks(getSyncTaskOid());
 
         // THEN
         then();
