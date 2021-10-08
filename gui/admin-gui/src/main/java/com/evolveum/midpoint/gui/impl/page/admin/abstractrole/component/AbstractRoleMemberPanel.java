@@ -1076,7 +1076,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             return;
         }
         MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
-        target.add(AbstractRoleMemberPanel.this.findParent(TreeTablePanel.class));
+        target.add(this);
     }
 
     protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
