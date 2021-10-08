@@ -143,16 +143,12 @@ public class QLookupTableMapping
         }
     }
 
-    private BooleanExpression appendConditions(
-            QLookupTableRow alias, BooleanExpression base, RelationalValueSearchQuery queryDef) throws QueryException {
-        if (queryDef == null || queryDef.getColumn() == null
-                || queryDef.getSearchType() == null || Strings.isNullOrEmpty(queryDef.getSearchValue())) {
+    private BooleanExpression appendConditions(QLookupTableRow alias, BooleanExpression base, RelationalValueSearchQuery queryDef) throws QueryException {
+        if (queryDef == null || queryDef.getColumn() == null || queryDef.getSearchType() == null || Strings.isNullOrEmpty(queryDef.getSearchValue())) {
             return base;
         }
         String value = queryDef.getSearchValue();
-        StringPath path = (StringPath) QLookupTableRowMapping.get()
-                .itemMapper(queryDef.getColumn())
-                .primaryPath(alias, null);
+        StringPath path = (StringPath) QLookupTableRowMapping.get().getItemMapper(queryDef.getColumn()).primaryPath(alias, null);
         BooleanExpression right;
         if (LookupTableRowType.F_LABEL.equals(queryDef.getColumn())) {
             path = alias.labelNorm;
@@ -177,9 +173,7 @@ public class QLookupTableMapping
         return base.and(right);
     }
 
-    private <R> SQLQuery<R> pagingAndOrdering(SQLQuery<R> query,
-            RelationalValueSearchQuery queryDef, QLookupTableRowMapping rowMapping, QLookupTableRow alias)
-            throws QueryException {
+    private <R> SQLQuery<R> pagingAndOrdering(SQLQuery<R> query, RelationalValueSearchQuery queryDef, QLookupTableRowMapping rowMapping, QLookupTableRow alias) throws QueryException {
         if (queryDef != null && queryDef.getPaging() != null) {
             var paging = queryDef.getPaging();
             if (paging.getOffset() != null) {
@@ -190,11 +184,12 @@ public class QLookupTableMapping
             }
             for (ObjectOrdering ordering : paging.getOrderingInstructions()) {
                 Order direction = ordering.getDirection() == OrderDirection.DESCENDING ? Order.DESC : Order.ASC;
-                if (ordering.getOrderBy() == null || !ordering.getOrderBy().isSingleName()) {
-                    throw new SystemException("Only single name order path is supported, used path: " + ordering.getOrderBy());
+                var mapper = rowMapping.itemMapper(ordering.getOrderBy().firstToQName());
+                if (mapper == null) {
+                    throw new QueryException("Incorrect orderBy path " + ordering.getOrderBy());
                 }
                 @SuppressWarnings("rawtypes")
-                Expression path = rowMapping.itemMapper(ordering.getOrderBy().firstToQName()).primaryPath(alias, null);
+                Expression path = mapper.primaryPath(alias, null);
                 if (ItemPath.equivalent(LookupTableRowType.F_LABEL, ordering.getOrderBy())) {
                     // old repository uses normalized form for ordering
                     path = alias.labelNorm;
