@@ -12,12 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.delta.item.SinglePathItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
-import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -50,11 +47,7 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
         // OWNER_OID does not need to be mapped, it is handled by InOidFilterProcessor
-        // CID is not mapped directly, it is used by path resolver elsewhere
-        addItemMapping(PrismConstants.T_ID, new SqaleItemSqlMapper<>(
-                ctx -> new SimpleItemFilterProcessor<>(ctx, p -> p.cid ),
-                ctx -> new SinglePathItemDeltaProcessor<>(ctx, p -> p.cid),
-                p -> p.cid));
+        addItemMapping(PrismConstants.T_ID, longMapper(p -> p.cid));
     }
 
     /**
