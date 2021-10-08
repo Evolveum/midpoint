@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -80,7 +83,21 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
         });
         parametersPanel.add(relationContainer);
 
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, relationConfig.getDefaultValue(), relationConfig.getSupportedRelations(), false));
+        relationContainer.add(new RelationDropDownChoicePanel(
+                ID_RELATION, getDefaultRelation(), relationConfig.getSupportedRelations(), false));
+    }
+
+    private QName getDefaultRelation() {
+        QName relation = relationConfig.getDefaultValue();
+        if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
+            QName defRelation = WebComponentUtil.getDefaultRelation();
+            if (relationConfig.getSupportedRelations().contains(defRelation)) {
+                relation = defRelation;
+            } else {
+                relation = relationConfig.getSupportedRelations().iterator().next();
+            }
+        }
+        return relation;
     }
 
     protected ObjectDelta prepareDelta() {
