@@ -1,9 +1,7 @@
-= Using Native Repository (new)
+= Using Native PostgreSQL Repository
 :page-toc: top
-
-++++
-{% include since.html since="4.4" %}
-++++
+:page-nav-title: Usage
+:page-since: "4.4"
 
 == Changes from old to new repository
 
