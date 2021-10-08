@@ -273,7 +273,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 : null;
 
         ItemSqlMapper<CQ, CR> mapper = mapping.itemMapper(first);
-        return mapper.itemOrdering(context.path(), definition);
+        return mapper.primaryPath(context.path(), definition);
     }
 
     /**

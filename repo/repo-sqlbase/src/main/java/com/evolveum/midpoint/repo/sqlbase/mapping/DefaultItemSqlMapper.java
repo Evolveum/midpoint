@@ -64,7 +64,7 @@ public class DefaultItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
-    public @Nullable Path<?> itemOrdering(Q root, ItemDefinition<?> unused) {
+    public @Nullable Path<?> primaryPath(Q root, ItemDefinition<?> unused) {
         return primaryItemMapping != null ? primaryItemMapping.apply(root) : null;
     }
 
